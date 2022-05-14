@@ -70,91 +70,6 @@ char *psource;          /* the string parsed by PARSE SOURCE */
 /* Starting REXX */
 
 static int rexxdepth=0; /* nesting level of RexxStart() */
-static char rxque[maxvarname]; /* where to find rxque */
-static char rxstackholder[128];/* to hold the output of "rxque" */
-/* the following structure mirrors struct sockaddr, but has a longer name
-   field.  It is to contain the file name of the stack socket. */
-static struct {u_short af;char name[maxvarname];} rxsockname={AF_UNIX};
-static int rxsocklen;          /* the length of the above structure */
-static int rxstackproc=0;      /* the process number of "rxque" */
-
-static void stackinit(rxpathname) /* sets up the stack */
-char *rxpathname;                 /* argv[0], if supplied */
-{
-   char *rxstackname=getenv("RXSTACK");
-   char *imcpath=getenv("REXXIMC");
-   static char _rxpath[maxvarname];
-   int f,l;
-   char *basename;
-   int pipefd[2];
-   char *answer;
-/* Construct the REXX auxiliary file path names if necessary */
-   if(!rxque[0]){
-      strcpy(rxque,imcpath?imcpath:REXXIMC); /* use $REXXIMC if possible, */
-      l=strlen(rxque);                       /* otherwise the REXXIMC macro */
-      rxque[l++]='/';
-      strcpy(rxque+l,rxquename);
-      if(access(rxque,X_OK)){                /* rxque does not exist. */
-         l=0;
-         if(rxpathname && strchr(rxpathname,'/')){/* Try some other directory */
-            strcpy(rxque,rxpathname);        /* for instance our path name */
-            basename=strrchr(rxque,'/')+1;
-            strcpy(basename,rxquename);
-            if(!access(rxque,X_OK))l=basename-rxque;
-         }
-         if(!l){                             /* OK, now try the entire path! */
-            if(!which(rxquename,-1,rxque)){
-               fprintf(stderr,"Unable to find \'%s\'\n",rxquename);
-               die(Einit);
-            }
-            l=strrchr(rxque,'/')+1-rxque;
-         }
-      }
-      /* libraries: if REXXLIB not set then the default is the compiled-in
-         value, if any, otherwise the same place where rxque was found. */
-#ifdef REXXLIB
-      if (REXXLIB[0]) rxpath=REXXLIB;
-      else
-#endif
-      {
-         rxpath=_rxpath;
-         memcpy(rxpath,rxque,l);
-         rxpath[l-1]=0;
-      }
-   }
-/* open the stack */
-   if(!rxstackname || !*rxstackname){ /* it doesn't exist already, so fork off "rxque" */
-      if(pipe(pipefd))perror("pipe"),die(Einit);
-      if((f=vfork())<0)perror("vfork"),die(Einit);
-      if(!f){  /* the child: attach pipe to stdout and exec rxque */
-         close(pipefd[0]);
-         if(dup2(pipefd[1],1)<0)perror("dup2"),_exit(-1);
-         close(pipefd[1]);
-         execl(rxque,"rxque",cnull);
-         perror(rxque);
-         _exit(-1);
-      } /* now the parent: read from pipe into rxstackholder. The answer
-            should be RXSTACK=(name) RXSTACKPROC=(number).  Split off the
-            second token, search for "=", store number in rxstackproc, and
-            put RXSTACK into the environment. */
-      close(pipefd[1]);
-      if(read(pipefd[0],rxstackholder,sizeof rxstackholder)<20
-       ||!(answer=strchr(rxstackholder,' '))
-       ||!(answer[0]=0,answer=strchr(answer+1,'='))
-       ||!(rxstackproc=atoi(answer+1)))
-         fputs("Cannot create stack process\n",stderr),die(Einit);
-      close(pipefd[0]);
-      rxstackname=strchr(rxstackholder,'=')+1;
-      putenv(rxstackholder);
-      wait((int*)0);     /* delete child from process table */
-   }  /* The stack exists. Open a socket to it. */
-   strcpy(rxsockname.name,rxstackname),
-   rxsocklen=sizeof(u_short)+strlen(rxstackname);
-   if((rxstacksock=socket(AF_UNIX,SOCK_STREAM,0))<0)
-      perror("REXX: couldn't make socket"),die(Einit);
-   if(connect(rxstacksock,(struct sockaddr *)&rxsockname,rxsocklen)<0)
-      perror("REXX: couldn't connect socket"),die(Einit);
-}
 
 static void rexxterm(old)        /* Destroy the REXX data structures */
 struct status *old;
@@ -363,7 +278,7 @@ PRXSTRING result;
 /* Initialise all the global variables */
    if (traceout==0) traceout=stderr;
    if(rexxdepth==0){
-      stackinit(argv0);
+
       varstk=(int *)allocm(varstklen=256),
       varstkptr=0,
       varstk[0]=varstk[1]=0,
@@ -493,27 +408,7 @@ PRXSTRING result;
 RexxEnd:
    if(arglist)free(arglist);
    if(arglens)free(arglens);
-   if(!(rexxdepth=olddepth)){
-      if(rxstackproc){
-#ifdef STUFF_STACK
-         while(flags&RXMAIN){ /* either nop or infinite loop */
-            if(i || write(rxstacksock,"G",1)<1 || /* don't copy if an error */
-                    read(rxstacksock,pull,7)<7 || /* has occurred or the    */
-                    !memcmp(pull,"FFFFFF",6)) break; /* stack is empty      */
-            sscanf(pull,"%x",&l);
-            while(l--&&
-                  read(rxstacksock,pull,1) &&
-                  0==ioctl(fileno(ttyin),TIOCSTI,pull)); /* Stuff one character */
-            if(l>=0)break;
-            pull[0]='\n';               /* a return at the end of each line */
-            if(ioctl(fileno(ttyin),TIOCSTI,pull)) break;
-         }
-#endif
-         kill(rxstackproc,SIGTERM);
-         putenv("RXSTACK=");
-      }
-      close(rxstacksock);
-   }
+
    rexxterm(&old);   /* put everything back as it was */
    /* restore signal handlers to their previous values */
    signal(SIGINT,sigint);
