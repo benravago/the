@@ -15,7 +15,7 @@
 #include<stdio.h>
 #endif
 #ifndef Einit
-#include"const.h"
+#include "const.h"
 #endif
 
 

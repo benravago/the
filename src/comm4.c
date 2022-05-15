@@ -119,12 +119,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Popup(CHARTYPE *params)
-#else
-short Popup(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -207,12 +202,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Preserve(CHARTYPE *params)
-#else
-short Preserve(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -254,12 +244,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Prevwindow(CHARTYPE *params)
-#else
-short Prevwindow(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -370,12 +355,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Print(CHARTYPE *params)
-#else
-short Print(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define PRT_PARAMS  2
@@ -386,24 +366,13 @@ CHARTYPE *params;
    short rc=RC_OK;
    long target_type=TARGET_NORMAL|TARGET_ALL|TARGET_BLOCK_CURRENT|TARGET_SPARE;
    TARGET target;
-  #if defined(UNIX)
    CHARTYPE *line_term = (CHARTYPE *)"\n";
-  #else
-   CHARTYPE *line_term = (CHARTYPE *)"\n\r";
-  #endif
 
    TRACE_FUNCTION("comm4.c:   Print");
    /*
     * Under Win32, startup the printing system, the first time this
     * command is called. This makes startup of THE faster.
     */
-#if defined(WIN32) && !defined(__CYGWIN32__)
-   if (!StartedPrinter)
-   {
-      StartTextPrnt();
-      StartedPrinter = TRUE;
-   }
-#endif
    /*
     * Split parameters up...
     */
@@ -522,12 +491,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Put(CHARTYPE *params)
-#else
-short Put(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -569,12 +533,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Putd(CHARTYPE *params)
-#else
-short Putd(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -609,12 +568,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Qquit(CHARTYPE *params)
-#else
-short Qquit(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION( "comm4.c:   Qquit" );
@@ -659,12 +613,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Query(CHARTYPE *params)
-#else
-short Query(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define QUE_PARAMS  2
@@ -749,12 +698,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Quit(CHARTYPE *params)
-#else
-short Quit(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("comm4.c:   Quit");
@@ -845,12 +789,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Readv(CHARTYPE *params)
-#else
-short Readv(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define REA_PARAMS  2
@@ -882,11 +821,6 @@ CHARTYPE *params;
 
    getyx( CURRENT_WINDOW, y, x );
    (void)THERefresh( (CHARTYPE *)"" );
-#if defined(USE_EXTCURSES)
-   getyx( CURRENT_WINDOW, y, x );
-   wmove( CURRENT_WINDOW, y, x );
-   wrefresh( CURRENT_WINDOW );
-#endif
    if ( equal( (CHARTYPE *)"key", word[0], 3) )
    {
       /*
@@ -975,12 +909,7 @@ SEE ALSO
 STATUS
      InComplete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THERecord(CHARTYPE *params)
-#else
-short THERecord(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define RECD_PARAMS  2
@@ -1101,12 +1030,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Recover(CHARTYPE *params)
-#else
-short Recover(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define REC_PARAMS  2
@@ -1175,12 +1099,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Redit(CHARTYPE *params)
-#else
-short Redit(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc;
@@ -1269,12 +1188,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Redraw(CHARTYPE *params)
-#else
-short Redraw(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("comm4.c:   Redraw");
@@ -1314,12 +1228,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THERefresh(CHARTYPE *params)
-#else
-short THERefresh(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    bool save_in_macro=in_macro;
@@ -1356,13 +1265,11 @@ CHARTYPE *params;
    {
       display_filetabs( NULL );
    }
-#if defined(HAVE_SLK_INIT)
    if ( max_slk_labels )
    {
       slk_touch();
       slk_noutrefresh();
    }
-#endif
 
    CURRENT_VIEW->current_row = calculate_actual_row(CURRENT_VIEW->current_base, CURRENT_VIEW->current_off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE);
    build_screen( (CHARTYPE)(current_screen) );
@@ -1424,12 +1331,7 @@ COMPATIBILITY
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Repeat(CHARTYPE *params)
-#else
-short Repeat(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    LINETYPE num_lines=0L;
@@ -1506,12 +1408,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Replace(CHARTYPE *params)
-#else
-short Replace(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    LENGTHTYPE len_params=0;
@@ -1606,12 +1503,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Reset(CHARTYPE *params)
-#else
-short Reset(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define RES_PARAMS  1
@@ -1697,12 +1589,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Restore(CHARTYPE *params)
-#else
-short Restore(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1742,19 +1629,12 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THERexx(CHARTYPE *params)
-#else
-short THERexx(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
 
    TRACE_FUNCTION("comm4.c:   THERexx");
-#ifdef NOREXX
-#else
    if (rexx_support)
    {
       short macrorc=0;
@@ -1786,7 +1666,6 @@ CHARTYPE *params;
          display_screen(current_screen);
       }
    }
-#endif
    TRACE_RETURN();
    return(rc);
 }
@@ -1816,12 +1695,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Rgtleft(CHARTYPE *params)
-#else
-short Rgtleft(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1892,12 +1766,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Right(CHARTYPE *params)
-#else
-short Right(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1971,12 +1840,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Save(CHARTYPE *params)
-#else
-short Save(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2042,12 +1906,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Schange(CHARTYPE *params)
-#else
-short Schange(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2095,12 +1954,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THESearch(CHARTYPE *params)
-#else
-short THESearch(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2147,12 +2001,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Set(CHARTYPE *params)
-#else
-short Set(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2180,12 +2029,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Shift(CHARTYPE *params)
-#else
-short Shift(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define SHI_PARAMS  3
@@ -2315,12 +2159,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short ShowKey(CHARTYPE *params)
-#else
-short ShowKey(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    int key=0;
@@ -2352,10 +2191,6 @@ CHARTYPE *params;
             }
 #endif
             key = my_getch( CURRENT_WINDOW );
-#if defined(USE_XCURSES)
-            if (key == KEY_SF || key == KEY_SR)
-               continue;
-#endif
 #ifdef CAN_RESIZE
             if (is_termresized())
                continue;
@@ -2436,12 +2271,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Sort(CHARTYPE *params)
-#else
-short Sort(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2477,12 +2307,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Sos(CHARTYPE *params)
-#else
-short Sos(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define SOS_PARAMS  10
@@ -2555,12 +2380,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Split(CHARTYPE *params)
-#else
-short Split(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define SPT_PARAMS  2
@@ -2662,12 +2482,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Spltjoin(CHARTYPE *params)
-#else
-short Spltjoin(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2705,12 +2520,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Ssave(CHARTYPE *params)
-#else
-short Ssave(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2763,12 +2573,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Status(CHARTYPE *params)
-#else
-short Status(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2795,10 +2600,6 @@ CHARTYPE *params;
             }
 #endif
             key = my_getch( stdscr );
-#if defined(USE_XCURSES)
-            if ( key == KEY_SF || key == KEY_SR )
-               continue;
-#endif
 #if defined(KEY_MOUSE)
             if ( key == KEY_MOUSE )
                continue;
@@ -2847,18 +2648,11 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Suspend(CHARTYPE *params)
-#else
-short Suspend(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
-#if defined(UNIX) && !defined(USE_XCURSES) && !defined(USE_SDLCURSES)
    void (*func)(int);
-#endif
 
    TRACE_FUNCTION("comm4.c:   Suspend");
    if (strcmp((DEFCHAR *)params,"") != 0)
@@ -2867,7 +2661,6 @@ CHARTYPE *params;
       TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
-#if defined(UNIX) && !defined(USE_XCURSES) && !defined(USE_SDLCURSES)
    if (strcmp("/bin/sh",getenv("SHELL")) == 0)
    {
       display_error(40,(CHARTYPE *)"",FALSE);
@@ -2880,9 +2673,6 @@ CHARTYPE *params;
    signal(SIGTSTP,func);
    resume_curses();
    Redraw((CHARTYPE *)"");
-#else
-   rc = execute_os_command(params,FALSE,FALSE);
-#endif
    TRACE_RETURN();
    return(rc);
 }

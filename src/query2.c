@@ -38,7 +38,6 @@
 
 #include <query.h>
 
-#ifdef HAVE_PROTO
 short extract_point_settings(short,CHARTYPE *);
 short extract_prefix_settings(short,CHARTYPE *,CHARTYPE);
 short extract_colour_settings(short,CHARTYPE *,CHARTYPE,CHARTYPE *,bool,bool);
@@ -48,16 +47,6 @@ short set_boolean_value(bool flag, short num);
 short set_on_off_value(bool flag, short num);
 void set_key_values(int key, bool mouse_key);
 THE_PPC *in_range( THE_PPC *found_ppc, THE_PPC *curr_ppc, LINETYPE first_in_range, LINETYPE last_in_range );
-#else
-short extract_point_settings();
-short extract_prefix_settings();
-short extract_autocolour_settings();
-void get_etmode();
-short set_boolean_value();
-short set_on_off_value();
-void set_key_values();
-THE_PPC *in_range();
-#endif
 
 extern CHARTYPE _THE_FAR *block_name[];
 
@@ -73,33 +62,13 @@ extern CHARTYPE query_rsrvd[MAX_FILE_NAME+100];
 static LINE *curr;
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_macro(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_macro(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->macro,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_macroext(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_macroext(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if (strlen((DEFCHAR *)macro_suffix) == 0)
@@ -110,17 +79,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_macropath(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_macropath(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)the_macro_path;
@@ -128,17 +87,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_margins(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_margins(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%ld",CURRENT_VIEW->margin_left);
@@ -156,17 +105,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_modifiable_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_modifiable_function(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    bool bool_flag=FALSE;
@@ -195,17 +134,7 @@ LINETYPE arglen;
    return set_boolean_value((bool)bool_flag,(short)1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_monitor(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_monitor(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
 #ifdef A_COLOR
@@ -230,33 +159,13 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_mouse(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_mouse(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(MOUSEx,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_msgline(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_msgline(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)"ON";
@@ -280,17 +189,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_msgmode(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_msgmode(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    set_on_off_value( CURRENT_VIEW->msgmode_status, 1 );
@@ -299,17 +198,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_nbfile(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_nbfile(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%ld",number_of_files);
@@ -318,17 +207,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_nbscope(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_nbscope(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    LINETYPE number_lines = 0;
@@ -358,17 +237,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_newlines(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_newlines(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if (CURRENT_VIEW->newline_aligned)
@@ -384,17 +253,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_nondisp(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_nondisp(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    query_num1[0] = NONDISPx;
@@ -404,49 +263,19 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_number(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_number(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->number,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_pagewrap(short pagewrap_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_pagewrap(pagewrap_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short pagewrap_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(PAGEWRAPx,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_parser(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_parser(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -551,17 +380,7 @@ LINETYPE arglen;
 */
 /***********************************************************************/
 
-#ifdef HAVE_PROTO
 short extract_pending(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_pending(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
 #define PEN_PARAMS  6
@@ -852,17 +671,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_point(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_point(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    LINETYPE true_line=0;
@@ -907,17 +716,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_position(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_position(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    LINETYPE true_line=0;
@@ -942,17 +741,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_prefix(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_prefix(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    /*
@@ -1006,17 +795,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_printer(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_printer(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)spooler_name;
@@ -1024,17 +803,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_profile(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_profile(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if ( local_prf == NULL )
@@ -1050,17 +819,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_pscreen(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_pscreen(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    item_values[1].len = sprintf( (DEFCHAR *)query_num1,"%d",LINES );
@@ -1070,33 +829,13 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_reprofile(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_reprofile(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(REPROFILEx,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_readonly(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_readonly(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if ( READONLYx == READONLY_FORCE )
@@ -1117,17 +856,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_regexp(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_regexp(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    int i;
@@ -1144,17 +873,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_readv(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_readv(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    int key=0;
@@ -1212,17 +931,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_reserved(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_reserved(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    bool line_numbers_only=TRUE;
@@ -1311,17 +1020,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_rexx(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_rexx(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    item_values[1].value = get_rexx_interpreter_version(query_rsrvd);
@@ -1329,17 +1028,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_rexxhalt(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_rexxhalt(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if ( COMMANDCALLSx == 0 )
@@ -1365,17 +1054,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_rexxoutput(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_rexxoutput(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if (CAPREXXOUTx)
@@ -1394,17 +1073,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_rightedge_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_rightedge_function(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    short y=0,x=0;
@@ -1419,17 +1088,7 @@ LINETYPE arglen;
    return set_boolean_value((bool)(CURRENT_VIEW->current_window == WINDOW_FILEAREA && x == getmaxx(CURRENT_WINDOW)-1),(short)1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_ring(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_ring(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    VIEW_DETAILS *curr;
@@ -1535,17 +1194,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_scale(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_scale(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    set_on_off_value(CURRENT_VIEW->scale_on,1);
@@ -1558,17 +1207,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_scope(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_scope(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if (CURRENT_VIEW->scope_all)
@@ -1584,17 +1223,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_screen(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_screen(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%d",display_screens);
@@ -1613,17 +1242,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_select(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_select(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    LINE *curr=NULL;
@@ -1649,33 +1268,13 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_shadow(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_shadow(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->shadow,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_shadow_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_shadow_function(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    bool bool_flag=FALSE;
@@ -1702,17 +1301,7 @@ LINETYPE arglen;
    return set_boolean_value((bool)bool_flag,(short)1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_shift_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_shift_function(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    int shift=0;
@@ -1721,17 +1310,7 @@ LINETYPE arglen;
    return set_boolean_value((bool)(shift & SHIFT_SHIFT),(short)1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_showkey(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_showkey(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    int key=0;
@@ -1750,17 +1329,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_size(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_size(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%ld",CURRENT_FILE->number_lines);
@@ -1769,25 +1338,13 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_slk( short number_variables, short itemno, CHARTYPE *itemargs, CHARTYPE query_type, LINETYPE argc, CHARTYPE *arg, LINETYPE arglen )
-#else
-short extract_slk( number_variables, itemno, itemargs, query_type, argc, arg, arglen )
-short number_variables;
-short itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    int off=0;
    int item;
 
    TRACE_FUNCTION("query.c:   extract_slk");
-#if defined(HAVE_SLK_INIT)
    if ( blank_field( itemargs ) )
    {
       if ( max_slk_labels == 0
@@ -1885,26 +1442,12 @@ LINETYPE arglen;
          number_variables = EXTRACT_ARG_ERROR;
       }
    }
-#else
-   display_error(82,(CHARTYPE*)"SLK",FALSE);
-   number_variables = EXTRACT_ARG_ERROR;
-#endif
 
    TRACE_RETURN();
    return(number_variables);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_spacechar_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_spacechar_function(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    CHARTYPE cursor_char=0;
@@ -1915,25 +1458,11 @@ LINETYPE arglen;
       item_values[1].len = 1;
       return 1;
    }
-#ifdef VMS
-   cursor_char = (CHARTYPE)( winch( CURRENT_WINDOW ) );
-#else
    cursor_char = (CHARTYPE)( winch( CURRENT_WINDOW ) & A_CHARTEXT );
-#endif
    return set_boolean_value((bool)(cursor_char == ' '),(short)1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_statopt(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_statopt(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2031,17 +1560,7 @@ LINETYPE arglen;
    return rc;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_statusline(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_statusline(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    switch(STATUSLINEx)
@@ -2066,34 +1585,13 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_stay(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_stay(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->stay,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_synelem( short number_variables, short itemno, CHARTYPE *itemargs, CHARTYPE query_type, LINETYPE argc, CHARTYPE *arg, LINETYPE arglen )
-#else
-short extract_synelem( number_variables, itemno, itemargs, query_type, argc, arg, arglen )
-short number_variables;
-short itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    unsigned short y=0,x=0;
@@ -2294,18 +1792,7 @@ LINETYPE arglen;
    return(number_variables);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_synonym( short number_variables, short itemno, CHARTYPE *itemargs, CHARTYPE query_type, LINETYPE argc, CHARTYPE *arg, LINETYPE arglen )
-#else
-short extract_synonym( number_variables, itemno, itemargs, query_type, argc, arg, arglen )
-short number_variables;
-short itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    int off=0;
@@ -2405,17 +1892,7 @@ LINETYPE arglen;
    return(number_variables);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_tabkey(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_tabkey(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if (tabkey_overwrite == 'T')
@@ -2441,17 +1918,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_tabline(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_tabline(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    set_on_off_value(CURRENT_VIEW->tab_on,1);
@@ -2464,17 +1931,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_tabs(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_tabs(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    register int i=0;
@@ -2500,17 +1957,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_tabsin(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_tabsin(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    set_on_off_value(TABI_ONx,1);
@@ -2520,17 +1967,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_tabsout(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_tabsout(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    set_on_off_value(CURRENT_FILE->tabsout_on,1);
@@ -2540,17 +1977,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_targetsave(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_targetsave(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    int len=0;
@@ -2591,17 +2018,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_terminal(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_terminal(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    item_values[1].value = term_name;
@@ -2610,97 +2027,37 @@ LINETYPE arglen;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_thighlight(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_thighlight(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->thighlight_on,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_timecheck(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_timecheck(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_FILE->timecheck,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_tof(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_tof(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value((bool)CURRENT_TOF,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_tofeof(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_tofeof(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->tofeof,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_tof_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_tof_function(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_boolean_value((bool)(FOCUS_TOF && CURRENT_VIEW->current_window != WINDOW_COMMAND),(short)1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_topedge_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_topedge_function(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    short y=0,x=0;
@@ -2715,17 +2072,7 @@ LINETYPE arglen;
    return set_boolean_value((bool)(CURRENT_VIEW->current_window == WINDOW_FILEAREA && y == 0),(short)1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_trailing(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_trailing(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    switch( CURRENT_FILE->trailing )
@@ -2756,101 +2103,43 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_typeahead(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_typeahead(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(TYPEAHEADx,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_ui(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_ui(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
-#if defined(USE_XCURSES) || defined(PDCURSES)
-# if defined(HAVE_CURSES_VERSION)
+#if defined(PDCURSES)
    sprintf((DEFCHAR *)query_rsrvd,"%s Build: %d", curses_version(), PDC_BUILD);
-# else
-   sprintf((DEFCHAR *)query_rsrvd,"PDCurses Build: %d", PDC_BUILD);
-# endif
-#elif defined(USE_NCURSES)
+#else
 # if NCURSES_VERSION_MAJOR > 4
    sprintf((DEFCHAR *)query_rsrvd,"%s", curses_version());
 # else
    strcpy((DEFCHAR *)query_rsrvd,NCURSES_VERSION);
 # endif
-#elif defined(USE_EXTCURSES)
-   sprintf((DEFCHAR *)query_rsrvd,"Extended Curses");
-#else
-   sprintf((DEFCHAR *)query_rsrvd,"Standard Curses");
 #endif
    item_values[1].value = query_rsrvd;
    item_values[1].len = strlen((DEFCHAR *)query_rsrvd);
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_undoing(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_undoing(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_FILE->undoing,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_untaa(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_untaa(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(UNTAAx,1);
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_utf8(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_utf8(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
 #ifdef USE_UTF8
@@ -2860,17 +2149,7 @@ LINETYPE arglen;
 #endif
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_verify(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_verify(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num3,"%ld %ld",CURRENT_VIEW->verify_start,CURRENT_VIEW->verify_end);
@@ -2879,17 +2158,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_vershift(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_vershift(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    sprintf((DEFCHAR *)query_rsrvd,"%ld",(LINETYPE)CURRENT_VIEW->verify_col - (LINETYPE)CURRENT_VIEW->verify_start);
@@ -2898,33 +2167,13 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_verone_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_verone_function(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_boolean_value((bool)(CURRENT_VIEW->verify_col == 1),(short)1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_version(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_version(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)"THE";
@@ -2942,29 +2191,11 @@ LINETYPE arglen;
    item_values[3].value = (CHARTYPE *)"DOS";
 # endif
 #endif
-#if defined(OS2)
-# if defined(EMX)
-   if (_osmode == DOS_MODE)
-      item_values[3].value = (CHARTYPE *)"DOS";
-   else
-      item_values[3].value = (CHARTYPE *)"OS2";
-#else
-   item_values[3].value = (CHARTYPE *)"OS2";
-# endif
-#endif
-#if defined(UNIX)
 # if defined(__QNX__)
    item_values[3].value = (CHARTYPE *)"QNX";
 # else
    item_values[3].value = (CHARTYPE *)"UNIX";
 # endif
-#endif
-#if defined(USE_XCURSES)
-   item_values[3].value = (CHARTYPE *)"X11";
-#endif
-#if defined(USE_SDLCURSES)
-   item_values[3].value = (CHARTYPE *)"SDL";
-#endif
 #if defined(MSWIN)
    item_values[3].value = (CHARTYPE *)"MS-WINDOWS";
 #endif
@@ -2973,9 +2204,6 @@ LINETYPE arglen;
 #endif
 #if defined(_WIN64)
    item_values[3].value = (CHARTYPE *)"WIN64";
-#endif
-#if defined(AMIGA)
-   item_values[3].value = (CHARTYPE *)"AMIGA";
 #endif
 #if defined(__BEOS__)
    item_values[3].value = (CHARTYPE *)"BEOS";
@@ -2992,17 +2220,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_width(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_width(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%ld",max_line_length);
@@ -3011,17 +2229,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_word(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_word(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    if (CURRENT_VIEW->word == 'A')
@@ -3037,49 +2245,19 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_wordwrap(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_wordwrap(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->wordwrap,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_wrap(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_wrap(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->wrap,1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_xterminal(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_xterminal(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    item_values[1].value = xterm_program;
@@ -3087,17 +2265,7 @@ LINETYPE arglen;
    return number_variables;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short extract_zone(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-#else
-short extract_zone(number_variables,itemno,itemargs,query_type,argc,arg,arglen)
-short number_variables,itemno;
-CHARTYPE *itemargs;
-CHARTYPE query_type;
-LINETYPE argc;
-CHARTYPE *arg;
-LINETYPE arglen;
-#endif
 /***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%ld",CURRENT_VIEW->zone_start);

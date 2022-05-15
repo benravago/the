@@ -33,9 +33,6 @@
 $Id: key.h,v 1.9 2019/09/08 04:08:19 mark Exp $
 */
 
-#if defined(USE_EXTCURSES)
-# include <cur02.h>
-#endif
 
 #include "getch.h"
 
@@ -224,7 +221,7 @@ KEYS key_table[] =
   {(CHARTYPE *)"ENTER",KEY_RETURN ,0},
   {(CHARTYPE *)"ENTER",KEY_ENTER,0},
 
-#if defined(DOS) || defined(OS2) || defined(WIN32) || defined(USE_XCURSES) || defined(USE_SDLCURSES)
+#if defined(DOS)
 /* normal characters */
   {(CHARTYPE *)"CURU",KEY_CURU,0},
   {(CHARTYPE *)"CURD",KEY_CURD,0},
@@ -385,31 +382,9 @@ KEYS key_table[] =
   {(CHARTYPE *)"A-NUM7",ALT_PAD7,SHIFT_ALT},
   {(CHARTYPE *)"A-NUM8",ALT_PAD8,SHIFT_ALT},
   {(CHARTYPE *)"A-NUM9",ALT_PAD9,SHIFT_ALT},
-# if defined(USE_XCURSES)
-  {(CHARTYPE *)"S-TAB",KEY_BTAB,SHIFT_SHIFT},
-  {(CHARTYPE *)"S-INS",KEY_SIC,SHIFT_SHIFT},
-  {(CHARTYPE *)"S-DEL",KEY_SDC,SHIFT_SHIFT},
-  {(CHARTYPE *)"SELECT",KEY_SELECT,0},
-  {(CHARTYPE *)"PRINT",KEY_PRINT,0},
-  {(CHARTYPE *)"S-PRINT",KEY_SPRINT,SHIFT_SHIFT},
-  {(CHARTYPE *)"FIND",KEY_FIND,0},
-  {(CHARTYPE *)"S-FIND",KEY_SFIND,SHIFT_SHIFT},
-  {(CHARTYPE *)"SUSPEND",KEY_SUSPEND,0},
-  {(CHARTYPE *)"S-SUSPEND",KEY_SSUSPEND,SHIFT_SHIFT},
-  {(CHARTYPE *)"CLEAR",KEY_CLEAR,0},
-  {(CHARTYPE *)"OPTIONS",KEY_OPTIONS,0},
-  {(CHARTYPE *)"S-OPTIONS",KEY_SOPTIONS,SHIFT_SHIFT},
-  {(CHARTYPE *)"BREAK",KEY_BREAK,0},
-  {(CHARTYPE *)"CANCEL",KEY_CANCEL,0},
-  {(CHARTYPE *)"S-CANCEL",KEY_SCANCEL,SHIFT_SHIFT},
-  {(CHARTYPE *)"HELP"       ,KEY_HELP,0},
-  {(CHARTYPE *)"S-HELP"     ,KEY_SHELP,SHIFT_SHIFT},
-  {(CHARTYPE *)"C-HELP"     ,KEY_LHELP,SHIFT_CTRL},
-# else
   {(CHARTYPE *)"S-TAB",KEY_S_TAB,SHIFT_SHIFT},
   {(CHARTYPE *)"S-INS",KEY_S_INS,SHIFT_SHIFT},
   {(CHARTYPE *)"S-DEL",KEY_S_DEL,SHIFT_SHIFT},
-# endif
 # ifdef KEY_SHIFT_L
   {(CHARTYPE *)"SHIFT-L",KEY_SHIFT_L,SHIFT_MODIFIER_ONLY},
 # endif
@@ -457,13 +432,8 @@ KEYS key_table[] =
   {(CHARTYPE *)"SELECT"   ,KEY_Select,0},
   {(CHARTYPE *)"PGUP"     ,KEY_PrevScreen,0},
   {(CHARTYPE *)"PGDN"     ,KEY_NextScreen,0},
-#if defined(USE_EXTCURSES)
-  {(CHARTYPE *)"TAB"      ,KEY_TAB,0},
-  {(CHARTYPE *)"ENTER"    ,KEY_NEWL,0},
-#else
   {(CHARTYPE *)"TAB"      ,KEY_C_i,0},
   {(CHARTYPE *)"RETURN"   ,KEY_RETURN,0},
-#endif
   {(CHARTYPE *)"CSI"      ,CSI,0},
   {(CHARTYPE *)"BREAK"    ,KEY_BREAK ,0},
   {(CHARTYPE *)"DL"       ,KEY_DL,0},

@@ -82,12 +82,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Define(CHARTYPE *params)
-#else
-short Define(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define DEF_PARAMS  2
@@ -223,12 +218,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short DeleteLine(CHARTYPE *params)
-#else
-short DeleteLine(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    LINETYPE start_line=0L,end_line=0L,dest_line=0L,lines_affected=0L;
@@ -381,12 +371,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Dialog(CHARTYPE *params)
-#else
-short Dialog(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -421,12 +406,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Directory(CHARTYPE *params)
-#else
-short Directory(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #if !defined(MULTIPLE_PSEUDO_FILES)
@@ -627,12 +607,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Duplicate(CHARTYPE *params)
-#else
-short Duplicate(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define DUP_PARAMS  2
@@ -821,12 +796,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THEEditv(CHARTYPE *params)
-#else
-short THEEditv(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define EDITV_PARAMS  2
@@ -955,12 +925,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Emsg(CHARTYPE *params)
-#else
-short Emsg(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("comm2.c:   Emsg");
@@ -1001,12 +966,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Enter(CHARTYPE *params)
-#else
-short Enter(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    unsigned short x=0,y=0;
@@ -1094,12 +1054,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Expand(CHARTYPE *params)
-#else
-short Expand(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1133,12 +1088,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Extract(CHARTYPE *params)
-#else
-short Extract(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -1279,12 +1229,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Ffile(CHARTYPE *params)
-#else
-short Ffile(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1336,12 +1281,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short File(CHARTYPE *params)
-#else
-short File(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1388,12 +1328,7 @@ COMPATIBILITY
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Fillbox(CHARTYPE *params)
-#else
-short Fillbox(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    int key=0;
@@ -1494,12 +1429,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Find(CHARTYPE *params)
-#else
-short Find(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1537,12 +1467,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Findup(CHARTYPE *params)
-#else
-short Findup(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1587,12 +1512,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Forward(CHARTYPE *params)
-#else
-short Forward(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define FOR_PARAMS  2
@@ -1764,12 +1684,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Get(CHARTYPE *params)
-#else
-short Get(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define GET_PARAMS  3
@@ -1978,12 +1893,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Help(CHARTYPE *params)
-#else
-short Help(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    static bool first=TRUE;
@@ -2047,12 +1957,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Hit(CHARTYPE *params)
-#else
-short Hit(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define HIT_MOUSE_PARAMS  4
@@ -2141,12 +2046,7 @@ COMPATIBILITY
 STATUS
      Complete. Except for full input mode capability.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Input(CHARTYPE *params)
-#else
-short Input(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    LENGTHTYPE len_params=0;
@@ -2229,12 +2129,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Join(CHARTYPE *params)
-#else
-short Join(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define JOI_PARAMS  2

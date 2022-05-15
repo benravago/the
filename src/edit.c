@@ -39,11 +39,7 @@
 bool prefix_changed=FALSE;
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void editor(void)
-#else
-void editor()
-#endif
 /***********************************************************************/
 {
    short y=0,x=0;
@@ -86,13 +82,7 @@ void editor()
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 int process_key(int key, bool mouse_details_present)
-#else
-int process_key(key, mouse_details_present)
-int key;
-bool mouse_details_present;
-#endif
 /***********************************************************************/
 {
    unsigned short x=0,y=0;
@@ -100,11 +90,6 @@ bool mouse_details_present;
    CHARTYPE string_key[2];
 
    TRACE_FUNCTION("edit.c:    process_key");
-#if defined(USE_EXTCURSES)
-   getyx(CURRENT_WINDOW,y,x);
-   wmove(CURRENT_WINDOW,y,x);
-   wrefresh(CURRENT_WINDOW);
-#endif
    string_key[1] = '\0';
 
 #ifdef CAN_RESIZE
@@ -253,25 +238,13 @@ bool mouse_details_present;
       wnoutrefresh(CURRENT_WINDOW);
    }
 
-#ifdef HAVE_BROKEN_SYSVR4_CURSES
-   getyx(CURRENT_WINDOW,y,x);
-   wmove(CURRENT_WINDOW,y,x);
-   wrefresh(CURRENT_WINDOW);
-#else
    doupdate();
-#endif
    TRACE_RETURN();
    return(RC_OK);
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short EditFile(CHARTYPE *fn, bool external_command_line)
-#else
-short EditFile(fn, external_command_line)
-CHARTYPE *fn;
-bool external_command_line;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK,y=0,x=0;

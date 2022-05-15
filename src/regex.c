@@ -29,15 +29,7 @@
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 #include <sys/types.h>
 
-#ifdef HAVE_CONFIG_H
 # include "config.h"
-#else
-/*
- * assume some standard include files
- */
-# include <stdio.h>
-# include <stdlib.h>
-#endif
 
 /* The `emacs' switch turns on certain matching commands
    that make sense only in Emacs. */
@@ -54,7 +46,6 @@
 
 /* We used to test for `BSTRING' here, but only GCC and Emacs define
    `BSTRING', as far as I know, and neither of them use this code.  */
-#if HAVE_STRING_H || STDC_HEADERS
 #include <string.h>
 #ifndef bcmp
 #define bcmp(s1, s2, n) memcmp ((s1), (s2), (n))
@@ -65,13 +56,8 @@
 #ifndef bzero
 #define bzero(s, n)  memset ((s), 0, (n))
 #endif
-#else
-#include <strings.h>
-#endif
 
-#ifdef HAVE_STDLIB_H
 # include <stdlib.h>
-#endif
 
 
 /* Define the syntax stuff for \<, \>, etc.  */
@@ -196,20 +182,11 @@ init_syntax_once ()
 #ifdef __GNUC__
 #define alloca __builtin_alloca
 #else /* not __GNUC__ */
-#if HAVE_ALLOCA_H
 #include <alloca.h>
-#else /* not __GNUC__ or HAVE_ALLOCA_H */
-#ifndef _AIX /* Already did AIX, up at the top.  */
-char *alloca ();
-#endif /* not _AIX */
-#endif /* not HAVE_ALLOCA_H */
 #endif /* not __GNUC__ */
 
 #endif /* not alloca */
 
-#if defined(WIN32) && defined(_MSC_VER)
-# define alloca(x) _alloca(x)
-#endif
 
 #define REGEX_ALLOCATE alloca
 
@@ -4839,7 +4816,7 @@ re_compile_pattern (pattern, re_syntax_options, length, bufp)
 /* Entry points compatible with 4.2 BSD regex library.  We don't define
    them if this is an Emacs or POSIX compilation.  */
 
-#if !defined (emacs) && !defined (_POSIX_SOURCE)
+#if !defined (emacs)
 
 /* BSD has one and only one pattern buffer.  */
 static struct re_pattern_buffer re_comp_buf;

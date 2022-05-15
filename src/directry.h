@@ -218,139 +218,17 @@ $Id: directry.h,v 1.8 2013/01/23 04:13:42 mark Exp $
 # define YY_MASK(a) ((a->tm_year)+1900)
 #endif
 
-#if defined(OS2) && !defined(EMX)
-# define F_RO FILE_READONLY
-# define F_HI FILE_HIDDEN
-# define F_SY FILE_SYSTEM
-# define F_DI FILE_DIRECTORY
-# define F_AR FILE_ARCHIVED
 
-# define FSTR_TYPE FILEFINDBUF
 
-# define ATTR_TYPE USHORT
-# define DATE_TYPE FDATE
-# define TIME_TYPE FTIME
-# define SIZE_TYPE ULONG
-# define D_TYPE    DATE_TYPE
-# define T_TYPE    TIME_TYPE
-# define DONE_TYPE USHORT
 
-# define ATTR_NAME attrFile
-# define DATE_NAME fdateLastWrite
-# define TIME_NAME ftimeLastWrite
-# define SIZE_NAME cbFile
-# define NAME_NAME achName
-
-# define HOUR_MASK (time.hours)
-# define MINU_MASK (time.minutes)
-# define DAYS_MASK (date.day)
-# define MONT_MASK (mon[date.month-1])
-# define YEAR_MASK (date.year+1980)
-
-# define HH_MASK(a) (a.hours)
-# define MI_MASK(a) (a.minutes)
-# define SS_MASK(a) (a.twosecs/2)
-# define DD_MASK(a) (a.day)
-# define MM_MASK(a) (a.month-1)
-# define YY_MASK(a) (a.year+1980)
-#endif
-
-#if defined(WIN32) && defined(__WATCOMC__)
-# include <dos.h>
-# define F_RO _A_RDONLY
-# define F_HI _A_HIDDEN
-# define F_SY _A_SYSTEM
-# define F_DI _A_SUBDIR
-# define F_AR _A_ARCH
-
-# define FSTR_TYPE struct find_t
-
-# define ATTR_TYPE unsigned short
-# define DATE_TYPE unsigned short
-# define TIME_TYPE unsigned short
-# define SIZE_TYPE long
-# define D_TYPE    DATE_TYPE
-# define T_TYPE    TIME_TYPE
-# define DONE_TYPE short
-
-# define ATTR_NAME attrib
-# define DATE_NAME wr_date
-# define TIME_NAME wr_time
-# define SIZE_NAME size
-# define NAME_NAME name
-
-# define HOUR_MASK ((time & 0xf800) >> 11)
-# define MINU_MASK ((time & 0x07e0) >> 5)
-# define DAYS_MASK (date & 0x001f)
-# define MONT_MASK (mon[((date & 0x01e0) >> 5)-1])
-# define YEAR_MASK (((date & 0xfe00) >> 9)+1980)
-
-# define HH_MASK(a) ((a & 0xf800) >> 11)
-# define MI_MASK(a) ((a & 0x07e0) >> 5)
-# define SS_MASK(a) ((a & 0x001f) << 1)
-# define DD_MASK(a) (a & 0x001f)
-# define MM_MASK(a) (((a & 0x01e0) >> 5)-1)
-# define YY_MASK(a) (((a & 0xfe00) >> 9)+1980)
-#endif
-
-#if defined(WIN32) && defined(_MSC_VER)
-# include <dos.h>
-# include <io.h>
-# include <time.h>
-# define F_RO _A_RDONLY
-# define F_HI _A_HIDDEN
-# define F_SY _A_SYSTEM
-# define F_DI _A_SUBDIR
-# define F_AR _A_ARCH
-
-# define FSTR_TYPE struct _finddata_t
-
-# define ATTR_TYPE unsigned
-# define DATE_TYPE time_t
-# define TIME_TYPE time_t
-# define SIZE_TYPE long
-# define D_TYPE    DATE_TYPE
-# define T_TYPE    TIME_TYPE
-# define DONE_TYPE long
-
-# define ATTR_NAME attrib
-# define DATE_NAME time_write
-# define TIME_NAME time_write
-# define SIZE_NAME size
-# define NAME_NAME name
-
-# define HOUR_MASK ((local==NULL)?0:local->tm_hour)
-# define MINU_MASK ((local==NULL)?0:local->tm_min)
-# define DAYS_MASK ((local==NULL)?0:local->tm_mday)
-# define MONT_MASK
-# define YEAR_MASK ((local==NULL)?0:local->tm_year+1900)
-
-# define HH_MASK(a) ((local==NULL)?0:local->tm_hour)
-# define MI_MASK(a) ((local==NULL)?0:local->tm_min)
-# define SS_MASK(a) ((local==NULL)?0:local->tm_sec)
-# define DD_MASK(a) ((local==NULL)?0:local->tm_mday)
-# define MM_MASK(a) ((local==NULL)?0:local->tm_mon)
-# define YY_MASK(a) ((local==NULL)?0:local->tm_year+1900)
-#endif
-
-#if defined(UNIX) || defined(VMS) || (defined(__GNUC__) && !defined(__EMX__)) && !defined(GO32)
 # if defined(M_XENIX)
 #   include <sys/dirent.h>
 #   include <sys/ndir.h>
 # else
-#   if defined(HAVE_DIRENT_H)
 #     include <dirent.h>
-#   endif
-#   if defined(HAVE_SYS_STAT_H)
 #     include <sys/stat.h>
-#   endif
-#   if defined(HAVE_SYS_MODE_H)
-#     include <sys/mode.h>
-#   endif
 # endif
-# if defined(HAVE_TIME_H)
 #  include <time.h>
-# endif
 
 # define F_RO 0
 # define F_HI 0
@@ -382,49 +260,7 @@ $Id: directry.h,v 1.8 2013/01/23 04:13:42 mark Exp $
 # define DD_MASK(a) (a->tm_mday)
 # define MM_MASK(a) (a->tm_mon)
 # define YY_MASK(a) ((a->tm_year)+1900)
-#endif
 
-#if defined(AMIGA) && defined(GCC)
-# if defined(HAVE_DIRENT_H)
-#   include <dirent.h>
-# endif
-# if defined(HAVE_SYS_STAT_H)
-#   include <sys/stat.h>
-# endif
-# if defined(HAVE_SYS_MODE_H)
-#   include <sys/mode.h>
-# endif
-# if defined(HAVE_TIME_H)
-#  include <time.h>
-# endif
-
-# define F_RO 0
-# define F_HI 0
-# define F_SY 0
-# define F_DI 0
-# define F_AR 0
-
-# define ATTR_TYPE mode_t
-# define SIZE_TYPE long
-# define TIME_TYPE time_t
-# define DATE_TYPE CHARTYPE
-# define D_TYPE    struct tm *
-# define T_TYPE    struct tm *
-# define DONE_TYPE short
-
-# define HOUR_MASK (time->tm_hour)
-# define MINU_MASK (time->tm_min)
-# define DAYS_MASK (date->tm_mday)
-# define MONT_MASK (mon[date->tm_mon])
-# define YEAR_MASK (date->tm_year)
-
-# define HH_MASK(a) (a->tm_hour)
-# define MI_MASK(a) (a->tm_min)
-# define SS_MASK(a) (a->tm_sec)
-# define DD_MASK(a) (a->tm_mday)
-# define MM_MASK(a) (a->tm_mon)
-# define YY_MASK(a) ((a->tm_year)+1900)
-#endif
 
 struct dirfile {
    CHARTYPE *fname;     /* file name */
@@ -441,7 +277,6 @@ struct dirfile {
    int   fname_length;     /* length of filename */
 };
 
-#ifdef HAVE_PROTO
 # ifdef __cplusplus
 extern "C" {
 int date_comp( const void*, const void* );
@@ -463,18 +298,5 @@ CHARTYPE *file_attrs(ATTR_TYPE,CHARTYPE *,int);
 CHARTYPE *file_date(struct dirfile *,CHARTYPE *);
 CHARTYPE *file_time(struct dirfile *,CHARTYPE *);
 short set_dirtype(CHARTYPE *);
-#else
-int date_comp();
-int time_comp();
-int size_comp();
-int name_comp();
-int dir_comp();
-CHARTYPE *make_full();
-short getfiles();
-CHARTYPE *file_attrs();
-CHARTYPE *file_date();
-CHARTYPE *file_time();
-short set_dirtype();
-#endif
 
 #endif

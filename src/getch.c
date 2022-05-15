@@ -29,30 +29,16 @@
 
 
 
-#ifdef HAVE_CONFIG_H
 # include <config.h>
-#endif
 
-#ifdef HAVE_ERRNO_H
 # include <errno.h>
-#endif
 
-#if defined(USE_NCURSES)
 # include <ncurses.h>
-#elif defined(USE_EXTCURSES)
-# include <cur00.h>
-#elif defined(LOCAL_CURSES)
-# include "curses_local.h"
-#elif defined(USE_XCURSES)
-# include <curses.h>
-#else
-# include <curses.h>
-#endif
 
 /*
  * Do special character handling if using ncurses, xcurses
  */
-#if !defined(PDCURSES) || defined(USE_XCURSES)
+#if !defined(PDCURSES)
 #include <getch.h>
 
 #define NORMAL 100
@@ -61,20 +47,11 @@
 #define BRACK  400
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 #  ifdef MSWIN
 int my_getch (WINDOW far *winptr)
 #  else
 int my_getch (WINDOW *winptr)
 #  endif
-#else
-int my_getch (winptr)
-#  ifdef MSWIN
-WINDOW far *winptr;
-#  else
-WINDOW *winptr;
-#  endif
-#endif
 /***********************************************************************/
 {
    int c=0,tmp_c=(-1);
@@ -87,7 +64,7 @@ WINDOW *winptr;
       c = keypress();
 #else
       c = wgetch( winptr );
-# if defined(USE_NCURSES) && defined(EINTR) && defined(KEY_RESIZE)
+# if defined(EINTR) && defined(KEY_RESIZE)
       if ( c == ERR )
       {
          if ( errno == EINTR )
@@ -278,11 +255,7 @@ WINDOW *winptr;
                   switch (fkeycount)
                   {
                      case 0:  /* VT100/200 keypad */
-#if defined(USE_NCURSES)
                         return KEY_C1;
-#else
-                        return KEY_PadComma;
-#endif
                        /* AIX F1-F12 */
                      case 1: case 2: case 3: case 4: case 5:
                      case 6: case 7: case 8: case 9: case 10:
@@ -337,7 +310,6 @@ WINDOW *winptr;
             switch (c)
             {
                case KEY_ESC:
-#if defined(HAVE_NODELAY) && defined(HAVE_UNGETCH)
                   /* this code allows the user to use the ESC key */
                   nodelay(winptr,TRUE);
                   tmp_c = wgetch(winptr);
@@ -345,7 +317,6 @@ WINDOW *winptr;
                   if (tmp_c  == ERR)
                      return(c);
                   ungetch(tmp_c);
-#endif
                   state = ESCAPE;
                   break;
 

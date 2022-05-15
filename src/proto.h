@@ -90,10 +90,6 @@ int save_lastop Args(( int idx, CHARTYPE *lastop ));
 CHARTYPE *get_command_name Args((int idx, bool *set_command, bool *sos_command));
 
                                                             /* print.c */
-#ifdef WIN32
-void StartTextPrnt Args((void));
-void StopTextPrnt Args((void));
-#endif
 void print_line Args((bool ,LINETYPE,LINETYPE ,short ,CHARTYPE *,CHARTYPE *,short));
 short setprintername Args((char*));
 short setfontname Args((char*));
@@ -207,7 +203,7 @@ VIEW_DETAILS *find_pseudo_file Args((CHARTYPE));
 short execute_command_file Args((FILE *));
 CHARTYPE *read_file_into_memory Args((CHARTYPE *,int *));
                                                             /* getch.c */
-#if !defined(DOS) && !defined(OS2)
+#if !defined(DOS)
 int my_getch  Args((WINDOW *));
 #endif
                                                           /* nonansi.c */
@@ -216,13 +212,6 @@ short file_writable Args((CHARTYPE *));
 short file_exists Args((CHARTYPE *));
 short remove_file Args((CHARTYPE *));
 short splitpath Args((CHARTYPE *));
-#ifndef HAVE_RENAME
-short rename Args((CHARTYPE *,CHARTYPE *));
-#endif
-#ifdef OS2
-bool LongFileNames Args((CHARTYPE *));
-bool IsPathAndFilenameValid Args((CHARTYPE *));
-#endif
 LINE *getclipboard Args((LINE *, int));
 short setclipboard Args((FILE_DETAILS *,CHARTYPE *,bool,LINETYPE,LINETYPE,LINETYPE,LINETYPE *,bool,LENGTHTYPE,LENGTHTYPE,bool,bool,int));
 void draw_cursor Args((bool));
@@ -282,9 +271,6 @@ int setup_profile_files Args((CHARTYPE *));
 void cleanup Args((void));
 int allocate_working_memory Args((void));
 char **StringToArgv Args(( int *, char* ));
-#if !defined(HAVE_STRICMP) && !defined(HAVE_STRCMPI) && !defined(HAVE_STRCASECMP)
-LENGTHTYPE my_stricmp Args(( DEFCHAR *,DEFCHAR * ));
-#endif
                                                              /* util.c */
 CHARTYPE *ebc2asc Args((CHARTYPE *, int, int, int));
 CHARTYPE *asc2ebc Args((CHARTYPE *, int, int, int));
@@ -409,10 +395,6 @@ short get_rexx_variable Args((CHARTYPE *,CHARTYPE **,int *));
 short set_rexx_variable Args((CHARTYPE *,CHARTYPE *,LENGTHTYPE,int));
 CHARTYPE *get_rexx_interpreter_version Args((CHARTYPE *));
                                                            /* os2eas.c */
-#if defined(OS2)
-bool ReadEAs Args((CHARTYPE *));
-bool WriteEAs Args((CHARTYPE *));
-#endif
                                                             /* query.c */
 short find_query_item Args((CHARTYPE *,int,CHARTYPE *));
 short show_status Args((void));

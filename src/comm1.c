@@ -80,12 +80,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Add(CHARTYPE *params)
-#else
-short Add(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define ADD_PARAMS  1
@@ -158,12 +153,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Alert(CHARTYPE *params)
-#else
-short Alert(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -172,10 +162,8 @@ CHARTYPE *params;
    /*
     * If we have a beep() functiond and its ON, ring it..
     */
-#ifdef HAVE_BEEP
    if ( BEEPx )
       beep();
-#endif
    rc = prepare_dialog( params, TRUE, (CHARTYPE *)"ALERT" );
    TRACE_RETURN();
    return(rc);
@@ -218,12 +206,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short All(CHARTYPE *params)
-#else
-short All(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -400,12 +383,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Backward(CHARTYPE *params)
-#else
-short Backward(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define BAC_PARAMS  2
@@ -534,12 +512,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Bottom(CHARTYPE *params)
-#else
-short Bottom(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -603,12 +576,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Cancel(CHARTYPE *params)
-#else
-short Cancel(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    VIEW_DETAILS *save_current_view=(VIEW_DETAILS *)NULL;
@@ -731,12 +699,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Cappend(CHARTYPE *params)
-#else
-short Cappend(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -768,12 +731,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Ccancel(CHARTYPE *params)
-#else
-short Ccancel(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("comm1.c:   Ccancel");
@@ -815,12 +773,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Cdelete(CHARTYPE *params)
-#else
-short Cdelete(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -959,12 +912,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Cfirst(CHARTYPE *params)
-#else
-short Cfirst(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1033,12 +981,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Change(CHARTYPE *params)
-#else
-short Change(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1069,12 +1012,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Cinsert(CHARTYPE *params)
-#else
-short Cinsert(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1105,12 +1043,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Clast(CHARTYPE *params)
-#else
-short Clast(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1161,12 +1094,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THEClipboard(CHARTYPE *params)
-#else
-short THEClipboard(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1268,12 +1196,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Clocate(CHARTYPE *params)
-#else
-short Clocate(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1392,12 +1315,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Cmatch(CHARTYPE *params)
-#else
-short Cmatch(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    static CHARTYPE *match = (CHARTYPE *)"[]{}<>()";
@@ -1700,12 +1618,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Cmsg(CHARTYPE *params)
-#else
-short Cmsg(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("comm1.c:   Cmsg");
@@ -1738,12 +1651,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THECommand(CHARTYPE *params)
-#else
-short THECommand(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1776,12 +1684,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Compress(CHARTYPE *params)
-#else
-short Compress(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1809,12 +1712,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short ControlChar(CHARTYPE *params)
-#else
-short ControlChar(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    unsigned short y=0,x=0;
@@ -1882,12 +1780,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Copy(CHARTYPE *params)
-#else
-short Copy(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    CHARTYPE reset_block=SOURCE_UNKNOWN;
@@ -2022,12 +1915,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Coverlay(CHARTYPE *params)
-#else
-short Coverlay(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2055,12 +1943,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Creplace(CHARTYPE *params)
-#else
-short Creplace(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2176,12 +2059,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Cursor(CHARTYPE *params)
-#else
-short Cursor(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    register short idx=0;

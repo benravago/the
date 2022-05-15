@@ -9,7 +9,7 @@ the: box.o colour.o column.o comm1.o comm2.o comm3.o comm4.o comm5.o commset1.o 
 	cc -lncurses -lm -o $@ $^
 
 %.o: %.c
-	cc -c -O3 -Wall -fomit-frame-pointer -I. -DHAVE_CONFIG_H  -DTHE_HOME_DIRECTORY=\"/usr/local/THE/\" -I./imc -I/usr/include -o $@ $<
+	cc -c -O3 -Wall -fomit-frame-pointer -I. -I./imc -o $@ $<
 
 box.c: the.h proto.h
 
@@ -63,7 +63,7 @@ nonansi.c: the.h proto.h
 
 parser.c: the.h proto.h thematch.h
 
-prefix.c:  the.h proto.h
+prefix.c: the.h proto.h
 
 print.c: the.h proto.h
 
@@ -113,10 +113,4 @@ imc/rxmathfn.c: imc/const.h imc/functions.h
 imc/shell.c: imc/const.h imc/functions.h
 
 imc/util.c: imc/const.h imc/globals.h imc/functions.h imc/rexxsaa.h
-
-
-#gcc -c -g -O2 -m64 -O3 -Wall -fomit-frame-pointer -fno-strict-aliasing -Wno-char-subscripts 
-# -I. -I.. -I../contrib -DNDEBUG -DHAVE_CONFIG_H  -DTHE_HOME_DIRECTORY=\"/usr/local/share/the/\" 
-# -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600  -I/usr/local/include  -DTHE_VERSION=\""3.3"\" -DTHE_VERSION_DATE=\""27-Jun-2020"\" 
-# -o the.o ../the.c
 

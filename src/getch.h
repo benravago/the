@@ -329,7 +329,7 @@ $Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
 
 #define KEY_DELETE  127
 
-#if !defined(DOS) && !defined(OS2) && !defined(USE_XCURSES) && !defined(WIN32) && !defined(USE_SDLCURSES)
+#if !defined(DOS)
 
 /* vt220 special keys */
 
@@ -360,7 +360,7 @@ $Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
 
 #endif
 
-#if defined(DOS) || defined(OS2) || defined(WIN32) || defined(USE_XCURSES) || defined(USE_SDLCURSES)
+#if defined(DOS)
 /* normal characters */
 #define KEY_a      0x61
 #define KEY_b      0x62

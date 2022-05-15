@@ -50,17 +50,7 @@ extern void ClosedownConsole( void );
 # define CLOSEDOWNCONSOLE()
 #endif
 
-#if defined(LOCAL_CURSES)
-#  include "curses_local.h"
-#  define CURSES_H_INCLUDED
-#else
-# if defined(USE_XCURSES)
-#  include <curses.h>
-#  define CURSES_H_INCLUDED
-# endif
-#endif
 
-#if defined(USE_NCURSES)
 # if defined(USE_UTF8)
 #  define _XOPEN_SOURCE_EXTENDED
 #  include <ncursesw/ncurses.h>
@@ -68,53 +58,10 @@ extern void ClosedownConsole( void );
 #  include <ncurses.h>
 # endif
 # define CURSES_H_INCLUDED
-#endif
 
-#if defined(USE_EXTCURSES)
-#  include <cur00.h>
-#  define A_COLOR
-#  define COLOR_BLACK   0
-#  define COLOR_BLUE    1
-#  define COLOR_GREEN   2
-#  define COLOR_CYAN    3
-#  define COLOR_RED     4
-#  define COLOR_MAGENTA 5
-#  define COLOR_YELLOW  6
-#  define COLOR_WHITE   7
-   typedef char bool;
-#  ifdef chtype
-#    undef chtype
-#  endif
-#  define chtype NLSCHAR
-#  define COLORS       8
-#  define COLOR_PAIRS 64
-   extern chtype color_pair[COLOR_PAIRS];
-#  define COLOR_PAIR(n) color_pair[n]
-#  ifndef HAVE_WATTRSET
-#    define HAVE_WATTRSET
-#    define wattrset(win,attr) xstandout(win,attr)
-#    define attrset(attr) xstandout(stdscr,attr)
-#  endif
-#  ifndef HAVE_NOCBREAK
-#    define HAVE_NOCBREAK
-#    define nocbreak() nocrmode()
-#  endif
-#  ifndef HAVE_CBREAK
-#    define HAVE_CBREAK
-#    define cbreak() crmode()
-#  endif
-#  define CURSES_H_INCLUDED
-#endif
 
-#ifndef CURSES_H_INCLUDED
-#  include <curses.h>
-#endif
 
-#ifdef HAVE_PROTO
 # define Args(a) a
-#else
-# define Args(a) ()
-#endif
 
 /*
  * The following required because IBM AIX 4.3 defines curses colors
@@ -139,213 +86,19 @@ extern void ClosedownConsole( void );
 # define COLOR_WHITE    7
 #endif
 
-#if defined(__OS2__)
-#  if defined(MSDOS) && defined(EMX)
-#     undef __OS2__
-#     if !defined(DOS)
-#        define DOS
-#     endif
-#     if defined(OS2)
-#        undef OS2
-#     endif
-#  else
-#     undef MSDOS          /* in case you are using MSC 6.0 for OS/2 */
-#     define INCL_VIO
-#     include <os2.h>
-#  endif
-#  include <stdlib.h>
-#  include <memory.h>
-#  include <string.h>
-#  include <process.h>
-#  include <errno.h>
-#  include <ctype.h>
-#  include <fcntl.h>
-#  include <io.h>
-#  include <sys\types.h>
-#  include <sys\stat.h>
-#  define ESLASH '\\'
-#  define ESTR_SLASH (CHARTYPE *)"\\"
-#  if defined(EMX)
-#    define OSLASH '\\'
-#    define OSTR_SLASH (CHARTYPE *)"\\"
-#    define ISLASH '/'
-#    define ISTR_SLASH (CHARTYPE *)"/"
-#    define HAVE_BROKEN_TMPNAM 1
-#  else
-#    define OSLASH '/'
-#    define OSTR_SLASH (CHARTYPE *)"/"
-#    define ISLASH '\\'
-#    define ISTR_SLASH (CHARTYPE *)"\\"
-#  endif
-#  define CURRENT_DIR (CHARTYPE *)"."
-#  if defined(MSC)
-/* the following 2 defines are to make MSC recognise the new names */
-/* of the following OS/2 calls */
-#    define DosSetDefaultDisk DosSelectDisk
-#    define DosQueryCurrentDisk DosQCurDisk
-#  endif
-#  if defined(__PDCURSES__)
-#    if PDC_BUILD >= 3000
-#      define HAVE_CURSES_VERSION 1
-#    endif
-#  endif
-/* the following #define is to eliminate need for the getch.c/getch.h */
-/* modules in the OS/2 compilation */
-#  define my_getch(win)  wgetch(win)
-#endif
 
-#if defined(__MSDOS__) || defined(MSDOS)
-#  include <stdlib.h>
-#  include <memory.h>
-#  include <string.h>
-#  include <fcntl.h>
-#  include <io.h>
-#  if defined(GO32)
-#    include <dir.h>
-#  else
-#    include <process.h>
-#    if !defined(EMX)
-#      include <direct.h>
-#    endif
-#  endif
-#  include <errno.h>
-#  include <io.h>
-#  include <ctype.h>
-#  include <sys\types.h>
-#  include <sys\stat.h>
-#  define ESLASH '\\'
-#  define ESTR_SLASH (CHARTYPE *)"\\"
-#  if defined(GO32) || defined(EMX)
-#    define OSLASH '\\'
-#    define OSTR_SLASH (CHARTYPE *)"\\"
-#    define ISLASH '/'
-#    define ISTR_SLASH (CHARTYPE *)"/"
-#  else
-#    define OSLASH '/'
-#    define OSTR_SLASH (CHARTYPE *)"/"
-#    define ISLASH '\\'
-#    define ISTR_SLASH (CHARTYPE *)"\\"
-#  endif
-#  if defined(__TURBOC__) || defined(MSC)
-#    define HAVE_BROKEN_TMPNAM 1
-#  endif
-#  define CURRENT_DIR (CHARTYPE *)"."
-#  if defined(__PDCURSES__)
-#    if PDC_BUILD >= 3000
-#      define HAVE_CURSES_VERSION 1
-#    endif
-#  endif
-/* the following #define is to eliminate need for the getch.c/getch.h */
-/* modules in the DOS compilation */
-#  define my_getch(win)  wgetch(win)
-#endif
 
-#if (defined(__NT__) || defined(WIN32) ) && !defined(__CYGWIN32__)
-#  include <stdlib.h>
-#  include <memory.h>
-#  include <string.h>
-#  include <process.h>
-#  include <errno.h>
-#  include <ctype.h>
-#  include <wctype.h>
-#  include <fcntl.h>
-#  include <io.h>
-#  include <direct.h>
-#  include <sys\types.h>
-#  include <sys\stat.h>
-#  define ESLASH '\\'
-#  define ESTR_SLASH (CHARTYPE *)"\\"
-#  define OSLASH '/'
-#  define OSTR_SLASH (CHARTYPE *)"/"
-#  define ISLASH '\\'
-#  define ISTR_SLASH (CHARTYPE *)"\\"
-#  if defined(__WATCOMC__)
-#    define HAVE_BROKEN_TMPNAM 1
-#    define HAVE_TIME_H 1
-#    include <dos.h>     /* may exist under other flavours, too */
-#  endif
-#  define CURRENT_DIR (CHARTYPE *)"."
-#  define CAN_RESIZE 1
-/* the following #define is to eliminate need for the getch.c/getch.h */
-/* modules in the WIN32 compilation */
-#  define my_getch(win)  wgetch(win)
-#  if defined(__PDCURSES__)
-#    define PDCURSES_MOUSE_ENABLED 1
-#    if PDC_BUILD >= 3000
-#      define HAVE_CURSES_VERSION 1
-#    endif
-#  endif
-#endif
 
-#if defined(__CYGWIN32__) && defined(USE_PDCURSES)
-/* the following #define is to eliminate need for the getch.c/getch.h */
-/* modules in the DOS compilation */
-#  define my_getch(win)  wgetch(win)
-#endif
 
-#if defined(AMIGA) && defined(GCC)
-#  include <stdlib.h>
-#  include <memory.h>
-#  include <string.h>
-#  include <errno.h>
-#  include <ctype.h>
-#  include <fcntl.h>
-#  include <sys/types.h>
-#  include <sys/stat.h>
-#  define ESLASH '/'
-#  define ESTR_SLASH (CHARTYPE *)"/"
-#  define OSLASH '/'
-#  define OSTR_SLASH (CHARTYPE *)"/"
-#  define ISLASH '/'
-#  define ISTR_SLASH (CHARTYPE *)"/"
-#  define CURRENT_DIR (CHARTYPE *)"."
-/* #  define CAN_RESIZE 1 */
-#endif
 
-#ifdef HAVE_CONFIG_H
-# ifndef HAVE_WATTRSET
-#  define wattrset(win,attr) ((attr == A_NORMAL) ? wstandend(win) : wstandout(win))
-#  define attrset(attr)      wattrset(stdscr,attr)
-# endif
-# ifndef HAVE_KEYPAD
-#  define keypad(win,bf)
-# endif
-# ifndef HAVE_NOTIMEOUT
-#  define notimeout(win,bf)
-# endif
-# ifndef HAVE_RAW
-#  define raw()
-# endif
-# ifndef HAVE_NOCBREAK
-#  define nocbreak()
-# endif
-# ifndef HAVE_CBREAK
-#  define cbreak()
-# endif
-# ifndef HAVE_WNOUTREFRESH
-#  define wnoutrefresh(win) wrefresh(win)
-# endif
-# ifndef HAVE_TOUCHLINE
-#  define touchline(win,start,num) touchwin(win)
-# endif
-# ifndef HAVE_RESET_SHELL_MODE
-#  define reset_shell_mode()
-# endif
-# ifndef HAVE_RESET_PROG_MODE
-#  define reset_prog_mode()
-# endif
-#endif
 
 #ifdef M_XENIX
-#  define UNIX 1
 #endif
 
 #ifdef MINIX
 #  define short int
-#  define UNIX 1
 #endif
 
-#if defined(UNIX) || defined(VMS)
 #  define ESLASH '/'
 #  define ESTR_SLASH (CHARTYPE *)"/"
 #  define OSLASH '\\'
@@ -353,11 +106,7 @@ extern void ClosedownConsole( void );
 #  define ISLASH ESLASH
 #  define ISTR_SLASH ESTR_SLASH
 #  define CURRENT_DIR (CHARTYPE *)"."
-#endif
 
-#ifdef VMS
-# define chtype short
-#endif
 
 #ifdef VMS1
 #  define ISLASH ']'
@@ -378,136 +127,63 @@ extern void ClosedownConsole( void );
 #  define NO_KEYPAD 1
 #endif
 
-#ifdef HAVE_ERRNO_H
 # include <errno.h>
-#endif
 
-#ifdef HAVE_CTYPE_H
 # include <ctype.h>
-#endif
 
-#if defined(HAVE_WCTYPE_H) && defined(DUSE_WIDE_CHAR)
+#if defined(DUSE_WIDE_CHAR)
 # include <wctype.h>
 #endif
 
-#ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
-#endif
 
-#ifdef HAVE_UNISTD_H
 # include <unistd.h>
-#endif
 
-#ifdef HAVE_STDLIB_H
 # include <stdlib.h>
-#endif
 
 #ifdef USE_UTF8
 # include "utf8.h"
 #endif
 
-#if HAVE_ALLOCA_H
 # include <alloca.h>
-#endif
 
-#if defined(WIN32) && defined(_MSC_VER)
-# define alloca(x) _alloca(x)
-#endif
 
 /*
  * The following mess is because some versions of g++ (RedHat 7.1)
  * cannot compile <string.h> :-(
  */
-#ifdef HAVE_BROKEN_CXX_WITH_STRING_H
-# define MH_SAVE__USE_BSD __USE_BSD
-# undef __USE_BSD
-#endif
-#ifdef HAVE_STRING_H
 # include <string.h>
-#endif
-#ifdef HAVE_BROKEN_CXX_WITH_STRING_H
-# define __USE_BSD MH_SAVE__USE_BSD
-# undef MH_SAVE__USE_BSD
-#endif
 
-#ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
-#endif
 
-#ifdef HAVE_SYS_FILE_H
 # include <sys/file.h>
-#endif
 
-#ifdef HAVE_MEMORY_H
 # include <memory.h>
-#endif
 
-#ifdef HAVE_FCNTL_H
 # include <fcntl.h>
-#endif
 
-#ifdef HAVE_LOCALE_H
 # include <locale.h>
-#endif
 
-#ifdef TIME_WITH_SYS_TIME
-# ifdef HAVE_TIME_H
 #  include <time.h>
-# endif
-# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
-# endif
-#else
-# ifdef HAVE_TIME_H
-#   include <time.h>
-# else
-#  ifdef HAVE_SYS_TIME_H
-#   include <sys/time.h>
-#  endif
-# endif
-#endif
 
 #include <signal.h>
 
 #include "regex.h"
 
-#if defined(USE_XCURSES)
-#  if defined(SIGWINCH) && defined(HAVE_RESIZE_TERM)
-#    define CAN_RESIZE 1
-#  endif
-#  define PDCURSES_MOUSE_ENABLED 1
-/* the following #define is to eliminate need for the getch.c/getch.h */
-/* modules under XCurses */
-#  define my_getch(win)  wgetch(win)
-#endif
 
-#if defined(USE_SDLCURSES)
-#  define CAN_RESIZE 1
-#  define PDCURSES_MOUSE_ENABLED 1
-/* the following #define is to eliminate need for the getch.c/getch.h */
-/* modules under SDL */
-#  define my_getch(win)  wgetch(win)
-#endif
 
-#if defined(USE_NCURSES) && defined(SIGWINCH) && defined(HAVE_RESIZETERM)
+#if defined(SIGWINCH)
 #  define CAN_RESIZE 1
 #endif
 
-#if defined(HAVE_SLK_INIT)
 # if defined(__PDCURSES__)
 #  define MAX_SLK    12
 #  define MAX_SLK_FORMAT 5
-# elif defined(USE_NCURSES)
+# else
 #  define MAX_SLK    12
 #  define MAX_SLK_FORMAT 4
-# else
-#  define MAX_SLK     8
-#  define MAX_SLK_FORMAT 2
 # endif
-#else
-# define MAX_SLK      0
-# define MAX_SLK_FORMAT 2
-#endif
 
 #ifndef F_OK
 #  define         F_OK          00
@@ -541,13 +217,8 @@ extern void ClosedownConsole( void );
 # endif
 #endif
 
-#if defined(PDCURSES) && PDC_BUILD >= 2601 && defined(WIN32)
-# define THE_SINGLE_INSTANCE_ENABLED 1
-#endif
 
-#if defined(HAVE_SELECT) && defined(HAVE_MKFIFO)
 # define THE_SINGLE_INSTANCE_ENABLED 1
-#endif
 
 #if defined(A_COLOR)
 # define set_colour(attr) ((colour_support) ? (((attr)->pair) ? COLOR_PAIR((attr)->pair) | (attr)->mod : (attr)->mod) \
@@ -586,24 +257,6 @@ extern void ClosedownConsole( void );
 #if THE_FOLLOWING_REMOVED_IN_22
 #ifndef A_NORMAL
 /* Various video attributes */
-# ifdef HAVE_BSD_CURSES
-#  define A_STANDOUT      BSD_STANDOUT /* for compatibility with BSD curses */
-#  define A_REVERSE       BSD_STANDOUT /* for compatibility with BSD curses */
-#  define A_UNDERLINE     0
-#  define A_BLINK         0
-#  define A_DIM           0
-#  define A_BOLD          BSD_STANDOUT
-
-/* The next two are subject to change so don't depend on them */
-#  define A_INVIS         0
-#  define A_PROTECT       0
-
-#  define A_NORMAL        0
-#  define A_CHARTEXT      0x007F
-#  define A_ATTRIBUTES    ~A_CHARTEXT
-#  define A_ALTCHARSET    0
-
-# else
 
 #  define A_STANDOUT      000000200000L
 #  define A_UNDERLINE     000000400000L
@@ -621,7 +274,6 @@ extern void ClosedownConsole( void );
 #  define A_ATTRIBUTES    037777600000L   /* 0xFFFF0000 */
 #  define A_CHARTEXT      000000177777L   /* 0x0000FFFF */
 
-# endif
 #endif
 #endif
 
@@ -638,44 +290,18 @@ extern void ClosedownConsole( void );
 #endif
 
 #ifndef getmaxy
-# ifdef VMS
-#  ifdef _BSD44_CURSES
-#   define getmaxy(win)    ((win)->maxy)
-#  else
-#   define getmaxy(win)    ((win)->_max_y)
-#  endif
-# else
-#  if defined(HAVE_UNDERSCORE_MAXY)
 #   define getmaxy(win)    ((win)->_maxy)
-#  endif
-#  if defined(HAVE_MAXY)
-#   define getmaxy(win)    ((win)->maxy)
-#  endif
-# endif
 #endif
 
 #ifndef getmaxx
-# ifdef VMS
-#  ifdef _BSD44_CURSES
-#   define getmaxx(win)    ((win)->maxx)
-#  else
-#   define getmaxx(win)    ((win)->_max_x)
-#  endif
-# else
-#  if defined(HAVE_UNDERSCORE_MAXY)
 #   define getmaxx(win)    ((win)->_maxx)
-#  endif
-#  if defined(HAVE_MAXY)
-#   define getmaxx(win)    ((win)->maxx)
-#  endif
-# endif
 #endif
 
 #ifndef getmaxyx
 # define getmaxyx(win,y,x)  ((y) = getmaxy(win), (x) = getmaxx(win))
 #endif
 
-#if defined(SIGWINCH) && defined(USE_NCURSES)
+#if defined(SIGWINCH)
 # define is_termresized()  (ncurses_screen_resized)
 #endif
 
@@ -1473,10 +1099,8 @@ typedef struct
    CHARTYPE *actualfname;                         /* filename specified */
    CHARTYPE *efileid;                         /* original full filename */
    unsigned short fmode;                           /* file mode of file */
-#if defined(HAVE_CHOWN)
    uid_t uid;                                         /* userid of file */
    gid_t gid;                                        /* groupid of file */
-#endif
    long modtime;                      /* timestamp of file modification */
    LINE *first_line;                           /* pointer to first line */
    LINE *last_line;                             /* pointer to last line */
@@ -2001,12 +1625,7 @@ struct regexp_syntax
 #endif
 
 #ifndef getbegyx
-# if defined(HAVE_BEGY)
-#  define getbegyx(win,y,x)       (y = (win)->begy, x = (win)->begx)
-# endif
-# if defined(HAVE_UNDERSCORE_BEGY)
 #  define getbegyx(win,y,x)       (y = (win)->_begy, x = (win)->_begx)
-# endif
 #endif
 
 #if defined(USE_WINGUICURSES)
@@ -2112,13 +1731,7 @@ typedef struct
    LINETYPE the_header;
 } the_header_mapping;
 
-#if defined(HAVE_STRICMP)
-# define my_stricmp stricmp
-#elif defined(HAVE_STRCMPI)
-# define my_stricmp strcmpi
-#elif defined(HAVE_STRCASECMP)
 # define my_stricmp strcasecmp
-#endif
 
 #if defined(MAIN)
 # ifdef MSWIN
@@ -2129,32 +1742,18 @@ void  (*the_free)();                            /* ptr to some free(ptr) */
 void far * (*the_realloc)(void far *,unsigned long); /* ptr to some realloc(ptr,size) */
 # else
 #  define _THE_FAR
-#  ifdef HAVE_PROTO
 void* (*the_malloc)(size_t);  /* ptr to some malloc(size) */
 void* (*the_calloc)(size_t,size_t);  /* ptr to some calloc(num,size)*/
 void  (*the_free)(void *);    /* ptr to some free(ptr) */
 void* (*the_realloc)(void *, size_t); /* ptr to some realloc(ptr,size) */
-#  else
-void* (*the_malloc)();  /* ptr to some malloc(size) */
-void* (*the_calloc)();  /* ptr to some calloc(num,size)*/
-void  (*the_free)();    /* ptr to some free(ptr) */
-void* (*the_realloc)(); /* ptr to some realloc(ptr,size) */
-#  endif
 # endif
 #else
 # ifdef MSWIN
 #  define _THE_FAR __far
-#  ifdef HAVE_PROTO
 extern void far * (*the_malloc)(unsigned long);
 extern void far * (*the_calloc)(unsigned long);
 extern void  (*the_free)(void *);
 extern void far * (*the_realloc)(void far *,unsigned long);
-#  else
-extern void far * (*the_malloc)();
-extern void far * (*the_calloc)();
-extern void  (*the_free)();
-extern void far * (*the_realloc)();
-#  endif
 # else
 #  define _THE_FAR
 extern void* (*the_malloc)(unsigned long);
@@ -2164,22 +1763,10 @@ extern void* (*the_realloc)(void *, unsigned long);
 # endif
 #endif
 
-#if defined(THE_TRACE)
-void trace_initialise Args((void));
-void trace_function Args((char *));
-void trace_return Args((void));
-void trace_string Args((char *,...));
-void trace_constant Args((char *));
-# define TRACE_RETURN()     trace_return()
-# define TRACE_FUNCTION(x)  trace_function(x)
-# define TRACE_INITIALISE() trace_initialise()
-# define TRACE_CONSTANT(x) trace_constant(x)
-#else
 # define TRACE_RETURN()
 # define TRACE_FUNCTION(x)
 # define TRACE_INITIALISE()
 # define TRACE_CONSTANT(x)
-#endif
 #include "vars.h"
 
 #define THE_SEARCH_SEMANTICS                   TRUE
@@ -2190,10 +1777,7 @@ void trace_constant Args((char *));
 /*
  * Don't call the *prog_mode functions when using PDCurses
  */
-#ifdef HAVE_RESET_PROG_MODE
 # ifndef PDCURSES
 #  define USE_PROG_MODE 1
 # endif
-#else
-#endif
 #include "directry.h"

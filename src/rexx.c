@@ -38,12 +38,6 @@
 
 static char RCSid[] = "$Id: rexx.c,v 1.3 1999/07/25 11:11:19 mark Exp mark $";
 
-#if defined(__EMX__) && defined(USE_REGINA)
-# define INCL_VIO
-# define INCL_KBD
-# define INCL_DOSPROCESS     /* Process/Thread Info */
-# include <os2.h>
-#endif
 
 # define INCL_RXFUNC         /* External function handler values */
 # define INCL_RXSUBCOM       /* Subcommand handler values */
@@ -58,7 +52,6 @@ LINE *rexxout_last_line=NULL;
 LINE *rexxout_curr=NULL;
 LINETYPE rexxout_number_lines=0L;
 
-#if (defined(HAVE_PROTO) && !defined(NOREXX)) || defined(USE_REXXIMC)
 
 /*
  * Because Rexx interpreters include <windows.h> on Windows platforms
@@ -69,25 +62,15 @@ LINETYPE rexxout_number_lines=0L;
 #include <query.h>
 #include <therexx.h>
 
-#if defined(HAVE_SYS_WAIT_H)
 # include <sys/wait.h>
-#endif
 
 #define BUF_SIZE 512
 
-#if defined(USE_REXX6000)
-LONG THE_Commands( RSH_ARG0_TYPE, RSH_ARG1_TYPE, RSH_ARG2_TYPE );
-LONG THE_Exit_Handler( REH_ARG0_TYPE, REH_ARG1_TYPE, REH_ARG2_TYPE );
-LONG rexx_interpreter_version_exit( REH_ARG0_TYPE, REH_ARG1_TYPE, REH_ARG2_TYPE );
-USHORT THE_Function_Handler( RFH_ARG0_TYPE, RFH_ARG1_TYPE, RFH_ARG2_TYPE, RFH_ARG3_TYPE, RFH_ARG4_TYPE );
-#else
 RexxSubcomHandler THE_Commands;
 RexxExitHandler THE_Exit_Handler;
 RexxExitHandler rexx_interpreter_version_exit;
 RexxFunctionHandler THE_Function_Handler;
-#endif
 
-#if defined(HAVE_PROTO)
 static RXSTRING *get_compound_rexx_variable(CHARTYPE *,RXSTRING *,short);
 static short valid_target_function(ULONG, RXSTRING []);
 static short run_os_function(ULONG, RXSTRING []);
@@ -95,15 +78,6 @@ static int run_os_command(CHARTYPE *,CHARTYPE *,CHARTYPE *,CHARTYPE *);
 static CHARTYPE *MakeAscii(RXSTRING *);
 static char *get_a_line(FILE *, char *, int *, int *);
 static short set_rexx_variables_from_file(char *,CHARTYPE *);
-#else
-static RXSTRING *get_compound_rexx_variable();
-static short valid_target_function();
-static short run_os_function();
-static int run_os_command();
-static CHARTYPE *MakeAscii();
-static char *get_a_line();
-static short set_rexx_variables_from_file();
-#endif
 
 static LINETYPE captured_lines;
 static bool rexx_halted;
@@ -115,13 +89,8 @@ static CHARTYPE version_buffer[MAX_FILE_NAME+1];
  * functions.
  ***********************************************************************/
 unsigned long MyRexxDeregisterFunction
-#if defined(HAVE_PROTO)
    (
    CHARTYPE *Name)       /* Name of function to be deregistered        */
-#else
-   (Name)
-   CHARTYPE *Name;       /* Name of function to be deregistered        */
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -141,24 +110,14 @@ unsigned long MyRexxDeregisterFunction
 /* to satisfy case sensitive interpreters.                             */
 /***********************************************************************/
 unsigned long MyRexxRegisterFunctionExe
-#if defined(HAVE_PROTO)
    (
    CHARTYPE *Name)         /* Name of function to be registered        */
-#else
-   (Name)
-   CHARTYPE *Name;         /* Name of function to be registered        */
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
    CHARTYPE newname[80];
    ULONG rc;
 /*--------------------------- processing ------------------------------*/
-#if defined(USE_REXX6000)
-   rc = RexxRegisterFunction((RRFE_ARG0_TYPE)Name,
-                              (RRFE_ARG1_TYPE)THE_Function_Handler,
-                              NULL);
-#else
    rc=RexxRegisterFunctionExe((RRFE_ARG0_TYPE)Name, (RRFE_ARG1_TYPE)THE_Function_Handler);
    if (rc != RXFUNC_OK || strlen((DEFCHAR *)Name)+1 > (sizeof newname)/(sizeof (CHARTYPE)))
       return rc;
@@ -173,23 +132,15 @@ unsigned long MyRexxRegisterFunctionExe
    if (rc == RXFUNC_DEFINED
    ||  rc == RXFUNC_NOTREG)
       rc = RXFUNC_OK;
-#endif
    return rc;
 }
 
 /***********************************************************************/
 RSH_RETURN_TYPE THE_Commands
-#if defined(HAVE_PROTO)
    (
    RSH_ARG0_TYPE Command,    /* Command string passed from the caller    */
    RSH_ARG1_TYPE Flags,      /* pointer to short for return of flags     */
    RSH_ARG2_TYPE Retstr)     /* pointer to RXSTRING for RC return        */
-#else
-   ( Command, Flags, Retstr )
-   RSH_ARG0_TYPE Command;    /* Command string passed from the caller    */
-   RSH_ARG1_TYPE Flags;      /* pointer to short for return of flags     */
-   RSH_ARG2_TYPE Retstr;     /* pointer to RXSTRING for RC return        */
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -250,18 +201,11 @@ RSH_RETURN_TYPE THE_Commands
 }
 /***********************************************************************/
 REH_RETURN_TYPE THE_Exit_Handler
-#if defined(HAVE_PROTO)
    (
    REH_ARG0_TYPE ExitNumber,    /* code defining the exit function    */
    REH_ARG1_TYPE Subfunction,   /* code defining the exit subfunction */
    REH_ARG2_TYPE ParmBlock      /* function dependent control block   */
    )
-#else
-   ( ExitNumber, Subfunction, ParmBlock )
-   REH_ARG0_TYPE ExitNumber;    /* code defining the exit function    */
-   REH_ARG1_TYPE Subfunction;   /* code defining the exit subfunction */
-   REH_ARG2_TYPE ParmBlock;     /* function dependent control block   */
-#endif
 /***********************************************************************/
 {
 #ifndef XCURSES
@@ -395,7 +339,6 @@ REH_RETURN_TYPE THE_Exit_Handler
 }
 /***********************************************************************/
 RFH_RETURN_TYPE THE_Function_Handler
-#if defined(HAVE_PROTO)
    (
    RFH_ARG0_TYPE FunctionName,  /* name of function */
    RFH_ARG1_TYPE Argc,          /* number of arguments    */
@@ -403,14 +346,6 @@ RFH_RETURN_TYPE THE_Function_Handler
    RFH_ARG3_TYPE QueueName,     /* name of queue */
    RFH_ARG4_TYPE Retstr         /* return string   */
    )
-#else
-   ( FunctionName, Argc, Argv, QueueName, Retstr )
-   RFH_ARG0_TYPE FunctionName;  /* name of function */
-   RFH_ARG1_TYPE Argc;          /* number of arguments    */
-   RFH_ARG2_TYPE Argv,          /* array of arguments in RXSTRINGs */
-   RFH_ARG3_TYPE QueueName;     /* name of queue */
-   RFH_ARG4_TYPE Retstr;        /* return string   */
-#endif
 
 /***********************************************************************/
 {
@@ -499,8 +434,6 @@ RFH_RETURN_TYPE THE_Function_Handler
     /* Rexx interpreter expects; not our own one.                       */
 #if defined(REXXALLOCATEMEMORY)
     Retstr->strptr = (RXSTRING_STRPTR_TYPE)RexxAllocateMemory( item_values[item_index].len );
-#elif defined(WIN32) && (defined(USE_OREXX) || defined(USE_WINREXX) || defined(USE_QUERCUS))
-    Retstr->strptr = (RXSTRING_STRPTR_TYPE)GlobalAlloc(GMEM_FIXED,item_values[item_index].len);
 #elif defined(USE_OS2REXX)
     DosAllocMem((void*)Retstr->strptr,item_values[item_index].len,PAG_READ|PAG_WRITE|PAG_COMMIT);
 #else
@@ -519,11 +452,7 @@ RFH_RETURN_TYPE THE_Function_Handler
 }
 /***********************************************************************/
 short initialise_rexx
-#if defined(HAVE_PROTO)
       (void)
-#else
-      ()
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -532,49 +461,29 @@ short initialise_rexx
  int num_values=0;
  char buf[50];
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    initialise_rexx");
-#endif
 
 #if defined(MSWIN)
  if (RexxThread(GetCurrentTask(),THREAD_ATTACH) != THREAD_ATTACH_AOK)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
     return(RC_INVALID_ENVIRON);
    }
 #endif
 
-#if defined(USE_REXX6000)
- rc = RexxRegisterSubcom((RRSE_ARG0_TYPE)"THE",
-                         (RRSE_ARG1_TYPE)THE_Commands,
-                         (RRSE_ARG2_TYPE)NULL);
-#else
  rc = RexxRegisterSubcomExe((RRSE_ARG0_TYPE)"THE",
                             (RRSE_ARG1_TYPE)THE_Commands,
                             (RRSE_ARG2_TYPE)NULL);
-#endif
  if (rc != RXSUBCOM_OK)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
     return((short)rc);
    }
 
-#if !defined(USE_REXX6000)
  rc = RexxRegisterExitExe((RREE_ARG0_TYPE)"THE_EXIT",
                           (RREE_ARG1_TYPE)THE_Exit_Handler,
                           (RREE_ARG2_TYPE)NULL);
  if (rc != RXEXIT_OK)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
     return((short)rc);
    }
-#endif
 
  for (i=0; i<number_function_item(); i++)
  {
@@ -584,9 +493,6 @@ short initialise_rexx
  }
  if (rc != RXFUNC_OK)
  {
-#ifdef THE_TRACE
-    trace_return();
-#endif
     return((short)rc);
  }
 
@@ -603,18 +509,11 @@ short initialise_rexx
     if (rc != RXFUNC_OK)
        break;
  }
-#ifdef THE_TRACE
- trace_return();
-#endif
  return((short)rc);
 }
 /***********************************************************************/
 short finalise_rexx
-#if defined(HAVE_PROTO)
     (void)
-#else
-    ()
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -623,18 +522,11 @@ short finalise_rexx
  int num_values=0;
  char buf[50];
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    finalise_rexx");
-#endif
 
-#if defined(USE_REXX6000)
- rc = RexxDeregisterSubcom((RDS_ARG0_TYPE)"THE");
-#else
  rc = RexxDeregisterSubcom((RDS_ARG0_TYPE)"THE",
                            (RDS_ARG1_TYPE)NULL);
  rc = RexxDeregisterExit((RDE_ARG0_TYPE)"THE_EXIT",
                          (RDE_ARG1_TYPE)NULL);
-#endif
 
  for (i=0; i<number_function_item(); i++)
  {
@@ -655,22 +547,11 @@ short finalise_rexx
  (void)RexxThread(GetCurrentTask(),THREAD_DETACH);
 #endif
 
-#ifdef THE_TRACE
- trace_return();
-#endif
  return((short)rc);
 }
 /***********************************************************************/
 short execute_macro_file
-#if defined(HAVE_PROTO)
       (CHARTYPE *filename,CHARTYPE *params,short *macrorc,bool interactive)
-#else
-      (filename,params,macrorc,interactive)
-       CHARTYPE *filename;
-       CHARTYPE *params;
-       short *macrorc;
-       bool interactive;
-#endif
 /***********************************************************************/
 {
 #ifndef XCURSES
@@ -678,13 +559,7 @@ short execute_macro_file
 #if !defined(MULTIPLE_PSEUDO_FILES)
 #endif
 /*--------------------------- local data ------------------------------*/
-#if defined(USE_REXX6000)
- LONG rexxrc=0L;
-#elif defined(__EMX__) || defined(USE_REGINA)
- SHORT rexxrc=0;
-#else
  USHORT rexxrc=0L;
-#endif
  RXSTRING retstr;
  RXSTRING argstr;
  ULONG rc=0;
@@ -693,9 +568,6 @@ short execute_macro_file
  CHARTYPE *rexx_args=NULL;
  RXSYSEXIT exit_list[2];                /* system exit list           */
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    execute_macro_file");
-#endif
 /*---------------------------------------------------------------------*/
 /* Determine how many parameters are to be passed to the interpreter.  */
 /* Only 0 or 1 are valid values.                                       */
@@ -713,9 +585,6 @@ short execute_macro_file
     if ((rexx_args = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)params)+1)) == (CHARTYPE *)NULL)
       {
        display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_OUT_OF_MEMORY);
       }
     strcpy((DEFCHAR *)rexx_macro_parameters,(DEFCHAR *)params);
@@ -729,11 +598,7 @@ short execute_macro_file
 /*---------------------------------------------------------------------*/
 /* Set up pointer to REXX Exit Handler.                                */
 /*---------------------------------------------------------------------*/
-#if defined(USE_REXX6000)
- exit_list[0].sysexit_func = THE_Exit_Handler;
-#else
  exit_list[0].sysexit_name = "THE_EXIT";
-#endif
  exit_list[0].sysexit_code = RXSIO;
  exit_list[1].sysexit_code = RXENDLST;
 
@@ -743,15 +608,7 @@ short execute_macro_file
 /*---------------------------------------------------------------------*/
  if (interactive)
  {
-#if defined(OS2) || defined(WIN32)
-    execute_os_command((CHARTYPE*)"REM",TRUE,FALSE);
-# ifdef WIN32
-    reset_shell_mode();
-# endif
-#endif
-#ifdef UNIX
     execute_os_command((CHARTYPE*)"echo",TRUE,FALSE);
-#endif
  }
 
  captured_lines = 0L;
@@ -803,55 +660,25 @@ short execute_macro_file
           (void)my_getch(stdscr);
           if (number_of_files > 0)
             {
-#if defined(HAVE_BROKEN_SYSVR4_CURSES)
-             short x=0,y=0;
-             getyx(CURRENT_WINDOW,y,x);
-             force_curses_background();
-             wmove(CURRENT_WINDOW,y,x);
-             refresh();
-#endif
              restore_THE();
             }
          }
 #endif
       }
    }
-#if defined(WIN32) && defined(HAVE_RESET_PROG_MODE)
- else
-    reset_prog_mode();
-#endif
 
  if (rexx_args != NULL)
     (*the_free)(rexx_args);
-#ifdef THE_TRACE
- trace_return();
-#endif
  *macrorc = (short)rexxrc;
  return((short)rc);
 }
 /***********************************************************************/
 short execute_macro_instore
-#if defined(HAVE_PROTO)
       (CHARTYPE *commands,short *macrorc,CHARTYPE **pcode,int *pcode_len,int *tokenised, int macro_ident)
-#else
-      (commands, macrorc,pcode,pcode_len, tokenised)
-       CHARTYPE *commands;
-       short *macrorc;
-       CHARTYPE **pcode;
-       int *pcode_len;
-       int *tokenised;
-       int macro_ident;
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
-#if defined(__EMX__) || defined(USE_REGINA)
- SHORT rexxrc=0;
-#elif defined(USE_REXX6000)
- LONG rexxrc=0L;
-#else
  USHORT rexxrc=0L;
-#endif
  RXSTRING instore[2];
  RXSTRING retstr;
  CHAR retbuf[260];
@@ -861,19 +688,12 @@ short execute_macro_instore
  RXSYSEXIT exit_list[2];                /* system exit list           */
  bool save_in_macro=in_macro;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    execute_macro_instore");
-#endif
  in_macro = TRUE;
  sprintf((DEFCHAR *)macro_name,"INSTORE%d",macro_ident);
 /*---------------------------------------------------------------------*/
 /* Set up pointer to REXX Exit Handler.                                */
 /*---------------------------------------------------------------------*/
-#if defined(USE_REXX6000)
- exit_list[0].sysexit_func = THE_Exit_Handler;
-#else
  exit_list[0].sysexit_name = "THE_EXIT";
-#endif
  exit_list[0].sysexit_code = RXSIO;
  exit_list[1].sysexit_code = RXENDLST;
 
@@ -923,8 +743,6 @@ short execute_macro_instore
     &&  (CHARTYPE*)*pcode != (CHARTYPE*)instore[1].strptr)
 #if defined(REXXFREEMEMORY)
        RexxFreeMemory( instore[1].strptr );
-#elif defined(WIN32) && (defined(USE_OREXX) || defined(USE_WINREXX) || defined(USE_QUERCUS))
-       GlobalFree( instore[1].strptr );
 #elif defined(USE_OS2REXX)
        DosFreeMem(instore[1].strptr);
 #else
@@ -964,45 +782,24 @@ short execute_macro_instore
           (void)my_getch(stdscr);
           if (number_of_files > 0)
             {
-#if defined(HAVE_BROKEN_SYSVR4_CURSES)
-             short x=0,y=0;
-             getyx(CURRENT_WINDOW,y,x);
-             force_curses_background();
-             wmove(CURRENT_WINDOW,y,x);
-             refresh();
-#endif
              restore_THE();
             }
          }
 #endif
       }
    }
-#if defined(WIN32) && defined(HAVE_RESET_PROG_MODE)
- else
-    reset_prog_mode();
-#endif
  in_macro = save_in_macro;
-#ifdef THE_TRACE
- trace_return();
-#endif
  *macrorc = (short)rexxrc;
  return((short)rc);
 }
 
 /***********************************************************************/
 REH_RETURN_TYPE rexx_interpreter_version_exit
-#if defined(HAVE_PROTO)
    (
    REH_ARG0_TYPE ExitNumber,    /* code defining the exit function    */
    REH_ARG1_TYPE Subfunction,   /* code defining the exit subfunction */
    REH_ARG2_TYPE ParmBlock      /* function dependent control block   */
    )
-#else
-   ( ExitNumber, Subfunction, ParmBlock )
-   REH_ARG0_TYPE ExitNumber;    /* code defining the exit function    */
-   REH_ARG1_TYPE Subfunction;   /* code defining the exit subfunction */
-   REH_ARG2_TYPE ParmBlock;     /* function dependent control block   */
-#endif
 /***********************************************************************/
 {
  SHVBLOCK shv;
@@ -1025,12 +822,7 @@ REH_RETURN_TYPE rexx_interpreter_version_exit
 
 /***********************************************************************/
 CHARTYPE *get_rexx_interpreter_version
-#if defined(HAVE_PROTO)
       (CHARTYPE *buf)
-#else
-      (buf)
-       CHARTYPE *buf;
-#endif
 /***********************************************************************/
 {
  RXSYSEXIT Exits[2] ;
@@ -1077,46 +869,25 @@ CHARTYPE *get_rexx_interpreter_version
 
 /***********************************************************************/
 short get_rexx_variable
-#if defined(HAVE_PROTO)
       (CHARTYPE *name,CHARTYPE **value,int *value_length)
-#else
-      (name,value,value_length)
-       CHARTYPE *name;
-       CHARTYPE **value;
-       int *value_length;
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
  RXSTRING retstr;
  short rc=RC_OK;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    get_rexx_variable");
-#endif
  MAKERXSTRING(retstr,"",0);
  (void)get_compound_rexx_variable(name,&retstr,(-1));
  if (retstr.strptr == NULL)
     rc = RC_INVALID_ENVIRON;
  *value = (CHARTYPE*)retstr.strptr;
  *value_length = retstr.strlength;
-#ifdef THE_TRACE
- trace_return();
-#endif
  return(rc);
 }
 
 /***********************************************************************/
 short set_rexx_variable
-#if defined(HAVE_PROTO)
       (CHARTYPE *name,CHARTYPE *value, LENGTHTYPE value_length, int suffix)
-#else
-      (name,value,value_length,suffix)
-       CHARTYPE *name;
-       CHARTYPE *value;
-       LENGTHTYPE value_length;
-       int suffix;
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -1124,16 +895,9 @@ short set_rexx_variable
  CHAR variable_name[250];
  short rc=0;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    set_rexx_variable");
-#endif
 
  shv.shvnext=NULL;                                   /* only one block */
-#if defined(USE_REGINA)
- shv.shvcode=RXSHV_SYSET; /* for Regina (no direct set) use symbolic set */
-#else
  shv.shvcode=RXSHV_SET;               /* ... for others use direct set */
-#endif
 /*---------------------------------------------------------------------*/
 /* This calls the RexxVariablePool() function for each value. This is  */
 /* not the most efficient way of doing this.                           */
@@ -1155,7 +919,7 @@ short set_rexx_variable
  shv.shvnamelen=strlen(variable_name);
  shv.shvvaluelen=value_length;
 
-#if defined(USE_OS2REXX) || defined(USE_REXX6000)
+#if defined(USE_OS2REXX)
  rc=(short)RexxVariablePool(&shv);              /* Set the REXX variable */
 #else
  rc = RexxVariablePool(&shv);                 /* Set the REXX variable */
@@ -1169,21 +933,11 @@ short set_rexx_variable
    }
  else
     rc = RC_OK;
-#ifdef THE_TRACE
- trace_return();
-#endif
  return(rc);
 }
 /***********************************************************************/
 static RXSTRING *get_compound_rexx_variable
-#if defined(HAVE_PROTO)
       (CHARTYPE *name,RXSTRING *value,short suffix)
-#else
-      (name,value,suffix)
-       CHARTYPE *name;
-       RXSTRING *value;
-       short suffix;
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -1191,15 +945,8 @@ static RXSTRING *get_compound_rexx_variable
  CHAR variable_name[250];
  short rc=0;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    get_compound_rexx_variable");
-#endif
  shv.shvnext=NULL;                                   /* only one block */
-#if defined(USE_REGINA)
- shv.shvcode=RXSHV_SYFET; /* for Regina (no direct set) use symbolic set */
-#else
  shv.shvcode=RXSHV_FETCH;             /* ... for others use direct set */
-#endif
 /*---------------------------------------------------------------------*/
 /* This calls the RexxVariablePool() function for each value. This is  */
 /* not the most efficient way of doing this.                           */
@@ -1223,7 +970,7 @@ static RXSTRING *get_compound_rexx_variable
 /*---------------------------------------------------------------------*/
  shv.shvnamelen=strlen(variable_name);
  shv.shvvaluelen=0;
-#if defined(USE_OS2REXX) || defined(USE_REXX6000)
+#if defined(USE_OS2REXX)
  rc=(short)RexxVariablePool(&shv);              /* Set the REXX variable */
 #else
  rc = RexxVariablePool(&shv);                 /* Set the REXX variable */
@@ -1231,11 +978,7 @@ static RXSTRING *get_compound_rexx_variable
  switch(rc)
    {
     case RXSHV_OK:
-#ifdef USE_REXX6000
-         value->strptr = (PUCHAR)(*the_malloc)((sizeof(char)*shv.shvvalue.strlength)+1);
-#else
          value->strptr = (char *)(*the_malloc)((sizeof(char)*shv.shvvalue.strlength)+1);
-#endif
          if (value->strptr != NULL)
            {
             value->strlength = shv.shvvalue.strlength;
@@ -1244,8 +987,6 @@ static RXSTRING *get_compound_rexx_variable
            }
 #if defined(REXXFREEMEMORY)
          RexxFreeMemory( shv.shvvalue.strptr );
-#elif defined(WIN32) && (defined(USE_OREXX) || defined(USE_WINREXX) || defined(USE_QUERCUS))
-         GlobalFree( shv.shvvalue.strptr );
 #elif defined(USE_OS2REXX)
          DosFreeMem( shv.shvvalue.strptr );
 #else
@@ -1253,11 +994,7 @@ static RXSTRING *get_compound_rexx_variable
 #endif
          break;
    case RXSHV_NEWV:
-#ifdef USE_REXX6000
-         value->strptr = (PUCHAR)(*the_malloc)((sizeof(char)*shv.shvname.strlength)+1);
-#else
          value->strptr = (char *)(*the_malloc)((sizeof(char)*shv.shvname.strlength)+1);
-#endif
          if (value->strptr != NULL)
            {
             value->strlength = shv.shvname.strlength;
@@ -1270,20 +1007,11 @@ static RXSTRING *get_compound_rexx_variable
          value->strlength = 0;
          break;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
  return(value);
 }
 /***********************************************************************/
 static short valid_target_function
-#if defined(HAVE_PROTO)
       (ULONG Argc,RXSTRING Argv[])
-#else
-     (Argc,Argv)
-      ULONG Argc;
-      RXSTRING Argv[];
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -1292,9 +1020,6 @@ static short valid_target_function
  LINETYPE true_line=0L;
  short rc=0;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    valid_target_function");
-#endif
  switch(1)
    {
     case 1:
@@ -1363,20 +1088,11 @@ static short valid_target_function
    }
  item_values[0].value = (CHARTYPE *)"1";
  item_values[0].len = 1;
-#ifdef THE_TRACE
- trace_return();
-#endif
  return(rc);
 }
 /***********************************************************************/
 static short run_os_function
-#if defined(HAVE_PROTO)
       (ULONG Argc,RXSTRING Argv[])
-#else
-     (Argc,Argv)
-      ULONG Argc;
-      RXSTRING Argv[];
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -1384,9 +1100,6 @@ static short run_os_function
  static CHARTYPE num0[5];                  /* large enough for 1000+rc */
  CHARTYPE *cmd=NULL,*instem=NULL,*outstem=NULL,*errstem=NULL;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    run_os_function");
-#endif
  switch(Argc)
    {
     case 0:
@@ -1431,22 +1144,11 @@ static short run_os_function
  if (instem) (*the_free)(instem);
  if (outstem) (*the_free)(outstem);
  if (errstem) (*the_free)(errstem);
-#ifdef THE_TRACE
- trace_return();
-#endif
  return(RC_OK);
 }
 /***********************************************************************/
 static int run_os_command
-#if defined(HAVE_PROTO)
       (CHARTYPE *cmd,CHARTYPE *instem,CHARTYPE *outstem,CHARTYPE *errstem)
-#else
-      (cmd,instem,outstem,errstem)
-       CHARTYPE *cmd;
-       CHARTYPE *instem;
-       CHARTYPE *outstem;
-       CHARTYPE *errstem;
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -1462,9 +1164,6 @@ static int run_os_command
  int save_stdin=0,save_stdout=0,save_stderr=0;
  int infd=0,outfd=0,errfd=0;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    run_os_command");
-#endif
 /*---------------------------------------------------------------------*/
 /* Determine if we are redirecting stdin, stdout or both and if the    */
 /* values passed as stem variables end in '.'.                         */
@@ -1479,9 +1178,6 @@ static int run_os_command
        *(instem+inlen-1) = '\0';
     else
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_INVALID_OPERAND+1000);
       }
    }
@@ -1495,9 +1191,6 @@ static int run_os_command
        *(outstem+outlen-1) = '\0';
     else
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_INVALID_OPERAND+1000);
       }
    }
@@ -1511,9 +1204,6 @@ static int run_os_command
        *(errstem+errlen-1) = '\0';
     else
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_INVALID_OPERAND+1000);
       }
    }
@@ -1525,17 +1215,11 @@ static int run_os_command
     if (out
     &&  strcmp((DEFCHAR *)instem,(DEFCHAR *)outstem) == 0)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_INVALID_OPERAND+1000);
       }
     if (err
     &&  strcmp((DEFCHAR *)instem,(DEFCHAR *)errstem) == 0)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_INVALID_OPERAND+1000);
       }
    }
@@ -1558,16 +1242,10 @@ static int run_os_command
     (void)get_compound_rexx_variable(instem,&tmpstr,0);
     if (tmpstr.strptr == NULL)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_SYSTEM_ERROR+1000);
       }
     if (!valid_positive_integer((CHARTYPE *)tmpstr.strptr))
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_INVALID_OPERAND+1000);
       }
     innum = atol((DEFCHAR *)tmpstr.strptr);
@@ -1578,19 +1256,13 @@ static int run_os_command
     infile = (char *)(*the_malloc)(L_tmpnam);
     if (infile == NULL)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_OUT_OF_MEMORY+1000);
       }
     if ((infile = tmpnam(infile)) == NULL)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_ACCESS_DENIED+1000);
       }
-#if defined(GO32) || defined(__EMX__)
+#if defined(GO32)
 /*---------------------------------------------------------------------*/
 /* For djgpp and emx convert all \ to / for internal file handling     */
 /* functions.                                                          */
@@ -1599,9 +1271,6 @@ static int run_os_command
 #endif
     if ((infp = fopen(infile,"w")) == NULL)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_ACCESS_DENIED+1000);
       }
     for (i=0;i<innum;i++)
@@ -1610,9 +1279,6 @@ static int run_os_command
        (void)get_compound_rexx_variable(instem,&tmpstr,i+1);
        if (tmpstr.strptr == NULL)
          {
-#ifdef THE_TRACE
-          trace_return();
-#endif
           return(RC_SYSTEM_ERROR+1000);
          }
        fputs((DEFCHAR *)tmpstr.strptr,infp);
@@ -1621,9 +1287,6 @@ static int run_os_command
       }
     if (fclose(infp))
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_ACCESS_DENIED+1000);
       }
    }
@@ -1636,16 +1299,10 @@ static int run_os_command
     outfile = (char *)(*the_malloc)(L_tmpnam);
     if (outfile == NULL)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_OUT_OF_MEMORY+1000);
       }
     if ((outfile = tmpnam(outfile)) == NULL)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_ACCESS_DENIED+1000);
       }
    }
@@ -1664,16 +1321,10 @@ static int run_os_command
        errfile = (char *)(*the_malloc)(L_tmpnam);
        if (errfile == NULL)
          {
-#ifdef THE_TRACE
-          trace_return();
-#endif
           return(RC_OUT_OF_MEMORY+1000);
          }
        if ((errfile = tmpnam(errfile)) == NULL)
          {
-#ifdef THE_TRACE
-          trace_return();
-#endif
           return(RC_ACCESS_DENIED+1000);
          }
       }
@@ -1689,23 +1340,13 @@ static int run_os_command
    {
     if ((infd = open(infile,O_RDONLY)) == (-1))
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_ACCESS_DENIED+1000);
       }
    }
  if (out)
    {
-#if defined(UNIX)
     if ((outfd = open(outfile,O_RDWR|O_CREAT|O_TRUNC)) == (-1))
-#else
-    if ((outfd = open(outfile,O_RDWR|O_CREAT|O_TRUNC,S_IWRITE|S_IREAD)) == (-1))
-#endif
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(RC_ACCESS_DENIED+1000);
       }
    }
@@ -1715,26 +1356,17 @@ static int run_os_command
    {
     if (err)
       {
-#if defined(UNIX)
        if ((errfd = open(errfile,O_RDWR|O_CREAT|O_TRUNC)) == (-1))
-#else
-       if ((errfd = open(errfile,O_RDWR|O_CREAT|O_TRUNC,S_IWRITE|S_IREAD)) == (-1))
-#endif
          {
-#ifdef THE_TRACE
-          trace_return();
-#endif
           return(RC_ACCESS_DENIED+1000);
          }
       }
    }
-#if defined(UNIX)
   if (out)
      chmod(outfile,S_IWUSR|S_IRUSR);
   if (!out_and_err_same)
      if (err)
         chmod(errfile,S_IWUSR|S_IRUSR);
-#endif
  if (in)  dup2(infd,fileno(stdin));
  if (out) dup2(outfd,fileno(stdout));
  if (err) dup2(errfd,fileno(stderr));
@@ -1746,9 +1378,7 @@ static int run_os_command
 /* Execute the OS command supplied.                                    */
 /*---------------------------------------------------------------------*/
  rcode = system((DEFCHAR *)cmd);
-#if defined(HAVE_SYS_WAIT_H)
  if (rcode) rcode = WEXITSTATUS(rcode);
-#endif
 /*---------------------------------------------------------------------*/
 /* Put all file ids back the way they were...                          */
 /*---------------------------------------------------------------------*/
@@ -1793,9 +1423,6 @@ static int run_os_command
 /*---------------------------------------------------------------------*/
 /* Return with, hopefully, return code from system() command.          */
 /*---------------------------------------------------------------------*/
-#ifdef THE_TRACE
- trace_return();
-#endif
  if (rc)
     return(rc+1000);
  else
@@ -1803,20 +1430,12 @@ static int run_os_command
 }
 /***********************************************************************/
 static CHARTYPE *MakeAscii
-#if defined(HAVE_PROTO)
       (RXSTRING *rxstring)
-#else
-     (rxstring)
-      RXSTRING *rxstring;
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
  CHARTYPE *string=NULL;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    MakeAscii");
-#endif
 
  string = (CHARTYPE *)(*the_malloc)((sizeof(CHARTYPE)*rxstring->strlength)+1);
  if (string != NULL)
@@ -1824,22 +1443,11 @@ static CHARTYPE *MakeAscii
     memcpy(string,rxstring->strptr,rxstring->strlength);
     *(string+(rxstring->strlength)) = '\0';
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
  return(string);
 }
 /***********************************************************************/
 static char *get_a_line
-#if defined(HAVE_PROTO)
       (FILE *fp,char *string,int *length,int *rcode)
-#else
-      (fp,string,length,rcode)
-      FILE *fp;
-      char *string;
-      int *length;
-      int *rcode;
-#endif
 /***********************************************************************/
 {
  int ch;
@@ -1903,13 +1511,7 @@ static char *get_a_line
 }
 /***********************************************************************/
 static short set_rexx_variables_from_file
-#if defined(HAVE_PROTO)
       (char *filename,CHARTYPE *stem)
-#else
-      (filename,stem)
-       char *filename;
-       CHARTYPE *stem;
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -1919,14 +1521,8 @@ static short set_rexx_variables_from_file
  int length=0,rcode=0,rc=0;
  char tmpnum[10];
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("rexx.c:    set_rexx_variables_from_file");
-#endif
  if ((fp = fopen(filename,"r")) == NULL)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
     return(RC_ACCESS_DENIED);
    }
  for (i=0;;i++)
@@ -1934,9 +1530,6 @@ static short set_rexx_variables_from_file
     string = get_a_line(fp,string,&length,&rcode);
     if (rcode == RC_OUT_OF_MEMORY)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
        return(rcode);
       }
     if (rcode == RC_TOF_EOF_REACHED
@@ -1954,140 +1547,5 @@ static short set_rexx_variables_from_file
  rc = set_rexx_variable(stem,(CHARTYPE *)tmpnum,strlen(tmpnum),0);
  if (fclose(fp))
     rc = RC_ACCESS_DENIED;
-#ifdef THE_TRACE
- trace_return();
-#endif
  return(rc);
 }
-#else
-/*---------------------------------------------------------------------*/
-/* The following are dummy routines to enable the compliation of THE   */
-/* with a nonANSI compiler.                                            */
-/*---------------------------------------------------------------------*/
-/***********************************************************************/
-short initialise_rexx
-#if defined(HAVE_PROTO)
-      (void)
-#else
-      ()
-#endif
-/***********************************************************************/
-{
- return(RC_INVALID_ENVIRON);                        /* force an error */
-}
-/***********************************************************************/
-short finalise_rexx
-#if defined(HAVE_PROTO)
-      (void)
-#else
-      ()
-#endif
-/***********************************************************************/
-{
- return(RC_OK);
-}
-/***********************************************************************/
-short execute_macro_file
-#if defined(HAVE_PROTO)
-      (CHARTYPE *filename,CHARTYPE *params,short *macrorc,bool interactive)
-#else
-      (filename,params,macrorc,interactive)
-      CHARTYPE *filename;
-      CHARTYPE *params;
-      short *macrorc;
-      bool interactive;
-#endif
-/***********************************************************************/
-{
- return(RC_OK);
-}
-/***********************************************************************/
-short execute_macro_instore
-#if defined(HAVE_PROTO)
-      (CHARTYPE *commands,short *macrorc,CHARTYPE **pcode,int *pcode_len,int *tokenised,int macro_ident)
-#else
-      (commands,macrorc,pcode,pcode_len,tokenised,macro_ident)
-      CHARTYPE *commands;
-      short *macrorc;
-      CHARTYPE **pcode;
-      int *pcode_len;
-      int tokenised;
-      int macro_ident;
-#endif
-/***********************************************************************/
-{
- return(RC_OK);
-}
-/***********************************************************************/
-short set_rexx_variable
-#if defined(HAVE_PROTO)
-      (CHARTYPE *name,CHARTYPE *value,short value_length,short suffix)
-#else
-      (name,value,value_length,suffix)
-      CHARTYPE *name;
-      CHARTYPE *value;
-      short value_length;
-      short suffix;
-#endif
-/***********************************************************************/
-{
- return(RC_OK);
-}
-
-/***********************************************************************/
-short get_rexx_variable
-#if defined(HAVE_PROTO)
-      (CHARTYPE *name,CHARTYPE **value,int *value_length)
-#else
-      (name,value,value_length)
-       CHARTYPE *name;
-       CHARTYPE **value;
-       int *value_length;
-#endif
-/***********************************************************************/
-{
- return(RC_OK);
-}
-
-/***********************************************************************/
-CHARTYPE *get_rexx_interpreter_version
-#if defined(HAVE_PROTO)
-      (CHARTYPE *buf)
-#else
-      (buf)
-       CHARTYPE *buf;
-#endif
-/***********************************************************************/
-{
- strcpy((DEFCHAR *)buf,"NONE");
- return(buf);
-}
-
-/***********************************************************************/
-unsigned long MyRexxDeregisterFunction
-#if defined(HAVE_PROTO)
-   (
-   CHARTYPE *Name)       /* Name of function to be deregistered        */
-#else
-   (Name)
-   CHARTYPE *Name;       /* Name of function to be deregistered        */
-#endif
-/***********************************************************************/
-{
-   return 0L;
-}
-
-/***********************************************************************/
-unsigned long MyRexxRegisterFunctionExe
-#if defined(HAVE_PROTO)
-   (
-   CHARTYPE *Name)         /* Name of function to be registered        */
-#else
-   (Name)
-   CHARTYPE *Name;         /* Name of function to be registered        */
-#endif
-/***********************************************************************/
-{
-   return 0L;
-}
-#endif

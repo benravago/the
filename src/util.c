@@ -49,11 +49,6 @@
  static int CompareLen=0;
  static bool CompareExact;
 
-#ifdef USE_EXTCURSES
- chtype color_pair[COLOR_PAIRS];
- static chtype fore_color[8];
- static chtype back_color[8];
-#endif
 
 /*
  * ASCII to EBCDIC
@@ -132,15 +127,7 @@ static unsigned char _THE_FAR ebc2asc_table[256] = {
 };
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *asc2ebc(CHARTYPE *str,int len,int start,int end)
-#else
-CHARTYPE *asc2ebc(str,len,start,end)
-CHARTYPE *str;
-int len;
-int start;
-int end;
-#endif
 /***********************************************************************/
 /* Function  : Converts an ASCII string to an EBCDIC string.           */
 /* Parameters: str      - ASCII string                                 */
@@ -156,15 +143,7 @@ int end;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *ebc2asc(CHARTYPE *str,int len,int start,int end)
-#else
-CHARTYPE *ebc2asc(str,len,start,end)
-CHARTYPE *str;
-int len;
-int start;
-int end;
-#endif
 /***********************************************************************/
 /* Function  : Converts an EBCDIC string to an ASCII string.           */
 /* Parameters: str      - EBCDIC string                                */
@@ -200,13 +179,7 @@ RETURN VALUE
 SEE ALSO
      strzreveq, memrevne
 *******************************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE memreveq( CHARTYPE *buffer, CHARTYPE ch, LENGTHTYPE max_len)
-#else
-LENGTHTYPE memreveq( buffer, ch, max_len )
-CHARTYPE *buffer,ch;
-LENGTHTYPE max_len;
-#endif
 /***********************************************************************/
 {
    LENGTHTYPE len=max_len;
@@ -235,14 +208,7 @@ RETURN VALUE
 SEE ALSO
      strzrevne, strzne
 *******************************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE memrevne( CHARTYPE *buffer, CHARTYPE known_char, LENGTHTYPE max_len )
-#else
-LENGTHTYPE memrevne( buffer, known_char, max_len )
-CHARTYPE *buffer;
-CHARTYPE known_char;
-LENGTHTYPE max_len;
-#endif
 {
    LENGTHTYPE len=max_len;
 
@@ -275,14 +241,7 @@ SEE ALSO
     meminsstr, memdeln
 
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *meminschr( CHARTYPE *buffer, CHARTYPE chr, LENGTHTYPE location, LENGTHTYPE max_length, LENGTHTYPE curr_length )
-#else
-CHARTYPE *meminschr( buffer, chr, location, max_length, curr_length )
-CHARTYPE *buffer;
-CHARTYPE chr;
-LENGTHTYPE location,max_length,curr_length;
-#endif
 {
    LENGTHTYPE i=0;
 
@@ -323,13 +282,7 @@ SEE ALSO
     meminschr
 
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *meminsmem( CHARTYPE *buffer, CHARTYPE *str, LENGTHTYPE len, LENGTHTYPE location, LENGTHTYPE max_length, LENGTHTYPE curr_length )
-#else
-CHARTYPE *meminsmem(buffer,str,len,location,max_length,curr_length)
-CHARTYPE *buffer,*str;
-LENGTHTYPE len,location,max_length,curr_length;
-#endif
 {
    LENGTHTYPE i=0;
 
@@ -368,13 +321,7 @@ SEE ALSO
     meminschr, strdelchr
 
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *memdeln( CHARTYPE *buffer, LENGTHTYPE location, LENGTHTYPE curr_length, LENGTHTYPE num_chars )
-#else
-CHARTYPE *memdeln( buffer, location, curr_length, num_chars )
-CHARTYPE *buffer;
-LENGTHTYPE location,curr_length,num_chars;
-#endif
 {
    LENGTHTYPE i=0;
 
@@ -406,13 +353,7 @@ SEE ALSO
     meminschr, memdeln
 
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *strdelchr(CHARTYPE *buffer,CHARTYPE chr)
-#else
-CHARTYPE *strdelchr(buffer,chr)
-CHARTYPE *buffer;
-CHARTYPE chr;
-#endif
 {
    LENGTHTYPE i=0,j=0;
    LENGTHTYPE len=strlen( (DEFCHAR *)buffer );
@@ -445,14 +386,7 @@ DESCRIPTION
 RETURN VALUE
      Returns the new buf.
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *memrmdup( CHARTYPE *buf, LENGTHTYPE *len, CHARTYPE ch )
-#else
-CHARTYPE *memrmdup( buf, len, ch )
-CHARTYPE *buf;
-LENGTHTYPE *len;
-CHARTYPE ch;
-#endif
 {
    LENGTHTYPE i=0,num_dups=0,newlen=*len;
    CHARTYPE *src=buf,*dst=buf;
@@ -499,14 +433,7 @@ DESCRIPTION
 RETURN VALUE
      Returns the new buf.
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *strrmdup(CHARTYPE *buf,CHARTYPE ch,bool exclude_leading)
-#else
-CHARTYPE *strrmdup(buf,ch,exclude_leading)
-CHARTYPE *buf;
-CHARTYPE ch;
-bool exclude_leading;
-#endif
 {
    CHARTYPE *src=buf,*dst=buf;
    bool dup=FALSE;
@@ -555,13 +482,7 @@ RETURN VALUE
 SEE ALSO
      strzrevne, memrevne
 *******************************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE strzne(CHARTYPE *str,CHARTYPE ch)
-#else
-LENGTHTYPE strzne(str,ch)
-CHARTYPE *str;
-CHARTYPE ch;
-#endif
 {
    LENGTHTYPE len=0;
    LENGTHTYPE i = 0;
@@ -587,12 +508,7 @@ RETURN VALUE
      If successful, returns a pointer to the copy of the supplied string
      or NULL if unsuccessful.
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *my_strdup(CHARTYPE *str)
-#else
-CHARTYPE *my_strdup(str)
-CHARTYPE *str;
-#endif
 {
    LENGTHTYPE len=0;
    CHARTYPE *tmp=NULL;
@@ -626,14 +542,7 @@ RETURN VALUE
 SEE ALSO
      strzrevne, memrevne, strzne
 *******************************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE memne( CHARTYPE *buffer, CHARTYPE chr, LENGTHTYPE length )
-#else
-LENGTHTYPE memne( buffer, chr, length )
-CHARTYPE *buffer;
-CHARTYPE chr;
-LENGTHTYPE length;
-#endif
 {
    LENGTHTYPE i = 0;
 
@@ -664,13 +573,7 @@ RETURN VALUE
 SEE ALSO
      strzne, memrevne
 *******************************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE strzrevne( CHARTYPE *str, CHARTYPE ch )
-#else
-LENGTHTYPE strzrevne( str, ch)
-CHARTYPE *str;
-CHARTYPE ch;
-#endif
 {
    LENGTHTYPE len=0;
 
@@ -698,12 +601,7 @@ RETURN VALUE
 SEE ALSO
      strzrevne
 *******************************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE strzreveq(CHARTYPE *str,CHARTYPE ch)
-#else
-LENGTHTYPE strzreveq(str,ch)
-CHARTYPE *str,ch;
-#endif
 /***********************************************************************/
 {
    LENGTHTYPE len=0;
@@ -732,12 +630,7 @@ RETURN VALUE
 SEE ALSO
 
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *strtrunc(CHARTYPE *string)
-#else
-CHARTYPE *strtrunc(string)
-CHARTYPE *string;
-#endif
 {
    return( MyStrip( string, STRIP_BOTH, ' ' ) );
 }
@@ -776,13 +669,7 @@ RETURN VALUE
 SEE ALSO
 
 *******************************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *MyStrip(CHARTYPE *string,char option,char ch)
-#else
-CHARTYPE *MyStrip(string,option,ch)
-CHARTYPE *string;
-char option,ch;
-#endif
 {
    LENGTHTYPE i=0;
    LENGTHTYPE pos=0;
@@ -843,22 +730,9 @@ RETURN VALUE
      the needle does not appear in the haystack. The length of the matched
      string is returned in target_len
 *******************************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE memfind( CHARTYPE *haystack, CHARTYPE *needle, LENGTHTYPE hay_len, LENGTHTYPE nee_len,
                     bool case_ignore, bool arbsts, CHARTYPE arb_single, CHARTYPE arb_multiple,
                     LENGTHTYPE *target_len )
-#else
-LENGTHTYPE memfind( haystack, needle, hay_len, nee_len, case_ignore, arbsts, arb_single, arb_multiple, target_len )
-CHARTYPE *haystack;
-CHARTYPE *needle;
-LENGTHTYPE hay_len;
-LENGTHTYPE nee_len;
-bool case_ignore;
-bool arbsts;
-CHARTYPE arb_single;
-CHARTYPE arb_multiple;
-LENGTHTYPE *target_len;
-#endif
 {
    register CHARTYPE c1=0,c2=0;
    register CHARTYPE *buf1=NULL,*buf2=NULL;
@@ -986,13 +860,7 @@ DESCRIPTION
 RETURN VALUE
      None
 *******************************************************************************/
-#ifdef HAVE_PROTO
 void memrev( CHARTYPE *dest, CHARTYPE *src, LENGTHTYPE length )
-#else
-void memrev( dest, src, length )
-CHARTYPE *dest, *src;
-LENGTHTYPE length;
-#endif
 {
    LENGTHTYPE i,j;
 
@@ -1002,13 +870,7 @@ LENGTHTYPE length;
    }
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE memcmpi( CHARTYPE *buf1, CHARTYPE *buf2, LENGTHTYPE len )
-#else
-LENGTHTYPE memcmpi( buf1, buf2, len )
-CHARTYPE *buf1,*buf2;
-LENGTHTYPE len;
-#endif
 /***********************************************************************/
 /* Function  : Compares two memory buffers for equality;               */
 /*             case insensitive. Same as memicmp() Microsoft C.        */
@@ -1041,12 +903,7 @@ LENGTHTYPE len;
    return(0);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE my_stricmp( DEFCHAR *str1, DEFCHAR *str2 )
-#else
-LENGTHTYPE my_stricmp( str1, str2 )
-DEFCHAR *str1,*str2;
-#endif
 /***********************************************************************/
 /* Function  : Compares two string buffers for equality;               */
 /*             case insensitive. Same as stricmp(), strcasecmp() etc.  */
@@ -1084,12 +941,7 @@ DEFCHAR *str1,*str2;
    return(0);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *make_upper(CHARTYPE *str)
-#else
-CHARTYPE *make_upper(str)
-CHARTYPE *str;
-#endif
 /***********************************************************************/
 /* Function  : Makes the supplied string uppercase.                    */
 /*             Equivalent to strupr() on some platforms.               */
@@ -1125,13 +977,7 @@ DESCRIPTION
 RETURN VALUE
      If 'equal' TRUE else FALSE.
 *******************************************************************************/
-#ifdef HAVE_PROTO
 bool equal( CHARTYPE *con, CHARTYPE *str, LENGTHTYPE min_len )
-#else
-bool equal( con, str, min_len )
-CHARTYPE *con,*str;
-LENGTHTYPE min_len;
-#endif
 {
    LENGTHTYPE i=0,lenstr=0;
    CHARTYPE c1,c2;
@@ -1167,12 +1013,7 @@ LENGTHTYPE min_len;
 
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 bool valid_integer( CHARTYPE *str )
-#else
-bool valid_integer( str )
-CHARTYPE *str;
-#endif
 /***********************************************************************/
 /* Function  : Checks that string contains only 0-9,- or +.            */
 /* Parameters: *str     - string to be checked                         */
@@ -1205,12 +1046,7 @@ CHARTYPE *str;
    return(TRUE);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 bool valid_positive_integer( CHARTYPE *str )
-#else
-bool valid_positive_integer( str )
-CHARTYPE *str;
-#endif
 /***********************************************************************/
 /* Function  : Checks that string contains only 0-9, or +.             */
 /* Parameters: *str     - string to be checked                         */
@@ -1234,13 +1070,7 @@ CHARTYPE *str;
    return(TRUE);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short valid_positive_integer_against_maximum( CHARTYPE *str, LENGTHTYPE maximum )
-#else
-short valid_positive_integer_against_maximum( str, maximum )
-CHARTYPE *str;
-LENGTHTYPE maximum;
-#endif
 /***********************************************************************/
 /* Function  : Checks that string contains only 0-9, or +              */
 /*             and is less than supplied string maximum                */
@@ -1295,13 +1125,7 @@ LENGTHTYPE maximum;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE strzeq( CHARTYPE *str, CHARTYPE ch )
-#else
-LENGTHTYPE strzeq( str, ch )
-CHARTYPE *str;
-CHARTYPE ch;
-#endif
 /***********************************************************************/
 /* Function  : Locate in ASCIIZ string, character                      */
 /* Parameters: *str     - string to be searched                        */
@@ -1319,13 +1143,7 @@ CHARTYPE ch;
    return(i);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE *strtrans( CHARTYPE *str, CHARTYPE oldch, CHARTYPE newch )
-#else
-CHARTYPE *strtrans( str, oldch, newch )
-CHARTYPE *str;
-CHARTYPE oldch,newch;
-#endif
 /***********************************************************************/
 /* Function  : Translate all occurrences of oldch to newch in str      */
 /* Parameters: *str     - string to be amendedd                        */
@@ -1344,17 +1162,7 @@ CHARTYPE oldch,newch;
    return(str);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LINE *add_LINE( LINE *first, LINE *curr, CHARTYPE *line, LENGTHTYPE len, SELECTTYPE select, bool new_flag )
-#else
-LINE *add_LINE( first, curr, line, len, select, new_flag )
-LINE *first;
-LINE *curr;
-CHARTYPE *line;
-LENGTHTYPE len;
-SELECTTYPE select;
-bool new_flag;
-#endif
 /***********************************************************************/
 /* Adds a member of the linked list for the specified file containing  */
 /* the line contents and length.                                       */
@@ -1419,14 +1227,7 @@ bool new_flag;
    return(curr_line);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LINE *append_LINE( LINE *curr, CHARTYPE *line, LENGTHTYPE len )
-#else
-LINE *append_LINE( curr, line, len )
-LINE *curr;
-CHARTYPE *line;
-LENGTHTYPE len;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("util.c:    append_LINE");
@@ -1443,14 +1244,7 @@ LENGTHTYPE len;
    return(curr);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LINE *delete_LINE( LINE **first, LINE **last, LINE *curr, short direction, bool delete_names )
-#else
-LINE *delete_LINE( first, last, curr, direction, delete_names )
-LINE **first,**last,*curr;
-short direction;
-bool delete_names;
-#endif
 /***********************************************************************/
 /* Deletes a member of the linked list for the specified file.         */
 /* PARAMETERS:                                                         */
@@ -1487,16 +1281,7 @@ bool delete_names;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void put_string( WINDOW *win, ROWTYPE row, COLTYPE col, CHARTYPE *string, LENGTHTYPE len )
-#else
-void put_string( win, row, col, string, len )
-WINDOW *win;
-ROWTYPE row;
-COLTYPE col;
-CHARTYPE *string;
-LENGTHTYPE len;
-#endif
 /***********************************************************************/
 {
    LENGTHTYPE i=0;
@@ -1511,26 +1296,17 @@ LENGTHTYPE len;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void put_char(WINDOW *win,chtype ch,CHARTYPE add_ins)
-#else
-void put_char(win,ch,add_ins)
-WINDOW *win;
-chtype ch;
-CHARTYPE add_ins;
-#endif
 /***********************************************************************/
 {
    chtype chr=0;
 
    TRACE_FUNCTION("util.c:    put_char");
-#ifndef VMS
    chr = ch & A_CHARTEXT;
    if (etmode_flag[chr])  /* etmode character has attributes, use them */
       ch = etmode_table[chr];
    else
       ch = etmode_table[chr] | (ch & A_ATTRIBUTES);
-#endif
 
    if (add_ins == ADDCHAR)
       waddch( win, ch );
@@ -1540,12 +1316,7 @@ CHARTYPE add_ins;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short set_up_windows(short scrn)
-#else
-short set_up_windows(scrn)
-short scrn;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -1607,9 +1378,7 @@ short scrn;
             TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
-#ifdef HAVE_KEYPAD
          keypad( screen[scrn].win[i], TRUE );
-#endif
 #if !defined(PDCURSES)
          touchwin( screen[scrn].win[i] );
 #endif
@@ -1671,16 +1440,10 @@ short scrn;
          TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
-#ifdef HAVE_KEYPAD
       keypad( divider, TRUE );
-#endif
 
 #if 0
-# if defined(A_ALTCHARSET) && !defined(USE_NCURSES)
-      wattrset( divider, A_ALTCHARSET|set_colour( fp.attr+ATTR_DIVIDER ) );
-# else
       wattrset( divider, set_colour( fp.attr+ATTR_DIVIDER ) );
-# endif
 #else
       wattrset( divider, set_colour( fp.attr+ATTR_DIVIDER ) );
 #endif
@@ -1689,12 +1452,8 @@ short scrn;
    }
    if ( max_slk_labels )
    {
-#if defined(HAVE_SLK_INIT)
-# if defined(HAVE_SLK_ATTRSET)
       slk_attrset( set_colour( fp.attr+ATTR_SLK ) );
-# endif
       slk_noutrefresh();
-#endif
    }
    /*
     * Free up  space for a file descriptor colour attributes...
@@ -1704,41 +1463,21 @@ short scrn;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short draw_divider(void)
-#else
-short draw_divider()
-#endif
 /***********************************************************************/
 {
-#ifndef HAVE_WVLINE
-   register int i=0;
-#endif
 
    TRACE_FUNCTION("util.c:    draw_divider");
 
-#ifdef HAVE_WVLINE
    wmove(divider,0,0);
    wvline(divider,0,screen[1].screen_rows);
    wmove(divider,0,1);
    wvline(divider,0,screen[1].screen_rows);
-#else
-   for (i=0;i<screen[1].screen_rows;i++)
-   {
-      wmove(divider,i,0);
-      waddch(divider,'|');
-      waddch(divider,'|');
-   }
-#endif
    TRACE_RETURN();
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short create_statusline_window(void)
-#else
-short create_statusline_window()
-#endif
 /***********************************************************************/
 {
    COLOUR_ATTR attr;
@@ -1763,17 +1502,13 @@ short create_statusline_window()
    {
       case 'B':
          statarea = newwin( 1, COLS, terminal_lines-1, 0 );
-#ifdef HAVE_KEYPAD
          keypad( statarea, TRUE );
-#endif
          wattrset( statarea, set_colour( &attr ) );
          clear_statarea();
          break;
       case 'T':
          statarea = newwin( 1, COLS, (FILETABSx) ? 1 : 0, 0 );
-#ifdef HAVE_KEYPAD
          keypad( statarea, TRUE );
-#endif
          wattrset( statarea, set_colour( &attr ) );
          clear_statarea();
          break;
@@ -1784,11 +1519,7 @@ short create_statusline_window()
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short create_filetabs_window(void)
-#else
-short create_filetabs_window()
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION( "util.c:    create_filetabs_window" );
@@ -1805,9 +1536,7 @@ short create_filetabs_window()
    if ( FILETABSx )
    {
       filetabs = newwin( 1, COLS, 0 , 0 );
-#ifdef HAVE_KEYPAD
       keypad( filetabs, TRUE );
-#endif
       display_filetabs( NULL );
       /*
        * If STATUSLINE is TOP, then we need to recreate it
@@ -1818,14 +1547,7 @@ short create_filetabs_window()
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void pre_process_line(VIEW_DETAILS *the_view,LINETYPE line_number,LINE *known_curr)
-#else
-void pre_process_line(the_view,line_number,known_curr)
-VIEW_DETAILS *the_view;
-LINETYPE line_number;
-LINE *known_curr;
-#endif
 /***********************************************************************/
 {
    LINE *curr=known_curr;
@@ -1860,15 +1582,7 @@ LINE *known_curr;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short post_process_line(VIEW_DETAILS *the_view,LINETYPE line_number,LINE *known_curr,bool set_alt)
-#else
-short post_process_line(the_view,line_number,known_curr,set_alt)
-VIEW_DETAILS *the_view;
-LINETYPE line_number;
-LINE *known_curr;
-bool set_alt;
-#endif
 /***********************************************************************/
 {
    LINE *curr=known_curr;
@@ -1951,12 +1665,7 @@ bool set_alt;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 bool blank_field(CHARTYPE *field)
-#else
-bool blank_field(field)
-CHARTYPE *field;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("util.c:    blank_field");
@@ -1974,14 +1683,7 @@ CHARTYPE *field;
    return(FALSE);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void adjust_marked_lines(bool binsert_line,LINETYPE base_line,LINETYPE num_lines)
-#else
-void adjust_marked_lines(binsert_line,base_line,num_lines)
-bool binsert_line;
-LINETYPE base_line;
-LINETYPE num_lines;
-#endif
 /***********************************************************************/
 {
    int iinsert_line=binsert_line;
@@ -2050,15 +1752,7 @@ LINETYPE num_lines;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void adjust_pending_prefix(VIEW_DETAILS *view,bool binsert_line,LINETYPE base_line,LINETYPE num_lines)
-#else
-void adjust_pending_prefix(view,binsert_line,base_line,num_lines)
-VIEW_DETAILS *view;
-bool binsert_line;
-LINETYPE base_line;
-LINETYPE num_lines;
-#endif
 /***********************************************************************/
 {
    int iinsert_line=binsert_line;
@@ -2110,12 +1804,7 @@ LINETYPE num_lines;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 CHARTYPE case_translate(CHARTYPE key)
-#else
-CHARTYPE case_translate(key)
-CHARTYPE key;
-#endif
 /***********************************************************************/
 {
    CHARTYPE case_type = CURRENT_VIEW->case_enter;
@@ -2148,13 +1837,7 @@ CHARTYPE key;
    return( key );
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void add_to_recovery_list(CHARTYPE *line,LENGTHTYPE len)
-#else
-void add_to_recovery_list(line,len)
-CHARTYPE *line;
-LENGTHTYPE len;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -2209,12 +1892,7 @@ LENGTHTYPE len;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void get_from_recovery_list(short num)
-#else
-void get_from_recovery_list(num)
-short num;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -2254,11 +1932,7 @@ short num;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void free_recovery_list(void)
-#else
-void free_recovery_list()
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -2281,16 +1955,7 @@ void free_recovery_list()
 
 #if THIS_APPEARS_TO_NOT_BE_USED
 /***********************************************************************/
-#ifdef HAVE_PROTO
 WINDOW *adjust_window(WINDOW *win,short tr,short tc,short lines,short cols)
-#else
-WINDOW *adjust_window(win,tr,tc,lines,cols)
-WINDOW *win;
-short tr;
-short tc;
-short lines;
-short cols;
-#endif
 /***********************************************************************/
 {
    WINDOW *neww=NULL;
@@ -2326,9 +1991,7 @@ short cols;
    if (neww != (WINDOW *)NULL)
    {
       wmove(neww,y,x);
-#ifdef HAVE_KEYPAD
       keypad( neww, TRUE );
-#endif
    }
    TRACE_RETURN();
    return(neww);
@@ -2336,12 +1999,7 @@ short cols;
 #endif
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short my_wclrtoeol(WINDOW *win)
-#else
-short my_wclrtoeol(win)
-WINDOW *win;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -2376,12 +2034,7 @@ WINDOW *win;
    return(0);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short my_wdelch(WINDOW *win)
-#else
-short my_wdelch(win)
-WINDOW *win;
-#endif
 /***********************************************************************/
 {
    short x=0,y=0,maxx=0,maxy=0;
@@ -2398,15 +2051,8 @@ WINDOW *win;
    return(0);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short get_word(CHARTYPE *string,LENGTHTYPE length,LENGTHTYPE curr_pos,
                LENGTHTYPE *first_col,LENGTHTYPE *last_col)
-#else
-short get_word(string,length,curr_pos,first_col,last_col)
-CHARTYPE *string;
-LENGTHTYPE length,curr_pos;
-LENGTHTYPE *first_col,*last_col;
-#endif
 /***********************************************************************/
 /*
  * A "word" is based on the SET WORD settings
@@ -2555,15 +2201,8 @@ LENGTHTYPE *first_col,*last_col;
    return(1);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short get_fieldword( CHARTYPE *string, LENGTHTYPE length, LENGTHTYPE curr_pos,
                      LENGTHTYPE *first_col, LENGTHTYPE *last_col )
-#else
-short get_fieldword( string, length, curr_pos, first_col, last_col )
-CHARTYPE *string;
-LENGTHTYPE length,curr_pos;
-LENGTHTYPE *first_col,*last_col;
-#endif
 /***********************************************************************/
 /*
  * A "word" is based on the SET WORD settings
@@ -2748,12 +2387,7 @@ LENGTHTYPE *first_col,*last_col;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short my_isalphanum(CHARTYPE chr)
-#else
-short my_isalphanum(chr)
-CHARTYPE chr;
-#endif
 /***********************************************************************/
 {
    short char_type=CHAR_OTHER;
@@ -2775,13 +2409,7 @@ CHARTYPE chr;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short my_wmove(WINDOW *win,short scridx,short winidx,short y,short x)
-#else
-short my_wmove(win,scridx,winidx,y,x)
-WINDOW *win;
-short scridx,winidx,y,x;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2803,13 +2431,7 @@ short scridx,winidx,y,x;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short get_row_for_tof_eof(short row,CHARTYPE scridx)
-#else
-short get_row_for_tof_eof(row,scridx)
-short row;
-CHARTYPE scridx;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("util.c:    get_row_for_tof_eof");
@@ -2830,25 +2452,14 @@ CHARTYPE scridx;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void set_compare_exact( bool exact )
-#else
-void set_compare_exact( exact )
-bool exact;
-#endif
 /***********************************************************************/
 {
    CompareExact = exact;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static int query_item_compare(const void *inkey, const void *intpl)
-#else
-static int query_item_compare(inkey, intpl)
-const void *inkey;
-const void *intpl;
-#endif
 /***********************************************************************/
 {
    const char *key = (char *)inkey;
@@ -2880,16 +2491,7 @@ const void *intpl;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 int search_query_item_array(void *base, size_t num, size_t width, const char *needle, int len)
-#else
-int search_query_item_array(base, num, width, needle, len)
-void *base;
-size_t num;
-size_t width;
-const char *needle;
-int len;
-#endif
 /***********************************************************************/
 {
    char *buf=NULL, *result=NULL;
@@ -2932,13 +2534,7 @@ int len;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 int split_function_name(CHARTYPE *funcname, int *funcname_length)
-#else
-int split_function_name(funcname, funcname_length)
-CHARTYPE *funcname;
-int *funcname_length;
-#endif
 /***********************************************************************/
 {
    int functionname_length = strlen((DEFCHAR*)funcname);
@@ -2977,12 +2573,7 @@ int *funcname_length;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 char *thetmpnam(char *prefix)
-#else
-char *thetmpnam(prefix)
-char *prefix;
-#endif
 /***********************************************************************/
 {
   /*
@@ -3037,20 +2628,13 @@ char *prefix;
    }
 
    return(NULL);
-#elif defined WIN32
-   return _tempnam( NULL, "THE" );
 #else
    return tmpnam( NULL );
 #endif
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 VIEW_DETAILS *find_filetab(int x)
-#else
-VIEW_DETAILS *find_filetab(x)
-int x;
-#endif
 /***********************************************************************/
 {
    /*
@@ -3071,11 +2655,7 @@ int x;
    if ( FILETABSx )
    {
       wmove( filetabs, 0, COLS-1 );
-#ifdef VMS
-      if ( ( winch( filetabs ) ) == '>'
-#else
       if ( ( winch( filetabs ) & A_CHARTEXT ) == '>'
-#endif
       &&  x == COLS-1 )
       {
          Tabfile( (CHARTYPE *)"+" );
@@ -3083,11 +2663,7 @@ int x;
          return NULL;
       }
       wmove( filetabs, 0, COLS-2 );
-#ifdef VMS
-      if ( ( winch( filetabs ) ) == '<'
-#else
       if ( ( winch( filetabs ) & A_CHARTEXT ) == '<'
-#endif
       &&  x == COLS-2 )
       {
          Tabfile( (CHARTYPE *)"-" );
@@ -3151,13 +2727,7 @@ int x;
    return NULL;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 VIEW_DETAILS *find_next_file( VIEW_DETAILS *curr, short direction )
-#else
-VIEW_DETAILS *find_next_file( curr, direction )
-VIEW_DETAILS *curr;
-short direction;
-#endif
 /***********************************************************************/
 {
    /*
@@ -3192,81 +2762,4 @@ short direction;
    return curr;
 }
 
-#ifndef HAVE_DOUPDATE
-/***********************************************************************/
-#ifdef HAVE_PROTO
-int doupdate(void)
-#else
-int doupdate()
-#endif
-/***********************************************************************/
-{
-   unsigned short y=0,x=0;
 
-   TRACE_FUNCTION("util.c:    doupdate");
-   getyx(CURRENT_WINDOW,y,x);
-   refresh();
-   wmove(CURRENT_WINDOW,y,x);
-   wrefresh(CURRENT_WINDOW);
-   TRACE_RETURN();
-   return(0);
-}
-#endif
-
-#ifdef USE_EXTCURSES
-/***********************************************************************/
-#ifdef HAVE_PROTO
-int has_colors(void)
-#else
-int has_colors()
-#endif
-/***********************************************************************/
-{
-   return(TRUE);
-}
-/***********************************************************************/
-#ifdef HAVE_PROTO
-int start_color(void)
-#else
-int start_color()
-#endif
-/***********************************************************************/
-{
-   register int i=0;
-
-   for (i=0;i<COLOR_PAIRS;i++)
-     color_pair[i] = NORMAL;
-   fore_color[COLOR_BLACK  ] = F_BLACK  ;
-   fore_color[COLOR_BLUE   ] = F_BLUE   ;
-   fore_color[COLOR_GREEN  ] = F_GREEN  ;
-   fore_color[COLOR_CYAN   ] = F_CYAN   ;
-   fore_color[COLOR_RED    ] = F_RED    ;
-   fore_color[COLOR_MAGENTA] = F_MAGENTA;
-   fore_color[COLOR_YELLOW ] = F_BROWN  ;
-   fore_color[COLOR_WHITE  ] = F_WHITE  ;
-   back_color[COLOR_BLACK  ] = B_BLACK  ;
-   back_color[COLOR_BLUE   ] = B_BLUE   ;
-   back_color[COLOR_GREEN  ] = B_GREEN  ;
-   back_color[COLOR_CYAN   ] = B_CYAN   ;
-   back_color[COLOR_RED    ] = B_RED    ;
-   back_color[COLOR_MAGENTA] = B_MAGENTA;
-   back_color[COLOR_YELLOW ] = B_BROWN  ;
-   back_color[COLOR_WHITE  ] = B_WHITE  ;
-   return(0);
-}
-/***********************************************************************/
-#ifdef HAVE_PROTO
-int init_pair(int pairnum,chtype fore,chtype back)
-#else
-int init_pair(pairnum,fore,back)
-int pairnum;
-chtype fore,back;
-#endif
-/***********************************************************************/
-{
-  register int i=0;
-
-  color_pair[pairnum] = fore_color[fore] | back_color[back];
-  return(0);
-}
-#endif

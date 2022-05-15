@@ -38,14 +38,7 @@
 #include <the.h>
 #include <proto.h>
 
-#ifdef HAVE_PROTO
 static bool ispf_special_lines_entry( short line_type, int ch, CHARTYPE real_key )
-#else
-static bool ispf_special_lines_entry( line_type, ch, real_key )
-short line_type;
-int ch;
-CHARTYPE real_key;
-#endif
 {
    bool need_to_build_screen=FALSE;
    /*
@@ -119,12 +112,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Tabfile(CHARTYPE *params)
-#else
-short Tabfile(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -230,12 +218,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Tabpre(CHARTYPE *params)
-#else
-short Tabpre(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("comm5.c:   Tabpre");
@@ -296,12 +279,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Tag(CHARTYPE *params)
-#else
-short Tag(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define TAG_RTARGET 0
@@ -535,12 +513,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Text(CHARTYPE *params)
-#else
-short Text(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    LENGTHTYPE i=0L;
@@ -552,19 +525,12 @@ CHARTYPE *params;
 #if defined(HAVE_BROKEN_COLORS)
    int junky,newx;
 #endif
-#if defined(USE_EXTCURSES)
-   ATTR attr=0;
-#else
    chtype attr=0;
-#endif
    bool need_to_build_screen=FALSE;
    bool save_in_macro=in_macro;
    LENGTHTYPE new_len;
 
    TRACE_FUNCTION("comm5.c:   Text");
-#ifdef THE_TRACE
-   trace_string( "params: \"%s\"\n", params );
-#endif
    /*
     * If running in read-only mode, do not allow any text to be entered
     * in the main window.
@@ -604,27 +570,11 @@ CHARTYPE *params;
    for ( i = 0; i < len_params; i++ )
    {
       real_key = case_translate( (CHARTYPE)*(params+i) );
-#ifdef VMS
-      chtype_key = (chtype)real_key;
-#else
       chtype_key = (chtype)(real_key & A_CHARTEXT);
-#endif
 
       getyx( CURRENT_WINDOW, y, x );
 
-#if defined(USE_EXTCURSES)
-      attr = CURRENT_WINDOW->_a[y][x];
-      wattrset( CURRENT_WINDOW, attr );
-      attr = 0;
-#elif defined(VMS)
-# ifdef _BSD44_CURSES
-      attr =  (CURRENT_WINDOW)->lines[(CURRENT_WINDOW)->cury]->line[(CURRENT_WINDOW)->curx].attr;
-# else
-      attr = 0;
-# endif
-#else
       attr = winch( CURRENT_WINDOW ) & A_ATTRIBUTES;
-#endif
 
       switch( CURRENT_VIEW->current_window )
       {
@@ -636,11 +586,7 @@ CHARTYPE *params;
                  || CURRENT_SCREEN.sl[y].line_type == LINE_TABLINE ) )
                {
                   need_to_build_screen = ispf_special_lines_entry( CURRENT_SCREEN.sl[y].line_type,
-#ifdef VMS
-                                                                   winch(CURRENT_WINDOW),
-#else
                                                                    winch(CURRENT_WINDOW) & A_CHARTEXT,
-#endif
                                                                    real_key );
                }
                break;
@@ -683,14 +629,6 @@ CHARTYPE *params;
                /* this is done here so that the show_page() in */
                /* THEcursor_right() is executed AFTER we get the   */
                /* new length of rec_len.                       */
-#if defined(USE_EXTCURSES)
-               if ( x == CURRENT_SCREEN.cols[WINDOW_FILEAREA]-1 )
-               {
-                  wmove( CURRENT_WINDOW, y, x );
-     /*           wrefresh(CURRENT_WINDOW); */
-                  THEcursor_right( TRUE, FALSE );
-               }
-#else
                if (INSERTMODEx
                || x == CURRENT_SCREEN.cols[WINDOW_FILEAREA]-1)
                {
@@ -707,7 +645,6 @@ CHARTYPE *params;
                   wmove(CURRENT_WINDOW,y,newx);
 # endif
                }
-#endif
             }
             /*
              * If HEXSHOW is on and we are on the current line, build screen...
@@ -724,9 +661,7 @@ CHARTYPE *params;
 #ifndef OLD_CMD
                cmd_rec_len = max( x+cmd_verify_col, cmd_rec_len+1); /* GFUC3 */
 #endif
-#if !defined(USE_EXTCURSES)
                THEcursor_right( TRUE, FALSE );
-#endif
             }
             else
             {
@@ -737,9 +672,7 @@ CHARTYPE *params;
                if ( x == CURRENT_SCREEN.cols[WINDOW_COMMAND]-1 )
                {
                   put_char( CURRENT_WINDOW, chtype_key, INSCHAR );
-#if !defined(USE_EXTCURSES)
                   THEcursor_right( TRUE, FALSE );
-#endif
                }
                else
                   put_char( CURRENT_WINDOW, chtype_key, ADDCHAR );
@@ -879,12 +812,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Toascii(CHARTYPE *params)
-#else
-short Toascii(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    LINETYPE num_lines=0L,true_line=0L,num_actual_lines=0L,i=0L,num_file_lines=0L;
@@ -1040,12 +968,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Top(CHARTYPE *params)
-#else
-short Top(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_TOF_EOF_REACHED;
@@ -1109,12 +1032,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Up(CHARTYPE *params)
-#else
-short Up(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1169,12 +1087,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Uppercase(CHARTYPE *params)
-#else
-short Uppercase(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1208,12 +1121,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Xedit(CHARTYPE *params)
-#else
-short Xedit(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1267,12 +1175,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Retrieve(CHARTYPE *params)
-#else
-short Retrieve(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    CHARTYPE *current_command=NULL;
@@ -1352,12 +1255,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Reexecute(CHARTYPE *params)
-#else
-short Reexecute(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;

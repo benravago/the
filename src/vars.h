@@ -217,9 +217,7 @@ extern CHARTYPE       *the_version,
                       term_name[20];
 extern CHARTYPE       *tempfilename;
 extern short          colour_offset_bits;
-#if defined(UNIX)
 extern CHARTYPE       user_home_dir[MAX_FILE_NAME+1];
-#endif
 #if !defined(MULTIPLE_PSEUDO_FILES)
 extern CHARTYPE       *rexxoutname,
                       *keyfilename,
@@ -273,9 +271,6 @@ extern LINETYPE       original_screen_line,
                       original_file_column,
                       startup_line;
 extern LENGTHTYPE     startup_column;
-#ifdef USE_XCURSES
-extern char           *XCursesProgramName;
-#endif
 extern CHARTYPE       *linebuf;
 #if defined(USE_UTF8)
 extern cchar_t        *linebufch;
@@ -286,11 +281,8 @@ extern LENGTHTYPE linebuf_size;
 extern int            lastkeys[8],
                       lastkeys_is_mouse[8],
                       current_key;
-#ifdef WIN32
-extern bool           StartedPrinter;
-#endif
 
-#if defined(SIGWINCH) && defined(USE_NCURSES)
+#if defined(SIGWINCH)
 extern bool ncurses_screen_resized;
 #endif
 extern int            max_slk_labels,

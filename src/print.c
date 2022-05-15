@@ -36,343 +36,13 @@
 #include <the.h>
 #include <proto.h>
 
-#if !defined(WIN32) || defined(__CYGWIN32__)
-# ifdef HAVE_PROTO
 static void print_shadow_line(FILE *,CHARTYPE *,LINETYPE);
-# else
-static void print_shadow_line( );
-# endif
-#endif
 
-#if defined(WIN32) && !defined(__CYGWIN32__)
-/*
- * Because curses implementations use MOUSE_MOVED and it clashes with
- * <windows.h> on Windows platforms, we have to undef it here to avoid
- * conflict.
- */
-#undef MOUSE_MOVED
-# include <windows.h>
-static HFONT hOldFont;
-static PRINTDLG pd;
-static LOGFONT lf;
-static DWORD dwCPI;
-static DEVMODE *dm;
-static HANDLE hPrinter=0;
-static DWORD dwCharExtent=0;
-static BOOL bLineWrapping=TRUE;
-static BOOL documentON=FALSE;
-static BOOL defaultprinter=TRUE;
-static int offsetx, offsety, savelpi, savecpi, orient;
-static int row=0;
-static int column=0;
-static int page=0;
-static int color=0;
-
-static HFONT SetFont( );
-static void PrepareDC( );
-static void PageHeader( int );
-static void NextLine( );
-static void NextPage( );
-static void SetCPI( DWORD );
-static void SetOrient( int );
-static void StartDocument( void );
-static void EndDocument( void );
-static void print_shadow_line(CHARTYPE *,LINETYPE );
-
-/*****************************************************************************
- * Select a fixed font into the printer DC. Since the DC is scaled for rows
- * and columns, we set the font size to 1x1 always.
- * This function returns a handle to the previous selected font.
-*****************************************************************************/
-static HFONT SetFont( void )
-{
-   // Create font
-   lf.lfWidth = lf.lfHeight = 1;
-   return ( HFONT )SelectObject( pd.hDC, CreateFontIndirect( &lf ) );
-}
-
-/*****************************************************************************
- * Prepare the printer DC for output. This function uses the specified CPI
- * values to scale the DC, using MM_ANISOTROPIC mapping mode.
-*****************************************************************************/
-static void PrepareDC( void )
-{
-   int lpxlX = GetDeviceCaps( pd.hDC, LOGPIXELSX );
-   int lpxlY = GetDeviceCaps( pd.hDC, LOGPIXELSY );
-
-   SetMapMode( pd.hDC, MM_ANISOTROPIC );
-   SetViewportExtEx( pd.hDC, lpxlX, lpxlY, NULL );
-   SetWindowExtEx( pd.hDC, LOWORD( dwCPI ), HIWORD( dwCPI ), NULL );
-   SetViewportOrgEx( pd.hDC, offsetx, offsety, NULL );
-
-   SetBkMode( pd.hDC, TRANSPARENT );
-   SetTextColor( pd.hDC, color );
-}
-
-/*****************************************************************************
- End document
- Done on PRINT CLOSE
-*****************************************************************************/
-static void EndDocument(void)
-{
-   DeleteObject( SelectObject( pd.hDC, hOldFont ) );
-   if (defaultprinter)
-   {
-     EndPage( pd.hDC );
-     EndDoc( pd.hDC );
-   }
-   else
-   {
-     EndPagePrinter( hPrinter );
-     EndDocPrinter( hPrinter );
-   }
-   documentON = FALSE;
-}
-
-/*****************************************************************************
- * Print a page header if wanted...
-*****************************************************************************/
-static void PageHeader( int pn )
-{
-}
-
-/*****************************************************************************
- * Advance by one line. I crossed page boundary, go to next page
-*****************************************************************************/
-static void NextLine( void )
-{
-  row++;
-  column = 0;
-  if ( row == HIWORD( dwCharExtent ) )
-     NextPage();
-}
-
-/*****************************************************************************
- * Go to next page
-*****************************************************************************/
-static void NextPage( void )
-{
-   DeleteObject( SelectObject( pd.hDC, hOldFont ) );
-   if (defaultprinter)
-   {
-     EndPage( pd.hDC );
-     StartPage( pd.hDC );
-   }
-   else
-   {
-     EndPagePrinter( hPrinter );
-     StartPagePrinter( hPrinter );
-   }
-   hOldFont = SetFont( );
-   PrepareDC( );
-   column = row = 0;
-   page++;
-   PageHeader( page+1 );
-}
-/*****************************************************************************
- * Assign new CPI and LPI values
-*****************************************************************************/
-static void SetCPI( DWORD cpi )
-{
-  if ( documentON )
-     EndDocument();
-  dwCPI = cpi;
-}
-
-/*****************************************************************************
- * Start document
- * Done on first write to the spooler
-*****************************************************************************/
-static void StartDocument( void )
-{
-   char docname[255];
-   DOCINFO di;
-   DOC_INFO_1 di1;
-
-   strcpy( docname, (DEFCHAR*)CURRENT_FILE->fpath );
-   strcat( docname, (DEFCHAR*)CURRENT_FILE->fname );
-   if (defaultprinter)
-   {
-      memset( &di, 0, sizeof ( DOCINFO ) );
-      di.cbSize = sizeof( DOCINFO );
-      di.lpszDocName = docname;
-   }
-   else
-   {
-      memset( &di1, 0, sizeof ( DOC_INFO_1 ) );
-      di1.pDocName = docname;
-   }
-
-   if ( pd.hDC )
-   {
-      // If there`s still an open document, we have to close it first
-      if ( documentON )
-         EndDocument();
-
-      // Re-calculate page extent in characters
-      dwCharExtent = MAKELONG(
-         ( ( GetDeviceCaps( pd.hDC, HORZRES ) / GetDeviceCaps( pd.hDC, LOGPIXELSX ) ) * LOWORD( dwCPI ) ),
-         ( ( GetDeviceCaps( pd.hDC, VERTRES ) / GetDeviceCaps( pd.hDC, LOGPIXELSY ) ) * HIWORD( dwCPI ) ) );
-
-      // Open a new document and start at its first page
-      if (defaultprinter)
-      {
-         StartDoc( pd.hDC, &di );
-         StartPage( pd.hDC );
-      }
-      else
-      {
-         StartDocPrinter( hPrinter, 1, (LPBYTE)&di1 );
-         StartPagePrinter( hPrinter );
-      }
-      row = column = page = 0;
-      PageHeader( page+1 );
-      hOldFont = SetFont( );
-      PrepareDC( );
-      documentON = TRUE;
-   }
-}
-
-/*****************************************************************************
- * Select a fixed font into the printer DC. Since the DC is scaled for rows
- * and columns, we set the font size to 1x1 always.
- * This function returns a handle to the previous selected font.
-*****************************************************************************/
-static void SetOrient( int or )
-{
-   dm = (DEVMODE*)GlobalLock( pd.hDevMode );
-   dm->dmOrientation = orient = or;
-   dm->dmFields |= DM_ORIENTATION;
-   ResetDC( pd.hDC, dm );
-   GlobalUnlock( dm );
-}
-
-/*****************************************************************************
- * Startup the printing interface
- * Done at start of program
-*****************************************************************************/
-void StartTextPrnt(void)
-{
-   memset( &pd, 0, sizeof(PRINTDLG) );
-   pd.lStructSize = sizeof(PRINTDLG);
-
-   memset( &lf, 0, sizeof(LOGFONT) );
-
-   strcpy( lf.lfFaceName, "LinePrinter BM" );
-   offsetx = 450;
-   offsety = 200;
-   savelpi = 8;
-   savecpi = 16;
-   SetCPI( MAKELONG(savecpi,savelpi) );
-   lf.lfWidth = lf.lfHeight = 1;
-   lf.lfWeight = 400;
-   lf.lfPitchAndFamily = FF_MODERN|FIXED_PITCH;
-   // Get a DC handle to the system`s default printer. using
-   // the PD_RETURNDEFAULT flag ensures that no dialog is opened.
-   pd.Flags = PD_RETURNDC | PD_RETURNDEFAULT | PD_NOSELECTION;
-   PrintDlg(&pd);
-   if ( pd.hDevMode == NULL )
-   {
-      display_error(78,"Unable to initialise default printer",FALSE);
-      return;
-   }
-   SetOrient( DMORIENT_PORTRAIT );
-}
-
-/*****************************************************************************
- * Stop the printing interface
- * Done at end of program
-*****************************************************************************/
-void StopTextPrnt( void )
-{
-   if ( pd.hDC )
-   {
-      if ( documentON )
-         EndDocument();
-      if ( pd.hDevMode )
-      {
-         GlobalUnlock( pd.hDevMode );
-         GlobalFree( pd.hDevMode );
-      }
-      if ( pd.hDevNames )
-         GlobalFree( pd.hDevNames );
-      if ( pd.hDC )
-         DeleteDC( pd.hDC );
-   }
-   if (!defaultprinter)
-      ClosePrinter( hPrinter );
-}
-
-/*****************************************************************************
- * Write a string to the current document
-*****************************************************************************/
-static void WriteString(char* sz, int len)
-{
-   int tabn = (int)CURRENT_FILE->tabsout_num;
-   int i=0;
-   char *p=NULL;
-   char ch=0;
-   DWORD dwNumWritten=0;
-
-   if ( pd.hDC == NULL )
-      return;
-   if ( !documentON )
-      StartDocument( );
-   for (i = 0,p = sz; i < len; p++, i++)
-   {
-      ch = *p;
-      switch ( ch )
-      {
-         case '\n':                             // Line-feed
-            NextLine();
-            break;
-
-         case '\f' :                             // Form-feed
-            NextPage();
-            break;
-
-         case '\r' :                             // Carriage-return
-            column = 0;
-            break;
-
-         case '\t' :                             // Tab
-            column += tabn - (column % tabn);
-            if ( bLineWrapping
-            && column >= LOWORD(dwCharExtent) )
-               NextLine();
-            break;
-         default :
-            if ( isprint(ch) )
-            {
-               if (defaultprinter)
-                  TextOut(pd.hDC, column++, row, &ch, 1);
-               else
-                  WritePrinter( hPrinter, p, 1, &dwNumWritten );
-               // Wrap line
-               if ( bLineWrapping
-               && column >= LOWORD(dwCharExtent) )
-                  NextLine();
-            }
-            break;
-      } // End switch
-   }
-}
-#endif
 
 #ifndef MSWIN
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void print_line(bool close_spooler,LINETYPE true_line,LINETYPE num_lines,
                 short pagesize,CHARTYPE *text,CHARTYPE *line_term,short target_type)
-#else
-void print_line(close_spooler,true_line,num_lines,pagesize,text,line_term,target_type)
-bool close_spooler;
-LINETYPE true_line,num_lines;
-short pagesize;
-CHARTYPE *text;
-CHARTYPE *line_term;
-short target_type;
-#endif
 /***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
@@ -398,25 +68,12 @@ short target_type;
     if (spooler_open)
       {
        spooler_open = FALSE;
-#if defined(WIN32) && !defined(__CYGWIN32__)
-       EndDocument();
-#elif defined(UNIX)
        pclose(pp);
-#else
-       fclose(pp);
-#endif
        TRACE_RETURN();
        return;
       }
    }
 
-#if defined(WIN32) && !defined(__CYGWIN32__)
- if (!spooler_open)
-   {
-    StartDocument();
-    spooler_open = TRUE;
-   }
-#elif defined(UNIX)
  if (!spooler_open)
    {
     pp = popen((DEFCHAR *)spooler_name,"w");
@@ -427,27 +84,10 @@ short target_type;
      }
     spooler_open = TRUE;
    }
-#else
- if (!spooler_open)
-   {
-    pp = fopen((DEFCHAR *)spooler_name,"ab");
-    if (pp == NULL)
-     {
-      TRACE_RETURN();
-      return;
-     }
-    spooler_open = TRUE;
-   }
-#endif
 
  if (num_lines == 0L)
    {
-#if defined(WIN32) && !defined(__CYGWIN32__)
-    WriteString(text,strlen(text));
-    WriteString(line_term,strlen(line_term));
-#else
     fprintf(pp,"%s%s",text,line_term);
-#endif
     TRACE_RETURN();
     return;
    }
@@ -488,11 +128,7 @@ short target_type;
        default:
             if (num_excluded != 0)
               {
-#if defined(WIN32) && !defined(__CYGWIN32__)
-               print_shadow_line(line_term,num_excluded);
-#else
                print_shadow_line(pp,line_term,num_excluded);
-#endif
                num_excluded = 0L;
               }
             switch(target_type)
@@ -544,22 +180,13 @@ short target_type;
                     }
                     break;
               }
-#if defined(WIN32) && !defined(__CYGWIN32__)
-            WriteString(ptr,len);
-            WriteString(line_term,strlen(line_term));
-#else
             fwrite((DEFCHAR*)ptr,sizeof(CHARTYPE),len,pp);
             fprintf(pp,"%s",line_term);
-#endif
             line_number++;
             if (line_number == pagesize
             && pagesize != 0)
               {
-#if defined(WIN32) && !defined(__CYGWIN32__)
-               WriteString("\f",1);
-#else
                fputc('\f',pp);
-#endif
                line_number = 0;
               }
             num_actual_lines++;
@@ -580,11 +207,7 @@ short target_type;
 /*---------------------------------------------------------------------*/
  if (num_excluded != 0)
    {
-#if defined(WIN32) && !defined(__CYGWIN32__)
-    print_shadow_line(line_term,num_excluded);
-#else
     print_shadow_line(pp,line_term,num_excluded);
-#endif
     num_excluded = 0L;
    }
 /*---------------------------------------------------------------------*/
@@ -613,14 +236,7 @@ short target_type;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void make_shadow_line(char *buf,LINETYPE num_excluded, int width)
-#else
-static void make_shadow_line(buf,num_excluded,width)
-char *buf;
-LINETYPE num_excluded;
-int width;
-#endif
 /***********************************************************************/
 {
 #define LINES_NOT_DISPLAYED " line(s) not displayed "
@@ -645,41 +261,8 @@ int width;
    return;
 }
 
-#if defined(WIN32) && !defined(__CYGWIN32__)
 /***********************************************************************/
-#ifdef HAVE_PROTO
-static void print_shadow_line(CHARTYPE *line_term,LINETYPE num_excluded)
-#else
-static void print_shadow_line(line_term,num_excluded)
-CHARTYPE *line_term;
-LINETYPE num_excluded;
-#endif
-/***********************************************************************/
-{
-   register int width=0;
-   char buf[512];
-
-   TRACE_FUNCTION("print.c:   print_shadow_line");
-   if (CURRENT_VIEW->shadow)
-   {
-      width = min(sizeof(buf)-1,CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
-      make_shadow_line(buf,num_excluded,width);
-      WriteString(buf,width);
-      WriteString(line_term,strlen(line_term));
-   }
-   TRACE_RETURN();
-   return;
-}
-#else
-/***********************************************************************/
-#ifdef HAVE_PROTO
 static void print_shadow_line(FILE *pp,CHARTYPE *line_term,LINETYPE num_excluded)
-#else
-static void print_shadow_line(pp,line_term,num_excluded)
-FILE *pp;
-CHARTYPE *line_term;
-LINETYPE num_excluded;
-#endif
 /***********************************************************************/
 {
    register int width=0;
@@ -696,87 +279,39 @@ LINETYPE num_excluded;
    TRACE_RETURN();
    return;
 }
-#endif
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short setprintername(char *pn)
-#else
-short setprintername(pn)
-char *pn;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
 
    TRACE_FUNCTION("print.c:   setprintername");
-#if defined(WIN32)  && !defined(__CYGWIN32__)
-   if ( hPrinter )
-   {
-      ClosePrinter( hPrinter );
-      hPrinter = 0;
-   }
-   if ( my_stricmp( pn, "default" ) != 0 )
-   {
-      if ( OpenPrinter( pn, &hPrinter, NULL ) == 0 )
-      {
-         char buf[25];
-         display_error(78,"no access to printer",FALSE);
-         sprintf(buf,"Win32 error: %d",GetLastError());
-         display_error(78,buf,FALSE);
-         rc = RC_INVALID_OPERAND;
-      }
-      defaultprinter = FALSE;
-   }
-   if ( documentON )
-      EndDocument();
-#endif
 
    TRACE_RETURN();
    return (rc);
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short setfontcpi(int cpi)
-#else
-short setfontcpi(cpi)
-int cpi;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("print.c:   setfontcpi");
-#if defined(WIN32) && !defined(__CYGWIN32__)
-   SetCPI(MAKELONG(cpi,savelpi));
-#endif
    TRACE_RETURN();
    return (RC_OK);
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short setfontlpi(int lpi)
-#else
-short setfontlpi(lpi)
-int lpi;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("print.c:   setfontlpi");
-#if defined(WIN32) && !defined(__CYGWIN32__)
-   SetCPI(MAKELONG(savecpi,lpi));
-#endif
    TRACE_RETURN();
    return (RC_OK);
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short setpagesize(int fs)
-#else
-short setpagesize(ps)
-int ps;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("print.c:   setpagesize");
@@ -785,12 +320,7 @@ int ps;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short setfontname(char *font)
-#else
-short setfontname(font)
-char *font;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("print.c:   setfontname");
@@ -799,21 +329,10 @@ char *font;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short setorient(char ori)
-#else
-short setorient(ori)
-char or;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("print.c:   setorient");
-#if defined(WIN32) && !defined(__CYGWIN32__)
-   if (ori == 'L')
-      SetOrient(DMORIENT_LANDSCAPE);
-   else
-      SetOrient(DMORIENT_PORTRAIT);
-#endif
    TRACE_RETURN();
    return (RC_OK);
 }

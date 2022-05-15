@@ -40,7 +40,7 @@
 
 #include "mygetopt.h"
 
-#if defined(DOS) || defined(OS2)
+#if defined(DOS)
 #  if !defined(EMX) && !defined(GO32)
 #    include <direct.h>
 #  endif
@@ -54,19 +54,9 @@ static DWORD THEDropProc( CLIPFORMAT cf, HGLOBAL hData, HWND hWnd, DWORD dwKeySt
 # endif
 #endif
 
-#ifdef HAVE_PROTO
-# ifdef UNIX
 static RETSIGTYPE handle_signal(int);
-# endif
 static void display_info(CHARTYPE *);
 static void init_signals(void);
-#else
-# ifdef UNIX
-static RETSIGTYPE handle_signal();
-# endif
-static void display_info();
-static void init_signals();
-#endif
 /*--------------------------- global data -----------------------------*/
    WINDOW *statarea=NULL,*error_window=NULL,*divider=NULL,*filetabs=NULL;
    VIEW_DETAILS *vd_current=(VIEW_DETAILS *)NULL;
@@ -133,12 +123,8 @@ static void init_signals();
    CHARTYPE term_name[20];  /* $TERM value */
    CHARTYPE *tempfilename = (CHARTYPE *)NULL;
    CHARTYPE *stdinprofile = (CHARTYPE *)NULL;
-#if defined(UNIX)
    CHARTYPE user_home_dir[MAX_FILE_NAME+1];
 # define THE_PROFILE_FILE ".therc"
-#else
-# define THE_PROFILE_FILE "PROFILE.THE"
-#endif
 
 #ifdef THE_SINGLE_INSTANCE_ENABLED
 # define THE_FIFO_FILE ".thefifo"
@@ -152,11 +138,7 @@ static void init_signals();
    CHARTYPE *keyfilename = (CHARTYPE *)"KEY$$$.$$$";
    CHARTYPE _THE_FAR rexx_pathname[MAX_FILE_NAME+1];
    CHARTYPE _THE_FAR rexx_filename[10];
-# ifdef VMS
-   CHARTYPE *dirfilename = (CHARTYPE *)"DIR.THE";
-# else
    CHARTYPE *dirfilename = (CHARTYPE *)"DIR.DIR";
-# endif
 #endif
 
 #if !defined(XTERM_PROGRAM)
@@ -212,11 +194,8 @@ static void init_signals();
    chtype _THE_FAR etmode_table[256];
    bool   _THE_FAR etmode_flag[256];
 
-#if defined(WIN32) && !defined(__CYGWIN32__)
-   bool StartedPrinter=FALSE;
-#endif
 
-#if defined(SIGWINCH) && defined(USE_NCURSES)
+#if defined(SIGWINCH)
    bool ncurses_screen_resized = FALSE;
 #endif
 
@@ -249,14 +228,6 @@ static void init_signals();
    /*
     * Following are XCurses data
     */
-#ifdef USE_XCURSES
-   char *XCursesProgramName = "the";
-# if PDC_BUILD >= 2401
-   char *X11_switches=NULL;
-   int X11_argc=0;
-   char **X11_argv=NULL;
-# endif
-#endif
    int gotOutput = 0;
 
    CHARTYPE *linebuf; /* Buffer for one terminal line, at least 81 elems */
@@ -293,7 +264,6 @@ static void init_signals();
     */
    short colour_offset_bits=3;
 
-#if !defined(HAVE_PDC_SET_FUNCTION_KEY)
 void atexit_handler(void)
 {
   if (number_of_views > 0)
@@ -301,7 +271,6 @@ void atexit_handler(void)
      Cancel( (CHARTYPE *)"SAVE" );
   }
 }
-#endif
 
 /***********************************************************************/
 #ifdef MSWIN
@@ -309,13 +278,7 @@ int Themain(argc,argv)
 int argc;
 char *argv[];
 #else
-#ifdef HAVE_PROTO
 int main(int argc, char *argv[])
-#else
-int main(argc,argv)
-short argc;
-char *argv[];
-#endif
 #endif
 /***********************************************************************/
 {
@@ -335,26 +298,17 @@ char *argv[];
    short rc=RC_OK;
    char *envptr=NULL;
    int slk_format=0;
-#if defined(USE_XCURSES) && PDC_BUILD >= 2401
-   int initscr_argc=0;
-   char **initscr_argv=NULL;
-#endif
    char mygetopt_opts[100];
    int my_argc;
    char **my_argv;
    char *the_arguments;
 
-#ifdef __EMX__
-   _wildcard(&argc,&argv);
-#endif
    TRACE_INITIALISE();
    TRACE_FUNCTION("the.c:     main");
    /*
     * Set our locale
     */
-#if defined(HAVE_SETLOCALE)
    setlocale( LC_ALL, ".utf8" );
-#endif
   /*
    * Ensure that CURRENT_VIEW is NULL before starting. This is to ensure
    * that any errors generated before CURRENT_VIEW is assigned are
@@ -405,18 +359,11 @@ char *argv[];
    /*
     * Initialise the printer spooler.
     */
-#if defined(UNIX)
    strcpy((DEFCHAR *)spooler_name,(DEFCHAR *)"lpr");
-#elif defined(WIN32) && !defined(__CYGWIN32__)
-   strcpy((DEFCHAR *)spooler_name,(DEFCHAR *)"default");
-#else
-   strcpy((DEFCHAR *)spooler_name,(DEFCHAR *)"LPT1");
-#endif
    /*
     * Get all environment variables here. Some may be overridden by
     * command-line switches. (future possibility)
     */
-#if defined(UNIX)
    if ( (envptr = getenv( "HOME" ) ) != NULL )
    {
       if ( ((envptr==NULL) ? 0 : strlen( (DEFCHAR *)envptr )) > MAX_FILE_NAME )
@@ -435,29 +382,10 @@ char *argv[];
       strcpy((DEFCHAR *)term_name,envptr);
    else
       strcpy((DEFCHAR *)term_name,"default");
-#endif
-#if defined(__EMX__)
-   if (_osmode == DOS_MODE)
-      strcpy((DEFCHAR *)term_name,"DOS");
-   else
-      strcpy((DEFCHAR *)term_name,"OS2");
-#elif defined(DOS)
+#if defined(DOS)
    strcpy((DEFCHAR *)term_name,"DOS");
-#elif defined(OS2)
-   strcpy((DEFCHAR *)term_name,"OS2");
-#elif defined(USE_SDLCURSES)
-   strcpy((DEFCHAR *)term_name,"SDL");
 #elif defined(USE_WINGUICURSES)
    strcpy((DEFCHAR *)term_name,"WINGUI");
-#elif defined(USE_XCURSES)
-   strcpy((DEFCHAR *)term_name,"X11");
-#elif defined(WIN32) && !defined(__CYGWIN32__)
-   strcpy((DEFCHAR *)term_name,"WIN32");
-#elif defined(AMIGA)
-   if ((envptr = getenv("TERM")) != NULL)
-      strcpy((DEFCHAR *)term_name,envptr);
-   else
-      strcpy((DEFCHAR *)term_name,"default");
 #endif
    strcpy((DEFCHAR *)xterm_program,XTERM_PROGRAM);
    /*
@@ -472,17 +400,7 @@ char *argv[];
    }
    else
    {
-#if defined(UNIX)
       strcpy((DEFCHAR *)the_home_dir,(DEFCHAR *)THE_HOME_DIRECTORY);
-#else
-      strcpy((DEFCHAR *)the_home_dir,(DEFCHAR *)argv[0]);
-      strrmdup(strtrans(the_home_dir,OSLASH,ISLASH),ISLASH,TRUE);
-      i = strzreveq(the_home_dir,ISLASH);
-      if (i != (-1))
-         the_home_dir[i+1] = '\0';
-      else
-         the_home_dir[0] = '\0';
-#endif
    }
    /*
     * Get THE_MACRO_PATH environment variable. If not set set up default
@@ -495,11 +413,7 @@ char *argv[];
       strcpy( (DEFCHAR *)the_macro_path, (DEFCHAR *)the_home_dir );
       if ( strlen( (DEFCHAR *)the_macro_path ) == 0 )
          strcpy( (DEFCHAR *)the_macro_path, "." );
-#if defined(UNIX)
       strcat( (DEFCHAR *)the_macro_path, ":." );
-#else
-      strcat( (DEFCHAR *)the_macro_path, ";." );
-#endif
       Macropath( the_macro_path );
    }
    /*
@@ -558,9 +472,6 @@ char *argv[];
    strcpy( mygetopt_opts, "Rqk::sSbmnrl:c:p:w:a:u:h" );
 # if defined(THE_SINGLE_INSTANCE_ENABLED)
    strcat( mygetopt_opts, "1::" );
-#endif
-#if defined(USE_XCURSES) && PDC_BUILD >= 2401
-   strcat( mygetopt_opts, "X:" );
 #endif
    while ((c = my_getopt( my_argc, my_argv, mygetopt_opts ) ) != EOF )
    {
@@ -724,29 +635,6 @@ char *argv[];
                return(4);
             }
             break;
-#if defined(USE_XCURSES) && PDC_BUILD >= 2401
-         case 'X':        /* X11 switches to be passed to initscrX() */
-            X11_switches = (char *)(*the_malloc)( strlen( optarg ) + 1 );
-            if ( X11_switches == NULL )
-            {
-               cleanup();
-               STARTUPCONSOLE();
-               display_error(30,(CHARTYPE *)"",FALSE);
-               CLOSEDOWNCONSOLE();
-               return(5);
-            }
-            strcpy( X11_switches, optarg );
-            if ( ( initscr_argv = StringToArgv( &initscr_argc, X11_switches ) ) == NULL )
-            {
-               (*the_free)( X11_switches );
-               cleanup();
-               STARTUPCONSOLE();
-               display_error(30,(CHARTYPE *)"",FALSE);
-               CLOSEDOWNCONSOLE();
-               return(5);
-            }
-            break;
-#endif
          case 'h':
             cleanup();
             STARTUPCONSOLE();
@@ -763,15 +651,10 @@ char *argv[];
              */
             if ( optarg == NULL )
             {
-# if defined(WIN32) && !defined(__CYGWIN32__)
-               strcpy( (DEFCHAR *)fifo_name, (DEFCHAR *)THE_FIFO_FILE );
-               strcpy( (DEFCHAR *)pid_name, (DEFCHAR *)THE_PID_FILE );
-# else
                strcpy( (DEFCHAR *)fifo_name, (DEFCHAR *)user_home_dir );
                strcat( (DEFCHAR *)fifo_name, (DEFCHAR *)THE_FIFO_FILE );
                strcpy( (DEFCHAR *)pid_name, (DEFCHAR *)user_home_dir );
                strcat( (DEFCHAR *)pid_name, (DEFCHAR *)THE_PID_FILE );
-# endif
                break;
             }
             strcpy( (DEFCHAR *)fifo_name, (DEFCHAR *)optarg );
@@ -945,14 +828,9 @@ char *argv[];
    /*
     * Set up filename for directory temporary file (DIR.DIR).
     */
-#ifdef UNIX
    strcpy((DEFCHAR *)dir_pathname,(DEFCHAR *)user_home_dir);
-#endif
-#if defined(DOS) || defined(OS2) || (defined(WIN32) && !defined(__CYGWIN32__)) || defined(AMIGA)
+#if defined(DOS)
    strcpy((DEFCHAR *)dir_pathname,(DEFCHAR *)ISTR_SLASH);
-#endif
-#ifdef VMS
-   strcpy((DEFCHAR *)dir_pathname,"");
 #endif
 
    strcat( (DEFCHAR *)dir_pathname, (DEFCHAR *)dirfilename );
@@ -1085,59 +963,24 @@ char *argv[];
 /*
  * Initialise Soft Label Keys
  */
-#if defined(HAVE_SLK_INIT)
 # if MAX_SLK == 0
    if (SLKx) slk_init(1);
 # else
    if (SLKx) slk_init(slk_format);
 # endif
-#endif
-#if defined(HAVE_SB_INIT)
-   if (SBx) sb_init();
-#endif
    /*
     * Start up curses. This is done ONLY for interactive sessions!
     */
-#if defined(USE_XCURSES) && PDC_BUILD >= 2401
-   if ( X11_switches )
-   {
-      Xinitscr( initscr_argc,initscr_argv );
-      (*the_free)( X11_switches );
-   }
-   else
-   {
-      if ( ( initscr_argv = StringToArgv( &initscr_argc, "" ) ) == NULL )
-      {
-         cleanup();
-         STARTUPCONSOLE();
-         display_error( 30, (CHARTYPE *)"", FALSE );
-         CLOSEDOWNCONSOLE();
-         return(1);
-      }
-      Xinitscr( initscr_argc,initscr_argv );
-   }
-   if ( initscr_argc )
-      (*the_free)( initscr_argv );
-#else
 # if defined(USE_WINGUICURSES)
    PDC_set_resize_limits( 10, 1000, 10, 10000);
 # endif
    initscr();
-#endif
    curses_started = TRUE;
 
-#if defined(USE_WINGUICURSES) || defined(USE_XCURSES)
+#if defined(USE_WINGUICURSES)
    /*
     * Tell PDCurses which key should be returned when the window close button is clicked
     */
-# if defined(HAVE_PDC_SET_FUNCTION_KEY)
-   PDC_set_function_key( FUNCTION_KEY_SHUT_DOWN, KEY_EXIT );
-   PDC_set_function_key( FUNCTION_KEY_PASTE, 0 );
-   /*
-    * ... and assign EXIT key to CANCEL
-    */
-   Define((CHARTYPE *)"EXIT cancel");
-# endif
 #endif
 #if defined(USE_WINGUICURSES)
    /*
@@ -1166,9 +1009,6 @@ fclose( fp);
     */
    terminal_lines=LINES;
    terminal_cols=COLS;
-#ifdef HAVE_BSD_CURSES
-   terminal_lines--;
-#endif
 #ifdef USE_UTF8
    if ((linebufch = (cchar_t *)(*the_malloc)(linebuf_size * sizeof(cchar_t))) == NULL)
 #else
@@ -1195,7 +1035,7 @@ fclose( fp);
          init_colour_pairs();
       }
 #endif
-#if defined(USE_XCURSES) || defined(USE_WINGUICURSES) || defined(USE_SDLCURSES)
+#if defined(USE_WINGUICURSES)
    PDC_set_line_color( 1 );
 #endif
    }
@@ -1204,9 +1044,6 @@ fclose( fp);
     */
    cbreak();
    raw();
-#if defined(USE_EXTCURSES)
-   extended( FALSE );
-#endif
 #if defined(PDCURSES)
    raw_output( TRUE );
 #endif
@@ -1215,12 +1052,8 @@ fclose( fp);
 #endif
    nonl();
    noecho();
-#ifdef HAVE_KEYPAD
    keypad( stdscr, TRUE );
-#endif
-#ifdef HAVE_NOTIMEOUT
    notimeout( stdscr, TRUE );
-#endif
 #ifdef USE_PROG_MODE
    def_prog_mode();
 #endif
@@ -1240,18 +1073,12 @@ fclose( fp);
     */
    set_screen_defaults();
 
-#if defined(HAVE_BROKEN_SYSVR4_CURSES)
-   force_curses_background();
-   refresh();
-#endif
    /*
     * wnoutrefresh() is called here so that the first call to getch() on
     * stdscr does not clear the screen.
     */
    wnoutrefresh(stdscr);
-#if defined(HAVE_SLK_INIT)
    if (SLKx) slk_noutrefresh();
-#endif
    /*
     * Create the statusline window...
     */
@@ -1274,11 +1101,9 @@ fclose( fp);
    /*
     * Set up ETMODE tables...
     */
-#if defined(DOS) || defined(OS2) || defined(WIN32)
+#if defined(DOS)
    (void)Etmode((CHARTYPE *)"ON");
-#elif defined(USE_XCURSES) || defined(USE_SDLCURSES)
-   (void)Etmode((CHARTYPE *)"ON 32-255");
-#elif defined(UNIX) || defined(AMIGA)
+#else
    (void)Etmode((CHARTYPE *)"OFF");
 #endif
    /*
@@ -1316,9 +1141,7 @@ fclose( fp);
     */
    in_profile = FALSE;
    been_interactive = TRUE;
-#if !defined(HAVE_PDC_SET_FUNCTION_KEY)
    atexit( atexit_handler );
-#endif
    /*
     * This is where it all happens!!!
     */
@@ -1393,7 +1216,7 @@ fclose( fp);
    /*
     * If the user wants a clearscreen done before exiting, do it...
     */
-#if !defined(USE_XCURSES) && !defined(USE_WINGUICURSES) && !defined(USE_SDLCURSES)
+#if !defined(USE_WINGUICURSES)
    if (CLEARSCREENx)
    {
       wclear(stdscr);
@@ -1432,15 +1255,10 @@ fclose( fp);
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void init_signals(void)
-#else
-static void init_signals()
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("the.c:     init_signals");
-#ifdef UNIX
    signal(SIGQUIT,handle_signal);
    signal(SIGHUP,handle_signal);
    signal(SIGABRT,handle_signal);
@@ -1451,26 +1269,19 @@ static void init_signals()
 # if defined(SIGBUS)
    signal(SIGBUS,handle_signal);
 # endif
-# if defined(SIGWINCH) && defined(USE_NCURSES)
+# if defined(SIGWINCH)
    signal( SIGWINCH, handle_signal );
    signal( SIGWINCH, handle_signal );
-#  if defined(HAVE_SIGINTERRUPT)
    siginterrupt( SIGWINCH, 1 );
-#  endif
 # endif
 # if defined(SIGPIPE)
    signal(SIGPIPE,SIG_IGN);
 # endif
-#endif
    TRACE_RETURN();
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void init_colour_pairs(void)
-#else
-void init_colour_pairs()
-#endif
 /***********************************************************************/
 {
    short fg,bg;
@@ -1497,12 +1308,7 @@ void init_colour_pairs()
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 int setup_profile_files(CHARTYPE *specified_prf)
-#else
-int setup_profile_files(specified_prf)
-CHARTYPE *specified_prf;
-#endif
 /***********************************************************************/
 {
    int rc=RC_OK;
@@ -1579,22 +1385,14 @@ CHARTYPE *specified_prf;
    /*
     * For Unix, use a local profile first...
     */
-#if defined(UNIX)
    strcpy((DEFCHAR *)local_prf,(DEFCHAR *)user_home_dir);
    strcat((DEFCHAR *)local_prf,(DEFCHAR *)THE_PROFILE_FILE);
    strrmdup(strtrans(local_prf,OSLASH,ISLASH),ISLASH,TRUE);
    if (file_readable(local_prf))
       return(rc);
-#endif
    /*
     * If no local profile, see if a global profile exists...
     */
-#ifdef THE_GLOBAL_PROFILE
-   strcpy( (DEFCHAR *)local_prf, (DEFCHAR *)THE_GLOBAL_PROFILE );
-   strrmdup(strtrans(local_prf,OSLASH,ISLASH),ISLASH,TRUE);
-   if (file_readable(local_prf))
-      return(rc);
-#endif
    /*
     * Lastly try for a default profile file in THE_HOME_DIR if set
     * or directory where THE executable lives
@@ -1612,24 +1410,13 @@ CHARTYPE *specified_prf;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void display_info(CHARTYPE *argv0)
-#else
-static void display_info(argv0)
-CHARTYPE *argv0;
-#endif
 /***********************************************************************/
 {
    fprintf(stdout,"\nTHE %s %2s %s. All rights reserved.\n",the_version,the_release,the_copyright);
    fprintf(stdout,"THE is distributed under the terms of the GNU General Public License \n");
    fprintf(stdout,"and comes with NO WARRANTY. See the file COPYING for details.\n");
-#if defined(USE_XCURSES)
-   fprintf(stdout,"\nUsage:\n\n%s [-hnmrsbq] [-p profile] [-a profile_arg] [-l line_num] [-c col_num] [-w width] [-u display_length] [-k[fmt]] [-X \"switches\"] [-1[fifoname]] [[dir] [file [...]]]\n",argv0);
-#elif defined(USE_SDLCURSES) && defined(UNIX)
-   fprintf(stdout,"\nUsage:\n\n%s [-hnmrsbq] [-p profile] [-a profile_arg] [-l line_num] [-c col_num] [-w width] [-u display_length] [-k[fmt]] [-1[fifoname]] [[dir] [file [...]]]\n",argv0);
-#else
    fprintf(stdout,"\nUsage:\n\n%s [-hnmrsbq] [-p profile] [-a profile_arg] [-l line_num] [-c col_num] [-w width] [-u display_length] [-k[fmt]] [[dir] [file [...]]]\n",argv0);
-#endif
    fprintf(stdout,"\nwhere:\n\n");
    fprintf(stdout,"-h,--help              show this message\n");
    fprintf(stdout,"-n                     do not execute a profile file\n");
@@ -1645,22 +1432,12 @@ CHARTYPE *argv0;
    fprintf(stdout,"-a profile_arg         argument(s) to profile file (only with Rexx)\n");
    fprintf(stdout,"-w width               maximum width of line (default 1000)\n");
    fprintf(stdout,"-u display_length      display length in non-line mode\n");
-#if defined(USE_XCURSES)
-   fprintf(stdout,"-X X11_switches        X11 switches (enclosed in \"\". eg -X\"-lines 50 -cols 120\"\n");
-   fprintf(stdout,"-1[fifoname]           run in single window mode, optionally supplying FIFO name\n");
-#elif defined(USE_SDLCURSES) && defined(UNIX)
-   fprintf(stdout,"-1[fifoname]           run in single window mode, optionally supplying FIFO name\n");
-#endif
    fprintf(stdout,"[dir [file [...]]]     file(s) and/or directory to be edited\n\n");
    fflush(stdout);
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 int allocate_working_memory(void)
-#else
-int allocate_working_memory()
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("the.c:     allocate_working_memory");
@@ -1732,11 +1509,7 @@ int allocate_working_memory()
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void cleanup(void)
-#else
-void cleanup()
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("the.c:     cleanup");
@@ -1761,10 +1534,6 @@ void cleanup()
       }
       INSERTMODEx=FALSE;
 /*      draw_cursor(TRUE);*/
-#ifdef HAVE_BSD_CURSES
-      nl();
-      echo();
-#endif
       endwin();
 /*
  * Causes double-free crash
@@ -1774,7 +1543,7 @@ void cleanup()
 */
       curses_started = FALSE;
    }
-#if !defined(USE_XCURSES) && !defined(USE_WINGUICURSES) && !defined(USE_SDLCURSES)
+#if !defined(USE_WINGUICURSES)
    if (!CLEARSCREENx
    && been_interactive)
       printf("\n");
@@ -1802,12 +1571,6 @@ void cleanup()
       (*the_free)(stdinprofile);
    }
 
-#if defined(WIN32) && !defined(__CYGWIN32__)
-   if (StartedPrinter)
-   {
-      StopTextPrnt();
-   }
-#endif
    /*
     * Free up the working memory
     */
@@ -1818,14 +1581,8 @@ void cleanup()
    return;
 }
 
-#ifdef UNIX
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static RETSIGTYPE handle_signal(int err)
-#else
-static RETSIGTYPE handle_signal(err)
-int err;
-#endif
 /***********************************************************************/
 {
    FILE_DETAILS *cf;
@@ -1839,7 +1596,7 @@ int err;
     * If a SIGWINCH is caught, set a global flag to indicate that the screen has resized
     * Only do this for NCURSES.
     */
-# if defined(SIGWINCH) && defined(USE_NCURSES)
+# if defined(SIGWINCH)
    if (err == SIGWINCH)
    {
       ncurses_screen_resized = TRUE;
@@ -1854,9 +1611,6 @@ int err;
    if (curses_started)
    {
       endwin();
-#ifdef USE_XCURSES
-      XCursesExit();
-#endif
       curses_started = FALSE;
    }
    fprintf(stderr,"\nTHE terminated with signal: %d\n\n",err);
@@ -1893,174 +1647,9 @@ int err;
   CLOSEDOWNCONSOLE();
   exit(25);
 }
-#endif
 
-#if defined(USE_XCURSES) && PDC_BUILD >= 2401
-/***********************************************************************/
-#ifdef HAVE_PROTO
-char **StringToArgv( int *argc, char *string )
-#else
-char **StringToArgv( argc, string )
-int *argc;
-char *string;
-#endif
-/***********************************************************************/
-{
-#define STA_IN_QUOTE 1
-#define STA_IN_SPACE 2
-#define STA_IN_WORD  3
-   char **argv;
-   register int i;
-   int max_args = 2;
-   int len;
-   int args = 0;
-   int state;
-
-   /*
-    * Convert the option string to an argv[] array
-    * We will be conservative in determining how many argv[]'s
-    * there are. The most we can have is 1 plus the number of
-    * spaces!
-    */
-   strtrunc( (CHARTYPE *)string );
-   len = strlen( string );
-   for ( i = 0; i < len; i++ )
-   {
-      if ( string[i] == ' ' )
-         max_args++;
-   }
-   /*
-    * Allocate this many char*s
-    */
-   argv = (char **)(*the_malloc)( sizeof(char *) * max_args * max_args );
-   if (argv == NULL)
-      return NULL;
-   /*
-    * First argv is programname
-    */
-   argv[args++] = XCursesProgramName;
-   /*
-    * Now go and split the string into args
-    */
-   argv[ args++ ] = string;
-   state = STA_IN_WORD;
-   for ( i = 0; i < len; i++ )
-   {
-      switch ( state )
-      {
-         case STA_IN_QUOTE:
-            if ( string[i] == '\"' )
-            {
-               string[i] = '\0';
-               break;
-            }
-            break;
-         case STA_IN_SPACE:
-            if ( string[i] != ' ' )
-            {
-               state = STA_IN_WORD;
-               argv[ args++ ] = string+i;
-               break;
-            }
-            break;
-         case STA_IN_WORD:
-            if ( string[i] == '\"' )
-            {
-               state = STA_IN_QUOTE;
-               break;
-            }
-            if ( string[i] == ' ' )
-            {
-               string[i] = '\0';
-               state = STA_IN_SPACE;
-               break;
-            }
-            break;
-      }
-   }
-   *argc = args;
-   return argv;
-}
-#endif
 /*
  * Following code allows the program to be built as a Win32 Console app
  * or as a Win32 Windows app.  The idea and code is based on similar code
  * in FLTK.
  */
-#if defined(WIN32) && !defined(__GNUC__)
-# if defined( BORLAND5 )
-#  define __argc _argc
-#  define __argv _argv
-# endif
-
-# if defined( __LCC__)
-extern int __argc;
-extern char *__argv[];
-# endif
-
-# if defined(USE_WINGUICURSES)
-int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
-{
-   int rc;
-   rc = main( __argc, __argv );
-   return rc;
-}
-
-#if defined(TRYING_DRAG_DROP)
-static DWORD THEDropProc( CLIPFORMAT cf, HGLOBAL hData, HWND hWnd, DWORD dwKeyState, POINTL pt, void *pUserdata )
-{
-   DWORD dwEffect = DROPEFFECT_NONE;
-   void *pData;
-   int rc;
-FILE *fp;
-fp = fopen( "log.log", "a");
-
-fprintf( fp, "%d:n");
-   if ( cf == CF_HDROP )
-   {
-fprintf( fp, "%d:n");
-      pData = GlobalLock( hData );
-fprintf( fp, "%d: pData %x\n", __LINE__,pData);
-      rc = DragQueryFile( (HDROP)pData, 0xFFFFFFFF, NULL, 0 );
-fprintf( fp, "%d: Got drop: %d files\n", __LINE__,rc);
-      GlobalUnlock( hData );
-      dwEffect = DROPEFFECT_COPY;
-   }
-fclose( fp);
-   return dwEffect;
-}
-#endif
-
-void StartupConsole( void )
-{
-   HWND win;
-   HMENU menu;
-   if ( gotOutput == 0 )
-   {
-      AllocConsole();
-      freopen( "conin$", "r", stdin );
-      freopen( "conout$", "w", stdout );
-      freopen( "conout$", "w", stderr );
-      gotOutput = 1;
-      win = GetConsoleWindow();
-      menu = GetSystemMenu( win, 0 );
-      DeleteMenu( menu, 6, 1024);
-      SetConsoleTitle("THE console.");
-   }
-}
-
-void ClosedownConsole( void )
-{
-   if ( gotOutput )
-   {
-      fprintf( stderr, "\n==> Press ENTER key to close this window. <==" );
-      getchar();
-      fclose(stdin);
-      fclose(stdout);
-      fclose(stderr);
-      gotOutput = 0;
-      FreeConsole();
-   }
-}
-# endif
-#endif

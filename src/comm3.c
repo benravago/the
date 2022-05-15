@@ -97,12 +97,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Left(CHARTYPE *params)
-#else
-short Left(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -178,12 +173,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Locate(CHARTYPE *params)
-#else
-short Locate(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -234,12 +224,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Lowercase(CHARTYPE *params)
-#else
-short Lowercase(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -299,21 +284,13 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Macro(CHARTYPE *params)
-#else
-short Macro(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
    short macrorc=0;
 
    TRACE_FUNCTION( "comm3.c:   Macro" );
-#ifdef THE_TRACE
-   trace_string( "params: \"%s\"\n", params );
-#endif
    rc = execute_macro( params, TRUE, &macrorc );
    TRACE_RETURN();
    return( (rc == RC_SYSTEM_ERROR) ? rc : macrorc );
@@ -359,12 +336,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Mark(CHARTYPE *params)
-#else
-short Mark(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define MAR_PARAMS    5
@@ -949,12 +921,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Modify(CHARTYPE *params)
-#else
-short Modify(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -996,12 +963,7 @@ COMPATIBILITY
 STATUS
      Incomplete. First form is not supported.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THEMove(CHARTYPE *params)
-#else
-short THEMove(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define MOV_PARAMS 2
@@ -1190,12 +1152,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Msg(CHARTYPE *params)
-#else
-short Msg(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    int rc;
@@ -1229,12 +1186,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short THENext(CHARTYPE *params)
-#else
-short THENext(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1289,12 +1241,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Nextwindow(CHARTYPE *params)
-#else
-short Nextwindow(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1389,12 +1336,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Nfind(CHARTYPE *params)
-#else
-short Nfind(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1432,12 +1374,7 @@ SEE ALSO
 STATUS
      Complete
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Nfindup(CHARTYPE *params)
-#else
-short Nfindup(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1489,12 +1426,7 @@ COMPATIBILITY
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Nomsg(CHARTYPE *params)
-#else
-short Nomsg(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1527,12 +1459,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Nop(CHARTYPE *params)
-#else
-short Nop(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("comm3.c:   Nop");
@@ -1569,12 +1496,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Os(CHARTYPE *params)
-#else
-short Os(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1610,12 +1532,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Osnowait(CHARTYPE *params)
-#else
-short Osnowait(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1656,12 +1573,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Osquiet(CHARTYPE *params)
-#else
-short Osquiet(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -1705,12 +1617,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Osredir(CHARTYPE *params)
-#else
-short Osredir(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK,rrc=0;
@@ -1773,9 +1680,7 @@ CHARTYPE *params;
       TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
-#ifdef UNIX
    chmod( (DEFCHAR *)word[0], S_IRUSR|S_IWUSR );
-#endif
    /*
     * Redirect stdout and stderr to the supplied file handle
     */
@@ -1889,12 +1794,7 @@ SEE ALSO
 STATUS
      Complete.
 **man-end**********************************************************************/
-#ifdef HAVE_PROTO
 short Overlaybox(CHARTYPE *params)
-#else
-short Overlaybox(params)
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
    unsigned short y=0,x=0;

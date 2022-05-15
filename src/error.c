@@ -44,20 +44,9 @@ static int errors_displayed=0;            /* number of errors displayed */
 static LINE *first_error=NULL;                   /* first error message */
 static LINE *last_error=NULL;                     /* last error message */
 
-#ifdef HAVE_PROTO
 static void open_msgline(ROWTYPE,ROWTYPE,ROWTYPE);
-#else
-static void open_msgline();
-#endif
 /***********************************************************************/
-#ifdef HAVE_PROTO
 int display_error(unsigned short err_num,CHARTYPE *mess,bool ignore_bell)
-#else
-int display_error(err_num,mess,ignore_bell)
-unsigned short err_num;
-CHARTYPE *mess;
-bool ignore_bell;
-#endif
 /***********************************************************************/
 {
 static CHARTYPE _THE_FAR *error_message[] =
@@ -437,11 +426,9 @@ static CHARTYPE _THE_FAR *error_message[] =
       rexxout_number_lines++;
       rexxout_curr = add_LINE( rexxout_first_line, rexxout_curr, last_message, strlen((DEFCHAR *)last_message), 0, FALSE );
    }
-#ifdef HAVE_BEEP
    if (BEEPx
    && !ignore_bell)
       beep();
-#endif
    if( curses_started
    &&  CURRENT_VIEW != NULL
    &&  CURRENT_WINDOW != NULL )
@@ -452,12 +439,7 @@ static CHARTYPE _THE_FAR *error_message[] =
    return rc;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void open_msgline(ROWTYPE base, ROWTYPE off,ROWTYPE rows)
-#else
-static void open_msgline(base,off,rows)
-ROWTYPE base,off,rows;
-#endif
 /***********************************************************************/
 {
    int start_row=0;
@@ -476,19 +458,12 @@ ROWTYPE base,off,rows;
       delwin( error_window );
    error_window = newwin( rows, CURRENT_SCREEN.screen_cols, CURRENT_SCREEN.screen_start_row + start_row, CURRENT_SCREEN.screen_start_col );
    wattrset( error_window, set_colour(&attr) );
-#ifdef HAVE_KEYPAD
    keypad( error_window, TRUE );
-#endif
    TRACE_RETURN();
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void clear_msgline(int key)
-#else
-void clear_msgline(key)
-int key;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("error.c:   clear_msgline");
@@ -516,12 +491,7 @@ int key;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void display_prompt(CHARTYPE *prompt)
-#else
-void display_prompt(prompt)
-CHARTYPE *prompt;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("error.c:   display_prompt");
@@ -535,11 +505,7 @@ CHARTYPE *prompt;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 int expose_msgline(void)
-#else
-int expose_msgline()
-#endif
 /***********************************************************************/
 {
 #define NORMAL_PROMPT "Press any key to continue..."

@@ -37,29 +37,17 @@
 #include <the.h>
 #include <proto.h>
 
-#if defined(UNIX) || defined(__EMX__)
 # include <pwd.h>
-#endif
 #include <errno.h>
 
 /*#define DEBUG 1*/
-#ifdef __EMX__            /* prevent DOS- and OS2-includes    */
-#elif defined(DOS)
+#if defined(DOS)
 #  include <dos.h>
 #  if !defined(GO32)
 #    include <direct.h>
 #  endif
-#elif defined(OS2)
-#  include <direct.h>
-#  include <io.h>
-#  ifndef S_IFMT
-#    define S_IFMT 0xF000
-#  endif
 #endif
 
-#if defined(WIN32) && defined(_MSC_VER)
-# include <direct.h>
-#endif
 /*
  * Replace non-ANSI defs with ANSI ones
  */
@@ -72,12 +60,7 @@
 #endif
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short file_readable(CHARTYPE *filename)
-#else
-short file_readable(filename)
-CHARTYPE *filename;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("nonansi.c: file_readable");
@@ -90,12 +73,7 @@ CHARTYPE *filename;
    return(TRUE);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short file_writable(CHARTYPE *filename)
-#else
-short file_writable(filename)
-CHARTYPE *filename;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("nonansi.c: file_writable");
@@ -113,12 +91,7 @@ CHARTYPE *filename;
    return(TRUE);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short file_exists(CHARTYPE *filename)
-#else
-short file_exists(filename)
-CHARTYPE *filename;
-#endif
 /***********************************************************************/
 {
    int rc;
@@ -147,12 +120,7 @@ CHARTYPE *filename;
    }
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short remove_file(CHARTYPE *filename)
-#else
-short remove_file(filename)
-CHARTYPE *filename;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("nonansi.c: remove_file");
@@ -161,11 +129,7 @@ CHARTYPE *filename;
       TRACE_RETURN();
       return(RC_OK);
    }
-#ifdef VMS
-   if (delete(filename) == (-1))
-#else
    if (unlink((DEFCHAR *)filename) == (-1))
-#endif
    {
       TRACE_RETURN();
       return(RC_ACCESS_DENIED);
@@ -174,12 +138,7 @@ CHARTYPE *filename;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
-#else
-void convert_equals_in_filename(outfilename,infilename)
-CHARTYPE *outfilename,*infilename;
-#endif
 /***********************************************************************/
 {
   /*
@@ -201,7 +160,7 @@ CHARTYPE *outfilename,*infilename;
    CHARTYPE *in_ftype,*in_fpath,*in_fname;
    CHARTYPE *current_ftype,*current_fpath,*current_fname;
    LINETYPE last_pos;
-#if defined(DOS) || defined(OS2) || (defined(WIN32) && !defined(__CYGWIN32__)) || defined(__EMX__)
+#if defined(DOS)
    CHARTYPE *in_fmode;
    CHARTYPE *current_fmode;
 #endif
@@ -224,7 +183,7 @@ CHARTYPE *outfilename,*infilename;
    * fpath/fname/ftype.
    */
    strcpy( (DEFCHAR *)in_filename, (DEFCHAR *)strrmdup( strtrans( infilename, OSLASH, ISLASH), EQUIVCHARx, TRUE ) );
-#if defined(DOS) || defined(OS2) || (defined(WIN32) && !defined(__CYGWIN32__)) || defined(__EMX__)
+#if defined(DOS)
    last_pos = strzreveq( in_filename, (CHARTYPE)':' );
    if ( last_pos  == (-1) )
    {
@@ -264,7 +223,7 @@ CHARTYPE *outfilename,*infilename;
     */
    strcpy( (DEFCHAR *)current_filename, (DEFCHAR *)CURRENT_FILE->fpath );
    strcat( (DEFCHAR *)current_filename, (DEFCHAR *)CURRENT_FILE->fname );
-#if defined(DOS) || defined(OS2) || (defined(WIN32) && !defined(__CYGWIN32__)) || defined(__EMX__)
+#if defined(DOS)
    last_pos = strzreveq( current_filename, (CHARTYPE)':' );
    if ( last_pos  == (-1) )
    {
@@ -302,7 +261,7 @@ CHARTYPE *outfilename,*infilename;
    /*
     * Now its time to put the new file name together
     */
-#if defined(DOS) || defined(OS2) || (defined(WIN32) && !defined(__CYGWIN32__)) || defined(__EMX__)
+#if defined(DOS)
    if ( in_fmode && !equal( in_fmode, EQUIVCHARstr, 1 ) )
       strcpy( (DEFCHAR *)outfilename, (DEFCHAR *)in_fmode );
    else
@@ -337,23 +296,16 @@ CHARTYPE *outfilename,*infilename;
    return;
 }
 
-#if defined(DOS) || defined(OS2) || (defined(WIN32) && !defined(__CYGWIN32__)) || defined(__EMX__)
+#if defined(DOS)
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short splitpath(CHARTYPE *filename)
-#else
-short splitpath(filename)
-CHARTYPE *filename;
-#endif
 /***********************************************************************/
 {
    LENGTHTYPE len=0;
    CHARTYPE _THE_FAR work_filename[MAX_FILE_NAME+1] ;
    CHARTYPE _THE_FAR conv_filename[MAX_FILE_NAME+1] ;
    CHARTYPE _THE_FAR current_dir[MAX_FILE_NAME+1] ;
-#ifdef __EMX__
-   int new_dos_disk=0,current_dos_disk=0,temp_disk=0;
-#elif defined(DOS)
+#if defined(DOS)
 # if defined(__WATCOMC__)
    unsigned int new_dos_disk=0,current_dos_disk=0;        /* 1 - A,2 - B... */
    unsigned int temp_disk=0;
@@ -361,16 +313,6 @@ CHARTYPE *filename;
    short new_dos_disk=0,current_dos_disk=0;        /* 1 - A,2 - B... */
    short temp_disk=0;
 # endif
-#elif defined (OS2)
-   ULONG logical_os2_drives=0L;
-# if defined( __32BIT__) || defined(__386__)
-   ULONG new_dos_disk=0L,current_dos_disk=0L,temp_disk=0L;
-# else
-   USHORT new_dos_disk=0,current_dos_disk=0,temp_disk=0;
-# endif
-#elif defined(WIN32) && !defined(__CYGWIN32__)
-   unsigned int new_dos_disk=0,current_dos_disk=0;        /* 1 - A,2 - B... */
-   unsigned int temp_disk=0;
 #endif
 
    TRACE_FUNCTION("nonansi.c: splitpath");
@@ -402,27 +344,19 @@ CHARTYPE *filename;
     */
    if (strcmp(filename,"") == 0)
    {
-#if defined(__EMX__)
-      _getcwd2(sp_path,MAX_FILE_NAME);
-#else
       getcwd(sp_path,MAX_FILE_NAME);
-#endif
       strcpy(sp_fname,"");
    }
    /*
     * For DOS and OS/2, get current drive.
     */
-#ifdef __EMX__
-   current_dos_disk = (_getdrive() - 'A') + 1;
-#elif defined(DOS)
+#if defined(DOS)
 # if defined(TC) || defined(GO32)
    current_dos_disk = (short)(getdisk() + 1);
 # endif
 # if defined(MSC)
    _dos_getdrive(&current_dos_disk);
 # endif
-#elif defined (OS2)
-   DosQueryCurrentDisk(&current_dos_disk,&logical_os2_drives);
 #else  /* WIN32 */
 # if defined(__WATCOMC__)
    _dos_getdrive(&current_dos_disk);
@@ -442,10 +376,7 @@ CHARTYPE *filename;
     */
    if (new_dos_disk != current_dos_disk)
    {
-#if defined(__EMX__)
-      _chdrive((char)((new_dos_disk-1)+'A'));
-      temp_disk = (_getdrive() - 'A') + 1;
-#elif defined(DOS)
+#if defined(DOS)
 # if defined(TC) || defined(GO32)
       setdisk((short)(new_dos_disk-1));
       temp_disk = getdisk()+1;
@@ -453,9 +384,6 @@ CHARTYPE *filename;
       _dos_setdrive(new_dos_disk,&temp_disk);
       _dos_getdrive(&temp_disk);
 # endif
-#elif defined(OS2)
-      DosSetDefaultDisk(new_dos_disk);
-      DosQueryCurrentDisk(&temp_disk,&logical_os2_drives);
 #else   /* assume WIN32 */
 # if defined(__WATCOMC__)
       _dos_setdrive(new_dos_disk,&temp_disk);
@@ -475,11 +403,7 @@ CHARTYPE *filename;
     * Save the current working directory on the specified drive, or the
     * current drive if not specified.
     */
-#if defined(__EMX__)
-   _getcwd2(current_dir,MAX_FILE_NAME);
-#else
    getcwd(current_dir,MAX_FILE_NAME);
-#endif
    /*
     * If the work_filename contains a drive specifier, special handling is
     * needed.
@@ -512,11 +436,7 @@ CHARTYPE *filename;
     */
    if (chdir(work_filename) == 0)  /* valid directory */
    {
-#if defined(__EMX__)
-      _getcwd2(sp_path,MAX_FILE_NAME);
-#else
       getcwd(sp_path,MAX_FILE_NAME);
-#endif
       strcpy(sp_fname,"");
    }
    else          /* here if the file is not a directory */
@@ -525,11 +445,7 @@ CHARTYPE *filename;
       switch(len)
       {
          case (-1):
-#if defined(__EMX__)
-            _getcwd2(sp_path,MAX_FILE_NAME);
-#else
             getcwd(sp_path,MAX_FILE_NAME);
-#endif
             strcpy(sp_fname,work_filename);
             break;
          case 0:
@@ -557,16 +473,12 @@ CHARTYPE *filename;
       if (new_dos_disk != current_dos_disk)
       {
          chdir(current_dir);
-#if defined(__EMX__)
-         _chdrive((char)((current_dos_disk-1)+'A'));
-#elif defined(DOS)
+#if defined(DOS)
 # if defined(TC) || defined(GO32)
          setdisk((short)(current_dos_disk-1));
 # else   /* assume MSC */
          _dos_setdrive(current_dos_disk,&temp_disk);
 # endif
-#elif defined(OS2)
-         DosSetDefaultDisk(new_dos_disk);
 #else    /* assume WIN32 */
 # if defined(__WATCOMC__)
          _dos_setdrive(current_dos_disk,&temp_disk);
@@ -583,11 +495,7 @@ CHARTYPE *filename;
     * We are now in a valid directory, get the fully qualified directory
     * name.
     */
-#if defined(__EMX__)
-   _getcwd2(sp_path,MAX_FILE_NAME);
-#else
    getcwd(sp_path,MAX_FILE_NAME);
-#endif
    /*
     * For DOS or OS/2, change back to the current directory of the now
     * current disk and then change back to the original disk.
@@ -599,16 +507,12 @@ CHARTYPE *filename;
          TRACE_RETURN();
          return(RC_FILE_NOT_FOUND);
       }
-#if defined(__EMX__)
-      _chdrive((char)((current_dos_disk-1)+'A'));
-#elif defined(DOS)
+#if defined(DOS)
 # if defined(TC) || defined(GO32)
       setdisk((short)(current_dos_disk-1));
 # else /* assume MSC */
       _dos_setdrive(current_dos_disk,&temp_disk);
 # endif
-#elif defined(OS2)
-      DosSetDefaultDisk(current_dos_disk);
 #else  /* assume WIN32 */
 # if defined(__WATCOMC__)
       _dos_setdrive(current_dos_disk,&temp_disk);
@@ -635,12 +539,7 @@ CHARTYPE *filename;
 }
 #elif defined(__QNX__) && !defined(__QNXNTO__)
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short splitpath(CHARTYPE *filename)
-#else
-short splitpath(filename)
-CHARTYPE *filename;
-#endif
 /***********************************************************************/
 {
    short len=0;
@@ -760,108 +659,9 @@ CHARTYPE *filename;
    TRACE_RETURN();
    return(RC_OK);
 }
-#elif defined(AMIGA) && defined(GCC)
+#else
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short splitpath(CHARTYPE *filename)
-#else
-short splitpath(filename)
-CHARTYPE *filename;
-#endif
-/***********************************************************************/
-{
-   short len=0;
-   CHARTYPE _THE_FAR work_filename[MAX_FILE_NAME+1] ;
-
-   TRACE_FUNCTION("nonansi.c: splitpath");
-
-   if ( strlen( (DEFCHAR *)filename ) > MAX_FILE_NAME )
-   {
-      TRACE_RETURN();
-      return(RC_BAD_FILEID);
-   }
-   /*
-    * Save the current directory.
-    */
-   if ( getcwd( (DEFCHAR *)curr_path, MAX_FILE_NAME ) == NULL )
-   {
-      TRACE_RETURN();
-      return(RC_BAD_FILEID);
-   }
-   strcpy((DEFCHAR *)sp_path,"");
-   strcpy((DEFCHAR *)sp_fname,"");
-   convert_equals_in_filename(work_filename,filename);
-   /*
-    * If the supplied filename is empty, set the path = cwd and filename
-    * equal to blank.
-    */
-   if (strcmp((DEFCHAR *)filename,"") == 0)
-   {
-      getcwd((DEFCHAR *)sp_path,MAX_FILE_NAME);
-      strcpy((DEFCHAR *)sp_fname,"");
-   }
-   /*
-    * First determine if the supplied filename is a directory.
-    */
-   if ( ( stat((DEFCHAR *)work_filename, &stat_buf ) == 0 )
-   &&   ( is_a_dir_stat( stat_buf.st_mode ) ) )
-   {
-      strcpy((DEFCHAR *)sp_path,(DEFCHAR *)work_filename);
-      strcpy((DEFCHAR *)sp_fname,"");
-   }
-   else          /* here if the file doesn't exist or is not a directory */
-   {
-      len = strzreveq(work_filename,ISLASH);
-      switch(len)
-      {
-         case (-1):
-            getcwd((DEFCHAR *)sp_path,MAX_FILE_NAME);
-            strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)work_filename);
-            break;
-         case 0:
-            strcpy((DEFCHAR *)sp_path,(DEFCHAR *)work_filename);
-            sp_path[1] = '\0';
-            strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)work_filename+1+len);
-            break;
-         default:
-            strcpy((DEFCHAR *)sp_path,(DEFCHAR *)work_filename);
-            sp_path[len] = '\0';
-            strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)work_filename+1+len);
-            break;
-      }
-   }
-   /*
-    * Change directory to the supplied path, if possible and store the
-    * expanded path.
-    * If an error, restore the current path.
-    */
-   if (chdir((DEFCHAR *)sp_path) != 0)
-   {
-      chdir((DEFCHAR *)curr_path);
-      TRACE_RETURN();
-      return(RC_FILE_NOT_FOUND);
-   }
-   getcwd((DEFCHAR *)sp_path,MAX_FILE_NAME);
-   chdir((DEFCHAR *)curr_path);
-   /*
-    * Append the OS directory character to the path if it doesn't already
-    * end in the character.
-    */
-   len = strlen((DEFCHAR *)sp_path);
-   if ( len > 0
-   &&   sp_path[len-1] != ISLASH )
-      strcat((DEFCHAR *)sp_path,(DEFCHAR *)ISTR_SLASH);
-   TRACE_RETURN();
-   return(RC_OK);
-}
-#else
-/***********************************************************************/
-#ifdef HAVE_PROTO
-short splitpath(CHARTYPE *filename)
-#else
-short splitpath(filename)
-CHARTYPE *filename;
-#endif
 /***********************************************************************/
 {
    short len=0;
@@ -913,7 +713,6 @@ CHARTYPE *filename;
     * Check if the first character is tilde; translate HOME env variable
     * if there is one. Obviously only applicable to UNIX.
     */
-#ifndef VMS
    if (*(conv_filename) == '~')
    {
       if (*(conv_filename+1) == ISLASH
@@ -945,7 +744,6 @@ CHARTYPE *filename;
             strcat((DEFCHAR *)work_filename,(DEFCHAR *)(conv_filename+1+len));
       }
    }
-#endif
    /*
     * First determine if the supplied filename is a directory.
     */
@@ -1010,81 +808,7 @@ CHARTYPE *filename;
 }
 #endif
 
-#ifndef HAVE_RENAME
-/***********************************************************************/
-#ifdef HAVE_PROTO
-short rename(CHARTYPE *path1,CHARTYPE *path2)
-#else
-short rename(path1,path2)
-CHARTYPE *path1;
-CHARTYPE *path2;
-#endif
-/***********************************************************************/
-/* Function  : Emulate missing rename() function missing from SystemV  */
-/* Parameters: path1    - old filename                                 */
-/*             path2    - new_filename                                 */
-/* Return    : 0 on success, -1 on error                               */
-/***********************************************************************/
-{
-   TRACE_FUNCTION("nonansi.c: rename");
-   if ( link( (DEFCHAR *)path1, (DEFCHAR *)path2 ) != 0 )
-   {
-      TRACE_RETURN();
-      return(-1);
-   }
-   if ( unlink( (DEFCHAR *)path1 ) != 0 )
-   {
-      TRACE_RETURN();
-      return(-1);
-   }
-   TRACE_RETURN();
-   return(0);
-}
-#endif
 
-#if defined(OS2) || (defined(__EMX__) && !defined(MSDOS))
-/***********************************************************************/
-/* Function  : Determine if file system allows the supplied filename.  */
-/* Parameters: PathFn - directory path and filename without ext.     */
-/* Note      : replaces function LongFileNames                  */
-/* Return    : 1 if file system allows this filename                 */
-/***********************************************************************/
-bool IsPathAndFilenameValid(CHARTYPE *PathFn)
-{
-   CHARTYPE _THE_FAR FullFn[CCHMAXPATH];
-   CHARTYPE *buf;
-   ULONG rc;
-
-   TRACE_FUNCTION("nonansi.c: IsPathAndFilenameValid");
-#ifdef __EMX__
-   if (_osmode == DOS_MODE)
-   {
-      TRACE_RETURN();
-      return(0);
-   }
-#endif
-   if ((buf = malloc(strlen(PathFn) + 5)) == NULL)
-   {
-      TRACE_RETURN();
-      return(0); /* Fake an error      */
-   }
-   strcpy(buf,PathFn);
-   strcat(buf,".xxx");                    /* any extension                     */
-#if defined(__32BIT__) || defined(__386__)
-   rc = DosQueryPathInfo(buf,FIL_QUERYFULLNAME,FullFn,sizeof(FullFn));
-#else
-   rc = DosQPathInfo(buf,FIL_QUERYFULLNAME,FullFn,sizeof(FullFn),0ul);
-#endif
-   free(buf);
-   if (rc == 0)
-   {
-      TRACE_RETURN();
-      return(1);
-   }
-   TRACE_RETURN();
-   return(0);
-}
-#endif
 
 #ifdef USE_OLD_LONGFILENAMES /* FGC: previous ifdef OS2     */
 #  if defined(__32BIT__) || defined(__386__)
@@ -1169,13 +893,7 @@ typedef FSQINFO FAR *PFSQINFO;
 #endif
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LINE *getclipboard(LINE *now, int from_get)
-#else
-LINE *getclipboard(now,from_get)
-LINE *now;
-int from_get;
-#endif
 /*
  * Function  : Reads the contents of the clipboard into the file.
  * Parameters: pointer to line after which lines are to be added
@@ -1191,11 +909,7 @@ int from_get;
    LENGTHTYPE maxlen=0;
    LENGTHTYPE length=0;
    short rc=RC_OK;
-# if defined(UNIX) || defined(MAC)
    int offset = 0;
-# else
-   int offset = 1;
-# endif
    int this_offset;
 #endif
 
@@ -1305,21 +1019,8 @@ int from_get;
    return curr;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_lines,
                 LINETYPE start_line_in,LINETYPE end_line_in,LINETYPE *num_file_lines,bool append,LENGTHTYPE start_col_in, LENGTHTYPE end_col_in,bool ignore_scope,bool lines_based_on_scope,int target_type)
-#else
-short setclipboard(cf,new_fname,force,in_lines,start_line_in,end_line_in,num_file_lines,append,start_col_in,end_col_in,ignore_scope,lines_based_on_scope,target_type)
-FILE_DETAILS *cf;
-CHARTYPE *new_fname;
-bool force,append;
-LINETYPE in_lines,start_line_in,end_line_in;
-LINETYPE *num_file_lines;
-LENGTHTYPE start_col_in,end_col_in;
-bool ignore_scope;
-bool lines_based_on_scope;
-int target_type;
-#endif
 /***********************************************************************/
 {
 #define CLIP_TYPE_LINE   1
@@ -1334,16 +1035,8 @@ int target_type;
    LINE *curr=NULL;
    short rc=RC_OK;
    bool save_scope_all=CURRENT_VIEW->scope_all;
-#ifdef UNIX
    CHARTYPE *eol = (CHARTYPE *)"\n";
    int eol_len=1;
-#elif defined(MAC)
-   CHARTYPE *eol = (CHARTYPE *)"\r";
-   int eol_len=1;
-#else
-   CHARTYPE *eol = (CHARTYPE *)"\r\n";
-   int eol_len=2;
-#endif
    long clip_size=1024;
    CHARTYPE *ptr=NULL;
    long len=0,pos=0;
@@ -1592,114 +1285,7 @@ int target_type;
  * starts, so if you have a block cursor on starting THE, you would not be able to get
  * an underline cursor.
  */
-#if defined(OS2)
-# define curs_set THE_curs_set
-static void THE_curs_set( int visibility )
-{
-#ifndef EMXVIDEO
-   VIOMODEINFO modeInfo = {0};
-   VIOCURSORINFO pvioCursorInfo;
-   int pdc_font;
-#endif
-   int hidden = 0, start = 0, end = 0;
 
-#ifndef EMXVIDEO
-   modeInfo.cb = sizeof(modeInfo);
-   VioGetMode( &modeInfo, 0 );
-   pdc_font = (modeInfo.vres / modeInfo.row);
-#endif
-
-   switch( visibility )
-   {
-      case 0: /* invisible */
-#ifdef EMXVIDEO
-         start = end = 0;
-#else
-         start = pdc_font / 4;
-         end = pdc_font;
-         hidden = -1;
-#endif
-         break;
-
-      case 2: /* highly visible */
-         start = 2;  /* almost full-height block */
-         end = pdc_font - 1;
-         break;
-
-      default: /* normal visibility */
-         start = pdc_font - (pdc_font / 4);
-         end = pdc_font - 1;
-         break;
-   }
-
-#ifdef EMXVIDEO
-   if ( !visibility )
-      v_hidecursor();
-   else
-      v_ctype( start, end );
-#else
-   pvioCursorInfo.yStart = (USHORT)start;
-   pvioCursorInfo.cEnd = (USHORT)end;
-   pvioCursorInfo.cx = (USHORT)1;
-   pvioCursorInfo.attr = hidden;
-   VioSetCurType( (PVIOCURSORINFO)&pvioCursorInfo, 0 );
-#endif
-
-   /*
-    * Tell curses internals we have changed visibility
-    */
-   SP->visibility = visibility;
-
-   return;
-}
-#endif
-
-#if defined(WIN32) && !defined(__CYGWIN32__) && !defined(USE_WINGUICURSES)
-# define curs_set THE_curs_set
-# undef MOUSE_MOVED
-# include <windows.h>
-static void THE_curs_set(int visibility)
-{
-   CONSOLE_CURSOR_INFO cci;
-   HANDLE hConOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
-   TRACE_FUNCTION("nonansi,c: THE_curs_set");
-   if ( GetConsoleCursorInfo( hConOut, &cci ) == FALSE )
-   {
-      TRACE_RETURN();
-      return;
-   }
-
-   switch( visibility )
-   {
-      case 0:    /* invisible */
-         cci.bVisible = FALSE;
-         break;
-      case 2:    /* block */
-         cci.bVisible = TRUE;
-         cci.dwSize = 95;
-         break;
-      default:  /* underline */
-         cci.bVisible = TRUE;
-         cci.dwSize = 25;
-         break;
-   }
-
-   if ( SetConsoleCursorInfo( hConOut, &cci ) == FALSE )
-   {
-      TRACE_RETURN();
-      return;
-   }
-
-   /*
-    * Tell curses internals we have changed visibility
-    */
-   SP->visibility = visibility;
-
-   TRACE_RETURN();
-   return;
-}
-#endif
 
 #if defined(DOS)
 # define curs_set THE_curs_set
@@ -1744,16 +1330,10 @@ static void PDC_curs_set(int visibility)
 #endif
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void draw_cursor(bool visible)
-#else
-void draw_cursor(visible)
-bool visible;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("nonansi,c: draw_cursor");
-#ifdef HAVE_CURS_SET
    if (visible)
    {
       if (INSERTMODEx)
@@ -1770,7 +1350,6 @@ bool visible;
    {
       curs_set(0);      /* cursor off */
    }
-#endif
    TRACE_RETURN();
    return;
 }
@@ -1778,12 +1357,7 @@ bool visible;
  * is_a_dir_stat() used when the attributes are obtained from stat()
  */
 /*********************************************************************/
-#ifdef HAVE_PROTO
 int is_a_dir_stat(ATTR_TYPE attrs)
-#else
-int is_a_dir_stat(attrs)
-ATTR_TYPE attrs;
-#endif
 /*********************************************************************/
 {
 #if defined(S_IFDIR)
@@ -1802,12 +1376,7 @@ ATTR_TYPE attrs;
  * is_a_dir_dir() used when the attributes are obtained from _findfirst() on Windows
  */
 /*********************************************************************/
-#ifdef HAVE_PROTO
 int is_a_dir_dir(ATTR_TYPE attrs)
-#else
-int is_a_dir_dir(attrs)
-ATTR_TYPE attrs;
-#endif
 /*********************************************************************/
 {
 #if defined(_A_SUBDIR)

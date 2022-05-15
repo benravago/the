@@ -24,9 +24,7 @@
    along with this program; if not, write to the Free Software
    Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#if defined(HAVE_CONFIG_H)
 # include "config.h"
-#endif
 
 #if !__STDC__ && !defined(const) && IN_GCC
 #define const
@@ -46,9 +44,7 @@
 #if defined(__GNU_LIBRARY__) || defined(__cplusplus)
 /* Don't include stdlib.h for non-GNU C libraries because some of them
    contain conflicting prototypes for getopt.  */
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 #endif      /* GNU C library.  */
 
 /* If GETOPT_COMPAT is defined, `+' as well as `--' can introduce a
@@ -154,9 +150,7 @@ static enum
    because there are many ways it can cause trouble.
    On some systems, it contains special magic macros that don't work
    in GCC.  */
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #define     my_index    strchr
 #else
 
@@ -204,12 +198,7 @@ static int last_nonopt;
    the new indices of the non-options in ARGV after they are moved.  */
 
 static void exchange
-#ifdef HAVE_PROTO
 ( char **argv)
-#else
-(argv)
-     char **argv;
-#endif
 {
   int bottom = first_nonopt;
   int middle = last_nonopt;
@@ -321,17 +310,7 @@ static void exchange
 
 int
 _getopt_internal
-#ifdef HAVE_PROTO
 (int argc, char *const *argv, const char *optstring, const struct my_getopt_option *longopts, int *longind, int long_only)
-#else
-(argc, argv, optstring, longopts, longind, long_only)
-     int argc;
-     char *const *argv;
-     const char *optstring;
-     const struct my_getopt_option *longopts;
-     int *longind;
-     int long_only;
-#endif
 {
   int option_index;
 
@@ -660,46 +639,21 @@ _getopt_internal
 
 int
 my_getopt
-#ifdef HAVE_PROTO
 (int argc, char *const *argv, const char *optstring)
-#else
-(argc, argv, optstring)
-     int argc;
-     char *const *argv;
-     const char *optstring;
-#endif
 {
    return _getopt_internal (argc, argv, optstring, (const struct my_getopt_option *) 0, (int *) 0, 0);
 }
 
 int
 my_getopt_long
-#ifdef HAVE_PROTO
 (int argc, char *const *argv, const char *options, const struct my_getopt_option *long_options, int *opt_index)
-#else
-(argc, argv, options, long_options, opt_index)
-   int argc;
-   char *const *argv;
-   const char *options;
-   const struct my_getopt_option *long_options;
-   int *opt_index;
-#endif
 {
    return _getopt_internal (argc, argv, options, long_options, opt_index, 0);
 }
 
 int
 my_getopt_long_only
-#ifdef HAVE_PROTO
 (int argc, char *const *argv, const char *options, const struct my_getopt_option *long_options, int *opt_index)
-#else
-(argc, argv, options, long_options, opt_index)
-   int argc;
-   char *const *argv;
-   const char *options;
-   const struct my_getopt_option *long_options;
-   int *opt_index;
-#endif
 {
    return _getopt_internal (argc, argv, options, long_options, opt_index, 1);
 }

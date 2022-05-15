@@ -39,20 +39,8 @@
 #include <proto.h>
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static short selective_change(TARGET *target,CHARTYPE *old_str,LENGTHTYPE len_old_str,CHARTYPE *new_str,
                        LENGTHTYPE len_new_str,LINETYPE true_line,LINETYPE last_true_line,LENGTHTYPE start_col)
-#else
-static short selective_change(target,old_str,len_old_str,new_str,len_new_str,true_line,last_true_line,start_col)
-TARGET *target;
-CHARTYPE *old_str;
-LENGTHTYPE len_old_str;
-CHARTYPE *new_str;
-LENGTHTYPE len_new_str;
-LINETYPE true_line;
-LINETYPE last_true_line;
-LENGTHTYPE start_col;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -187,13 +175,7 @@ LENGTHTYPE start_col;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_change_command(CHARTYPE *in_params,bool selective)
-#else
-short execute_change_command(in_params,selective)
-CHARTYPE *in_params;
-bool selective;
-#endif
 /***********************************************************************/
 {
    LINETYPE num_lines=0L,long_n=0L,long_m=0L;
@@ -573,26 +555,10 @@ bool selective;
    return rc;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE *line, LENGTHTYPE len,LINETYPE num_lines,
                       LINETYPE true_line,bool start_left_col,bool make_current,
                       bool inc_alt,CHARTYPE select,bool move_cursor,
                       bool sos_command)
-#else
-short insert_new_line(curr_screen,curr_view,line,len,num_lines,true_line,start_left_col,make_current,inc_alt,select,move_cursor,sos_command)
-CHARTYPE curr_screen;
-VIEW_DETAILS *curr_view;
-CHARTYPE *line;
-LENGTHTYPE len;
-LINETYPE num_lines;
-LINETYPE true_line;
-bool start_left_col;
-bool make_current;
-bool inc_alt;
-CHARTYPE select;
-bool move_cursor;
-bool sos_command;
-#endif
 /***********************************************************************/
 {
    LINETYPE i;
@@ -733,23 +699,16 @@ bool sos_command;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
-#else
-short execute_os_command(cmd,quiet,pause)
-CHARTYPE *cmd;
-bool quiet;
-bool pause;
-#endif
 /***********************************************************************/
 {
-#if defined(DOS) || defined(OS2) || defined(WIN32)
+#if defined(DOS)
 # define SHELL "COMSPEC"
 #else
 # define SHELL "SHELL"
 #endif
    short rc=0;
-#if defined(USE_XCURSES) || defined(USE_WINGUICURSES) || defined(USE_SDLCURSES)
+#if defined(USE_WINGUICURSES)
    bool save_curses_started=curses_started;
 #endif
 
@@ -760,7 +719,7 @@ bool pause;
    pause = 0;
 #endif
 
-#if defined(USE_XCURSES) || defined(USE_WINGUICURSES) || defined(USE_SDLCURSES)
+#if defined(USE_WINGUICURSES)
    curses_started=FALSE;
 #endif
 
@@ -794,20 +753,16 @@ bool pause;
    }
    else
       strcpy((DEFCHAR *)temp_cmd,(DEFCHAR *)cmd);
-#ifdef UNIX
    if (strcmp((DEFCHAR *)temp_cmd,"") == 0)  /* no SHELL env variable set */
    {
       printf("No SHELL environment variable set - using /bin/sh\n");
       fflush(stdout);
       strcpy((DEFCHAR *)temp_cmd,"/bin/sh");
    }
-#endif
    if (quiet)
    {
-#ifdef UNIX
       strcat((DEFCHAR *)temp_cmd," > /dev/null");
-#endif
-#if defined(DOS) || defined(OS2) || defined(WIN32)
+#if defined(DOS)
       strcat((DEFCHAR *)temp_cmd," > nul:");
 #endif
    }
@@ -815,13 +770,11 @@ bool pause;
    def_prog_mode();
 #endif
    rc = system((DEFCHAR *)temp_cmd);
-#if !defined(USE_XCURSES) && !defined(USE_SDLCURSES)
    if (pause)
    {
       printf("\n\n%s",HIT_ANY_KEY);
       fflush(stdout);
    }
-#endif
 #ifdef USE_PROG_MODE_NO_MORE
    reset_prog_mode();
 #endif
@@ -831,43 +784,19 @@ bool pause;
       if (pause)
          (void)my_getch(stdscr);
       resume_curses();
-#if defined(HAVE_BROKEN_SYSVR4_CURSES)
-      {
-         short x=0,y=0;
-         getyx(CURRENT_WINDOW,y,x);
-         force_curses_background();
-         wmove(CURRENT_WINDOW,y,x);
-         refresh();
-      }
-#endif
       restore_THE();
    }
-#ifdef WIN32
-   /*
-    * We need to call resume_curses() to reinstate ^C and ^S handling
-    * after running a command with OSQ
-    */
-   else if (quiet && curses_started)
-      resume_curses();
-#endif
    if (curses_started)
       draw_cursor(TRUE);
 
-#if defined(USE_XCURSES) || defined(USE_WINGUICURSES) || defined(USE_SDLCURSES)
+#if defined(USE_WINGUICURSES)
    curses_started = save_curses_started;
 #endif
    TRACE_RETURN();
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_makecurr( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, LINETYPE line)
-#else
-short execute_makecurr( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, line )
-CHARTYPE curr_screen;
-VIEW_DETAILS *curr_view;
-LINETYPE line;
-#endif
 /***********************************************************************/
 {
    unsigned short y=0,x=0;
@@ -891,19 +820,7 @@ LINETYPE line;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_shift_command( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool shift_left, LENGTHTYPE num_cols, LINETYPE true_line, LINETYPE num_lines, bool lines_based_on_scope, long target_type, bool sos, bool zone_shift )
-#else
-short execute_shift_command(curr_screen,curr_view,shift_left,num_cols,true_line,num_lines,lines_based_on_scope,target_type,sos,zone_shift)
-CHARTYPE curr_screen;
-VIEW_DETAILS *curr_view;
-bool shift_left;
-LENGTHTYPE num_cols;
-LINETYPE true_line,num_lines;
-bool lines_based_on_scope;
-long target_type;
-bool sos,zone_shift;
-#endif
 /***********************************************************************/
 {
    LINE *curr=NULL;
@@ -1064,15 +981,7 @@ bool sos,zone_shift;
    return rc;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_set_lineflag( unsigned int new_flag, unsigned int changed_flag, unsigned int tag_flag, LINETYPE true_line, LINETYPE num_lines, bool lines_based_on_scope, long target_type )
-#else
-short execute_set_lineflag( new_flag, changed_flag, tag_flag, true_line, num_lines, lines_based_on_scope, target_type )
-unsigned int new_flag, changed_flag, tag_flag;
-LINETYPE true_line, num_lines;
-bool lines_based_on_scope;
-long target_type;
-#endif
 /***********************************************************************/
 {
    LINE *curr=NULL;
@@ -1147,14 +1056,7 @@ long target_type;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static bool change_case(CHARTYPE *str,LENGTHTYPE start,LENGTHTYPE end,CHARTYPE which_case)
-#else
-static bool change_case(str,start,end,which_case)
-CHARTYPE *str;
-LENGTHTYPE start,end;
-CHARTYPE which_case;
-#endif
 /*
  * Returns TRUE if a line was changed, FALSE otherwise.
  * This function MUST preceed execute_change_case().
@@ -1189,16 +1091,7 @@ CHARTYPE which_case;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short do_actual_change_case( LINETYPE true_line, LINETYPE num_lines, CHARTYPE which_case, bool lines_based_on_scope, short direction, LENGTHTYPE start_col, LENGTHTYPE end_col )
-#else
-short do_actual_change_case( true_line, num_lines, which_case, lines_based_on_scope, direction, start_col, end_col )
-LINETYPE true_line, num_lines;
-CHARTYPE which_case;
-bool lines_based_on_scope;
-short direction;
-LENGTHTYPE start_col,end_col;
-#endif
 {
    bool adjust_alt=FALSE;
    LINE *curr=NULL;
@@ -1280,13 +1173,7 @@ LENGTHTYPE start_col,end_col;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_change_case(CHARTYPE *params,CHARTYPE which_case)
-#else
-short execute_change_case(params,which_case)
-CHARTYPE *params;
-CHARTYPE which_case;
-#endif
 /***********************************************************************/
 {
    LINETYPE num_lines=0L,true_line=0L;
@@ -1357,20 +1244,10 @@ CHARTYPE which_case;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short rearrange_line_blocks(CHARTYPE command,CHARTYPE source,
                             LINETYPE start_line,LINETYPE end_line,LINETYPE dest_line,
                             LINETYPE num_occ,VIEW_DETAILS *src_view,VIEW_DETAILS *dst_view,
                             bool lines_based_on_scope,LINETYPE *lines_affected)
-#else
-short rearrange_line_blocks(command,source,start_line,end_line,dest_line,num_occ,
-                            src_view,dst_view,lines_based_on_scope,lines_affected)
-CHARTYPE command,source;
-LINETYPE start_line,end_line,dest_line,num_occ;
-VIEW_DETAILS *src_view,*dst_view;
-bool lines_based_on_scope;
-LINETYPE *lines_affected;
-#endif
 /***********************************************************************/
 /* Parameters:                                                         */
 /*    command: the command being executed; COPY,DELETE,DUPLICATE,MOVE  */
@@ -1829,16 +1706,7 @@ command,source,start_line,end_line,dest_line);
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_set_point( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE *name, LINETYPE true_line, bool point_on )
-#else
-short execute_set_point( curr_screen, curr_view, name, true_line, point_on )
-CHARTYPE curr_screen;
-VIEW_DETAILS *curr_view;
-CHARTYPE *name;
-LINETYPE true_line;
-bool point_on;
-#endif
 /***********************************************************************/
 /* Parameters:                                                         */
 /*       name: the name of the line to be processed                    */
@@ -1904,12 +1772,7 @@ bool point_on;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_wrap_word( LENGTHTYPE col)
-#else
-short execute_wrap_word(col)
-LENGTHTYPE col;
-#endif
 /***********************************************************************/
 /* Parameters: col   - current column position within rec              */
 /***********************************************************************/
@@ -2066,14 +1929,7 @@ LENGTHTYPE col;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_split_join(short action,bool aligned,bool cursorarg)
-#else
-short execute_split_join(action,aligned,cursorarg)
-short action;
-bool aligned;
-bool cursorarg;
-#endif
 /***********************************************************************/
 /* Parameters: action  - split, join or spltjoin                       */
 /*             aligned - whether to align text or not                  */
@@ -2286,13 +2142,7 @@ bool cursorarg;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_put(CHARTYPE *params,bool putdel)
-#else
-short execute_put(params,putdel)
-CHARTYPE *params;
-bool putdel;
-#endif
 /***********************************************************************/
 {
    LINETYPE num_lines=0L,true_line=0L,num_file_lines=0L,end_line=0L;
@@ -2440,14 +2290,7 @@ bool putdel;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
-#else
-short execute_macro(params,error_on_not_found,macrorc)
-CHARTYPE *params;
-bool error_on_not_found;
-short *macrorc;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2618,12 +2461,7 @@ short *macrorc;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short write_macro( CHARTYPE *defn )
-#else
-short write_macro( defn )
-CHARTYPE *defn;
-#endif
 /***********************************************************************/
 {
    int len,i;
@@ -2647,14 +2485,7 @@ CHARTYPE *defn;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_set_on_off(CHARTYPE *inparams,bool *flag, bool error_display)
-#else
-short execute_set_on_off(inparams,flag,error_display)
-CHARTYPE *inparams;
-bool *flag;
-bool error_display;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2712,13 +2543,7 @@ bool error_display;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_set_row_position(CHARTYPE *inparams,short *base,short *off)
-#else
-short execute_set_row_position(inparams,base,off)
-CHARTYPE *inparams;
-short *base,*off;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -2773,14 +2598,7 @@ short *base,*off;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short processable_line(VIEW_DETAILS *view,LINETYPE true_line,LINE *curr)
-#else
-short processable_line(view,true_line,curr)
-VIEW_DETAILS *view;
-LINETYPE true_line;
-LINE *curr;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("execute.c: processable_line");
@@ -2806,13 +2624,7 @@ LINE *curr;
    return(LINE_SHADOW);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_expand_compress(CHARTYPE *params,bool expand,bool inc_alt,bool use_tabs,bool add_to_recovery)
-#else
-short execute_expand_compress(params,expand,inc_alt,use_tabs,add_to_recovery)
-CHARTYPE *params;
-bool expand,inc_alt,use_tabs,add_to_recovery;
-#endif
 /***********************************************************************/
 {
    LINETYPE i=0L,num_actual_lines=0L;
@@ -2956,14 +2768,7 @@ bool expand,inc_alt,use_tabs,add_to_recovery;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_select(CHARTYPE *params,bool relative,short off)
-#else
-short execute_select(params,relative,off)
-CHARTYPE *params;
-bool relative;
-short off;
-#endif
 /***********************************************************************/
 {
    LINETYPE i=0L,num_actual_lines=0L;
@@ -3065,14 +2870,7 @@ short off;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_move_cursor( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, LENGTHTYPE col )
-#else
-short execute_move_cursor( curr_screen, curr_view, col )
-CHARTYPE curr_screen;
-VIEW_DETAILS *curr_view;
-LENGTHTYPE col;
-#endif
 /***********************************************************************/
 {
    short y=0,x=0;
@@ -3117,13 +2915,7 @@ LENGTHTYPE col;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_find_command( CHARTYPE *str, long target_type )
-#else
-short execute_find_command(str,target_type)
-CHARTYPE *str;
-long target_type;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -3236,12 +3028,7 @@ long target_type;
    return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_modify_command(CHARTYPE *str)
-#else
-short execute_modify_command(str)
-CHARTYPE *str;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -3268,16 +3055,7 @@ CHARTYPE *str;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LENGTHTYPE calculate_rec_len( short action, CHARTYPE *rec, LENGTHTYPE current_rec_len, LENGTHTYPE start_col, LINETYPE num_cols, short trailing )
-#else
-LENGTHTYPE calculate_rec_len( action, rec, current_rec_len, start_col, num_cols, trailing )
-short action;
-CHARTYPE *rec;
-LENGTHTYPE current_rec_len,start_col;
-LINETYPE num_cols;
-short trailing;
-#endif
 /***********************************************************************/
 /*
  * start_col is 1 based; ie first column is column 1
@@ -3329,15 +3107,7 @@ short trailing;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static short set_editv(CHARTYPE *var,CHARTYPE *val,bool editv_file,bool rexx_var)
-#else
-static short set_editv(var,val,editv_file,rexx_var)
-CHARTYPE *var;
-CHARTYPE *val;
-bool editv_file;
-bool rexx_var;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -3440,14 +3210,7 @@ bool rexx_var;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_editv(short editv_type,bool editv_file,CHARTYPE *params)
-#else
-short execute_editv(editv_type,editv_file,params)
-short editv_type;
-bool editv_file;
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define EDITV_PARAMS  2
@@ -3607,10 +3370,6 @@ CHARTYPE *params;
          while( 1 )
          {
             key = my_getch( stdscr );
-#if defined(USE_XCURSES)
-            if ( key == KEY_SF || key == KEY_SR )
-               continue;
-#endif
 #if defined(KEY_MOUSE)
             if ( key == KEY_MOUSE )
                continue;
@@ -3631,14 +3390,7 @@ CHARTYPE *params;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short prepare_dialog( CHARTYPE *params, bool alert, CHARTYPE *stemname )
-#else
-short prepare_dialog( params, alert, stemname )
-CHARTYPE *params;
-bool alert;
-CHARTYPE *stemname;
-#endif
 /***********************************************************************/
 {
 #define STATE_START        0
@@ -4064,20 +3816,7 @@ CHARTYPE *stemname;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool editfield,short button, short default_button,CHARTYPE *stemname, short icon, bool alert)
-#else
-short execute_dialog(prompt, title, initial, editfield,button, default_button,stemname,icon,alert)
-CHARTYPE *prompt;
-CHARTYPE *title;
-CHARTYPE *initial;
-bool editfield;
-short button;
-short default_button;
-CHARTYPE *stemname;
-short icon;
-bool alert;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -4101,9 +3840,6 @@ bool alert;
    bool in_editfield;
    LINETYPE save_max_line_length=0;
    CHARTYPE save_current_window = CURRENT_VIEW->current_window;
-#ifndef HAVE_DERWIN
-   unsigned short begy,begx;
-#endif
 
    TRACE_FUNCTION("execute.c: execute_dialog");
    /*
@@ -4212,9 +3948,7 @@ bool alert;
       TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
-#ifdef HAVE_KEYPAD
    keypad( dialog_win, TRUE );
-#endif
    if (editfield)
    {
       editfield_buf = (CHARTYPE *)(*the_malloc)(dw_cols + 1);
@@ -4250,13 +3984,7 @@ bool alert;
        * Save the CMDLINE window and create a new one in our dialog window
        */
       save_command_window = CURRENT_WINDOW_COMMAND;
-#ifdef HAVE_DERWIN
       CURRENT_WINDOW_COMMAND = derwin( dialog_win, 1, dw_cols-4, 3+prompt_lines, 2 );
-#else
-      /* need to calculate from screen origin */
-      getbegyx( dialog_win, begy, begx );
-      CURRENT_WINDOW_COMMAND = subwin( dialog_win, 1, dw_cols-4, begy+3+prompt_lines, begx+2 );
-#endif
       if ( CURRENT_WINDOW_COMMAND == (WINDOW *)NULL)
       {
          CURRENT_VIEW->current_window = save_current_window;
@@ -4271,17 +3999,9 @@ bool alert;
       }
       wattrset( CURRENT_WINDOW_COMMAND, set_colour( CURRENT_FILE->attr+ATTR_DIA_EDITFIELD ) );
    }
-#ifdef HAVE_WBKGD
    wbkgd( dialog_win, set_colour( CURRENT_FILE->attr+( ( alert ) ? ATTR_ALERT : ATTR_DIALOG ) ) );
-#else
-   wattrset( dialog_win, set_colour( CURRENT_FILE->attr+( ( alert ) ? ATTR_ALERT : ATTR_DIALOG ) ) );
-   wmove(dialog_win,0,0);
-   wclrtobot(dialog_win);
-#endif
-#if defined(HAVE_BOX)
    wattrset(dialog_win,set_colour(CURRENT_FILE->attr+ATTR_DIA_BORDER));
    box(dialog_win,0,0);
-#endif
    wattrset( dialog_win, set_colour( CURRENT_FILE->attr+( ( alert ) ? ATTR_ALERT : ATTR_DIALOG ) ) );
    /*
     * Add the prompt line(s) to the window
@@ -4383,13 +4103,6 @@ bool alert;
          }
          key = my_getch( CURRENT_WINDOW_COMMAND );
       }
-#if defined(USE_XCURSES)
-      /*
-       * Ignore scrollbar "keys"
-       */
-      if (key == KEY_SF || key == KEY_SR)
-         continue;
-#endif
 #if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
       if (key == KEY_MOUSE)
       {
@@ -4547,14 +4260,7 @@ bool alert;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 int get_non_separator_line( int current_line, int num_args, CHARTYPE **args, int direction )
-#else
-int get_non_separator_line( current_line, num_args, args, direction )
-int current_line, num_args;
-CHARTYPE **args;
-int direction;
-#endif
 /***********************************************************************/
 {
    int i;
@@ -4587,12 +4293,7 @@ int direction;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short prepare_popup( CHARTYPE *params )
-#else
-short prepare_popup( params )
-CHARTYPE *params;
-#endif
 /***********************************************************************/
 {
 #define STATE_POPUP_START            0
@@ -5148,14 +4849,7 @@ CHARTYPE *params;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_popup(int y, int x, int height, int width, int pad_height, int pad_width, int initial, int num_args, CHARTYPE **args, int keyname_index  )
-#else
-short execute_popup(y, x, height, width, pad_height, pad_width, initial, num_args, args, keyname_index)
-int y,x,height,width,pad_height,pad_width,initial,num_args;
-CHARTYPE **args;
-int keyname_index;
-#endif
 /***********************************************************************/
 {
 /*
@@ -5226,10 +4920,7 @@ int keyname_index;
       TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
-#ifdef HAVE_KEYPAD
    keypad( dialog_win, TRUE );
-#endif
-#ifdef HAVE_NEWPAD
    pad = newpad( pad_height, pad_width );
    if ( pad == NULL )
    {
@@ -5238,23 +4929,10 @@ int keyname_index;
       TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
-#else
-   delwin(dialog_win);
-   display_error( 0, (CHARTYPE *)"No support for pads, can't display popup", FALSE );
-   TRACE_RETURN();
-   return(RC_OUT_OF_MEMORY);
-#endif
 
-#ifdef HAVE_WBKGD
    wbkgd(pad,set_colour(CURRENT_FILE->attr+ATTR_POPUP));
-#else
-   wattrset(pad,set_colour(CURRENT_FILE->attr+ATTR_POPUP));
-   wmove(pad,0,0);
-   wclrtobot(pad);
-#endif
    draw_cursor(FALSE);
    {
-#if defined(HAVE_BOX)
       wattrset(dialog_win,set_colour(CURRENT_FILE->attr+ATTR_POP_BORDER));
       box(dialog_win,0,0);
       if ( height != pad_height )
@@ -5294,7 +4972,6 @@ int keyname_index;
          waddch(dialog_win,' ');
       }
       wnoutrefresh(dialog_win);
-#endif
    }
    while(1)
    {
@@ -5304,17 +4981,7 @@ int keyname_index;
          {
             wattrset(pad,set_colour(CURRENT_FILE->attr+ATTR_POP_DIVIDER));
             wmove(pad,i,0);
-#ifdef HAVE_WHLINE
             whline(pad,0,pad_width-2);
-#else
-            {
-               int j;
-               for (j=0;j<pad_width-2;j++)
-               {
-                  waddch(pad,'-');
-               }
-            }
-#endif
          }
          else
          {
@@ -5332,18 +4999,9 @@ int keyname_index;
          }
       }
       touchwin(pad);
-#ifdef HAVE_PREFRESH
       prefresh( pad, y_offset, x_offset, screeny+1, screenx+1, screeny+height-2, screenx+width-2 );
-#endif
 
       key = wgetch(stdscr);
-#if defined(USE_XCURSES)
-      /*
-       * Ignore scrollbar "keys"
-       */
-      if (key == KEY_SF || key == KEY_SR)
-         continue;
-#endif
 #if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
       if (key == KEY_MOUSE)
       {
@@ -5647,15 +5305,7 @@ int keyname_index;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_preserve(VIEW_DETAILS *src_vd, PRESERVED_VIEW_DETAILS **preserved_view_details, FILE_DETAILS *src_fd, PRESERVED_FILE_DETAILS **preserved_file_details)
-#else
-short execute_preserve(src_vd, preserved_view_details, src_fd, preserved_file_details)
-PRESERVED_VIEW_DETAILS **preserved_view_details;
-PRESERVED_FILE_DETAILS **preserved_file_details;
-VIEW_DETAILS *src_vd;
-FILE_DETAILS *src_fd;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;
@@ -5800,16 +5450,7 @@ FILE_DETAILS *src_fd;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short execute_restore(VIEW_DETAILS *dst_vd, PRESERVED_VIEW_DETAILS **preserved_view_details, FILE_DETAILS *dst_fd, PRESERVED_FILE_DETAILS **preserved_file_details, bool rebuild_screen)
-#else
-short execute_restore(dst_vd, preserved_view_details, dst_fd, preserved_file_details,rebuild_screen)
-PRESERVED_VIEW_DETAILS **preserved_view_details;
-PRESERVED_FILE_DETAILS **preserved_file_details;
-VIEW_DETAILS *dst_vd;
-FILE_DETAILS *dst_fd;
-bool rebuild_screen;
-#endif
 /***********************************************************************/
 {
    short rc=RC_OK;

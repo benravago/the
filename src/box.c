@@ -59,33 +59,16 @@ struct _boxp
 };
 typedef struct _boxp BOXP;
 
-#ifdef HAVE_PROTO
 static short box_copy_to_temp(BOXP *);
 static short box_copy_from_temp(BOXP *,bool);
 static short box_copy_stream_from_temp(BOXP *,bool);
 static short box_delete(BOXP *);
 static short box_move(BOXP *,bool,bool);
 static short box_fill(BOXP *,CHARTYPE);
-#else
-static short box_copy_to_temp();
-static short box_copy_from_temp();
-static short box_copy_stream_from_temp();
-static short box_delete();
-static short box_move();
-static short box_fill();
-#endif
 
 /*#define DEBUG 1*/
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void box_operations(short action,CHARTYPE reset,bool boverlay,CHARTYPE fillchar)
-#else
-void box_operations(action,reset,boverlay,fillchar)
-short action;
-CHARTYPE reset;
-bool boverlay;
-CHARTYPE fillchar;
-#endif
 /***********************************************************************/
 {
    BOXP boxp;
@@ -238,13 +221,7 @@ CHARTYPE fillchar;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void box_paste_from_clipboard( LINE *curr_src, LINETYPE numlines, LINETYPE numcols )
-#else
-void box_paste_from_clipboard( curr_src, numlines, numcols )
-LINE *curr_src;
-LINETYPE numlines,numcols;
-#endif
 /***********************************************************************/
 {
    BOXP boxp;
@@ -325,12 +302,7 @@ LINETYPE numlines,numcols;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static short box_delete(BOXP *prm)
-#else
-static short box_delete(prm)
-BOXP *prm;
-#endif
 /***********************************************************************/
 {
    LINETYPE i=0L;
@@ -445,13 +417,7 @@ BOXP *prm;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static short box_move(BOXP *prm,bool boverlay, bool copy_to_temp)
-#else
-static short box_move(prm,boverlay,copy_to_temp)
-BOXP *prm;
-bool boverlay,copy_to_temp;
-#endif
 /***********************************************************************/
 {
    LINE *save_src=NULL,*temp_src=NULL;
@@ -499,12 +465,7 @@ bool boverlay,copy_to_temp;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static short box_copy_to_temp(BOXP *prm)
-#else
-static short box_copy_to_temp(prm)
-BOXP *prm;
-#endif
 /***********************************************************************/
 {
  LINE *first_save=NULL,*save_src=NULL,*tmp=NULL;
@@ -574,13 +535,7 @@ BOXP *prm;
  return(rc);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static short box_copy_from_temp(BOXP *prm,bool boverlay)
-#else
-static short box_copy_from_temp(prm,boverlay)
-BOXP *prm;
-bool boverlay;
-#endif
 /***********************************************************************/
 {
    LINETYPE dst_lineno=0L;
@@ -643,13 +598,7 @@ bool boverlay;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static short box_copy_stream_from_temp(BOXP *prm,bool boverlay)
-#else
-static short box_copy_stream_from_temp(prm,boverlay)
-BOXP *prm;
-bool boverlay;
-#endif
 /***********************************************************************/
 {
    LINETYPE dst_lineno=0L,i=0L;
@@ -829,13 +778,7 @@ bool boverlay;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static short box_fill(BOXP *prm,CHARTYPE fillchar)
-#else
-static short box_fill(prm,fillchar)
-BOXP *prm;
-CHARTYPE fillchar;
-#endif
 /***********************************************************************/
 {
    LINETYPE i=0L;

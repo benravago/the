@@ -73,34 +73,19 @@
 #include <the.h>
 #include <proto.h>
 
-#if defined(USE_EXTCURSES)
-# include <cur04.h>
-#endif
 
 #include <time.h>
 
 /*------------------------ function definitions -----------------------*/
-#ifdef HAVE_PROTO
 static void build_lines(CHARTYPE,short,LINE *,short,short);
 static void build_lines_for_display(CHARTYPE,short,short,short);
 static void show_lines(CHARTYPE);
 static void show_a_line(CHARTYPE,short,SHOW_LINE *);
 static void set_prefix_contents(CHARTYPE,LINE *,short,LINETYPE,bool);
 static void show_hex_line(CHARTYPE,short);
-#else
-static void build_lines();
-static void build_lines_for_display();
-static void show_lines();
-static void show_a_line();
-static void set_prefix_contents();
-static void show_hex_line();
-#endif
 static LINETYPE displayed_max_line_length = 0; /* max length of displayed line */
 static LINE *hexshow_curr=NULL; /* module global for historical reasons? */
 
-#if defined ( WIN32 )
-# define __func__ __FUNCTION__
-#endif
 
 #ifdef DEBUG1
 /* if you want to debug lots of detail in debug for UTF8 changes, change the DEBUGDUMPDETAIL to the same as DEBUGDUMP macro */
@@ -161,7 +146,6 @@ static int _fast_maxx = 0,_fast_pos;
                   }
 #endif
 
-#ifdef HAVE_WADDCHNSTR
 /* Use fast line output routines. We are faster with one simple function call
  * in opposite of many wmove/wattrset/waddch calls.
  */
@@ -308,140 +292,15 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d(%s): END_LINE_OUTPUT\n", __FILE__,__LINE__
                                      _fast_col);                 \
                           }
 # endif
-#else
-/* don't use waddchnstr */
-static WINDOW *_fast_win; /* buffered for waddch/wattrset */
-static chtype _fast_colour = (chtype) -1l; /* buffering prevents unnecessary
-                                              wattrset */
-# define INIT_LINE_OUTPUT(win,line) {                  \
-                        _fast_win = win;              \
-                        _fast_colour = (chtype) -1;   \
-                        PARATEST_INIT_LINE(win,line); \
-                        wmove(_fast_win,line,0); }
-# ifdef USE_UTF8
-#  define ADD_LINE_OUTPUT(line,length,colour) {                  \
-                       chtype col = colour;                    \
-                       LENGTHTYPE l = length;                  \
-                       CHARTYPE *src;                          \
-                       u_int32_t ch;                           \
-                       int pos=0;                              \
-cchar_t t; \
-                       PARATEST_ADD_LINE(l,"ADD_LINE_OUTPUT"); \
-                   /*    if (col != _fast_colour)   */             \
-                   /*    {   */                                  \
-                          _fast_colour = col;                  \
-                 /*         wattrset(_fast_win,col);   */          \
-                  /*     } */                                    \
-                       src = line;                             \
-                       while (l--) {                             \
-                          ch = u8_nextchar( src, &pos );       \
-if ( ch > 255 ) { \
-t.chars[0] = ch; \
-t.attr = _fast_colour; \
-wadd_wch(_fast_win,&t); \
-} \
-else \
-                          waddch(_fast_win,ch|_fast_colour);                 \
-                       } }
-#  define ADD_SYNTAX_LINE_OUTPUT(line,length,highlight) {        \
-                       LENGTHTYPE l = length;                  \
-                       CHARTYPE *src;                          \
-                       chtype *highl;            \
-                       u_int32_t ch;                           \
-                       int pos=0;                              \
-                       PARATEST_ADD_LINE(l,"ADD_SYNTAX_LINE_OUTPUT"); \
-                       src = line;                             \
-                       highl = highlight;                      \
-                       while (l--) {                           \
-                          if (*highl != _fast_colour)          \
-                          {                                    \
-                             _fast_colour = *highl;            \
-                             wattrset(_fast_win,*highl);       \
-                          }                                    \
-                          ch = u8_nextchar( src, &pos );       \
-                          waddch(_fast_win,ch);              \
-                          highl++;                             \
-                       } }
-#  define FILL_LINE_OUTPUT(c,length,colour) {                      \
-                        chtype col = colour,C = c;               \
-                       LENGTHTYPE l = length;                  \
-                        PARATEST_ADD_LINE(l,"FILL_LINE_OUTPUT"); \
-                        if (col != _fast_colour)                 \
-                          {                                      \
-                           _fast_colour = col;                   \
-                           wattrset(_fast_win,col);              \
-                          }                                      \
-                        while (l--)                              \
-                           waddch(_fast_win,C);                  \
-                        }
-# else
-#  define ADD_LINE_OUTPUT(line,length,colour) {                  \
-                       chtype col = colour;                    \
-                       LENGTHTYPE l = length;                  \
-                       CHARTYPE *src;                          \
-                       PARATEST_ADD_LINE(l,"ADD_LINE_OUTPUT"); \
-                       if (col != _fast_colour)                \
-                       {                                     \
-                          _fast_colour = col;                  \
-                          wattrset(_fast_win,col);             \
-                       }                                     \
-                       src = line;                             \
-                       while (l--)                             \
-                          waddch(_fast_win,*src++);            \
-                       }
-#  define ADD_SYNTAX_LINE_OUTPUT(line,length,highlight) {        \
-                       LENGTHTYPE l = length;                  \
-                       CHARTYPE *src;                          \
-                       chtype *highl;            \
-                       PARATEST_ADD_LINE(l,"ADD_SYNTAX_LINE_OUTPUT"); \
-                       src = line;                             \
-                       highl = highlight;                      \
-                       while (l--) {                           \
-                          if (*highl != _fast_colour)          \
-                          {                                    \
-                             _fast_colour = *highl;            \
-                             wattrset(_fast_win,*highl);       \
-                          }                                    \
-                          waddch(_fast_win,*src);              \
-                          src++;                               \
-                          highl++;                             \
-                       } }
-#  define FILL_LINE_OUTPUT(c,length,colour) {                      \
-                        chtype col = colour,C = c;               \
-                       LENGTHTYPE l = length;                  \
-                        PARATEST_ADD_LINE(l,"FILL_LINE_OUTPUT"); \
-                        if (col != _fast_colour)                 \
-                          {                                      \
-                           _fast_colour = col;                   \
-                           wattrset(_fast_win,col);              \
-                          }                                      \
-                        while (l--)                              \
-                           waddch(_fast_win,C);                  \
-                        }
-# endif
-# define END_LINE_OUTPUT()
-#endif
 
-#if defined(USE_REGINA)
-# define REXX_INT_CHAR         'R'
-#elif defined(USE_OREXX) || defined(USE_OOREXX)
-# define REXX_INT_CHAR         'O'
-#elif defined(USE_OS2REXX)
+#if defined(USE_OS2REXX)
 # define REXX_INT_CHAR         'O'
 #elif defined(USE_WINREXX)
 # define REXX_INT_CHAR         'W'
 #elif defined(USE_QUERCUS)
 # define REXX_INT_CHAR         'Q'
-#elif defined(USE_UNIREXX)
-# define REXX_INT_CHAR         'U'
-#elif defined(USE_REXX6000)
-# define REXX_INT_CHAR         '6'
-#elif defined(USE_REXXIMC)
-# define REXX_INT_CHAR         'I'
-#elif defined(USE_REXXTRANS)
-# define REXX_INT_CHAR         'T'
 #else
-# define REXX_INT_CHAR         ' '
+# define REXX_INT_CHAR         'I'
 #endif
 
 
@@ -482,7 +341,7 @@ static void show_highlighted_line( int lineno, SHOW_LINE *scurr, char *msg )
 #endif
 
 /* small helper routines *****************************************************/
-#if ( defined(USE_XCURSES) || defined(USE_SDLCURSES) || defined(USE_WINGUICURSES) ) && PDC_BUILD >= 2501
+#if defined(USE_WINGUICURSES) && PDC_BUILD >= 2501
 static int is_column_being_shown(CHARTYPE scrno,COLTYPE col)
 {
    COLTYPE lcol = SCREEN_VIEW(scrno)->verify_col-1;
@@ -494,15 +353,7 @@ static int is_column_being_shown(CHARTYPE scrno,COLTYPE col)
 }
 #endif
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void display_line_left( WINDOW *win, chtype colour, CHARTYPE *str, int lenstr, int line, int width )
-#else
-static void display_line_left( win, colour, str, line, width )
-WINDOW *win;
-chtype colour;
-CHARTYPE *str;
-int lenstr, line, width;
-#endif
 /***********************************************************************/
 {
    int linelength;
@@ -519,17 +370,8 @@ int lenstr, line, width;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void display_syntax_line_left(WINDOW *win, chtype colour, CHARTYPE *str,
                               chtype *high, int line, int width)
-#else
-static void display_syntax_line_left(win, colour, str, high, line, width)
-WINDOW *win;
-chtype colour;
-CHARTYPE *str;
-chtype *high;
-int line, width;
-#endif
 /***********************************************************************/
 {
    int linelength;
@@ -546,16 +388,8 @@ int line, width;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void display_line_center(WINDOW *win, chtype colour, CHARTYPE *str,
                               int line, int width, int fillchar)
-#else
-static void display_line_center(win, colour, str, line, width, fillchar)
-WINDOW *win;
-chtype colour;
-CHARTYPE *str;
-int line, width, fillchar;
-#endif
 /***********************************************************************/
 {
    int linelength,first;
@@ -579,12 +413,7 @@ int line, width, fillchar;
 
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void prepare_idline(CHARTYPE scrno)
-#else
-void prepare_idline(scrno)
-CHARTYPE scrno;
-#endif
 /***********************************************************************/
 {
    short fpath_len=0,max_name=0;
@@ -803,12 +632,7 @@ CHARTYPE scrno;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void show_heading(CHARTYPE scrno)
-#else
-void show_heading(scrno)
-CHARTYPE scrno;
-#endif
 /***********************************************************************/
 {
    FILE_DETAILS *screen_file = SCREEN_FILE(scrno);
@@ -830,11 +654,7 @@ CHARTYPE scrno;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void show_statarea(void)
-#else
-void show_statarea()
-#endif
 /***********************************************************************/
 {
    short y=0,x=0;
@@ -936,11 +756,7 @@ void show_statarea()
             key = u8_nextchar( (char *)rec, &col );
          }
 #else
-# ifdef VMS
-            key = (short)( *(rec+CURRENT_VIEW->verify_col-1+x) );
-# else
             key = (short)( *(rec+CURRENT_VIEW->verify_col-1+x) & A_CHARTEXT );
-# endif
 #endif
             break;
          case WINDOW_COMMAND:
@@ -950,11 +766,7 @@ void show_statarea()
             key = u8_nextchar( (char *)cmd_rec, &col );
          }
 #else
-# ifdef VMS
-            key = (short)( *(cmd_rec+x+cmd_verify_col-1) );
-# else
             key = (short)( *(cmd_rec+x+cmd_verify_col-1) & A_CHARTEXT );
-# endif
 #endif
             break;
          case WINDOW_PREFIX:
@@ -964,11 +776,7 @@ void show_statarea()
             key = u8_nextchar( (char *)pre_rec, &col );
          }
 #else
-# ifdef VMS
-            key = (short)( *(pre_rec+x) );
-# else
             key = (short)( *(pre_rec+x) & A_CHARTEXT );
-# endif
 #endif
             break;
       }
@@ -1030,11 +838,7 @@ void show_statarea()
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void clear_statarea(void)
-#else
-void clear_statarea()
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("show.c:    clear_statarea");
@@ -1058,12 +862,7 @@ void clear_statarea()
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void display_filetabs( VIEW_DETAILS *start)
-#else
-void display_filetabs( start)
-VIEW_DETAILS;
-#endif
 /***********************************************************************/
 {
    VIEW_DETAILS *curr;
@@ -1158,12 +957,7 @@ VIEW_DETAILS;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void redraw_window(WINDOW *win)
-#else
-void redraw_window(win)
-WINDOW *win;
-#endif
 /***********************************************************************/
 {
    register short i=0,j=0;
@@ -1177,11 +971,7 @@ WINDOW *win;
       for ( j = 0; j < getmaxy( win ); j++ )
       {
          wmove( win, j, i );
-#ifdef VMS
-         ch = (chtype)(winch( win ) );
-#else
          ch = (chtype)(winch( win ) & A_CHARTEXT );
-#endif
          put_char( win, ch, ADDCHAR );
       }
    }
@@ -1191,11 +981,7 @@ WINDOW *win;
 }
 #if NOT_USED
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void repaint_screen(void)
-#else
-void repaint_screen()
-#endif
 /***********************************************************************/
 {
    short y=0,x=0;
@@ -1219,12 +1005,7 @@ void repaint_screen()
 #endif
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void build_screen(CHARTYPE scrno)
-#else
-void build_screen(scrno)
-CHARTYPE scrno;
-#endif
 /***********************************************************************/
 {
    LINE *curr=NULL;
@@ -1251,12 +1032,7 @@ CHARTYPE scrno;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void display_screen(CHARTYPE scrno)
-#else
-void display_screen(scrno)
-CHARTYPE scrno;
-#endif
 /***********************************************************************/
 {
    unsigned short x=0,y=0;
@@ -1350,30 +1126,11 @@ CHARTYPE scrno;
    if (SCREEN_VIEW(scrno)->current_window == WINDOW_COMMAND)
       wmove(SCREEN_PREV_WINDOW(scrno),savey,savex);
    wmove(SCREEN_WINDOW(scrno),y,x);
-#if defined(HAVE_SB_INIT)
-   if (SBx
-   && scrno == current_screen)
-   {
-      sb_set_vert( 2 + CURRENT_FILE->number_lines + CURRENT_SCREEN.rows[WINDOW_FILEAREA],
-                   CURRENT_SCREEN.rows[WINDOW_FILEAREA],
-                   CURRENT_VIEW->current_line );
-      sb_set_horz( displayed_max_line_length /* + CURRENT_SCREEN.cols[WINDOW_FILEAREA] */,
-                   CURRENT_SCREEN.cols[WINDOW_FILEAREA],
-                   CURRENT_VIEW->verify_col );
-      sb_refresh();
-   }
-#endif
    TRACE_RETURN();
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void display_cmdline( CHARTYPE curr_screen, VIEW_DETAILS *curr_view )
-#else
-void display_cmdline( curr_screen, curr_view )
-CHARTYPE curr_screen;
-VIEW_DETAILS *curr_view;
-#endif
 /***********************************************************************/
 {
    unsigned short x=0,y=0;
@@ -1404,16 +1161,8 @@ VIEW_DETAILS *curr_view;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void build_lines(CHARTYPE scrno,short direction,LINE *curr,
                          short rows,short start_row)
-#else
-static void build_lines(scrno,direction,curr,rows,start_row)
-CHARTYPE scrno;
-short direction;
-LINE *curr;
-short rows,start_row;
-#endif
 /***********************************************************************/
 {
   /* BE CAREFUL! This function and his friend build_lines_for_display below
@@ -1802,15 +1551,8 @@ short rows,start_row;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void build_lines_for_display(CHARTYPE scrno,short direction,
                                     short rows,short start_row)
-#else
-static void build_lines_for_display(scrno,direction,rows,start_row)
-CHARTYPE scrno;
-short direction;
-short rows,start_row;
-#endif
 /***********************************************************************/
 {
    /*
@@ -2295,12 +2037,7 @@ short rows,start_row;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void show_lines(CHARTYPE scrno)
-#else
-static void show_lines(scrno)
-CHARTYPE scrno;
-#endif
 /***********************************************************************/
 {
    short i=0;
@@ -2557,14 +2294,7 @@ CHARTYPE scrno;
 }
 #define TMP_EXTRA 1
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
-#else
-static void show_a_line(scrno,row,scurr)
-CHARTYPE scrno;
-short row;
-SHOW_LINE *scurr;
-#endif
 /***********************************************************************/
 {
    LENGTHTYPE vend,vlen,blanks_after_length;
@@ -2809,7 +2539,7 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: ccols %d cother_end_col %d bother_end_col
    }
    if ( fillverify )
       FILL_LINE_OUTPUT(' ',fillverify,normal);
-#if ( defined(USE_XCURSES) || defined(USE_SDLCURSES) || defined(USE_WINGUICURSES) ) && PDC_BUILD >= 2501
+#if defined(USE_WINGUICURSES) && PDC_BUILD >= 2501
    /*
     * PDCurses 2.5 XCurses port allows for the display of lines
     * between characters.  This is controlled by SET BOUNDMARK
@@ -2926,16 +2656,7 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: ccols %d cother_end_col %d bother_end_col
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void set_prefix_contents(CHARTYPE scrno,LINE *curr,short start_row,LINETYPE cline,bool is_current)
-#else
-static void set_prefix_contents(scrno,curr,start_row,cline,is_current)
-CHARTYPE scrno;
-LINE *curr;
-short start_row;
-LINETYPE cline;
-bool is_current;
-#endif
 /***********************************************************************/
 {
    CHARTYPE *ptr=NULL;
@@ -2988,13 +2709,7 @@ bool is_current;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 static void show_hex_line(CHARTYPE scrno,short row)
-#else
-static void show_hex_line(scrno,row)
-CHARTYPE scrno;
-short row;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -3059,12 +2774,7 @@ short row;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void touch_screen(CHARTYPE scrno)
-#else
-void touch_screen(scrno)
-CHARTYPE scrno;
-#endif
 /***********************************************************************/
 {
    register int i=0;
@@ -3081,12 +2791,7 @@ CHARTYPE scrno;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void refresh_screen(CHARTYPE scrno)
-#else
-void refresh_screen(scrno)
-CHARTYPE scrno;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("commutil.c:refresh_screen");
@@ -3117,12 +2822,7 @@ CHARTYPE scrno;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void redraw_screen(CHARTYPE scrno)
-#else
-void redraw_screen(scrno)
-CHARTYPE scrno;
-#endif
 /***********************************************************************/
 {
    TRACE_FUNCTION("commutil.c:redraw_screen");
@@ -3172,13 +2872,7 @@ CHARTYPE scrno;
 }
 
 /***********************************************************************/
-#ifdef HAVE_PROTO
 bool line_in_view(CHARTYPE scrno,LINETYPE line_number)
-#else
-bool line_in_view(scrno,line_number)
-CHARTYPE scrno;
-LINETYPE line_number;
-#endif
 /***********************************************************************/
 {
    register short i,max=screen[scrno].rows[WINDOW_FILEAREA];
@@ -3199,13 +2893,7 @@ LINETYPE line_number;
    return(result);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 bool column_in_view(CHARTYPE scrno,LENGTHTYPE column_number)
-#else
-bool column_in_view(scrno,column_number)
-CHARTYPE scrno;
-LENGTHTYPE column_number;
-#endif
 /***********************************************************************/
 {
    bool result=FALSE;
@@ -3233,13 +2921,7 @@ LENGTHTYPE column_number;
    return(result);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LINETYPE find_next_current_line(LINETYPE num_pages,short direction)
-#else
-LINETYPE find_next_current_line(num_pages,direction)
-LINETYPE num_pages;
-short direction;
-#endif
 /***********************************************************************/
 {
    register short i=0;
@@ -3333,14 +3015,7 @@ short direction;
    return(cline);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short get_row_for_focus_line(CHARTYPE scrno,LINETYPE fl,short cr)
-#else
-short get_row_for_focus_line(scrno,fl,cr)
-CHARTYPE scrno;
-LINETYPE fl;
-short cr;
-#endif
 /***********************************************************************/
 {
    /*
@@ -3366,14 +3041,7 @@ short cr;
    return(cr);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LINETYPE get_focus_line_in_view(CHARTYPE scrno,LINETYPE fl,ROWTYPE row)
-#else
-LINETYPE get_focus_line_in_view(scrno,fl,row)
-CHARTYPE scrno;
-LINETYPE fl;
-ROWTYPE row;
-#endif
 /***********************************************************************/
 {
    /*
@@ -3409,12 +3077,7 @@ ROWTYPE row;
    return(fl);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 LINETYPE calculate_focus_line(LINETYPE fl,LINETYPE cl)
-#else
-LINETYPE calculate_focus_line(fl,cl)
-LINETYPE fl,cl;
-#endif
 /***********************************************************************/
 {
    /*
@@ -3445,14 +3108,7 @@ LINETYPE fl,cl;
    return(new_fl);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 char *get_current_position(CHARTYPE scrno,LINETYPE *line,LENGTHTYPE *col)
-#else
-char *get_current_position(scrno,line,col)
-CHARTYPE scrno;
-LINETYPE *line;
-LENGTHTYPE *col;
-#endif
 /***********************************************************************/
 {
    short y=0,x=0;
@@ -3500,17 +3156,7 @@ LENGTHTYPE *col;
    return ret;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 void calculate_new_column( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, COLTYPE current_screen_col, LENGTHTYPE current_verify_col, LENGTHTYPE new_file_col, COLTYPE *new_screen_col, LENGTHTYPE *new_verify_col )
-#else
-void calculate_new_column( curr_screen, curr_view, current_screen_col, current_verify_col, new_file_col, new_screen_col, new_verify_col )
-CHARTYPE curr_screen;
-VIEW_DETAILS *curr_view;
-COLTYPE current_screen_col;
-LENGTHTYPE current_verify_col,new_file_col;
-COLTYPE *new_screen_col;
-LENGTHTYPE *new_verify_col;
-#endif
 /***********************************************************************/
 {
    LINETYPE x=0;
@@ -3533,12 +3179,7 @@ LENGTHTYPE *new_verify_col;
    return;
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short prepare_view(CHARTYPE scrn)
-#else
-short prepare_view(scrn)
-CHARTYPE scrn;
-#endif
 /***********************************************************************/
 {
    int y=0,x=0;
@@ -3568,13 +3209,7 @@ CHARTYPE scrn;
    return(RC_OK);
 }
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short advance_view(VIEW_DETAILS *next_view,short direction)
-#else
-short advance_view(next_view,direction)
-VIEW_DETAILS *next_view;
-short direction;
-#endif
 /***********************************************************************/
 {
    VIEW_DETAILS *save_current_view=next_view; /* point to passed view */
@@ -3767,14 +3402,9 @@ short direction;
    return(RC_OK);
 }
 
-#if defined(CAN_RESIZE) || defined(OS2) || defined(WIN32)
+#if defined(CAN_RESIZE)
 /***********************************************************************/
-#ifdef HAVE_PROTO
 short THE_Resize(int rows, int cols)
-#else
-short THE_Resize(rows,cols)
-int rows,cols;
-#endif
 /***********************************************************************/
 {
    short i=0;
@@ -3784,7 +3414,7 @@ int rows,cols;
    /*
     * This function is called as the result of a screen resize.
     */
-#if defined(SIGWINCH) && defined(USE_NCURSES) && defined(HAVE_RESIZETERM)
+#if defined(SIGWINCH)
    if ( rows && cols )
       resizeterm(rows,cols);
    endwin();
@@ -3792,14 +3422,11 @@ int rows,cols;
    wnoutrefresh( stdscr );
    /* wnoutrefresh( curscr ); */
    ncurses_screen_resized = FALSE;
-#elif defined(HAVE_RESIZE_TERM)
+#else
    resize_term(rows,cols);
 #endif
    terminal_lines = LINES;
    terminal_cols = COLS;
-#ifdef HAVE_BSD_CURSES
-   terminal_lines--;
-#endif
    length = COLS + 1;
    if ( length > linebuf_size )
    {
@@ -3855,7 +3482,7 @@ int rows,cols;
    }
    create_statusline_window();
    create_filetabs_window();
-#if defined(SIGWINCH) && defined(USE_NCURSES)
+#if defined(SIGWINCH)
   /* restore_THE();  */
 #endif
    TRACE_RETURN();
@@ -3863,36 +3490,3 @@ int rows,cols;
 }
 #endif
 
-#if defined(HAVE_BROKEN_SYSVR4_CURSES)
-/***********************************************************************/
-#ifdef HAVE_PROTO
-short force_curses_background(void)
-#else
-short force_curses_background()
-int rows,cols;
-#endif
-/***********************************************************************/
-{
-   int rc=RC_OK;
-   short fg=0,bg=0;
-
-   TRACE_FUNCTION("show.c:    force_curses_background");
-   /*
-    * This function is called to ensure that the background colour of the
-    * first line on the screen is set to that which THE requests.  Some
-    * curses implementations, notably Solaris 2.5, fail to set the
-    * background to black.
-    */
-   if (colour_support)
-   {
-      pair_content(1,&fg,&bg);
-      init_pair(1,COLOR_BLACK,COLOR_WHITE);
-      move(0,0);
-      attrset(COLOR_PAIR(1));
-      addch(' ');
-      init_pair(1,fg,bg);
-   }
-   TRACE_RETURN();
-   return (RC_OK);
-}
-#endif
