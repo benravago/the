@@ -3,7 +3,7 @@
 /***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-1999 Mark Hessling
+ * Copyright (C) 1991-2013 Mark Hessling
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -29,19 +29,196 @@
  * This software is going to be maintained and enhanced as deemed
  * necessary by the community.
  *
- * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
- * PO Box 203, Bellara, QLD 4507, AUSTRALIA
- * Author of THE, a Free XEDIT/KEDIT editor and, Rexx/SQL
- * Maintainer of PDCurses: Public Domain Curses and, Regina Rexx interpreter
- * Use Rexx ? join the Rexx Language Association: http://www.rexxla.org
+ * Mark Hessling, mark@rexx.org  http://www.rexx.org/
  */
 
-static char RCSid[] = "$Id: commset1.c,v 1.3 1999/07/06 04:19:21 mark Exp mark $";
 
 #include <the.h>
 #include <proto.h>
 
+the_header_mapping thm[] =
+{
+   {"NUMBER",                6,  HEADER_NUMBER      },
+   {"COMMENT",               7,  HEADER_COMMENT     },
+   {"STRING",                6,  HEADER_STRING      },
+   {"KEYWORD",               7,  HEADER_KEYWORD     },
+   {"FUNCTION",              8,  HEADER_FUNCTION    },
+   {"HEADER",                6,  HEADER_HEADER      },
+   {"LABEL",                 5,  HEADER_LABEL       },
+   {"MATCH",                 5,  HEADER_MATCH       },
+   {"COLUMN",                6,  HEADER_COLUMN      },
+   {"POSTCOMPARE",          11,  HEADER_POSTCOMPARE },
+   {"MARKUP",                6,  HEADER_MARKUP      },
+   {"DIRECTORY",             3,  HEADER_DIRECTORY   },
+   {"*",                     1,  HEADER_ALL         }, /* this should be last */
+   {NULL,                    0,  0                  },
+};
+
 /*#define DEBUG 1*/
+
+/***********************************************************************/
+#ifdef HAVE_PROTO
+static short set_active_colour( short area )
+#else
+static short set_active_colour( area )
+short area;
+#endif
+/***********************************************************************/
+{
+   int i;
+   COLOUR_ATTR attr;
+   chtype ch=0L,nondisp_attr=0L;
+
+   TRACE_FUNCTION("commset1.c:set_active_colour");
+
+   memcpy( &attr, CURRENT_FILE->attr+area, sizeof(COLOUR_ATTR) );
+   /*
+    * Special handling required for NONDISP...
+    */
+   if (area == ATTR_NONDISP )
+   {
+      nondisp_attr = set_colour( &attr );
+      for ( i = 0 ; i < 256; i++ )
+      {
+         if (etmode_flag[i])
+         {
+#ifdef VMS
+            ch = etmode_table[i];
+#else
+            ch = etmode_table[i] & A_CHARTEXT;
+#endif
+            etmode_table[i] = ch | nondisp_attr;
+         }
+      }
+   }
+   /*
+    * If we haven't started curses (in profile first time) exit now...
+    */
+   if (!curses_started)
+   {
+      TRACE_RETURN();
+      return(RC_OK);
+   }
+#if ( defined(USE_XCURSES) || defined(USE_SDLCURSES) || defined(USE_WINGUICURSES) ) && PDC_BUILD >= 2501
+   /*
+    * For the special BOUNDMARK colour, set the curses global colour
+    * to the foreground and return
+    */
+   if ( area == ATTR_BOUNDMARK)
+   {
+      PDC_set_line_color(FOREFROMPAIR(attr.pair));
+      build_screen(current_screen);
+      display_screen(current_screen);
+      TRACE_RETURN();
+      return(RC_OK);
+   }
+#endif
+   /*
+    * Update the appropriate window with the new colour combination...
+    */
+   switch (valid_areas[area].area_window)
+   {
+      case WINDOW_FILEAREA:
+         if (area == ATTR_FILEAREA)
+            wattrset(CURRENT_WINDOW_FILEAREA,set_colour(CURRENT_FILE->attr+area));
+         build_screen(current_screen);
+         display_screen(current_screen);
+#if ( defined(USE_XCURSES) || defined(USE_SDLCURSES) || defined(USE_WINGUICURSES) ) && PDC_BUILD >= 2501
+         if ( area == ATTR_BOUNDMARK)
+         {
+            redraw_window(CURRENT_WINDOW_FILEAREA);
+            touchwin(CURRENT_WINDOW_FILEAREA);
+            wnoutrefresh(CURRENT_WINDOW_FILEAREA);
+         }
+#endif
+         break;
+      case WINDOW_PREFIX:
+         if (CURRENT_WINDOW_PREFIX != NULL)
+         {
+            wattrset(CURRENT_WINDOW_PREFIX,set_colour(CURRENT_FILE->attr+area));
+            build_screen(current_screen);
+            display_screen(current_screen);
+         }
+         break;
+      case WINDOW_COMMAND:
+         if (CURRENT_WINDOW_COMMAND != NULL)
+         {
+            wattrset(CURRENT_WINDOW_COMMAND,set_colour(CURRENT_FILE->attr+area));
+            redraw_window(CURRENT_WINDOW_COMMAND);
+            touchwin(CURRENT_WINDOW_COMMAND);
+            wnoutrefresh(CURRENT_WINDOW_COMMAND);
+         }
+         break;
+      case WINDOW_ARROW:
+         if (CURRENT_WINDOW_ARROW != NULL)
+         {
+            wattrset(CURRENT_WINDOW_ARROW,set_colour(CURRENT_FILE->attr+area));
+            redraw_window(CURRENT_WINDOW_ARROW);
+            touchwin(CURRENT_WINDOW_ARROW);
+            wnoutrefresh(CURRENT_WINDOW_ARROW);
+         }
+         break;
+      case WINDOW_IDLINE:
+         if (CURRENT_WINDOW_IDLINE != NULL)
+         {
+            wattrset(CURRENT_WINDOW_IDLINE,set_colour(CURRENT_FILE->attr+area));
+            redraw_window(CURRENT_WINDOW_IDLINE);
+            touchwin(CURRENT_WINDOW_IDLINE);
+            wnoutrefresh(CURRENT_WINDOW_IDLINE);
+         }
+         break;
+      case WINDOW_STATAREA:
+         if (statarea != NULL)
+         {
+            wattrset(statarea,set_colour(CURRENT_FILE->attr+area));
+            redraw_window(statarea);
+            touchwin(statarea);
+            wnoutrefresh(statarea);
+         }
+         break;
+      case WINDOW_FILETABS:
+         if (filetabs != NULL)
+         {
+            wattrset(filetabs,set_colour(CURRENT_FILE->attr+area));
+            redraw_window(filetabs);
+            touchwin(filetabs);
+            wnoutrefresh(filetabs);
+         }
+         break;
+      case WINDOW_DIVIDER:
+         if (divider != (WINDOW *)NULL)
+         {
+            wattrset(divider,set_colour(CURRENT_FILE->attr+area));
+            if (display_screens > 1
+            &&  !horizontal)
+            {
+               draw_divider();
+               touchwin(divider);
+               wnoutrefresh(divider);
+            }
+         }
+         break;
+      case WINDOW_SLK:
+#if defined(HAVE_SLK_INIT)
+         if ( max_slk_labels )
+         {
+#if defined(HAVE_SLK_ATTRSET)
+            slk_attrset(set_colour(CURRENT_FILE->attr+area));
+#else
+            display_error(61,(CHARTYPE *)"slk_attrset not in curses library",FALSE);
+#endif
+            slk_touch();
+            slk_noutrefresh();
+         }
+#endif
+         break;
+      default:
+         break;
+   }
+   TRACE_RETURN();
+   return(RC_OK);
+}
+
 /*man-start*********************************************************************
 
 
@@ -67,12 +244,18 @@ DESCRIPTION
      The second number; 'm' sets the number of changes since the last
      SAVE or SSAVE command was issued.
 
+     All options can be specified as the current EQUIVCHAR to retain the
+     existing value.
+
 COMPATIBILITY
      XEDIT: Compatible.
      KEDIT: Compatible.
 
 DEFAULT
      OFF
+
+SEE ALSO
+     <SET EQUIVCHAR>
 
 STATUS
      Complete.
@@ -85,65 +268,61 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define ALT_PARAMS  2
- CHARTYPE strip[ALT_PARAMS];
- CHARTYPE *word[ALT_PARAMS+1];
- unsigned short num_params=0;
- unsigned short autosave_alt=CURRENT_FILE->autosave_alt;
- unsigned short save_alt=CURRENT_FILE->save_alt;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Alt");
-#endif
- strip[0]=STRIP_BOTH;
- num_params = param_split(params,word,ALT_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params == 0)
-   {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
-   }
- if (num_params > 2)
-   {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
-   }
- if (!valid_positive_integer(word[0]))
-   {
-    display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
-   }
- autosave_alt = atoi((DEFCHAR *)word[0]);
+   CHARTYPE strip[ALT_PARAMS];
+   CHARTYPE *word[ALT_PARAMS+1];
+   unsigned short num_params=0;
+   unsigned short autosave_alt=CURRENT_FILE->autosave_alt;
+   unsigned short save_alt=CURRENT_FILE->save_alt;
 
- if (num_params == 2)
+   TRACE_FUNCTION("commset1.c:Alt");
+   strip[0]=STRIP_BOTH;
+   num_params = param_split(params,word,ALT_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params == 0)
    {
-    if (!valid_positive_integer(word[1]))
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if (num_params > 2)
+   {
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if ( equal( word[0], EQUIVCHARstr, 1 ) )
+      autosave_alt = CURRENT_FILE->autosave_alt;
+   else
+   {
+      if (!valid_positive_integer(word[0]))
       {
-       display_error(1,word[1],FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_INVALID_OPERAND);
+         display_error(1,word[0],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
       }
-    save_alt = atoi((DEFCHAR *)word[1]);
+      autosave_alt = atoi((DEFCHAR *)word[0]);
+   }
+   if (num_params == 2)
+   {
+      if ( equal( word[1], EQUIVCHARstr, 1 ) )
+         save_alt = CURRENT_FILE->save_alt;
+      else
+      {
+         if (!valid_positive_integer(word[1]))
+         {
+            display_error(1,word[1],FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+         save_alt = atoi((DEFCHAR *)word[1]);
+      }
    }
 
- CURRENT_FILE->autosave_alt = autosave_alt;
- CURRENT_FILE->save_alt = save_alt;
+   CURRENT_FILE->autosave_alt = autosave_alt;
+   CURRENT_FILE->save_alt = save_alt;
 
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -157,13 +336,20 @@ DESCRIPTION
      targets. The first arbitrary character matches a group of zero
      or more characters, the second will match exactly one character.
 
+     All options can be specified as the current EQUIVCHAR to retain the
+     existing value.
+
 COMPATIBILITY
      XEDIT: Compatible.
             Single arbitrary character not supported.
      KEDIT: Compatible.
+            Arbitrary character not supported in <CHANGE> or <SCHANGE> commands.
 
 DEFAULT
      Off $ ?
+
+SEE ALSO
+     <SET EQUIVCHAR>
 
 STATUS
      Complete.
@@ -176,94 +362,107 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define ARB_PARAMS  4
- CHARTYPE *word[ARB_PARAMS+1];
- CHARTYPE strip[ARB_PARAMS];
- unsigned short num_params=0;
- short rc=RC_INVALID_OPERAND;
- bool arbsts=CURRENT_VIEW->arbchar_status;
- CHARTYPE arbchr_single=CURRENT_VIEW->arbchar_single;
- CHARTYPE arbchr_multiple=CURRENT_VIEW->arbchar_multiple;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Arbchar");
-#endif
-/*---------------------------------------------------------------------*/
-/* Validate the parameters that have been supplied.                    */
-/*---------------------------------------------------------------------*/
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- strip[2]=STRIP_BOTH;
- strip[3]=STRIP_BOTH;
- num_params = param_split(params,word,ARB_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- switch(num_params)
+   CHARTYPE *word[ARB_PARAMS+1];
+   CHARTYPE strip[ARB_PARAMS];
+   unsigned short num_params=0;
+   short rc=RC_INVALID_OPERAND;
+   bool arbsts=CURRENT_VIEW->arbchar_status;
+   CHARTYPE arbchr_single=CURRENT_VIEW->arbchar_single;
+   CHARTYPE arbchr_multiple=CURRENT_VIEW->arbchar_multiple;
+
+   TRACE_FUNCTION("commset1.c:Arbchar");
+   /*
+    * Validate the parameters that have been supplied.
+    */
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   strip[2]=STRIP_BOTH;
+   strip[3]=STRIP_BOTH;
+   num_params = param_split(params,word,ARB_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   switch(num_params)
    {
-/*---------------------------------------------------------------------*/
-/* No parameters, error.                                               */
-/*---------------------------------------------------------------------*/
-    case 0: 
-         display_error(3,(CHARTYPE *)"",FALSE); 
+      case 0:
+         /*
+          * No parameters, error.
+          */
+         display_error(3,(CHARTYPE *)"",FALSE);
          break;
-/*---------------------------------------------------------------------*/
-/* 1 or 2 parameters, validate them...                                 */
-/*---------------------------------------------------------------------*/
-    case 1: 
-         rc = execute_set_on_off(word[0],&arbsts);
+      case 1:
+         /*
+          * 1 or 2 parameters, validate them...
+          */
+         if ( equal( word[0], EQUIVCHARstr, 1 ) )
+            ;
+         else
+            rc = execute_set_on_off(word[0],&arbsts, TRUE );
          break;
-    case 2: 
-    case 3:
-         rc = execute_set_on_off(word[0],&arbsts);
-         if (rc != RC_OK)
-            break;
+      case 2:
+      case 3:
+         if ( equal( word[0], EQUIVCHARstr, 1 ) )
+            ;
+         else
+         {
+            rc = execute_set_on_off(word[0],&arbsts, TRUE );
+            if (rc != RC_OK)
+              break;
+         }
          rc = RC_INVALID_OPERAND;
-/*---------------------------------------------------------------------*/
-/* For 2 parameters, check that a single character has been supplied...*/
-/*---------------------------------------------------------------------*/
-         if (strlen((DEFCHAR *)word[1]) != 1)
-           {
-            display_error(1,word[1],FALSE);
-            break;
-           }
-         arbchr_multiple = word[1][0];
+         /*
+          * For 2 parameters, check that a single character has been supplied...
+          */
+         if ( equal( word[1], EQUIVCHARstr, 1 ) )
+            ;
+         else
+         {
+            if (strlen((DEFCHAR *)word[1]) != 1)
+            {
+               display_error(1,word[1],FALSE);
+               break;
+            }
+            arbchr_multiple = word[1][0];
+         }
          rc = RC_OK;
-/*---------------------------------------------------------------------*/
-/* For 2 parameters, don't check any more.                             */
-/*---------------------------------------------------------------------*/
+         /*
+          * For 2 parameters, don't check any more.
+          */
          if (num_params == 2)
             break;
          rc = RC_INVALID_OPERAND;
-/*---------------------------------------------------------------------*/
-/* For 3 parameters, check that a single character has been supplied...*/
-/*---------------------------------------------------------------------*/
-         if (strlen((DEFCHAR *)word[2]) != 1)
-           {
-            display_error(1,word[2],FALSE);
-            break;
-           }
-         arbchr_single = word[2][0];
+         /*
+          * For 3 parameters, check that a single character has been supplied...
+          */
+         if ( equal( word[2], EQUIVCHARstr, 1 ) )
+            ;
+         else
+         {
+            if (strlen((DEFCHAR *)word[2]) != 1)
+            {
+               display_error(1,word[2],FALSE);
+               break;
+            }
+            arbchr_single = word[2][0];
+         }
          rc = RC_OK;
          break;
-/*---------------------------------------------------------------------*/
-/* Too many parameters...                                              */
-/*---------------------------------------------------------------------*/
-    default:
-         display_error(2,(CHARTYPE *)"",FALSE); 
+      default:
+         /*
+          * Too many parameters...
+          */
+         display_error(2,(CHARTYPE *)"",FALSE);
          break;
    }
-/*---------------------------------------------------------------------*/
-/* If valid parameters, change the settings...                         */
-/*---------------------------------------------------------------------*/
- if (rc == RC_OK)
+   /*
+    * If valid parameters, change the settings...
+    */
+   if (rc == RC_OK)
    {
-    CURRENT_VIEW->arbchar_single = arbchr_single;
-    CURRENT_VIEW->arbchar_multiple = arbchr_multiple;
-    CURRENT_VIEW->arbchar_status = arbsts;
+      CURRENT_VIEW->arbchar_single = arbchr_single;
+      CURRENT_VIEW->arbchar_multiple = arbchr_multiple;
+      CURRENT_VIEW->arbchar_status = arbsts;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -303,7 +502,7 @@ DEFAULT
 SEE ALSO
      <SET COLORING>, <SET ECOLOUR>, <SET PARSER>
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 /*man-start*********************************************************************
@@ -311,7 +510,7 @@ COMMAND
      set autocolour - specifies which parser to use for syntax highlighting
 
 SYNTAX
-     [SET] AUTOCOLOR mask parser [MAGIC]
+     [SET] AUTOCOLOUR mask parser [MAGIC]
 
 DESCRIPTION
      The SET AUTOCOLOUR command is a synonym for the <SET AUTOCOLOR> command.
@@ -326,7 +525,7 @@ DEFAULT
 SEE ALSO
      <SET AUTOCOLOR>
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 #ifdef HAVE_PROTO
@@ -348,23 +547,19 @@ CHARTYPE *params;
    VIEW_DETAILS *curr_view=vd_first;
    bool redisplay_current=FALSE,redisplay_other=FALSE;
    int i,change=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
-   trace_function("commset1.c:Autocolour");
-#endif
-/*---------------------------------------------------------------------*/
-/* Validate the parameters that have been supplied.                    */
-/*---------------------------------------------------------------------*/
+
+   TRACE_FUNCTION("commset1.c:Autocolour");
+   /*
+    * Validate the parameters that have been supplied.
+    */
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
    num_params = param_split(params,word,AUCO_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
    if (num_params < 2)
    {
-      display_error(3,(CHARTYPE *)"",FALSE); 
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    filemask = word[0];
@@ -378,9 +573,7 @@ CHARTYPE *params;
       else
       {
          display_error(1,word[2],FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
    }
@@ -393,9 +586,7 @@ CHARTYPE *params;
       if (parser == NULL)
       {
          display_error(199,word[1],FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
    }
@@ -419,6 +610,7 @@ CHARTYPE *params;
          if (curr->filemask == NULL)
          {
             display_error(30,(CHARTYPE *)"",FALSE);
+            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
          strcpy((DEFCHAR *)curr->filemask,(DEFCHAR *)filemask);
@@ -429,6 +621,7 @@ CHARTYPE *params;
          if (curr->magic_number == NULL)
          {
             display_error(30,(CHARTYPE *)"",FALSE);
+            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
          strcpy((DEFCHAR *)curr->magic_number,(DEFCHAR *)magic_number);
@@ -438,7 +631,7 @@ CHARTYPE *params;
    }
    /*
     * Check all files in the ring and apply the new mapping. If the current
-    * file or the file in the other screen now match the new mapping, 
+    * file or the file in the other screen now match the new mapping,
     * redisplay them.
     */
    for (i=0;i<number_of_files;)
@@ -450,7 +643,7 @@ CHARTYPE *params;
          if (curr_view->file_for_view == SCREEN_FILE(current_screen))
             redisplay_current = TRUE;
          if (display_screens > 1
-         &&  curr_view->file_for_view == SCREEN_FILE(other_screen))
+         &&  curr_view->file_for_view == SCREEN_FILE( (CHARTYPE)(other_screen) ))
             redisplay_other = TRUE;
       }
       curr_view = curr_view->next;
@@ -473,7 +666,7 @@ CHARTYPE *params;
    {
       if (change > 0)
       {
-         CHARTYPE tmp[20];
+         CHARTYPE tmp[30];
          /*
           * As this is a new mapping, then register another implied extract
           * function for the number of mappings we now have.
@@ -486,7 +679,7 @@ CHARTYPE *params;
       }
       if (change < 0)
       {
-         CHARTYPE tmp[20];
+         CHARTYPE tmp[30];
          /*
           * As this is a removal of a mapping, then deregister the implied extract
           * function for the number of mappings we had before.
@@ -499,15 +692,13 @@ CHARTYPE *params;
       }
    }
 
- if (redisplay_other)
-    display_screen(other_screen);
- if (redisplay_current)
-    display_screen(current_screen);
+   if (redisplay_other)
+      display_screen( (CHARTYPE)(other_screen) );
+   if (redisplay_current)
+      display_screen(current_screen);
 
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -523,7 +714,7 @@ DESCRIPTION
      10 for 'n' would result in the file being automatically saved after
      each 10 alterations have been made to the file.
 
-     It is not possible to set AUTOSAVE for 'psuedo' files such as the
+     It is not possible to set AUTOSAVE for 'pseudo' files such as the
      directory listing 'file', Rexx output 'file' and the key definitions
      'file'
 
@@ -545,51 +736,41 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define AUS_PARAMS  1
- CHARTYPE strip[AUS_PARAMS];
- CHARTYPE *word[AUS_PARAMS+1];
- unsigned short num_params=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Autosave");
-#endif
- strip[0]=STRIP_BOTH;
- num_params = param_split(params,word,AUS_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params == 0)
+   CHARTYPE strip[AUS_PARAMS];
+   CHARTYPE *word[AUS_PARAMS+1];
+   unsigned short num_params=0;
+
+   TRACE_FUNCTION("commset1.c:Autosave");
+   strip[0]=STRIP_BOTH;
+   num_params = param_split(params,word,AUS_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params == 0)
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- if (num_params != 1)
+   if (num_params != 1)
    {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- if (equal((CHARTYPE *)"off",word[0],3))
+   if (equal((CHARTYPE *)"off",word[0],3))
    {
-    CURRENT_FILE->autosave = 0;
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      CURRENT_FILE->autosave = 0;
+      TRACE_RETURN();
+      return(RC_OK);
    }
- if (!valid_positive_integer(word[0]))
+   if (!valid_positive_integer(word[0]))
    {
-    display_error(4,(CHARTYPE *)word[0],FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(4,(CHARTYPE *)word[0],FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- CURRENT_FILE->autosave = (CHARTYPE)atoi((DEFCHAR *)word[0]);
- return(RC_OK);
+   CURRENT_FILE->autosave = (CHARTYPE)atoi((DEFCHAR *)word[0]);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -608,13 +789,13 @@ DESCRIPTION
      How many columns are scrolled is determined by the setting of AUTOSCROLL.
 
      If AUTOSCROLL is set to 'HALF', then half the number of columns in the
-     <filearea> window are scrolled.  Any other value will result in that 
+     <filearea> window are scrolled.  Any other value will result in that
      many columns scrolled, or the full width of the <filearea> window if
      the set number of columns is larger.
 
-     Autoscrolling does not occur if the key pressed is assigned to 
+     Autoscrolling does not occur if the key pressed is assigned to
      <CURSOR> SCREEN LEFT or RIGHT, which is the case if <SET COMPAT> XEDIT
-     key defintions are active.
+     key definitions are active.
 
 COMPATIBILITY
      XEDIT: N/A
@@ -634,66 +815,54 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define AUL_PARAMS  1
- CHARTYPE strip[AUL_PARAMS];
- CHARTYPE *word[AUL_PARAMS+1];
- unsigned short num_params=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Autoscroll");
-#endif
- strip[0]=STRIP_BOTH;
- num_params = param_split(params,word,AUL_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params == 0)
- {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
- }
- if (num_params != 1)
- {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
- }
- if (equal((CHARTYPE *)"off",word[0],3))
- {
-    CURRENT_VIEW->autoscroll = 0;
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
- }
- if (equal((CHARTYPE *)"half",word[0],1))
- {
-    CURRENT_VIEW->autoscroll = (-1);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
- }
- if (!valid_positive_integer(word[0]))
- {
-    display_error(4,(CHARTYPE *)word[0],FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
- }
- CURRENT_VIEW->autoscroll = (CHARTYPE)atol((DEFCHAR *)word[0]);
- return(RC_OK);
+   CHARTYPE strip[AUL_PARAMS];
+   CHARTYPE *word[AUL_PARAMS+1];
+   unsigned short num_params=0;
+
+   TRACE_FUNCTION("commset1.c:Autoscroll");
+   strip[0]=STRIP_BOTH;
+   num_params = param_split(params,word,AUL_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params == 0)
+   {
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if (num_params != 1)
+   {
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if (equal((CHARTYPE *)"off",word[0],3))
+   {
+      CURRENT_VIEW->autoscroll = 0;
+      TRACE_RETURN();
+      return(RC_OK);
+   }
+   if (equal((CHARTYPE *)"half",word[0],1))
+   {
+      CURRENT_VIEW->autoscroll = (-1);
+      TRACE_RETURN();
+      return(RC_OK);
+   }
+   if (!valid_positive_integer(word[0]))
+   {
+      display_error(4,(CHARTYPE *)word[0],FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   CURRENT_VIEW->autoscroll = (CHARTYPE)atol((DEFCHAR *)word[0]);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
      set backup - indicate if a backup copy of the file is to be kept
 
 SYNTAX
-     [SET] BACKup OFF|TEMP|KEEP|ON|INPLACE
+     [SET] BACKup OFF|TEMP|KEEP|ON|INPLACE [suffix]
 
 DESCRIPTION
      The SET BACKUP command allows the user to determine if a backup copy
@@ -701,15 +870,15 @@ DESCRIPTION
      saved or filed.
 
      'KEEP' and 'ON' options are the same. 'ON' is
-     kept for compatability with previous versions of THE.
+     kept for compatibility with previous versions of THE.
 
      With 'OFF', the file being written to disk will replace an
      existing file. There is a chance that you will end up with neither
      the old version of the file or the new one if problems occur
      while the file is being written.
 
-     With 'TEMP' or 'KEEP' options, the file being written is first 
-     renamed to the filename with a .bak extension. The file in memory 
+     With 'TEMP' or 'KEEP' options, the file being written is first
+     renamed to the filename with a .bak extension. The file in memory
      is then written to disk. If 'TEMP' is in effect, the backup
      file is then deleted.
 
@@ -718,9 +887,15 @@ DESCRIPTION
      in place of the original.  This option ensures that all operating
      system file attributes are retained.
 
+     The optional 'suffix' specifies the string to append to the file name
+     of the backup copy including a period if required. The maximum length
+     of 'suffix' is 100 characters.
+     By default this is ".bak".
+
 COMPATIBILITY
      XEDIT: N/A
      KEDIT: Compatible.
+            'suffix' is a THE extension
 
 DEFAULT
      KEEP
@@ -739,36 +914,63 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
- short backup_type=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Backup");
-#endif
- if (equal((CHARTYPE *)"off",params,3))
-    backup_type = BACKUP_OFF;
- if (equal((CHARTYPE *)"on",params,2))
-    backup_type = BACKUP_ON;
- if (equal((CHARTYPE *)"keep",params,4))
-    backup_type = BACKUP_KEEP;
- if (equal((CHARTYPE *)"temp",params,4))
-    backup_type = BACKUP_TEMP;
- if (equal((CHARTYPE *)"inplace",params,2))
-    backup_type = BACKUP_INPLACE;
- if (backup_type == 0)
+   short rc=RC_OK;
+#define BAC_PARAMS  2
+   CHARTYPE *word[BAC_PARAMS+1];
+   CHARTYPE strip[BAC_PARAMS];
+   short num_params=0;
+
+   TRACE_FUNCTION( "commset1.c:Backup" );
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split( params, word, BAC_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE );
+   if ( num_params == 0 )
    {
-    display_error(1,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- CURRENT_FILE->backup = backup_type;
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   if ( num_params > 2 )
+   {
+      display_error( 2, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Validate the first parameter
+    */
+   if ( equal( (CHARTYPE *)"off", word[0], 3 ) )
+      CURRENT_FILE->backup = BACKUP_OFF;
+   else if ( equal( (CHARTYPE *)"on", word[0], 2 ) )
+      CURRENT_FILE->backup = BACKUP_ON;
+   else if ( equal( (CHARTYPE *)"keep", word[0], 4 ) )
+      CURRENT_FILE->backup = BACKUP_KEEP;
+   else if ( equal( (CHARTYPE *)"temp", word[0], 4 ) )
+      CURRENT_FILE->backup = BACKUP_TEMP;
+   else if ( equal( (CHARTYPE *)"inplace", word[0], 2 ) )
+      CURRENT_FILE->backup = BACKUP_INPLACE;
+   else
+   {
+      display_error( 1, word[0], FALSE );
+      rc = RC_INVALID_OPERAND;
+   }
+   if ( num_params == 2 )
+   {
+      /*
+       * Save the second arg as the backup suffix
+       */
+      if ( strlen( (DEFCHAR *)word[1] ) > 100 )
+      {
+         display_error( 37, word[1], FALSE );
+         rc = RC_INVALID_OPERAND;
+      }
+      else
+      {
+         strcpy( (DEFCHAR *)BACKUP_SUFFIXx, (DEFCHAR *)word[1] );
+      }
+   }
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -778,7 +980,7 @@ SYNTAX
      [SET] BEEP ON|OFF
 
 DESCRIPTION
-     The SET BEEP command allows the user to determine if an audible 
+     The SET BEEP command allows the user to determine if an audible
      alarm is sounded when an error is displayed.
 
 COMPATIBILITY
@@ -799,33 +1001,132 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:BeepSound");
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:BeepSound");
+   rc = execute_set_on_off(params,&BEEPx, TRUE );
+   TRACE_RETURN();
+   return(rc);
+}
+/*man-start*********************************************************************
+COMMAND
+     set boundmark - set bounds marker display
+
+SYNTAX
+     [SET] BOUNDMARK OFF|Zone|TRunc|MARgins|TABs|Verify
+
+DESCRIPTION
+     The BOUNDMARK command indicates if boundary markers are to be
+     displayed and if so, where. Boundary markers are vertical lines
+     drawn before or after certain columns within the <filearea>.
+     This command only has a visible effect on GUI platforms, currently
+     only the X11 port.
+
+     'OFF' turns off the display of boundary markers.
+
+     'ZONE' turns on the display of boundary markers, before the zone
+     start column and after the zone end column.
+
+     'TRUNC' turns on the display of boundary markers, after the
+     truncation column. Not supported.
+
+     'MARGINS' turns on the display of boundary markers, before the left
+     margin and after the right margin.
+
+     'TABS' turns on the display of boundary markers, before each tab
+     column.
+
+     'VERIFY' turns on the display of boundary markers, before each verify
+     column. Not supported.
+
+COMPATIBILITY
+     XEDIT: N/A
+     KEDIT: Compatible, but no support for TRUNC or VERIFY option.
+
+DEFAULT
+     Zone
+
+STATUS
+     Incomplete
+**man-end**********************************************************************/
+#ifdef HAVE_PROTO
+short Boundmark(CHARTYPE *params)
+#else
+short Boundmark(params)
+CHARTYPE *params;
 #endif
- rc = execute_set_on_off(params,&BEEPx);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+/***********************************************************************/
+{
+#define BND_PARAMS  2
+   CHARTYPE save_boundmark=CURRENT_VIEW->boundmark;
+   CHARTYPE *word[BND_PARAMS+1];
+   CHARTYPE strip[BND_PARAMS];
+   short num_params=0;
+
+   TRACE_FUNCTION("commset1.c:Boundmark");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split(params,word,BND_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if ( num_params == 0 )
+   {
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if ( num_params > 1 )
+   {
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Validate the first and only parameter
+    */
+   if (equal((CHARTYPE *)"zone",word[0],1))
+      CURRENT_VIEW->boundmark = BOUNDMARK_ZONE;
+   else if (equal((CHARTYPE *)"trunc",word[0],2))
+      CURRENT_VIEW->boundmark = BOUNDMARK_TRUNC;
+   else if (equal((CHARTYPE *)"margins",word[0],2))
+      CURRENT_VIEW->boundmark = BOUNDMARK_MARGINS;
+   else if (equal((CHARTYPE *)"tabs",word[0],3))
+      CURRENT_VIEW->boundmark = BOUNDMARK_TABS;
+   else if (equal((CHARTYPE *)"verify",word[0],1))
+      CURRENT_VIEW->boundmark = BOUNDMARK_VERIFY;
+   else if (equal((CHARTYPE *)"off",word[0],3))
+      CURRENT_VIEW->boundmark = BOUNDMARK_OFF;
+   else
+   {
+      display_error(1,(CHARTYPE *)word[0],FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * If the value has changed, display the screen
+    */
+   if ( CURRENT_VIEW->boundmark != save_boundmark )
+   {
+      build_screen(current_screen);
+      display_screen(current_screen);
+   }
+
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
      set case - set case sensitivity parameters
 
 SYNTAX
-     [SET] CASE Mixed|Lower|Upper [Respect|Ignore] [Respect|Ignore] [Respect|Ignore]
+     [SET] CASE Mixed|Lower|Upper [Respect|Ignore] [Respect|Ignore] [Respect|Ignore] [Mixed|Lower|Upper] [Mixed|Lower|Upper]
 
 DESCRIPTION
      The CASE command sets the editor's handling of the case of text.
 
      The first option (which is mandatory) controls how text is entered
-     by the user. When 'LOWER' or 'UPPER' are in effect, the shift or caps
-     lock keys have no effect on the text being entered. When 'MIXED' is
-     in effect, text is entered in the case set by the use of the shift
-     and caps lock keys.
+     by the user in the <filearea>. When 'LOWER' or 'UPPER' are in effect,
+     the shift or caps lock keys have no effect on the text being entered.
+     When 'MIXED' is in effect, text is entered in the case set by the use
+     of the shift and caps lock keys.
 
      The second option determines how the editor determines if a string
      target matches text in the file when the target is used in a <LOCATE>
@@ -845,13 +1146,24 @@ DESCRIPTION
      Therefore a target of 'The' only matches text containing 'The', not
      'THE' or 'ThE' etc.
 
-     The fourth option determines how the editor determines the sort 
+     The fourth option determines how the editor determines the sort
      order of upper and lower case with the <SORT> command.
      With 'IGNORE' in effect, upper and lower case letters are treated as
      equivalent.
      With 'RESPECT' in effect, upper and lower case letters are treated as
      different values and uppercase characters will sort before lowercase
      characters.
+
+     The fifth option controls how text is entered by the user on the
+     <command line>. The allowed values and behaviour are the same as for
+     the first option.
+
+     The sixth option controls how text is entered by the user in the
+     <prefix area>. The allowed values and behaviour are the same as for
+     the first option.
+
+     All options can be specified as the current EQUIVCHAR to retain the
+     existing value.
 
 COMPATIBILITY
      XEDIT: Adds support for case significance in CHANGE commands.
@@ -860,6 +1172,9 @@ COMPATIBILITY
 
 DEFAULT
      Mixed Ignore Respect Respect
+
+SEE ALSO
+     <SET EQUIVCHAR>
 
 STATUS
      Complete
@@ -872,81 +1187,93 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-#define CAS_PARAMS  4
- CHARTYPE parm[CAS_PARAMS];
- CHARTYPE *word[CAS_PARAMS+1];
- CHARTYPE strip[CAS_PARAMS];
- register short i=0;
- short num_params=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Case");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- strip[2]=STRIP_BOTH;
- strip[3]=STRIP_BOTH;
- num_params = param_split(params,word,CAS_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
-/*---------------------------------------------------------------------*/
-/* Validate the first parameter: must be Mixed, Upper or Lower         */
-/*---------------------------------------------------------------------*/
- parm[0] = (CHARTYPE)UNDEFINED_OPERAND;
- if (equal((CHARTYPE *)"mixed",word[0],1))
-    parm[0] = CASE_MIXED;
- if (equal((CHARTYPE *)"upper",word[0],1))
-    parm[0] = CASE_UPPER;
- if (equal((CHARTYPE *)"lower",word[0],1))
-    parm[0] = CASE_LOWER;
- if (parm[0] == (CHARTYPE)UNDEFINED_OPERAND)
-    {
-     display_error(1,(CHARTYPE *)word[0],FALSE);
-#ifdef THE_TRACE
-     trace_return();
-#endif
-     return(RC_INVALID_OPERAND);
-    }
-/*---------------------------------------------------------------------*/
-/* Save the current values of each remaining case setting.             */
-/*---------------------------------------------------------------------*/
- parm[1] = CURRENT_VIEW->case_locate;
- parm[2] = CURRENT_VIEW->case_change;
- parm[3] = CURRENT_VIEW->case_sort;
-/*---------------------------------------------------------------------*/
-/* Validate the remainder of the arguments.                            */
-/* Each must be Respect or Ignore, if present.                         */
-/*---------------------------------------------------------------------*/
- for (i=1;i<num_params;i++)
+#define CAS_PARAMS  6
+   CHARTYPE parm[CAS_PARAMS];
+   CHARTYPE *word[CAS_PARAMS+1];
+   CHARTYPE strip[CAS_PARAMS];
+   /*
+    * Type 0 is Mixed|Upper|Lower
+    * Type 1 is Respect|Ignore
+    */
+   char arg_types[CAS_PARAMS+1] = "011100";
+   register short i=0;
+   short num_params=0;
+
+   TRACE_FUNCTION("commset1.c:Case");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   strip[2]=STRIP_BOTH;
+   strip[3]=STRIP_BOTH;
+   strip[4]=STRIP_BOTH;
+   strip[5]=STRIP_BOTH;
+   num_params = param_split(params,word,CAS_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if ( num_params < 1 )
    {
-    if (strcmp((DEFCHAR *)word[1],"") != 0)
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return( RC_INVALID_OPERAND );
+   }
+   /*
+    * Save the current values of each optional case setting.
+    */
+   parm[1] = CURRENT_VIEW->case_locate;
+   parm[2] = CURRENT_VIEW->case_change;
+   parm[3] = CURRENT_VIEW->case_sort;
+   parm[4] = CURRENT_VIEW->case_enter_cmdline;
+   parm[5] = CURRENT_VIEW->case_enter_prefix;
+   /*
+    * Validate all arguments.
+    */
+   for ( i = 0; i < num_params; i++ )
+   {
+      if ( strcmp( (DEFCHAR *)word[i], "" ) != 0 )
       {
-       if (equal((CHARTYPE *)"respect",word[i],1))
-          parm[i] = CASE_RESPECT;
-       else
-          if (equal((CHARTYPE *)"ignore",word[i],1))
-             parm[i] = CASE_IGNORE;
-          else
+         if ( arg_types[i] == '0' )
+         {
+            if ( equal( (CHARTYPE *)"mixed", word[i], 1 ) )
+               parm[i] = CASE_MIXED;
+            else if ( equal( (CHARTYPE *)"upper", word[i], 1 ) )
+               parm[i] = CASE_UPPER;
+            else if ( equal( (CHARTYPE *)"lower", word[i], 1 ) )
+               parm[i] = CASE_LOWER;
+            else if ( equal( (CHARTYPE *)EQUIVCHARstr, word[i], 1 ) )
+               parm[i] = CURRENT_VIEW->case_enter;
+            else
             {
-             display_error(1,(CHARTYPE *)word[i],FALSE);
-#ifdef THE_TRACE
-             trace_return();
-#endif
-             return(RC_INVALID_OPERAND);
+               display_error( 1, (CHARTYPE *)word[i], FALSE );
+               TRACE_RETURN();
+               return( RC_INVALID_OPERAND );
             }
+         }
+         else
+         {
+            if ( equal( (CHARTYPE *)"respect", word[i], 1 ) )
+               parm[i] = CASE_RESPECT;
+            else  if (equal((CHARTYPE *)"ignore",word[i],1))
+               parm[i] = CASE_IGNORE;
+            else  if (equal((CHARTYPE *)EQUIVCHARstr,word[i],1))
+               parm[i] = parm[i];
+            else
+            {
+               display_error(1,(CHARTYPE *)word[i],FALSE);
+               TRACE_RETURN();
+               return(RC_INVALID_OPERAND);
+            }
+         }
       }
    }
-/*---------------------------------------------------------------------*/
-/* Set the new values of case settings for the view.                   */
-/*---------------------------------------------------------------------*/
- CURRENT_VIEW->case_enter  = parm[0];
- CURRENT_VIEW->case_locate = parm[1];
- CURRENT_VIEW->case_change = parm[2];
- CURRENT_VIEW->case_sort   = parm[3];
+   /*
+    * Set the new values of case settings for the view.
+    */
+   CURRENT_VIEW->case_enter         = parm[0];
+   CURRENT_VIEW->case_locate        = parm[1];
+   CURRENT_VIEW->case_change        = parm[2];
+   CURRENT_VIEW->case_sort          = parm[3];
+   CURRENT_VIEW->case_enter_cmdline = parm[4];
+   CURRENT_VIEW->case_enter_prefix  = parm[5];
 
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -983,34 +1310,27 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
- int key = 0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Clearerrorkey");
-#endif
- if (strcmp((DEFCHAR*)params,"*") == 0)
+   short rc=RC_OK;
+   int key = 0;
+
+   TRACE_FUNCTION("commset1.c:Clearerrorkey");
+   if (strcmp((DEFCHAR*)params,"*") == 0)
    {
-    CLEARERRORKEYx = -1;
+      CLEARERRORKEYx = -1;
    }
- else
+   else
    {
-    key = find_key_value(params);
-    if (key == -1)
+      key = find_key_name(params);
+      if (key == -1)
       {
-       display_error(13,params,FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_INVALID_OPERAND);
+         display_error(13,params,FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
       }
-    CLEARERRORKEYx = key;
+      CLEARERRORKEYx = key;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -1041,17 +1361,12 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Clearscreen");
-#endif
- rc = execute_set_on_off(params,&CLEARSCREENx);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Clearscreen");
+   rc = execute_set_on_off(params,&CLEARSCREENx, TRUE );
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -1082,33 +1397,28 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Clock");
-#endif
- rc = execute_set_on_off(params,&CLOCKx);
- if (rc == RC_OK
- &&  curses_started)
-    clear_statarea();
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Clock");
+   rc = execute_set_on_off(params,&CLOCKx, TRUE );
+   if (rc == RC_OK
+   &&  curses_started)
+      clear_statarea();
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
      set cmdarrows - sets the behaviour of the up and down arrow keys
 
 SYNTAX
-     [SET] CMDArrows Retrieve|Tab 
+     [SET] CMDArrows Retrieve|Tab
 
 DESCRIPTION
      The SET CMDARROWS command determines the action that occurs when the
      up and down arrows keys are hit while on the <command line>.
 
-     'RETRIEVE' will set the up and down arrows to retrieve the last or 
+     'RETRIEVE' will set the up and down arrows to retrieve the last or
      next command entered on the <command line>.
 
      'TAB' will set the up and down arrows to move to the last
@@ -1135,29 +1445,24 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Cmdarrows");
-#endif
-/*---------------------------------------------------------------------*/
-/* Determine values for first parameter; command line behaviour        */
-/*---------------------------------------------------------------------*/
- if (equal((CHARTYPE *)"tab",params,1))
-    CMDARROWSTABCMDx = TRUE;
- else
-   if (equal((CHARTYPE *)"retrieve",params,1))
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Cmdarrows");
+   /*
+    * Determine values for first parameter
+    */
+   params = MyStrip( params, STRIP_BOTH, ' ' );
+   if ( equal( (CHARTYPE *)"tab", params, 1 ) )
+      CMDARROWSTABCMDx = TRUE;
+   else if (equal( (CHARTYPE *)"retrieve", params, 1 ) )
       CMDARROWSTABCMDx = FALSE;
    else
-     {
-      display_error(1,params,FALSE);
+   {
+      display_error( 1, params, FALSE );
       rc = RC_INVALID_OPERAND;
-     }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   }
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -1167,13 +1472,13 @@ SYNTAX
      [SET] CMDline ON|OFF|Top|Bottom
 
 DESCRIPTION
-     The SET CMDLINE command sets the position of the <command line>, 
+     The SET CMDLINE command sets the position of the <command line>,
      either at the top of the screen, the bottom of the screen or off.
 
 COMPATIBILITY
      XEDIT: Compatible.
             CMDLINE ON is equivalent to CMDLINE Bottom
-     KEDIT: Compatible. 
+     KEDIT: Compatible.
 
 DEFAULT
      BOTTOM
@@ -1189,118 +1494,121 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- CHARTYPE cmd_place='?';
- short off=0;
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Cmdline");
-#endif
- if (equal((CHARTYPE *)"top",params,1))
+   CHARTYPE cmd_place = '?';
+   short rc = RC_OK;
+
+   TRACE_FUNCTION( "commset1.c:Cmdline" );
+
+   params = MyStrip( params, STRIP_BOTH, ' ' );
+   if ( equal( (CHARTYPE *)"top", params, 1 ) )
    {
-    cmd_place='T';
-    off = 1;
+      cmd_place = 'T';
    }
- if (equal((CHARTYPE *)"bottom",params,1)
- ||  equal((CHARTYPE *)"on",params,2))
+   else if ( equal( (CHARTYPE *)"bottom",params, 1 )
+        ||   equal( (CHARTYPE *)"on", params, 2 ) )
    {
-    cmd_place='B';
-    off = (-1);
+      cmd_place = 'B';
    }
- if (equal((CHARTYPE *)"off",params,3))
+   else if ( equal( (CHARTYPE *)"off", params, 3 ) )
    {
-    cmd_place='O';
-    off = 0;
+      cmd_place = 'O';
    }
- if (cmd_place=='?')
+   else
    {
-    display_error(1,(CHARTYPE *)params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 1, (CHARTYPE *)params, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*---------------------------------------------------------------------*/
-/* If the setting supplied is the same as the current setting, just    */
-/* return without doing anything.                                      */
-/*---------------------------------------------------------------------*/
- if (cmd_place == CURRENT_VIEW->cmd_line)
+   /*
+    * If the setting supplied is the same as the current setting, just
+    * return without doing anything.
+    */
+   if ( cmd_place == CURRENT_VIEW->cmd_line )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*---------------------------------------------------------------------*/
-/* Now we need to move the windows around.                             */
-/*---------------------------------------------------------------------*/
- CURRENT_VIEW->cmd_line = cmd_place;
-/*---------------------------------------------------------------------*/
-/* Rebuild the windows and display...                                  */
-/*---------------------------------------------------------------------*/
- set_screen_defaults();
- if (curses_started)
+   /*
+    * Now we need to move the windows around.
+    */
+   CURRENT_VIEW->cmd_line = cmd_place;
+   /*
+    * Rebuild the windows and display...
+    */
+   set_screen_defaults();
+   if ( curses_started )
    {
-    if (set_up_windows(current_screen) != RC_OK)
+      if ( set_up_windows( current_screen ) != RC_OK )
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(rc);
+         TRACE_RETURN();
+         return(rc);
       }
    }
- if (CURRENT_VIEW->cmd_line == 'O')
-    CURRENT_VIEW->current_window = WINDOW_FILEAREA;
- build_screen(current_screen);
- if (curses_started)
-    display_screen(current_screen);
+   if (CURRENT_VIEW->cmd_line == 'O')
+      CURRENT_VIEW->current_window = WINDOW_FILEAREA;
+   build_screen( current_screen );
+   if ( curses_started )
+      display_screen( current_screen );
 
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
-     set color - set colours for display
+     set color - set colors for display
 
 SYNTAX
-     [SET] COLOR  area [modifier[...]] [foreground] [on] [background]
+     [SET] COLOR  area [modifier[...]] [foreground] [ON] [background]
+     [SET] COLOR  area [modifier[...]] ON|OFF
+     [SET] COLOUR color red blue green
+     [SET] COLOUR BOLD FONT|BRIGHT
 
 DESCRIPTION
-     The SET COLOR command changes the colours or display attributes of
+     The SET COLOR command changes the colors or display attributes of
      various display areas in THE.
 
      Valid values for 'area':
 
-          ALERT      - alert boxes; see <ALERT>
-          Arrow      - command line prompt
-          Block      - marked <block>
-          CBlock     - <current line> if in marked <block>
-          CHIghlight - highlighted line if the same as <current line>
-          Cmdline    - <command line>
-          CTofeof    - as for TOfeof if the same as <current line>
-          CUrline    - the <current line>
-          DIALOG     - dialog boxes; see <DIALOG>
-          Divider    - dividing line between vertical split screens
-          Filearea   - area containing file lines
-          GAP        - the gap between the <prefix area> and <filearea>
-          HIghlight  - highlighted line
-          Idline     - line containing file specific info
-          Msgline    - error messages
-          Nondisp    - Non-display characters (<SET ETMODE> OFF)
-          Pending    - pending commands in <prefix area>
-          PRefix     - <prefix area>
-          Reserved   - default for <reserved line>
-          Scale      - line showing <scale line>
-          SHadow     - hidden line marker lines
-          SLK        - soft label keys
-          STatarea   - line showing status of editing session
-          Tabline    - line showing tab positions
-          TOfeof     - <Top-of-File line> and <Bottom-of-File line>
+          ALERT           - alert boxes; see <ALERT>
+          Arrow           - command line prompt
+          Block           - marked <block>
+          BOUNDmarker     - bound markers (GUI platforms only)
+          CBlock          - <current line> if in marked <block>
+          CHIghlight      - highlighted line if the same as <current line>
+          Cmdline         - <command line>
+          CTofeof         - as for TOfeof if the same as <current line>
+          CUrline         - the <current line>
+          CURSORline      - the line in <filearea> that the cursor is or was on
+          Divider         - dividing line between vertical split screens
+          Filearea        - area containing file lines
+          GAP             - the gap between the <prefix area> and <filearea>
+          CGAP            - the gap between the <prefix area> and <filearea> - current
+          HIghlight       - highlighted line
+          Idline          - line containing file specific info
+          Msgline         - error messages
+          Nondisp         - Non-display characters (<SET ETMODE> OFF)
+          Pending         - pending commands in <prefix area>
+          PRefix          - <prefix area>
+          CPRefix         - <prefix area> if the same as <current line>
+          Reserved        - default for <reserved line>
+          Scale           - line showing <scale line>
+          SHadow          - hidden line marker lines
+          SLK             - soft label keys
+          STatarea        - line showing status of editing session
+          Tabline         - line showing tab positions
+          TOfeof          - <Top-of-File line> and <Bottom-of-File line>
+          DIALOG          - background of a dialog box; see <DIALOG>
+          DIALOGBORDER    - border for a dialog box
+          DIALOGEDITFIELD - edit field of a dialog box
+          DIALOGBUTTON    - inactive button in a dialog box
+          DIALOGABUTTON   - active button in a dialog box
+          POPUP           - all non-highlighted lines in a popup; see <POPUP>
+          POPUPBORDER     - border for a popup
+          POPUPCURLINE    - the highlighted line in a popup
+          POPUPDIVIDER    - dividing line in a popup
+          *               - All areas (second format only)
 
-     Valid values for 'foreground' and 'background':
+     Valid values for 'foreground', 'background' and 'color':
 
           BLAck
           BLUe
@@ -1326,6 +1634,24 @@ DESCRIPTION
           REVerse
           Underline
           DARK
+          Italic - only available on X11 port with valid Italic font, on
+                   Windows with "GUI" PDcurses, and the SDL2 port.
+
+     The second format of this command allows the user to turn on or off
+     any of the valid modifiers.
+
+     The third format of this command allows the user to change the intensity
+     of specified colors on platforms that support changing the content of a
+     color (X11, SDL2, Windows GUI).  The specified color can be changed by supplying
+     the intensity of red, green and blue. These are numeric values between 0
+     and 1000 inclusive.  eg To change 'red' to 'blue': SET COLOR RED 0 0 1000.
+     All characters being displayed as 'red' will be displayed with the specified
+     intensities. Note that this behaviour is not consistent across platforms, and
+     should be considered experimental at this stage.
+
+     The fourth format of this command allows the BOLD modifier to be displayed as
+     an actual bold font, or as a brighter colour than the normal, non-bold colour.
+     This format is only supported on platforms that support different fonts. (SDL2)
 
      It is an error to attempt to set a colour on a mono display.
 
@@ -1338,9 +1664,9 @@ DEFAULT
      Depends on compatibility mode setting and monitor type.
 
 SEE ALSO
-     <SET COMPAT>, <SET COLOUR>, <SET ECOLOUR>
+     <SET COMPAT>, <SET COLOUR>, <SET ECOLOUR>, <DIALOG>, <POPUP>
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 /*man-start*********************************************************************
@@ -1349,6 +1675,9 @@ COMMAND
 
 SYNTAX
      [SET] COLOUR area [modifier[...]] [foreground] [on background]
+     [SET] COLOUR area [modifier[...]] ON|OFF
+     [SET] COLOUR colour red blue green
+     [SET] COLOUR BOLD FONT|BRIGHT
 
 DESCRIPTION
      The SET COLOUR command is a synonym for the <SET COLOR> command.
@@ -1364,7 +1693,7 @@ DEFAULT
 SEE ALSO
      <SET COLOR>
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 #ifdef HAVE_PROTO
@@ -1373,187 +1702,263 @@ short Colour(CHARTYPE *params)
 short Colour(params)
 CHARTYPE *params;
 #endif
-
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-#define COL_PARAMS 2
- CHARTYPE *word[COL_PARAMS+1];
- CHARTYPE strip[COL_PARAMS];
- CHARTYPE parm[COL_PARAMS];
- register short i=0;
- unsigned short num_params=0;
- short area=0;
- COLOUR_ATTR attr;
- CHARTYPE *dummy=NULL;
- bool any_colours=FALSE;
- chtype ch=0L,nondisp_attr=0L;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Colour");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- num_params = param_split(params,word,COL_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 2 )
-    {
-     display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-     trace_return();
-#endif
-     return(RC_INVALID_OPERAND);
-    }
-/*---------------------------------------------------------------------*/
-/* Check that the supplied area matches one of the values in the area  */
-/* array and that the length is at least as long as the minimum.       */
-/*---------------------------------------------------------------------*/
- parm[0] = FALSE;
- for (i=0;i<ATTR_MAX;i++)
-    {
-     if (equal(valid_areas[i].area,word[0],valid_areas[i].area_min_len))
-       {
-        parm[0] = TRUE;
-        area = i;
-        break;
-       }
-    }
- if (parm[0] == FALSE)
-    {
-     display_error(1,(CHARTYPE *)word[0],FALSE);
-#ifdef THE_TRACE
-     trace_return();
-#endif
-     return(RC_INVALID_OPERAND);
-    }
- memcpy(&attr,CURRENT_FILE->attr+area,sizeof(COLOUR_ATTR));
-/*---------------------------------------------------------------------*/
-/* Determine colours and modifiers.                                    */
-/*---------------------------------------------------------------------*/
- if (parse_colours(word[1],&attr,&dummy,FALSE,&any_colours) != RC_OK)
+#define COL_PARAMS_DEF 2
+#define COL_PARAMS_COLOUR 4
+#define COL_MODIFIER_NO_SET  0
+#define COL_MODIFIER_SET_ON  1
+#define COL_MODIFIER_SET_OFF 2
+   CHARTYPE *word[COL_PARAMS_COLOUR+1];
+   CHARTYPE strip[COL_PARAMS_COLOUR];
+   CHARTYPE parm[COL_PARAMS_COLOUR];
+   register short i=0;
+   unsigned short num_params=0;
+   short area=-1;
+   COLOUR_ATTR attr,tmp_attr;
+   CHARTYPE *dummy=NULL;
+   bool any_colours=FALSE;
+   short word1_len,modifier_set=COL_MODIFIER_NO_SET;
+   bool window_set[MAX_THE_WINDOWS];
+   int clr;
+   int cont[3];
+
+   TRACE_FUNCTION("commset1.c:Colour");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   strip[2]=STRIP_BOTH;
+   strip[3]=STRIP_BOTH;
+   num_params = param_split(params,word,COL_PARAMS_DEF,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params < 2 )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*---------------------------------------------------------------------*/
-/* Special handling required for NONDISP...                            */
-/*---------------------------------------------------------------------*/
- if (equal((CHARTYPE*)"nondisp",word[0],1))
+   /*
+    * Check which format of this command we are running.
+    * If the last word is ON or OFF then we are executing the
+    * second format.
+    * If the first word is a colour, it is format three.
+    */
+   word1_len = strlen( (DEFCHAR *)word[1] );
+   clr = is_valid_colour( word[0] );
+   if ( clr == (-1) )
    {
-    nondisp_attr = set_colour(&attr);
-    for (i=0;i<256;i++)
+#if defined(USE_SDLCURSES)
+      if ( equal( (CHARTYPE*)"BOLD", word[0], 4 ) )
       {
-       if (etmode_flag[i])
+         if ( equal( (CHARTYPE*)"FONT", word[1], 4 ) )
          {
-          ch = etmode_table[i] & A_CHARTEXT;
-          etmode_table[i] = ch | nondisp_attr;
+            PDC_set_bold( TRUE );
+            if ( !in_profile )
+            {
+               Redraw((CHARTYPE*)"");
+            }
+         }
+         else if ( equal( (CHARTYPE*)"BRIGHT", word[1], 6 ) )
+         {
+            PDC_set_bold( FALSE );
+            if ( !in_profile )
+            {
+               Redraw((CHARTYPE*)"");
+            }
+         }
+         else
+         {
+            display_error(1,(CHARTYPE *)word[1],FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+      }
+      else
+#endif
+      {
+         if ( my_stricmp( (DEFCHAR *)word[1]+word1_len-3, " ON" ) == 0 )
+            modifier_set = COL_MODIFIER_SET_ON;
+         else if ( my_stricmp( (DEFCHAR *)word[1]+word1_len-4, " OFF" ) == 0 )
+            modifier_set = COL_MODIFIER_SET_OFF;
+         if ( modifier_set )
+         {
+            /*
+             * Check that first parameter is an area or '*'
+             */
+            parm[0] = FALSE;
+            if ( strcmp( (DEFCHAR *)word[0], "*" ) == 0 )
+            {
+               area = -1;
+               parm[0] = TRUE;
+            }
+            else
+            {
+               for ( i = 0; i < ATTR_MAX; i++ )
+               {
+                  if ( equal( valid_areas[i].area,word[0], valid_areas[i].area_min_len ) )
+                  {
+                     parm[0] = TRUE;
+                     area = i;
+                     break;
+                  }
+               }
+            }
+            if (parm[0] == FALSE)
+            {
+               display_error(1,(CHARTYPE *)word[0],FALSE);
+               TRACE_RETURN();
+               return(RC_INVALID_OPERAND);
+            }
+            /*
+             * Check that each subsequent parameter (except the last) is
+             * a modifier.
+             */
+            if ( parse_modifiers( word[1], &tmp_attr ) != RC_OK )
+            {
+               TRACE_RETURN();
+               return(RC_INVALID_OPERAND);
+            }
+            /*
+             * For each area, turn off the modifiers and redraw the affected part of
+             * the screen
+             */
+            if ( area == (-1) )
+            {
+               for ( i = 0; i < MAX_THE_WINDOWS; i++ )
+               {
+                  window_set[i] = FALSE;
+               }
+               for ( i = 0; i < ATTR_MAX; i++ )
+               {
+                  attr = CURRENT_FILE->attr[i];
+                  if ( modifier_set == COL_MODIFIER_SET_ON )
+                  {
+                     if ( colour_support )
+                        attr.mod |= tmp_attr.mod;
+                     else
+                        attr.mono |= tmp_attr.mono;
+                  }
+                  else
+                  {
+                     if ( colour_support )
+                        attr.mod &= ~tmp_attr.mod;
+                     else
+                        attr.mono &= ~tmp_attr.mono;
+                  }
+                  CURRENT_FILE->attr[i] = attr;
+                  if ( i == ATTR_BOUNDMARK
+                  ||   i == ATTR_NONDISP
+                  ||   window_set[valid_areas[i].area_window] == FALSE )
+                  {
+                     set_active_colour( i );
+                     window_set[valid_areas[i].area_window] = TRUE;
+                  }
+               }
+            }
+            else
+            {
+               attr = CURRENT_FILE->attr[area];
+               if ( modifier_set == COL_MODIFIER_SET_ON )
+               {
+                  if ( colour_support )
+                     attr.mod |= tmp_attr.mod;
+                  else
+                     attr.mono |= tmp_attr.mono;
+               }
+               else
+               {
+                  if ( colour_support )
+                     attr.mod &= ~tmp_attr.mod;
+                  else
+                     attr.mono &= ~tmp_attr.mono;
+               }
+               CURRENT_FILE->attr[area] =attr;
+               set_active_colour( area );
+            }
+         }
+         else
+         {
+            /*
+             * Check that the supplied area matches one of the values in the area
+             * array and that the length is at least as long as the minimum.
+             */
+            parm[0] = FALSE;
+            for (i=0;i<ATTR_MAX;i++)
+            {
+               if (equal(valid_areas[i].area,word[0],valid_areas[i].area_min_len))
+               {
+                  parm[0] = TRUE;
+                  area = i;
+                  break;
+               }
+            }
+            if (parm[0] == FALSE)
+            {
+               display_error(1,(CHARTYPE *)word[0],FALSE);
+               TRACE_RETURN();
+               return(RC_INVALID_OPERAND);
+            }
+            attr = CURRENT_FILE->attr[area];
+            /*
+             * Determine colours and modifiers.
+             */
+            if (parse_colours(word[1],&attr,&dummy,FALSE,&any_colours) != RC_OK)
+            {
+               TRACE_RETURN();
+               return(RC_INVALID_OPERAND);
+            }
+            /*
+             * Now we have the new colours, save them with the current file...
+             */
+            CURRENT_FILE->attr[area] = attr;
+            set_active_colour( area );
          }
       }
    }
-/*---------------------------------------------------------------------*/
-/* Now we have the new colours, save them with the current file...     */
-/*---------------------------------------------------------------------*/
- memcpy(CURRENT_FILE->attr+area,&attr,sizeof(COLOUR_ATTR));
-/*---------------------------------------------------------------------*/
-/* If we haven't started curses (in profile first time) exit now...    */
-/*---------------------------------------------------------------------*/
- if (!curses_started)
+   else
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      /* can the terminal support changing colour? */
+      if ( !can_change_color() )
+      {
+         display_error( 61, (CHARTYPE *)"Changing colors unsupported.", FALSE );
+         TRACE_RETURN();
+         return(RC_INVALID_ENVIRON);
+      }
+      /* SET COLOUR colour red green blue */
+      num_params = param_split( params, word, COL_PARAMS_COLOUR, WORD_DELIMS, TEMP_PARAM, strip, FALSE );
+      if ( num_params != 4 )
+      {
+         display_error(3,(CHARTYPE *)"",FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      /*
+       * Validate the colour contents
+       */
+      for ( i = 1; i < 4; i++ )
+      {
+         if ( !valid_positive_integer( word[i] ) )
+         {
+            display_error(4, (CHARTYPE *)word[i], FALSE );
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+         cont[i-1] = atoi( (DEFCHAR *)word[i] );
+         if ( cont[i-1]  < 0 )
+         {
+            display_error(5, (CHARTYPE *)word[i], FALSE );
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+         if ( cont[i-1]  > 1000 )
+         {
+            display_error(6, (CHARTYPE *)word[i], FALSE );
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+      }
+      init_color( clr, cont[0], cont[1], cont[2] );
    }
-/*---------------------------------------------------------------------*/
-/* Update the appropriate window with the new colour combination...    */
-/*---------------------------------------------------------------------*/
- switch (valid_areas[area].area_window)
-   {
-    case WINDOW_FILEAREA:
-                        if (area == ATTR_FILEAREA)
-                           wattrset(CURRENT_WINDOW_FILEAREA,set_colour(CURRENT_FILE->attr+area));
-                        build_screen(current_screen); 
-                        display_screen(current_screen);
-                        break;
-    case WINDOW_PREFIX:
-                        if (CURRENT_WINDOW_PREFIX != NULL)
-                          {
-                           wattrset(CURRENT_WINDOW_PREFIX,set_colour(CURRENT_FILE->attr+area));
-                           build_screen(current_screen);
-                           display_screen(current_screen);
-                          }
-                        break;
-    case WINDOW_COMMAND:
-                        if (CURRENT_WINDOW_COMMAND != NULL)
-                          {
-                           wattrset(CURRENT_WINDOW_COMMAND,set_colour(CURRENT_FILE->attr+area));
-                           redraw_window(CURRENT_WINDOW_COMMAND);
-                           touchwin(CURRENT_WINDOW_COMMAND);
-                           wnoutrefresh(CURRENT_WINDOW_COMMAND);
-                          }
-                        break;
-    case WINDOW_ARROW:
-                        if (CURRENT_WINDOW_ARROW != NULL)
-                          {
-                           wattrset(CURRENT_WINDOW_ARROW,set_colour(CURRENT_FILE->attr+area));
-                           redraw_window(CURRENT_WINDOW_ARROW);
-                           touchwin(CURRENT_WINDOW_ARROW);
-                           wnoutrefresh(CURRENT_WINDOW_ARROW);
-                          }
-                        break;
-    case WINDOW_IDLINE:
-                        if (CURRENT_WINDOW_IDLINE != NULL)
-                          {
-                           wattrset(CURRENT_WINDOW_IDLINE,set_colour(CURRENT_FILE->attr+area));
-                           redraw_window(CURRENT_WINDOW_IDLINE);
-                           touchwin(CURRENT_WINDOW_IDLINE);
-                           wnoutrefresh(CURRENT_WINDOW_IDLINE);
-                          }
-                        break;
-    case WINDOW_STATAREA:
-                        if (statarea != NULL)
-                          {
-                           wattrset(statarea,set_colour(CURRENT_FILE->attr+area));
-                           redraw_window(statarea);
-                           touchwin(statarea);
-                           wnoutrefresh(statarea);
-                          }
-                        break;
-    case WINDOW_DIVIDER:
-                        if (divider != (WINDOW *)NULL)
-                          {
-                           wattrset(divider,set_colour(CURRENT_FILE->attr+area));
-                           if (display_screens > 1
-                           &&  !horizontal)
-                             {
-                              draw_divider();
-                              touchwin(divider);
-                              wnoutrefresh(divider);
-                             }
-                          }
-                        break;
-    case WINDOW_SLK:
-#if defined(HAVE_SLK_INIT)
-                        if (SLKx)
-                          {
-#if defined(HAVE_SLK_ATTRSET)
-                           slk_attrset(set_colour(CURRENT_FILE->attr+area));
-#else
-                           display_error(61,(CHARTYPE *)"slk_attrset not in curses library",FALSE);
-#endif
-                           slk_touch();
-                           slk_noutrefresh();
-                          }
-#endif
-                        break;
-    default:
-                        break;
-   }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 
 /*man-start*********************************************************************
@@ -1586,7 +1991,7 @@ DEFAULT
 SEE ALSO
      <SET COLOURING>, <SET ECOLOUR>, <SET AUTOCOLOR>, <SET PARSER>
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 /*man-start*********************************************************************
@@ -1609,7 +2014,7 @@ DEFAULT
 SEE ALSO
      <SET COLORING>
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 #ifdef HAVE_PROTO
@@ -1621,96 +2026,83 @@ CHARTYPE *params;
 
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define COLG_PARAMS  2
- CHARTYPE *word[COLG_PARAMS+1];
- CHARTYPE strip[COLG_PARAMS];
- short num_params=0;
- short rc=RC_OK;
- bool new_colouring=FALSE;
- PARSER_DETAILS *new_parser=NULL;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Colouring");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- num_params = param_split(params,word,COLG_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 1)
- {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
- }
-/*---------------------------------------------------------------------*/
-/* Parse the status parameter...                                       */
-/*---------------------------------------------------------------------*/
- rc = execute_set_on_off(word[0],&new_colouring);
- if (rc != RC_OK)
- {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
- }
- if (num_params == 1
- &&  new_colouring == TRUE)
- {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
- }
+   CHARTYPE *word[COLG_PARAMS+1];
+   CHARTYPE strip[COLG_PARAMS];
+   short num_params=0;
+   short rc=RC_OK;
+   bool new_colouring=FALSE;
+   PARSER_DETAILS *new_parser=NULL;
 
- if (new_colouring)
- {
-    /*
-     * This is only applicable when turning colouring ON
-     */
-    if (equal((CHARTYPE *)"AUTO",word[1],4))
-    {
-       /*
-        * Set the parser to the parser for the file extension or
-        * to NULL if no parser is set up for this extension.
-        */
-       new_parser = find_auto_parser(CURRENT_FILE);
-       CURRENT_FILE->autocolour = TRUE;
-    }
-    else
-    {
-       /*
-        * Look for a parser with the specified name
-        */
-       new_parser = parserll_find(first_parser,word[1]);
-       if (new_parser == NULL) /* no parser by that name... */
-       {
-          display_error(199,word[1],FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return RC_INVALID_OPERAND;
-       }
-       CURRENT_FILE->autocolour = FALSE;
-    }
- }
- CURRENT_FILE->parser = new_parser;
- CURRENT_FILE->colouring = new_colouring;
- /*
-  * If all is OK, redisplay the screen to get the new colouring
-  */
- if (display_screens > 1
- &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
- {
-    display_screen(other_screen);
- }
- display_screen(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_FUNCTION("commset1.c:Colouring");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split(params,word,COLG_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params < 1)
+   {
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Parse the status parameter...
+    */
+   rc = execute_set_on_off(word[0],&new_colouring, TRUE );
+   if (rc != RC_OK)
+   {
+      TRACE_RETURN();
+      return(rc);
+   }
+   if (num_params == 1
+   &&  new_colouring == TRUE)
+   {
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+
+   if (new_colouring)
+   {
+      /*
+       * This is only applicable when turning colouring ON
+       */
+      if (equal((CHARTYPE *)"AUTO",word[1],4))
+      {
+         /*
+          * Set the parser to the parser for the file extension or
+          * to NULL if no parser is set up for this extension.
+          */
+         new_parser = find_auto_parser(CURRENT_FILE);
+         CURRENT_FILE->autocolour = TRUE;
+      }
+      else
+      {
+         /*
+          * Look for a parser with the specified name
+          */
+         new_parser = parserll_find(first_parser,word[1]);
+         if (new_parser == NULL) /* no parser by that name... */
+         {
+            display_error(199,word[1],FALSE);
+            TRACE_RETURN();
+            return RC_INVALID_OPERAND;
+         }
+         CURRENT_FILE->autocolour = FALSE;
+      }
+   }
+   CURRENT_FILE->parser = new_parser;
+   CURRENT_FILE->colouring = new_colouring;
+   /*
+    * If all is OK, redisplay the screen to get the new colouring
+    */
+   if (display_screens > 1
+   &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
+   {
+      display_screen( (CHARTYPE)(other_screen) );
+   }
+   display_screen(current_screen);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 
 /*man-start*********************************************************************
@@ -1718,17 +2110,17 @@ COMMAND
      set compat - set compatibility mode
 
 SYNTAX
-     [SET] COMPat The|Xedit|Kedit|KEDITW|= [The|Xedit|Kedit|KEDITW|=] [The|Xedit|Kedit|KEDITW|=]
+     [SET] COMPat The|Xedit|Kedit|KEDITW|Ispf|= [The|Xedit|Kedit|KEDITW|Ispf|=] [The|Xedit|Kedit|KEDITW|Ispf|=]
 
 DESCRIPTION
      The SET COMPAT command changes some settings of THE to make it
-     more compatible with the look and/or feel of XEDIT, KEDIT
-     or KEDIT for Windows.
+     more compatible with the look and/or feel of XEDIT, KEDIT,
+     KEDIT for Windows, or ISPF.
 
      This command is most useful as the first <SET> command in a
      profile file. It will change the default settings of THE to
-     initially look like the chosen editor. You can then make any
-     additional changes in THE by issuing other <SET> commands.
+     initially look and behave like the chosen editor. You can then
+     make any additional changes in THE by issuing other <SET> commands.
 
      It is recommended that this command NOT be executed from the
      command line, particularly if you have 2 files being displayed
@@ -1740,7 +2132,7 @@ DESCRIPTION
      which default function key settings you require.
 
      Any of the parameters can be specified as =, which will not
-     change that aspect of THE's compatability.
+     change that aspect of THE's compatibility.
 
 COMPATIBILITY
      XEDIT: N/A
@@ -1749,7 +2141,7 @@ COMPATIBILITY
 DEFAULT
      THE THE THE
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 #ifdef HAVE_PROTO
@@ -1760,7 +2152,6 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define COM_PARAMS  4
    CHARTYPE *word[COM_PARAMS+1];
    CHARTYPE strip[COM_PARAMS];
@@ -1775,10 +2166,8 @@ CHARTYPE *params;
    short new_keys=0;
    unsigned short save_autosave_alt=0;
    unsigned short save_save_alt=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
-   trace_function("commset1.c:Compat");
-#endif
+
+   TRACE_FUNCTION("commset1.c:Compat");
    /*
     * Parse the parameters...
     */
@@ -1790,17 +2179,13 @@ CHARTYPE *params;
    if (num_params < 1)
    {
       display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (num_params > 3)
    {
       display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (equal((CHARTYPE *)"the",word[0],1))
@@ -1811,14 +2196,14 @@ CHARTYPE *params;
       new_look = COMPAT_KEDIT;
    else if (equal((CHARTYPE *)"keditw",word[0],6))
       new_look = COMPAT_KEDITW;
-   else if (equal((CHARTYPE *)"=",word[0],1))
+   else if (equal((CHARTYPE *)"ispf",word[0],1))
+      new_look = COMPAT_ISPF;
+   else if (equal((CHARTYPE *)EQUIVCHARstr,word[0],1))
       new_look = save_look;
    else
    {
       display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (num_params == 1)
@@ -1836,14 +2221,14 @@ CHARTYPE *params;
          new_feel = COMPAT_KEDIT;
       else if (equal((CHARTYPE *)"keditw",word[1],6))
          new_feel = COMPAT_KEDITW;
-      else if (equal((CHARTYPE *)"=",word[1],1))
+      else if (equal((CHARTYPE *)"ispf",word[1],1))
+         new_feel = COMPAT_ISPF;
+      else if (equal((CHARTYPE *)EQUIVCHARstr,word[1],1))
          new_feel = save_feel;
       else
       {
          display_error(1,word[1],FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       if (num_params == 2)
@@ -1858,14 +2243,14 @@ CHARTYPE *params;
             new_keys = COMPAT_KEDIT;
          else if (equal((CHARTYPE *)"keditw",word[2],6))
             new_keys = COMPAT_KEDITW;
-         else if (equal((CHARTYPE *)"=",word[2],1))
+         else if (equal((CHARTYPE *)"ispf",word[2],1))
+            new_keys = COMPAT_ISPF;
+         else if (equal((CHARTYPE *)EQUIVCHARstr,word[2],1))
             new_keys = save_keys;
          else
          {
             display_error(1,word[2],FALSE);
-#ifdef THE_TRACE
-            trace_return();
-#endif
+            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
       }
@@ -1890,6 +2275,9 @@ CHARTYPE *params;
          case COMPAT_XEDIT:
             rc = set_XEDIT_key_defaults(prey,prex);
             break;
+         case COMPAT_ISPF:
+            rc = set_ISPF_key_defaults(prey,prex);
+            break;
          case COMPAT_KEDIT:
          case COMPAT_KEDITW:
             rc = set_KEDIT_key_defaults(prey,prex);
@@ -1897,9 +2285,7 @@ CHARTYPE *params;
       }
       if (rc != RC_OK)
       {
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(rc);
       }
    }
@@ -1965,9 +2351,7 @@ CHARTYPE *params;
       {
          if (set_up_windows(current_screen) != RC_OK)
          {
-#ifdef THE_TRACE
-            trace_return();
-#endif
+            TRACE_RETURN();
             return(rc);
          }
          if (!horizontal)
@@ -1977,9 +2361,9 @@ CHARTYPE *params;
             wnoutrefresh(divider);
          }
       }
-      redraw_screen((current_screen == 0)?1:0);
-      build_screen(other_screen);
-      display_screen(other_screen);
+      redraw_screen( (CHARTYPE)((current_screen == 0)?1:0) );
+      build_screen( (CHARTYPE)(other_screen) );
+      display_screen( (CHARTYPE)(other_screen) );
    }
    /*
     * Redisplay the current screen...
@@ -1994,19 +2378,15 @@ CHARTYPE *params;
    {
       if (set_up_windows(current_screen) != RC_OK)
       {
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(rc);
       }
    }
    redraw_screen(current_screen);
-   build_screen(current_screen); 
+   build_screen(current_screen);
    display_screen(current_screen);
 
-#ifdef THE_TRACE
-   trace_return();
-#endif
+   TRACE_RETURN();
    return(rc);
 }
 /*man-start*********************************************************************
@@ -2016,7 +2396,7 @@ COMMAND
 SYNTAX
      [SET] CTLchar OFF
      [SET] CTLchar char Escape | OFF
-     [SET] CTLchar char Protect|Noprotect [modifier[...]] [fore [ON back]]
+     [SET] CTLchar char Protect|Noprotect [modifier[...]] fore [ON back]
 
 DESCRIPTION
      The SET CTLCHAR command defines control characters to be used when
@@ -2048,193 +2428,205 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define CTL_PARAMS  3
- CHARTYPE *word[CTL_PARAMS+1];
- CHARTYPE strip[CTL_PARAMS];
- short num_params=0;
- COLOUR_ATTR attr;
- CHARTYPE *dummy=NULL;
- bool any_colours=FALSE,protect,found;
- int i;
- bool have_ctlchar=TRUE;
- RESERVED *curr;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Ctlchar");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- strip[2]=STRIP_BOTH;
- num_params = param_split(params,word,CTL_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 1)
- {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
- }
- if (num_params > 3)
- {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
- }
- if (num_params == 1)
- {
-    if (equal((CHARTYPE *)"off",word[0],1))
-    {
-       if (num_params != 1)
-       {
-          display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-       }
-       have_ctlchar = FALSE;
-    }
-    else
-    {
-       display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_INVALID_OPERAND);
-    }
- }
- else
- {
-    if (strlen((DEFCHAR *)word[0]) > 1)
-    {
-       display_error(37,word[0],FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_INVALID_OPERAND);
-    }
-    if (num_params == 2)
-    {
-       if (equal((CHARTYPE *)"escape",word[1],1))
-       {
-          /*
-           * Sets the value in word[0] to be the escape character
-           */
-          ctlchar_escape = word[0][0];
-       }
-       else if (equal((CHARTYPE *)"off",word[1],3))
-       {
-          /*
-           * Turns off the escape character in word[0]
-           * Find the entry in
-           */
-          for (i=0;i<MAX_CTLCHARS;i++)
-          {
-             if (ctlchar_char[i] == word[0][0])
-             {
-                ctlchar_char[i] = 0;
-                break;
-             }
-          }
-       }
-       else
-       {
-          display_error(1,word[1],FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-       }
-    }
-    else
-    {
-       /*
-        * Now should be parsing colours to set the ctlchar colour for
-        * the character in word[0][0]
-        */
-       if (equal((CHARTYPE *)"protect",word[1],1))
-          protect = TRUE;
-       else if (equal((CHARTYPE *)"noprotect",word[1],1))
-          protect = FALSE;
-       else
-       {
-          display_error(1,word[1],FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-       }
-       memset(&attr,0,sizeof(COLOUR_ATTR));
-       if (parse_colours(word[2],&attr,&dummy,FALSE,&any_colours) != RC_OK)
-       {
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-       }
-       /*
-        * Find any existing CTLCHAR spec for the supplied character
-        * and turn it off...
-        */
-       for (i=0;i<MAX_CTLCHARS;i++)
-       {
-          if (ctlchar_char[i] == word[0][0])
-          {
-             ctlchar_char[i] = 0;
-             break;
-          }
-       }
-       /*
-        * Find the first spare CTLCHAR spec for the supplied character
-        * and add it.
-        */
-       found = FALSE;
-       for (i=0;i<MAX_CTLCHARS;i++)
-       {
-          if (ctlchar_char[i] == 0)
-          {
-             ctlchar_char[i] = word[0][0];
-             ctlchar_attr[i] = attr;
-             found = TRUE;
-             break;
-          }
-       }
-       if (!found)
-       {
-          display_error(80,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-       }
-    }
- }
- CTLCHARx = have_ctlchar;
- /*
-  * For each current reserved line, reparse it to ensure the changes made
-  * here are reflected correctly.
-  */
- curr = CURRENT_FILE->first_reserved;
- while(curr)
- {
-    parse_reserved_line(curr);
-    curr = curr->next;
- }
- if (display_screens > 1
- &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
- {
-    build_screen(other_screen);
-    display_screen(other_screen);
- }
- build_screen(current_screen);
- display_screen(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   CHARTYPE *word[CTL_PARAMS+1];
+   CHARTYPE strip[CTL_PARAMS];
+   short num_params=0;
+   COLOUR_ATTR attr;
+   CHARTYPE *dummy=NULL;
+   bool any_colours=FALSE,protect,found;
+   int i;
+   bool have_ctlchar=TRUE;
+   RESERVED *curr;
+
+   TRACE_FUNCTION("commset1.c:Ctlchar");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   strip[2]=STRIP_BOTH;
+   num_params = param_split(params,word,CTL_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params < 1)
+   {
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if (num_params > 3)
+   {
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if (num_params == 1)
+   {
+      if (equal((CHARTYPE *)"off",word[0],1))
+      {
+         if (num_params != 1)
+         {
+            display_error(2,(CHARTYPE *)"",FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+         have_ctlchar = FALSE;
+      }
+      else
+      {
+         display_error(1,word[0],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+   }
+   else
+   {
+      if (strlen((DEFCHAR *)word[0]) > 1)
+      {
+         display_error(37,word[0],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      if (num_params == 2)
+      {
+         if (equal((CHARTYPE *)"escape",word[1],1))
+         {
+            /*
+             * Sets the value in word[0] to be the escape character
+             */
+            ctlchar_escape = word[0][0];
+         }
+         else if (equal((CHARTYPE *)"off",word[1],3))
+         {
+            /*
+             * Turns off the escape character in word[0]
+             * Find the entry in
+             */
+            for ( i = 0; i < MAX_CTLCHARS; i++ )
+            {
+               if (ctlchar_char[i] == word[0][0])
+               {
+                  ctlchar_char[i] = 0;
+                  break;
+               }
+            }
+            /*
+             * Find the first spare CTLCHAR spec for the supplied character
+             * and add it.
+             */
+            found = FALSE;
+            for (i=0;i<MAX_CTLCHARS;i++)
+            {
+               if (ctlchar_char[i] == 0)
+               {
+                  ctlchar_char[i] = word[0][0];
+                  ctlchar_attr[i].pair = -1;
+                  found = TRUE;
+                  break;
+               }
+            }
+            if (!found)
+            {
+               display_error(80,(CHARTYPE *)"",FALSE);
+               TRACE_RETURN();
+               return(RC_INVALID_OPERAND);
+            }
+         }
+         else if (equal((CHARTYPE *)"protect",word[1],1))
+         {
+            display_error(3,(CHARTYPE *)"",FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+         else if (equal((CHARTYPE *)"noprotect",word[1],1))
+         {
+            display_error(3,(CHARTYPE *)"",FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+         else
+         {
+            display_error(1,word[1],FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+      }
+      else
+      {
+         /*
+          * Now should be parsing colours to set the ctlchar colour for
+          * the character in word[0][0]
+          */
+         if (equal((CHARTYPE *)"protect",word[1],1))
+            protect = TRUE;
+         else if (equal((CHARTYPE *)"noprotect",word[1],1))
+            protect = FALSE;
+         else
+         {
+            display_error(1,word[1],FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+         memset(&attr,0,sizeof(COLOUR_ATTR));
+         if (parse_colours(word[2],&attr,&dummy,FALSE,&any_colours) != RC_OK)
+         {
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+         /*
+          * Find any existing CTLCHAR spec for the supplied character
+          * and turn it off...
+          */
+         for ( i = 0; i < MAX_CTLCHARS; i++ )
+         {
+            if (ctlchar_char[i] == word[0][0])
+            {
+               ctlchar_char[i] = 0;
+               ctlchar_protect[i] = FALSE;
+               break;
+            }
+         }
+         /*
+          * Find the first spare CTLCHAR spec for the supplied character
+          * and add it.
+          */
+         found = FALSE;
+         for (i=0;i<MAX_CTLCHARS;i++)
+         {
+            if (ctlchar_char[i] == 0)
+            {
+               ctlchar_char[i] = word[0][0];
+               ctlchar_attr[i] = attr;
+               ctlchar_protect[i] = protect;
+               found = TRUE;
+               break;
+            }
+         }
+         if (!found)
+         {
+            display_error(80,(CHARTYPE *)"",FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+         }
+      }
+   }
+   CTLCHARx = have_ctlchar;
+   /*
+    * For each current reserved line, reparse it to ensure the changes made
+    * here are reflected correctly.
+    */
+   curr = CURRENT_FILE->first_reserved;
+   while(curr)
+   {
+      parse_reserved_line(curr);
+      curr = curr->next;
+   }
+   if (display_screens > 1
+   &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
+   {
+      build_screen( (CHARTYPE)(other_screen) );
+      display_screen( (CHARTYPE)(other_screen) );
+   }
+   build_screen(current_screen);
+   display_screen(current_screen);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 
 /*man-start*********************************************************************
@@ -2242,7 +2634,7 @@ COMMAND
      set curline - set position of current line on screen
 
 SYNTAX
-     [SET] CURLine M[+n|-n] | [+|-]n
+     [SET] CURLine [ON] M[+n|-n] | [+|-]n
 
 DESCRIPTION
      The SET CURLINE command sets the position of the <current line> to
@@ -2250,25 +2642,27 @@ DESCRIPTION
 
      The first form of parameters is:
 
-     M[+n|-n] 
+     M[+n|-n]
      this sets the <current line> to be relative to the middle of
-     the screen. A positive value adds to the middle line number, 
+     the screen. A positive value adds to the middle line number,
      a negative subtracts from it.
-     eg. M+3 on a 24 line screen will be line 15
+     e.g. M+3 on a 24 line screen will be line 15
          M-5 on a 24 line screen will be line 7
 
      The second form of parameters is:
 
      [+|-]n
      this sets the <current line> to be relative to the top of the
-     screen (if positive or no sign) or relative to the bottom 
+     screen (if positive or no sign) or relative to the bottom
      of the screen if negative.
-     eg. +3 or 3 will set current line to line 3
+     e.g. +3 or 3 will set current line to line 3
          -3 on a 24 line screen will be line 21
 
      If the resulting line is outside the bounds of the screen
      the position of the current line will become the middle line
      on the screen.
+
+     It is optional to specify the ON argument.
 
      It is an error to try to position the CURLINE on the same
      line as a line already allocated by one of <SET HEXSHOW>,
@@ -2292,119 +2686,176 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-#define CUR_PARAMS  1
- CHARTYPE *word[CUR_PARAMS+1];
- CHARTYPE strip[CUR_PARAMS];
- short num_params=0;
- short rc=0;
- short base = (short)CURRENT_VIEW->current_base;
- short off = CURRENT_VIEW->current_off;
- short hexshow_row=0,curline_row=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Curline");
-#endif
- strip[0]=STRIP_BOTH;
- num_params = param_split(params,word,CUR_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 1)
+#define CUR_PARAMS  2
+   CHARTYPE *word[CUR_PARAMS+1];
+   CHARTYPE strip[CUR_PARAMS];
+   short num_params=0;
+   short rc=0;
+   short base = CURRENT_VIEW->current_base;
+   short off = CURRENT_VIEW->current_off;
+   short hexshow_row=0,curline_row=0;
+   bool onoff = FALSE;
+
+   TRACE_FUNCTION( "commset1.c:Curline" );
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split( params, word, CUR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE );
+   switch( num_params )
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      case 0:
+         display_error( 3, (CHARTYPE *)"", FALSE );
+         TRACE_RETURN();
+         return( RC_INVALID_OPERAND );
+         break;
+      case 1:
+         /*
+          * Can only be a valid position
+          */
+         /*
+          * Is the first argument ON ?
+          */
+         rc = execute_set_on_off( word[0], &onoff, FALSE );
+         if ( rc != RC_OK )
+         {
+            /*
+             * If not ON or OFF, it must be a position
+             */
+            rc = execute_set_row_position( word[0], &base, &off );
+            if (rc != RC_OK)
+            {
+               TRACE_RETURN();
+               return(rc);
+            }
+            /*
+             * A valid position, so it must be ON
+             */
+            onoff = TRUE;
+            break;
+         }
+         /*
+          * If its ON, error: too few operands
+          */
+         if ( onoff == TRUE )
+         {
+            display_error( 3, (CHARTYPE *)"", FALSE );
+            TRACE_RETURN();
+            return( RC_INVALID_OPERAND );
+         }
+         else
+         {
+            display_error( 1, (CHARTYPE *)word[0], FALSE );
+            TRACE_RETURN();
+            return( RC_INVALID_OPERAND );
+         }
+         break;
+      case 2:
+         /*
+          * First argument MUST be ON, 2nd a valid position
+          */
+         /*
+          * Is the first argument ON or OFF ?
+          */
+         rc = execute_set_on_off( word[0], &onoff, TRUE );
+         if ( rc != RC_OK )
+         {
+            TRACE_RETURN();
+            return( RC_INVALID_OPERAND );
+         }
+         /*
+          * If its OFF, error
+          */
+         if ( onoff == FALSE )
+         {
+            display_error( 1, (CHARTYPE *)word[1], FALSE );
+            TRACE_RETURN();
+            return( RC_INVALID_OPERAND );
+         }
+         /*
+          * Is the position correct ?
+          */
+         rc = execute_set_row_position( word[1], &base, &off );
+         if (rc != RC_OK)
+         {
+            TRACE_RETURN();
+            return(rc);
+         }
+         break;
+      default:
+         display_error (2, (CHARTYPE *)"", FALSE );
+         TRACE_RETURN();
+         return( RC_INVALID_OPERAND );
+         break;
    }
- if (num_params > 1)
+   /*
+    * If we have set the CURLINE OFF, redisplay the current screen???
+    */
+   if ( onoff == FALSE )
    {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
    }
-/*---------------------------------------------------------------------*/
-/* Parse the parameter...                                              */
-/*---------------------------------------------------------------------*/
- rc = execute_set_row_position(params,&base,&off);
- if (rc != RC_OK)
+   else
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      /*
+       * If the CURLINE is the same line as HEXSHOW, SCALE, TABLE or has a
+       * RESERVED line on it, return ERROR.
+       */
+      curline_row = calculate_actual_row( base, off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE );
+      if (calculate_actual_row(CURRENT_VIEW->scale_base,
+                               CURRENT_VIEW->scale_off,
+                               CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE) == curline_row
+      && CURRENT_VIEW->scale_on)
+      {
+         display_error(64,(CHARTYPE *)"- same as SCALE",FALSE);
+         TRACE_RETURN();
+         return(rc);
+      }
+      if (calculate_actual_row(CURRENT_VIEW->tab_base,
+                               CURRENT_VIEW->tab_off,
+                               CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE) == curline_row
+      && CURRENT_VIEW->tab_on)
+      {
+         display_error(64,(CHARTYPE *)"- same as TABLINE",FALSE);
+         TRACE_RETURN();
+         return(rc);
+      }
+      hexshow_row = calculate_actual_row(CURRENT_VIEW->hexshow_base,
+                                         CURRENT_VIEW->hexshow_off,
+                                         CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE);
+      if ((hexshow_row == curline_row
+         ||  hexshow_row + 1 == curline_row)
+      && CURRENT_VIEW->hexshow_on)
+      {
+         display_error(64,(CHARTYPE *)"- same as HEXSHOW",FALSE);
+         TRACE_RETURN();
+         return(rc);
+      }
+      if (find_reserved_line(current_screen,TRUE,curline_row,0,0) != NULL)
+      {
+         display_error(64,(CHARTYPE *)"- same as RESERVED line",FALSE);
+         TRACE_RETURN();
+         return(rc);
+      }
+      /*
+       * If the "real" row for CURLINE is not the same as the generated one,
+       * set the base and offset to reflect the generated row.
+       */
+      if ( calculate_actual_row( base, off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], FALSE ) != curline_row )
+      {
+         CURRENT_VIEW->current_base = POSITION_MIDDLE;
+         CURRENT_VIEW->current_off = 0;
+      }
+      else
+      {
+         CURRENT_VIEW->current_base = base;
+         CURRENT_VIEW->current_off = off;
+      }
+      post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
+      CURRENT_VIEW->current_row = curline_row;
+      build_screen(current_screen);
+      display_screen(current_screen);
    }
-/*---------------------------------------------------------------------*/
-/* If the CURLINE is the same line as HEXSHOW, SCALE, TABLE or has a   */
-/* RESERVED line on it, return ERROR.                                  */
-/*---------------------------------------------------------------------*/
- curline_row = calculate_actual_row(base,off,CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE);
- if (calculate_actual_row(CURRENT_VIEW->scale_base,
-                          CURRENT_VIEW->scale_off,
-                          CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE) == curline_row
- && CURRENT_VIEW->scale_on)
-   {
-    display_error(64,(CHARTYPE *)"- same as SCALE",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
-   }
- if (calculate_actual_row(CURRENT_VIEW->tab_base,
-                          CURRENT_VIEW->tab_off,
-                          CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE) == curline_row
- && CURRENT_VIEW->tab_on)
-   {
-    display_error(64,(CHARTYPE *)"- same as TABLINE",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
-   }
- hexshow_row = calculate_actual_row(CURRENT_VIEW->hexshow_base,
-                                    CURRENT_VIEW->hexshow_off,
-                                    CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE);
- if ((hexshow_row == curline_row
-    ||  hexshow_row + 1 == curline_row)
- && CURRENT_VIEW->hexshow_on)
-   {
-    display_error(64,(CHARTYPE *)"- same as HEXSHOW",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
-   }
- if (find_reserved_line(current_screen,TRUE,curline_row,0,0) != NULL)
-   {
-    display_error(64,(CHARTYPE *)"- same as RESERVED line",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
-   }
-/*---------------------------------------------------------------------*/
-/* If the "real" row for CURLINE is not the same as the generated one, */
-/* set the base and offset to reflect the generated row.               */
-/*---------------------------------------------------------------------*/
- if (calculate_actual_row(base,off,CURRENT_SCREEN.rows[WINDOW_FILEAREA],FALSE) != curline_row)
-   {
-    CURRENT_VIEW->current_base = (CHARTYPE)POSITION_MIDDLE;
-    CURRENT_VIEW->current_off = 0;
-   }
- else
-   {
-    CURRENT_VIEW->current_base = (CHARTYPE)base;
-    CURRENT_VIEW->current_off = off;
-   }
- post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
- CURRENT_VIEW->current_row = curline_row;
- build_screen(current_screen); 
- display_screen(current_screen);
- 
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -2441,17 +2892,12 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:CursorStay");
-#endif
- rc = execute_set_on_off(params,&scroll_cursor_stay);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:CursorStay");
+   rc = execute_set_on_off(params,&scroll_cursor_stay, TRUE );
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -2471,7 +2917,7 @@ DESCRIPTION
      in which files are displayed.
 
      'Date' specifies that the date of the last change to the file
-     determines the order in which files are displayed. If the dates 
+     determines the order in which files are displayed. If the dates
      are the same, the time the file was last changed is used as a
      secondary sort key.
 
@@ -2491,9 +2937,8 @@ DESCRIPTION
      The second parameter specifies if the sort order is ascending or
      descending.
 
-     This command does not affect how any current DIR.DIR file is shown
-     but is applicable the next time a directory is displayed as a
-     result of a DIR or LS command.
+     If this command is issued while the DIR.DIR pseudo file is the current
+     file, the settings are applied immediately.
 
 COMPATIBILITY
      XEDIT: N/A
@@ -2513,91 +2958,97 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define DIR_PARAMS  2
- CHARTYPE *word[DIR_PARAMS+1];
- CHARTYPE strip[DIR_PARAMS];
- short num_params=0;
- short rc=RC_OK;
- int defsort=0;
- int dirorder=DIRSORT_ASC;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Defsort");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- num_params = param_split(params,word,DIR_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 1)
+   CHARTYPE *word[DIR_PARAMS+1];
+   CHARTYPE strip[DIR_PARAMS];
+   short num_params=0;
+   short rc=RC_OK;
+   int defsort=0;
+   int dirorder=DIRSORT_ASC;
+
+   TRACE_FUNCTION("commset1.c:Defsort");
+   /*
+    * Here's a real hack! If we have REPROFILE ON and we call DEFSORT
+    * in the profile, we go into infinite recursion, so we have to
+    * check a special global variable; DONT_CALL_DEFSORTx, which is
+    * only set to TRUE when EditFile() is called from this function.
+    */
+   if ( DONT_CALL_DEFSORTx )
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      TRACE_RETURN();
+      return(RC_OK);
    }
- if (num_params > 2)
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split(params,word,DIR_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params < 1)
    {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- if (equal((CHARTYPE *)"directory",word[0],3))
-    defsort = DIRSORT_DIR;
- else
-    if (equal((CHARTYPE *)"name",word[0],1))
-       defsort = DIRSORT_NAME;
-    else
-       if (equal((CHARTYPE *)"time",word[0],1))
-          defsort = DIRSORT_TIME;
-       else
-          if (equal((CHARTYPE *)"size",word[0],1))
-             defsort = DIRSORT_SIZE;
-          else
-             if (equal((CHARTYPE *)"date",word[0],1))
-                defsort = DIRSORT_DATE;
-             else
-                if (equal((CHARTYPE *)"off",word[0],3))
-                   defsort = DIRSORT_NONE;
-                else
-                  {
-                   display_error(1,(CHARTYPE *)word[0],FALSE);
-#ifdef THE_TRACE
-                   trace_return();
-#endif
-                   return(RC_INVALID_OPERAND);
-                  }
- if (num_params == 2)
+   if (num_params > 2)
    {
-    if (equal((CHARTYPE *)"ascending",word[1],1))
-       dirorder = DIRSORT_ASC;
-    else
-       if (equal((CHARTYPE *)"descending",word[1],1))
-          dirorder = DIRSORT_DESC;
-       else
-         {
-          display_error(1,(CHARTYPE *)word[1],FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-         }
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- DEFSORTx = defsort;
- DIRORDERx = dirorder;
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   if (equal((CHARTYPE *)"directory",word[0],3))
+      defsort = DIRSORT_DIR;
+   else if (equal((CHARTYPE *)"name",word[0],1))
+      defsort = DIRSORT_NAME;
+   else if (equal((CHARTYPE *)"time",word[0],1))
+      defsort = DIRSORT_TIME;
+   else if (equal((CHARTYPE *)"size",word[0],1))
+      defsort = DIRSORT_SIZE;
+   else if (equal((CHARTYPE *)"date",word[0],1))
+      defsort = DIRSORT_DATE;
+   else if (equal((CHARTYPE *)"off",word[0],3))
+      defsort = DIRSORT_NONE;
+   else
+   {
+      display_error(1,(CHARTYPE *)word[0],FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if (num_params == 2)
+   {
+      if (equal((CHARTYPE *)"ascending",word[1],1))
+         dirorder = DIRSORT_ASC;
+      else  if (equal((CHARTYPE *)"descending",word[1],1))
+         dirorder = DIRSORT_DESC;
+      else
+      {
+         display_error(1,(CHARTYPE *)word[1],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+   }
+   DEFSORTx = defsort;
+   DIRORDERx = dirorder;
+   /*
+    * If we are in DIR.DIR, then reload the directory
+    */
+   if ( CURRENT_FILE->pseudo_file == PSEUDO_DIR )
+   {
+      DONT_CALL_DEFSORTx = TRUE;
+      strcpy( (DEFCHAR *)temp_cmd, (DEFCHAR *)dir_path );
+      strcat( (DEFCHAR *)temp_cmd, (DEFCHAR *)dir_files );
+      /*
+       * Edit the DIR.DIR file
+       */
+      rc = Directory( temp_cmd );
+      DONT_CALL_DEFSORTx = FALSE;
+   }
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
      set dirinclude - set the file mask for directory command
 
 SYNTAX
-     [SET] DIRInclude * 
+     [SET] DIRInclude *
      [SET] DIRInclude [Normal] [Readonly] [System] [Hidden] [Directory]
 
 DESCRIPTION
@@ -2605,7 +3056,7 @@ DESCRIPTION
      displayed on subsequent DIRECTORY commands. The operand "*" will
      set the mask to all files, the other options will set the
      mask to include those options specified together with "normal"
-     files eg.
+     files e.g.
 
         DIRINCLUDE R S
 
@@ -2635,17 +3086,12 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Dirinclude");
-#endif
- rc = set_dirtype(params);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Dirinclude");
+   rc = set_dirtype(params);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -2679,45 +3125,42 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
- short col1=0,col2=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Display");
-#endif
- if ((rc = validate_n_m(params,&col1,&col2)) != RC_OK)
+   short rc=RC_OK;
+   short col1=0,col2=0;
+
+   TRACE_FUNCTION("commset1.c:Display");
+   if ((rc = validate_n_m(params,&col1,&col2)) != RC_OK)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      TRACE_RETURN();
+      return(rc);
    }
- CURRENT_VIEW->display_low = col1;
- CURRENT_VIEW->display_high = col2;
-/*---------------------------------------------------------------------*/
-/* If we are on the command line and the result of this statement means*/
-/* that the current line is no longer in scope, we need to make the    */
-/* current line and possibly the focus line the next line in scope.    */
-/*---------------------------------------------------------------------*/
- if (CURRENT_VIEW->current_window == WINDOW_COMMAND)
+   CURRENT_VIEW->display_low = col1;
+   CURRENT_VIEW->display_high = col2;
+   /*
+    * If we are on the command line and the result of this statement means
+    * that the current line is no longer in scope, we need to make the
+    * current line and possibly the focus line the next line in scope.
+    */
+   if (CURRENT_VIEW->current_window == WINDOW_COMMAND)
    {
-    CURRENT_VIEW->current_line = find_next_in_scope(CURRENT_VIEW,NULL,get_true_line(TRUE),DIRECTION_FORWARD);
-    build_screen(current_screen); 
-    if (!line_in_view(current_screen,CURRENT_VIEW->focus_line))
+      CURRENT_VIEW->current_line = find_next_in_scope(CURRENT_VIEW,NULL,get_true_line(TRUE),DIRECTION_FORWARD);
+      build_screen(current_screen);
+      if (!line_in_view(current_screen,CURRENT_VIEW->focus_line))
       {
-       CURRENT_VIEW->focus_line = CURRENT_VIEW->current_line;
-       pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
+         CURRENT_VIEW->focus_line = CURRENT_VIEW->current_line;
+         pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
       }
    }
- pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
- build_screen(current_screen); 
- display_screen(current_screen);
+   pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
+   build_screen(current_screen);
+   display_screen(current_screen);
+   /*
+    * If the same file is in the other screen, refresh it
+    */
+   adjust_other_screen_shadow_lines();
 
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -2725,6 +3168,7 @@ COMMAND
 
 SYNTAX
      [SET] ECOLOR char [modifier[...]] [foreground] [on background]
+     [SET] ECOLOR char [modifier[...]] ON|OFF
 
 DESCRIPTION
      The SET ECOLOR command allows the user to specify the colors of
@@ -2734,13 +3178,13 @@ DESCRIPTION
 
      A - comments
      B - strings
-     C - numbers (N/A)
+     C - numbers
      D - keywords
-     E - labels (N/A)
+     E - labels
      F - preprocessor directives
      G - header lines
      H - extra right paren, matchable keyword (N/A)
-     I - level 1 paren 
+     I - level 1 paren
      J - level 1 matchable keyword (N/A)
      K - level 1 matchable preprocessor keyword (N/A)
      L - level 2 paren, matchable keyword (N/A)
@@ -2772,6 +3216,9 @@ DESCRIPTION
      For valid values for 'modifier', 'foreground' and 'background'
      see <SET COLOR>.
 
+     The second format of this command allows the user to turn on or off
+     any of the valid modifiers.
+
 COMPATIBILITY
      XEDIT: N/A
      KEDIT: Compatible.
@@ -2783,7 +3230,7 @@ SEE ALSO
      <SET COLORING>, <SET AUTOCOLOR>, <SET PARSER>, <SET COLOR>
      Appendix 4
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 /*man-start*********************************************************************
@@ -2792,6 +3239,7 @@ COMMAND
 
 SYNTAX
      [SET] ECOLOUR char [modifier[...]] [foreground] [on background]
+     [SET] ECOLOUR char [modifier[...]] ON|OFF
 
 DESCRIPTION
      The SET ECOLOUR command allows the user to specify the colours of
@@ -2808,7 +3256,7 @@ SEE ALSO
      <SET COLOURING>, <SET AUTOCOLOUR>, <SET PARSER>, <SET COLOUR>
      Appendix 4
 
-STATUS  
+STATUS
      Complete.
 **man-end**********************************************************************/
 #ifdef HAVE_PROTO
@@ -2820,98 +3268,175 @@ CHARTYPE *params;
 
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define ECOL_PARAMS 2
    CHARTYPE *word[ECOL_PARAMS+1];
    CHARTYPE strip[ECOL_PARAMS];
    unsigned short num_params=0;
    short area=0,off;
-   COLOUR_ATTR attr;
+   register short i=0;
+   COLOUR_ATTR attr,tmp_attr;
    CHARTYPE *dummy=NULL;
    bool any_colours=FALSE;
    CHARTYPE ch;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
-   trace_function("commset1.c:Ecolour");
-#endif
+   short word1_len,modifier_set=COL_MODIFIER_NO_SET;
+
+   TRACE_FUNCTION("commset1.c:Ecolour");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    num_params = param_split(params,word,ECOL_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
    if (num_params < 2 )
    {
       display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
-/*---------------------------------------------------------------------*/
-/* Check that the supplied area matches one of the values in the area  */
-/* array and that the length is at least as long as the minimum.       */
-/*---------------------------------------------------------------------*/
-   if (strlen((DEFCHAR *)word[0]) != 1)
+   /*
+    * Check which format of this command we are running.
+    * If the last word is ON or OFF then we are executing the
+    * second format.
+    */
+   word1_len = strlen( (DEFCHAR *)word[1] );
+   if ( my_stricmp( (DEFCHAR *)word[1]+word1_len-2, "ON" ) == 0 )
+      modifier_set = COL_MODIFIER_SET_ON;
+   else if ( my_stricmp( (DEFCHAR *)word[1]+word1_len-3, "OFF" ) == 0 )
+      modifier_set = COL_MODIFIER_SET_OFF;
+   if ( modifier_set )
    {
-      display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-      trace_return();
-#endif
-      return(RC_INVALID_OPERAND);
+      /*
+       * Check that the supplied area matches one of the values in the area
+       * array and that the length is at least as long as the minimum.
+       */
+      if (strlen((DEFCHAR *)word[0]) != 1)
+      {
+         display_error(1,word[0],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      ch = word[0][0];
+      if (ch >= 'A' && ch <= 'Z')
+         off = 'A';
+      else if (ch >= 'a' && ch <= 'z')
+         off = 'a';
+      else if (ch >= '1' && ch <= '9')
+         off = '1' - 26; /* Beware: --x == +x */
+      else if (ch == '*' )
+         off = -1;
+      else
+      {
+         display_error(1,word[0],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      /*
+       * Check that each subsequent parameter (except the last) is
+       * a modifier.
+       */
+      if ( parse_modifiers( word[1], &tmp_attr ) != RC_OK )
+      {
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      if ( off == (-1) )
+      {
+         for ( i = 0; i < ECOLOUR_MAX; i++ )
+         {
+            attr = CURRENT_FILE->ecolour[i] ;
+            if ( modifier_set == COL_MODIFIER_SET_ON )
+            {
+               if ( colour_support )
+                  attr.mod |= tmp_attr.mod;
+               else
+                  attr.mono |= tmp_attr.mono;
+            }
+            else
+            {
+               if ( colour_support )
+                  attr.mod &= ~tmp_attr.mod;
+               else
+                  attr.mono &= ~tmp_attr.mono;
+            }
+            CURRENT_FILE->ecolour[i] = attr;
+         }
+      }
+      else
+      {
+         area = ch - off;
+         attr = CURRENT_FILE->ecolour[area];
+         if ( modifier_set == COL_MODIFIER_SET_ON )
+         {
+            if ( colour_support )
+               attr.mod |= tmp_attr.mod;
+            else
+               attr.mono |= tmp_attr.mono;
+         }
+         else
+         {
+            if ( colour_support )
+               attr.mod &= ~tmp_attr.mod;
+            else
+               attr.mono &= ~tmp_attr.mono;
+         }
+         CURRENT_FILE->ecolour[area] = attr;
+      }
    }
-   ch = word[0][0];
-   if (ch >= 'A' && ch <= 'Z')
-      off = 'A';
-   else if (ch >= 'a' && ch <= 'z')
-      off = 'a';
-   else if (ch >= '1' && ch <= '9')
-      off = '1' - 26; /* Beware: --x == +x */
    else
    {
-      display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-      trace_return();
-#endif
-      return(RC_INVALID_OPERAND);
+      /*
+       * Check that the supplied area matches one of the values in the area
+       * array and that the length is at least as long as the minimum.
+       */
+      if (strlen((DEFCHAR *)word[0]) != 1)
+      {
+         display_error(1,word[0],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      ch = word[0][0];
+      if (ch >= 'A' && ch <= 'Z')
+         off = 'A';
+      else if (ch >= 'a' && ch <= 'z')
+         off = 'a';
+      else if (ch >= '1' && ch <= '9')
+         off = '1' - 26; /* Beware: --x == +x */
+      else
+      {
+         display_error(1,word[0],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      area = ch - off;
+      attr = CURRENT_FILE->ecolour[area];
+      /*
+       * Determine colours and modifiers.
+       */
+      if (parse_colours(word[1],&attr,&dummy,FALSE,&any_colours) != RC_OK)
+      {
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      /*
+       * Now we have the new colours, save them with the current file...
+       */
+      CURRENT_FILE->ecolour[area] = attr;
    }
-   area = ch - off;
-   attr = CURRENT_FILE->ecolour[area];
-/*---------------------------------------------------------------------*/
-/* Determine colours and modifiers.                                    */
-/*---------------------------------------------------------------------*/
-   if (parse_colours(word[1],&attr,&dummy,FALSE,&any_colours) != RC_OK)
-   {
-#ifdef THE_TRACE
-      trace_return();
-#endif
-      return(RC_INVALID_OPERAND);
-   }
-/*---------------------------------------------------------------------*/
-/* Now we have the new colours, save them with the current file...     */
-/*---------------------------------------------------------------------*/
-   CURRENT_FILE->ecolour[area] = attr;
-/*---------------------------------------------------------------------*/
-/* If we haven't started curses (in profile first time) exit now...    */
-/*---------------------------------------------------------------------*/
+   /*
+    * If we haven't started curses (in profile first time) exit now...
+    */
    if (!curses_started)
    {
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_OK);
    }
-/*---------------------------------------------------------------------*/
-/* Update the appropriate window with the new colour combination...    */
-/*---------------------------------------------------------------------*/
+   /*
+    * Update the appropriate window with the new colour combination...
+    */
    if (display_screens > 1
-   &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
+   &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
    {
-/*      build_screen(other_screen); */
-      display_screen(other_screen);
+      display_screen( (CHARTYPE)(other_screen) );
    }
-/*   build_screen(current_screen); */
    display_screen(current_screen);
-#ifdef THE_TRACE
-   trace_return();
-#endif
+   TRACE_RETURN();
    return(RC_OK);
 }
 /*man-start*********************************************************************
@@ -2951,38 +3476,183 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- CHARTYPE eolchar=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Eolout");
+   CHARTYPE eolchar=0;
+
+   TRACE_FUNCTION("commset1.c:Eolout");
+   params = MyStrip( params, STRIP_BOTH, ' ' );
+   if ( equal((CHARTYPE *)"lf", params, 2 ) )
+      eolchar = EOLOUT_LF;
+   else if ( equal( (CHARTYPE *)"cr", params, 2 ) )
+      eolchar = EOLOUT_CR;
+   else if ( equal( (CHARTYPE *)"crlf", params, 4 ) )
+      eolchar = EOLOUT_CRLF;
+   else if ( equal( (CHARTYPE *)"none", params, 4 ) )
+      eolchar = EOLOUT_NONE;
+   else
+   {
+      display_error( 1, (CHARTYPE *)params, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if ( display_length != 0
+   &&   eolchar != EOLOUT_NONE )
+   {
+      display_error( 0, (CHARTYPE *)"Warning: Setting EOLOUT will result in extra characters appended to each line on SAVE/FILE!", FALSE );
+   }
+
+   EOLx = CURRENT_FILE->eolout = eolchar;
+   TRACE_RETURN();
+   return(RC_OK);
+}
+/*man-start*********************************************************************
+COMMAND
+     set equivchar - set the equivalence character
+
+SYNTAX
+     [SET] EQUIVChar char
+
+DESCRIPTION
+     The SET EQUIVChar command allows the user to change the character
+     that is used to specify equivalence in command parameters.
+
+     In many THE commands, an equivalence character, usually '=', can
+     be used as a parameter to default to values in the current file
+     or view.
+
+COMPATIBILITY
+     XEDIT: N/A
+     KEDIT: N/A
+
+DEFAULT
+     =
+
+STATUS
+     Complete.
+**man-end**********************************************************************/
+#ifdef HAVE_PROTO
+short Equivchar(CHARTYPE *params)
+#else
+short Equivchar(params)
+CHARTYPE *params;
 #endif
- if (equal((CHARTYPE *)"lf",params,2))
-    eolchar = EOLOUT_LF;
- else
-    if (equal((CHARTYPE *)"cr",params,2))
-       eolchar = EOLOUT_CR;
-    else
-      {
-       if (equal((CHARTYPE *)"crlf",params,4))
-          eolchar = EOLOUT_CRLF;
-       else
-          if (equal((CHARTYPE *)"none",params,4))
-             eolchar = EOLOUT_NONE;
-          else
-            {
-             display_error(1,(CHARTYPE *)params,FALSE);
-#ifdef THE_TRACE
-             trace_return();
+/***********************************************************************/
+{
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Equivchar");
+   /*
+    * Must supply a parameter...
+    */
+   if (blank_field(params))
+   {
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * ... and it must be a single character
+    */
+   if (strlen( (DEFCHAR *)params ) > 1 )
+   {
+      display_error(37,params,FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Save it.
+    */
+   EQUIVCHARstr[0] = EQUIVCHARx = *(params);
+   TRACE_RETURN();
+   return(rc);
+}
+/*man-start*********************************************************************
+COMMAND
+     set errorformat - set format of error messages
+
+SYNTAX
+     [SET] ERRORFormat Normal|Extended
+
+DESCRIPTION
+     The ERRORFORMAT command allows the user to specify if extended information
+     is displayed with error messages.
+     The 'Normal' format is an error number, error text and option arguments following.
+     The 'Extended' format prefixes the 'Normal' format with the command being executed
+     at the time of the error. This assists in tracking down errors inside macros.
+
+COMPATIBILITY
+     XEDIT: N/A
+     KEDIT: N/A
+
+DEFAULT
+     Normal
+
+STATUS
+     Complete.
+**man-end**********************************************************************/
+#ifdef HAVE_PROTO
+short Errorformat(CHARTYPE *params)
+#else
+short Errorformat(params)
+CHARTYPE *params;
 #endif
-             return(RC_INVALID_OPERAND);
-            }
-      }
- EOLx = CURRENT_FILE->eolout = eolchar;
-#ifdef THE_TRACE
- trace_return();
+/***********************************************************************/
+{
+   CHARTYPE errformat='N';
+
+   TRACE_FUNCTION("commset1.c:Errorformat");
+   params = MyStrip( params, STRIP_BOTH, ' ' );
+   if ( equal((CHARTYPE *)"normal", params, 1 ) )
+      errformat = 'N';
+   else if ( equal( (CHARTYPE *)"extended", params, 1 ) )
+      errformat = 'E';
+   else
+   {
+      display_error( 1, (CHARTYPE *)params, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   ERRORFORMATx = errformat;
+   TRACE_RETURN();
+   return(RC_OK);
+}
+/*man-start*********************************************************************
+COMMAND
+     set erroroutput - indicate whether THE error messages are echoed to screen
+
+SYNTAX
+     [SET] ERROROUTput ON|OFF
+
+DESCRIPTION
+     With SET ERROROUTPUT OFF, THE error messages are shown in the MSGLINE.
+     With SET ERROROUTPUT ON, THE error messages are also displayed in the window
+     in which THE was started, provided one exists.
+     This is particularly useful when tracing THE macros as the error message
+     is shown afte the invocation of the command that caused the error.
+
+COMPATIBILITY
+     XEDIT: N/A
+     KEDIT: N/A
+
+DEFAULT
+     OFF
+
+STATUS
+     Complete.
+**man-end**********************************************************************/
+#ifdef HAVE_PROTO
+short Erroroutput(CHARTYPE *params)
+#else
+short Erroroutput(params)
+CHARTYPE *params;
 #endif
- return(RC_OK);
+/***********************************************************************/
+{
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Erroroutput");
+   rc = execute_set_on_off(params,&ERROROUTPUTx, TRUE );
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -2996,12 +3666,12 @@ DESCRIPTION
      in a character set are to be displayed as their actual representation.
 
      Those characters not explicitly specified to be displayed as they are
-     represented, will be displayed as the <SET NONDISP> character in the 
-     colour specified by <SET COLOUR> NONDISP. Characters below 32, will 
-     be displayed with an alphabetic character representing the "control" 
-     code. 
+     represented, will be displayed as the <SET NONDISP> character in the
+     colour specified by <SET COLOUR> NONDISP. Characters below 32, will
+     be displayed with an alphabetic character representing the "control"
+     code.
 
-     eg.
+     e.g.
      character code with a value of 7, will display as "G" in the colour
      specified by <SET COLOUR> NONDISP.
 
@@ -3009,16 +3679,16 @@ DESCRIPTION
      characters as their actual representation.
 
      'OFF' with no optional 'character list' will display control
-     characters below ASCII 32, as a "control" character; characters 
-     greater than ASCII 126 will be displayed as the <SET NONDISP> 
-     characters. On ASCII based machines, [SET] ETMODE OFF is 
+     characters below ASCII 32, as a "control" character; characters
+     greater than ASCII 126 will be displayed as the <SET NONDISP>
+     characters. On ASCII based machines, [SET] ETMODE OFF is
      equivalent  to [SET] ETMODE ON 32-126. On EBCDIC based machines
      [SET] ETMODE OFF is equivalent to [SET] ETMODE ON ??-??
 
      The 'character list' is a list of positive numbers between 0 and
      255 (inclusive).  The format of this character list can be either
-     a single number; eg. 124, or a range of numbers specified; eg.
-     32-126. (The first number must be less than or equal to the second 
+     a single number; e.g. 124, or a range of numbers specified; e.g.
+     32-126. (The first number must be less than or equal to the second
      number).
 
      As an example; ETMODE ON 32-127 160-250  would result in the
@@ -3026,11 +3696,11 @@ DESCRIPTION
      and 160 and 250 inclusive being displayed as their actual
      representation (depending on the current font), and the
      characters between 0 and 31 inclusive, being displayed as
-     an equivalent "control" character; characters between 128 and 
-     159 inculsive and 250 to 255 being displayed with the <SET NONDISP>
+     an equivalent "control" character; characters between 128 and
+     159 inclusive and 250 to 255 being displayed with the <SET NONDISP>
      character.
 
-     Up to 20 character specifiers (single number or range) can be 
+     Up to 20 character specifiers (single number or range) can be
      specified.
 
 COMPATIBILITY
@@ -3040,7 +3710,7 @@ COMPATIBILITY
 DEFAULT
      ON - DOS/OS2/WIN32
      ON 32-255 - X11
-     OFF - UNIX
+     OFF - UNIX/AMIGA/QNX
 
 SEE ALSO
      <SET NONDISP>, <SET COLOUR>
@@ -3056,7 +3726,6 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define ETM_PARAMS  21
    CHARTYPE *word[ETM_PARAMS+1];
    CHARTYPE strip[ETM_PARAMS];
@@ -3069,28 +3738,22 @@ CHARTYPE *params;
    bool flags[256];
    int num=0,num1=0;
    CHARTYPE *wptr=NULL,*wptr1=NULL;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
-   trace_function("commset1.c:Etmode");
-#endif
+
+   TRACE_FUNCTION("commset1.c:Etmode");
    for(i=0;i<ETM_PARAMS;i++)
       strip[i]=STRIP_BOTH;
    num_params = param_split(params,word,ETM_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
    if (num_params < 1)
    {
       display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
-   rc = execute_set_on_off(word[0],&tmp_mode);
+   rc = execute_set_on_off(word[0],&tmp_mode, TRUE );
    if (rc != RC_OK)
    {
       display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (CURRENT_VIEW == NULL
@@ -3113,49 +3776,29 @@ CHARTYPE *params;
       {
          for (i=0;i<256;i++)
          {
-#if 1
-            if ( isprint(i) )
+            if (isprint(i) )
             {
                etmode_table[i] = i;
                etmode_flag[i] = FALSE;
             }
-            else if ( iscntrl(i) )
+            else if (iscntrl(i) )
             {
                etmode_table[i] = ('@' + i) | attr;
-               etmode_flag[i] = (attr)?TRUE:FALSE;
-            }
-            else 
-            {
-               etmode_table[i] = NONDISPx | attr;
-               etmode_flag[i] = (attr)?TRUE:FALSE;
-            }
-#else
-            if (i < 32)
-            {
-               etmode_table[i] = ('@' + i) | attr;
-               etmode_flag[i] = (attr)?TRUE:FALSE;
-            }
-            else if (i > 126)
-            {
-               etmode_table[i] = NONDISPx | attr;
                etmode_flag[i] = (attr)?TRUE:FALSE;
             }
             else
             {
-               etmode_table[i] = i;
-               etmode_flag[i] = FALSE;
+               etmode_table[i] = NONDISPx | attr;
+               etmode_flag[i] = (attr)?TRUE:FALSE;
             }
-#endif
          }
       }
       if (number_of_files != 0)
       {
-         build_screen(current_screen); 
+         build_screen(current_screen);
          display_screen(current_screen);
       }
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_OK);
    }
    memset(flags,FALSE,sizeof(flags));
@@ -3167,9 +3810,7 @@ CHARTYPE *params;
          if (num > 255)
          {
             display_error(6,word[i],FALSE);
-#ifdef THE_TRACE
-            trace_return();
-#endif
+            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          flags[num] = TRUE;
@@ -3181,9 +3822,7 @@ CHARTYPE *params;
       || num == (-1))
       {
          display_error(1,word[i],FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       wptr = word[i];
@@ -3192,17 +3831,13 @@ CHARTYPE *params;
       if (!valid_positive_integer(wptr))
       {
          display_error(1,wptr,FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       if (!valid_positive_integer(wptr))
       {
          display_error(1,wptr1,FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       num = atoi((DEFCHAR *)wptr);
@@ -3210,25 +3845,19 @@ CHARTYPE *params;
       if (num > num1)
       {
          display_error(1,word[i],FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       if (num > 255)
       {
          display_error(6,wptr,FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       if (num1 > 255)
       {
          display_error(6,wptr1,FALSE);
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       for (j=num;j<num1+1;j++)
@@ -3245,11 +3874,7 @@ CHARTYPE *params;
       }
       else
       {
-#if 1
-         if ( iscntrl(i) )
-#else
-         if (i < 32)
-#endif
+         if (iscntrl(i) )
          {
             etmode_table[i] = ('@' + i) | attr;
             etmode_flag[i] = TRUE;
@@ -3263,12 +3888,10 @@ CHARTYPE *params;
    }
    if (number_of_files != 0)
    {
-      build_screen(current_screen); 
+      build_screen(current_screen);
       display_screen(current_screen);
    }
-#ifdef THE_TRACE
-   trace_return();
-#endif
+   TRACE_RETURN();
    return(rc);
 }
 /*man-start*********************************************************************
@@ -3280,12 +3903,9 @@ SYNTAX
      [SET] FType ext
 
 DESCRIPTION
-     The SET FEXT command allows the user to change the path of
-     the file currently being edited.
-
-     The 'path' parameter can be specified with or without the
-     trailing directory seperator.  Under DOS, OS/2 and Windows ports,
-     the drive letter is considered part of the file's path.
+     The SET FEXT command allows the user to change the extension of
+     the file currently being edited. The extension is the characters
+     after the last period.
 
      See <SET FILENAME> for a full explanation of THE's definitions
      of fpath, filename, fname, fext and fmode.
@@ -3310,95 +3930,94 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- CHARTYPE tmp_name[MAX_FILE_NAME+1];
- short rc=RC_OK;
- int last_period=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Fext");
-#endif
-/*
- * If a pseudo file is being changed, then error...
- */
- if (CURRENT_FILE->pseudo_file)
+   CHARTYPE tmp_name[MAX_FILE_NAME+1];
+   short rc=RC_OK;
+   int last_period=0;
+
+   TRACE_FUNCTION("commset1.c:Fext");
+   /*
+    * If a pseudo file is being changed, then error...
+    */
+   if (CURRENT_FILE->pseudo_file)
    {
-    display_error(8,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(8,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- strcpy((DEFCHAR *)tmp_name,(DEFCHAR *)CURRENT_FILE->fpath);
- strcat((DEFCHAR*)tmp_name,(DEFCHAR*)CURRENT_FILE->fname);
- last_period = strzreveq(CURRENT_FILE->fname,(CHARTYPE)'.');
- if (last_period == (-1)) /* no period */
+   strcpy((DEFCHAR *)tmp_name,(DEFCHAR *)CURRENT_FILE->fpath);
+   strcat((DEFCHAR*)tmp_name,(DEFCHAR*)CURRENT_FILE->fname);
+   last_period = strzreveq(CURRENT_FILE->fname,(CHARTYPE)'.');
+   if (last_period == (-1)) /* no period */
    {
-    if (blank_field(params)) /* and no extension, return... */
+      if (blank_field(params)) /* and no extension, return... */
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_OK);
+         TRACE_RETURN();
+         return(RC_OK);
       }
-    strcat((DEFCHAR*)tmp_name,"."); /* add a period */
+      strcat((DEFCHAR*)tmp_name,"."); /* add a period */
    }
- else
+   else
    {
-    tmp_name[strlen((DEFCHAR*)CURRENT_FILE->fpath)+last_period+1] = '\0';
+      tmp_name[strlen((DEFCHAR*)CURRENT_FILE->fpath)+last_period+1] = '\0';
    }
- strcat((DEFCHAR*)tmp_name,(DEFCHAR*)params);
-/*
- * Split the new path supplied...
- */
- if ((rc = splitpath(strrmdup(strtrans(tmp_name,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
+   strcat((DEFCHAR*)tmp_name,(DEFCHAR*)params);
+   /*
+    * Split the new path supplied...
+    */
+   if ((rc = splitpath(strrmdup(strtrans(tmp_name,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
    {
-    display_error(10,tmp_name,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      display_error(10,tmp_name,FALSE);
+      TRACE_RETURN();
+      return(rc);
    }
-/*
- * If the path is NOT the same as already assigned, error...
- */
- if (strcmp((DEFCHAR *)sp_path,(DEFCHAR *)CURRENT_FILE->fpath) != 0)
+   /*
+    * If the path is NOT the same as already assigned, error...
+    */
+   if (strcmp((DEFCHAR *)sp_path,(DEFCHAR *)CURRENT_FILE->fpath) != 0)
    {
-    display_error(1,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      display_error(1,params,FALSE);
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*
- * If the length of the new path is > the existing one,
- * free up any memory for the existing path and allocate some
- * more. Save the new path.
- */
- if (strlen((DEFCHAR*)sp_fname) > strlen((DEFCHAR*)CURRENT_FILE->fname))
+   /*
+    * Check we don't already have this filename in the ring
+    */
+   if ( is_file_in_ring( CURRENT_FILE->fpath, sp_fname ) )
    {
-    (*the_free)(CURRENT_FILE->fname);
-    if ((CURRENT_FILE->fname = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)sp_fname))) == NULL)
+      display_error( 76, tmp_name, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * If the length of the new path is > the existing one,
+    * free up any memory for the existing path and allocate some
+    * more. Save the new path.
+    */
+   if (strlen((DEFCHAR*)sp_fname) > strlen((DEFCHAR*)CURRENT_FILE->fname))
+   {
+      (*the_free)(CURRENT_FILE->fname);
+      if ((CURRENT_FILE->fname = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)sp_fname))) == NULL)
       {
-       display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_OUT_OF_MEMORY);
+         display_error(30,(CHARTYPE *)"",FALSE);
+         TRACE_RETURN();
+         return(RC_OUT_OF_MEMORY);
       }
    }
- strcpy((DEFCHAR *)CURRENT_FILE->fname,(DEFCHAR *)sp_fname);
-/*
- * Re-display the IDLINE
- */
- if (display_screens > 1
- &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
-    show_heading(other_screen);
- show_heading(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   strcpy((DEFCHAR *)CURRENT_FILE->fname,(DEFCHAR *)sp_fname);
+   /*
+    * Re-display the IDLINE
+    */
+   if (curses_started)
+   {
+      if (display_screens > 1
+      &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
+      {
+         show_heading( (CHARTYPE)(other_screen) );
+      }
+      show_heading(current_screen);
+   }
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -3413,15 +4032,15 @@ DESCRIPTION
 
      In THE, a fully qualified file name consists of a file path and a
      file name.  THE treats all characters up to and including the
-     last directory seperator (usually / or \) as the file's path.
+     last directory separator (usually / or \) as the file's path.
      From the first character after the end of the file's path, to
      the end of the fully qualified file name is the file name.
 
      A file name is further broken down into a fname and fext.
-     The fname of a file consists of all characters from the start 
-     of the filename up to but not including the last period (if 
-     there is one).  The fext of a file consists of all characters 
-     from the end of the filename up to but not including the last 
+     The fname of a file consists of all characters from the start
+     of the filename up to but not including the last period (if
+     there is one).  The fext of a file consists of all characters
+     from the end of the filename up to but not including the last
      period. If there is no period in the filename then the fext is
      empty.
 
@@ -3443,8 +4062,8 @@ DESCRIPTION
      carried out by this command, but some errors in the file name
      will not be evident until the file is saved.
 
-     A leading "=" indicates that the fname portion of the current file 
-     name is be retained.  This is equivalent to the command 
+     A leading "=" indicates that the fname portion of the current file
+     name is be retained.  This is equivalent to the command
      <SET FEXT>.  A trailing "=" indicates that the fext portion of
      the current file name is to be retained. This is equivalent to the
      command <SET FNAME>.
@@ -3471,7 +4090,7 @@ COMPATIBILITY
      KEDIT: Compatible.
 
 SEE ALSO
-     <SET FPATH>, <SET FNAME>, <SET FEXT>, <SET FMODE>
+     <SET FPATH>, <SET FNAME>, <SET FEXT>, <SET FMODE>, <SET EQUIVCHAR>
 
 STATUS
      Complete.
@@ -3484,163 +4103,239 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- CHARTYPE tmp_name[MAX_FILE_NAME+1];
- short rc=RC_OK;
- int i=0,cnt=0,len_params=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Filename");
-#endif
-/*
- * Must supply a parameter...
- */
- if (blank_field(params))
+   CHARTYPE tmp_name[MAX_FILE_NAME+1];
+   short rc=RC_OK;
+   int i=0,cnt=0,len_params=0;
+
+   TRACE_FUNCTION("commset1.c:Filename");
+  /*
+   * Must supply a parameter...
+   */
+   if ( blank_field( params ) )
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If a pseudo file is being changed, then error...
- */
- if (CURRENT_FILE->pseudo_file)
+   /*
+    * If a pseudo file is being changed, then error...
+    */
+   if ( CURRENT_FILE->pseudo_file )
    {
-    display_error(8,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 8, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If a = is specified...
- */
- if (strcmp((DEFCHAR*)"=",(DEFCHAR*)params) == 0)
+   /*
+    * If a = is specified...
+    */
+   if ( equal( params, EQUIVCHARstr, 1 ) )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*
- * Find out how many = are specified...
- */
- len_params = strlen((DEFCHAR*)params);
- for (i=0,cnt=0;i<len_params;i++)
+   /*
+    * Find out how many = are specified...
+    */
+   len_params = strlen( (DEFCHAR*)params );
+   for ( i = 0, cnt = 0; i < len_params; i++ )
    {
-    if (params[i] == '=')
-       cnt++;
+      if ( params[i] == EQUIVCHARx )
+         cnt++;
    }
- if (cnt > 1)
+   if ( cnt > 1 )
    {
-    display_error(1,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      display_error( 1, params, FALSE );
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*
- * If we do have a leading or trailing = then call the equivalent
- * SET FEXT or FNAME command...
- */
- if (cnt == 1)
+   /*
+    * The filename can be quoted; so strip leading and trailing
+    * double quotes
+    */
+   params = MyStrip( params, STRIP_BOTH, '"' );
+   /*
+    * If we do have a leading or trailing = then call the equivalent
+    * SET FEXT or FNAME command...
+    */
+   if ( cnt == 1 )
    {
-    if (params[0] == '=')
+      if ( params[0] == EQUIVCHARx)
       {
-       strcpy((DEFCHAR*)tmp_name,(DEFCHAR*)params+1);
-       rc = Fext(tmp_name);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(rc);
+         strcpy( (DEFCHAR*)tmp_name, (DEFCHAR*)params + 1 );
+         rc = Fext( tmp_name );
+         TRACE_RETURN();
+         return(rc);
       }
-    else
+      else
       {
-       if (params[len_params-1] == '=')
+         if ( params[len_params-1] == EQUIVCHARx )
          {
-          strcpy((DEFCHAR*)tmp_name,(DEFCHAR*)params);
-          tmp_name[len_params-1] = '\0';
-          rc = Fname(tmp_name);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(rc);
+            strcpy( (DEFCHAR*)tmp_name, (DEFCHAR*)params );
+            tmp_name[len_params-1] = '\0';
+            rc = Fname( tmp_name );
+            TRACE_RETURN();
+            return(rc);
          }
-       else
+         else
          {
-          display_error(1,params,FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(rc);
+            display_error( 1, params, FALSE );
+            TRACE_RETURN();
+            return(rc);
          }
       }
    }
-/*
- * To get here, no = was in the parameter...
- */
- strcpy((DEFCHAR *)tmp_name,(DEFCHAR *)CURRENT_FILE->fpath);
- strcat((DEFCHAR *)tmp_name,(DEFCHAR *)params);
- if ((rc = splitpath(strrmdup(strtrans(tmp_name,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
+   /*
+    * To get here, no = was in the parameter...
+    */
+   strcpy( (DEFCHAR *)tmp_name, (DEFCHAR *)CURRENT_FILE->fpath );
+   strcat( (DEFCHAR *)tmp_name, (DEFCHAR *)params );
+   if ( ( rc = splitpath( strrmdup( strtrans( tmp_name, OSLASH, ISLASH ), ISLASH, TRUE ) ) ) != RC_OK )
    {
-    display_error(10,tmp_name,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      display_error( 10, tmp_name, FALSE );
+      TRACE_RETURN();
+      return(rc);
    }
-/*
- * If the resulting path is different to the current one, error.
- */
- if (strcmp((DEFCHAR *)sp_path,(DEFCHAR *)CURRENT_FILE->fpath) != 0)
+   /*
+    * If the resulting path is different to the current one, error.
+    */
+   if ( strcmp( (DEFCHAR *)sp_path, (DEFCHAR *)CURRENT_FILE->fpath ) != 0 )
    {
-    display_error(8,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 8, params, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If the file name is the same as already assigned, exit...
- */
- if (strcmp((DEFCHAR *)sp_fname,(DEFCHAR *)CURRENT_FILE->fname) == 0)
+   /*
+    * If the file name is the same as already assigned, exit...
+    */
+   if ( strcmp( (DEFCHAR *)sp_fname, (DEFCHAR *)CURRENT_FILE->fname ) == 0 )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*
- * If the length of the new filename is > the existing one, 
- * free up any memory for the existing name and allocate some
- * more. Save the new name.
- */
- if (strlen((DEFCHAR*)sp_fname) > strlen((DEFCHAR*)CURRENT_FILE->fname))
+   /*
+    * Check we don't already have this filename in the ring
+    */
+   if ( is_file_in_ring( CURRENT_FILE->fpath, sp_fname ) )
    {
-    (*the_free)(CURRENT_FILE->fname);
-    if ((CURRENT_FILE->fname = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)sp_fname)+1)) == NULL)
+      display_error( 76, tmp_name, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * If the length of the new filename is > the existing one,
+    * free up any memory for the existing name and allocate some
+    * more. Save the new name.
+    */
+   if ( strlen( (DEFCHAR*)sp_fname ) > strlen( (DEFCHAR*)CURRENT_FILE->fname ) )
+   {
+      (*the_free)( CURRENT_FILE->fname );
+      if ( ( CURRENT_FILE->fname = (CHARTYPE *)(*the_malloc)( strlen( (DEFCHAR *)sp_fname ) + 1 ) ) == NULL )
       {
-       display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_OUT_OF_MEMORY);
+         display_error( 30, (CHARTYPE *)"", FALSE );
+         TRACE_RETURN();
+         return(RC_OUT_OF_MEMORY);
       }
    }
- strcpy((DEFCHAR *)CURRENT_FILE->fname,(DEFCHAR *)sp_fname);
-/*
- * Re-display the IDLINE
- */
- if (display_screens > 1
- &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
-    show_heading(other_screen);
- show_heading(current_screen);
-#ifdef THE_TRACE
- trace_return();
+   strcpy( (DEFCHAR *)CURRENT_FILE->fname, (DEFCHAR *)sp_fname );
+   /*
+    * Re-display the IDLINE
+    */
+   if (curses_started)
+   {
+      if (display_screens > 1
+      &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
+      {
+         show_heading( (CHARTYPE)(other_screen) );
+      }
+      show_heading(current_screen);
+   }
+   TRACE_RETURN();
+   return(rc);
+}
+/*man-start*********************************************************************
+COMMAND
+     set filetabs - determine if and where where file tabs are positioned
+
+SYNTAX
+     [SET] FILETABS ON|OFF
+
+DESCRIPTION
+     The SET FILETABS command allows the user to determine if file tabs
+     are to be displayed and where. FILETABS is a single line at the
+     top of the display showing all files currently in the ring, except
+     the current file.
+     It provides a mechanism where the user running THE with mouse support
+     can simply click on the filename in the FILETABS line to change focus
+     to that file.
+
+     The colour of the file tabs can be set with <SET COLOUR> FILETABS.
+     The colour of the file dividers can be set with <SET COLOUR> FILETABSDIV.
+
+COMPATIBILITY
+     XEDIT: N/A
+     KEDIT: N/A
+
+SEE ALSO
+     <SET COLOUR>, <TABFILE>
+
+STATUS
+     Complete.
+**man-end**********************************************************************/
+#ifdef HAVE_PROTO
+short THEFiletabs(CHARTYPE *params)
+#else
+short THEFiletabs(params)
+CHARTYPE *params;
 #endif
- return(rc);
+/***********************************************************************/
+{
+   short rc=RC_OK;
+   bool save_filetabs=FILETABSx;
+
+   TRACE_FUNCTION("commset1.c:THEFiletabs");
+   rc = execute_set_on_off( params, &FILETABSx , TRUE );
+   if ( save_filetabs != FILETABSx )
+   {
+      if ( FILETABSx && filetabs == (WINDOW *)NULL )
+      {
+         create_filetabs_window();
+      }
+      else if ( !FILETABSx && filetabs != (WINDOW *)NULL )
+      {
+         delwin( filetabs );
+         filetabs = (WINDOW *)NULL;
+      }
+      /*
+       * To get here something has changed, so rebuild the windows and
+       * display the screen.
+       */
+      set_screen_defaults();
+      if ( set_up_windows( current_screen ) != RC_OK )
+      {
+         TRACE_RETURN();
+         return(RC_OK);
+      }
+      /*
+       * We now have CURRENT_VIEW and real screen sizes set, we can
+       * calculate the CURLINE value.
+       */
+      CURRENT_VIEW->current_row = calculate_actual_row(CURRENT_VIEW->current_base,
+                                                       CURRENT_VIEW->current_off,
+                                                       CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE);
+      if ( display_screens > 1
+      &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ) )
+      {
+         build_screen( (CHARTYPE)(other_screen) );
+         if ( curses_started )
+            display_screen( (CHARTYPE)(other_screen) );
+      }
+      build_screen( current_screen );
+      if ( curses_started )
+         display_screen( current_screen );
+   }
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -3678,126 +4373,121 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- CHARTYPE tmp_name[MAX_FILE_NAME+1];
- short rc=RC_OK;
- int len_params=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Fmode");
+#ifndef UNIX
+   CHARTYPE tmp_name[MAX_FILE_NAME+1];
+   int len_params=0;
 #endif
-/*
- * Not valid for Unix...
- */
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Fmode");
+   /*
+    * Not valid for Unix...
+    */
 #ifdef UNIX
- display_error(82,(CHARTYPE *)"FMODE",FALSE);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_INVALID_OPERAND);
-#endif
-/*
- * Must supply a parameter...
- */
- if (blank_field(params))
+   display_error( 82, (CHARTYPE *)"FMODE", FALSE );
+   rc = RC_INVALID_OPERAND;
+#else
+   /*
+    * Must supply a parameter...
+    */
+   if (blank_field(params))
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If a pseudo file is being changed, then error...
- */
- if (CURRENT_FILE->pseudo_file)
+   /*
+    * If a pseudo file is being changed, then error...
+    */
+   if (CURRENT_FILE->pseudo_file)
    {
     display_error(8,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
+    TRACE_RETURN();
     return(RC_INVALID_OPERAND);
    }
-/*
- * The only valid parameter is an alphabetic with an optional
- * ':'
- */
- len_params = strlen((DEFCHAR*)params);
- if (len_params > 2
- || !isalpha(*params)
- || (len_params == 2
-   && *params != ':'))
+   /*
+    * The only valid parameter is an alphabetic with an optional
+    * ':'
+    */
+   len_params = strlen((DEFCHAR*)params);
+   if ( len_params > 2
+   ||   !isalpha(*params)
+   ||   (len_params == 2
+      && *params != ':') )
    {
-    display_error(1,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(1,params,FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- strcpy((DEFCHAR*)tmp_name,(DEFCHAR*)CURRENT_FILE->fpath);
- memcpy((DEFCHAR*)tmp_name,(DEFCHAR*)params,len_params);
-/*
- * Split the new path supplied...
- */
- if ((rc = splitpath(strrmdup(strtrans(tmp_name,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
+   strcpy((DEFCHAR*)tmp_name,(DEFCHAR*)CURRENT_FILE->fpath);
+   memcpy((DEFCHAR*)tmp_name,(DEFCHAR*)params,len_params);
+   /*
+    * Split the new path supplied...
+    */
+   if ((rc = splitpath(strrmdup(strtrans(tmp_name,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
    {
-    display_error(10,tmp_name,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      display_error(10,tmp_name,FALSE);
+      TRACE_RETURN();
+      return(rc);
    }
-/*
- * If a filename results, then the path name specified would conflict
- * with an existing file.
- */
- if (!blank_field(sp_fname))
+   /*
+    * If a filename results, then the path name specified would conflict
+    * with an existing file.
+    */
+   if (!blank_field(sp_fname))
    {
-    display_error(8,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(8,params,FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If the path is the same as already assigned, exit...
- */
- if (strcmp((DEFCHAR *)sp_path,(DEFCHAR *)CURRENT_FILE->fpath) == 0)
+   /*
+    * If the path is the same as already assigned, exit...
+    */
+   if (strcmp((DEFCHAR *)sp_path,(DEFCHAR *)CURRENT_FILE->fpath) == 0)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*
- * If the length of the new path is > the existing one,
- * free up any memory for the existing path and allocate some
- * more. Save the new path.
- */
- if (strlen((DEFCHAR*)sp_path) > strlen((DEFCHAR*)CURRENT_FILE->fpath))
+   /*
+    * Check we don't already have this filename in the ring
+    */
+   if ( is_file_in_ring( sp_path, CURRENT_FILE->fname ) )
    {
-    (*the_free)(CURRENT_FILE->fpath);
-    if ((CURRENT_FILE->fpath = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)sp_path))) == NULL)
+      display_error( 76, tmp_name, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * If the length of the new path is > the existing one,
+    * free up any memory for the existing path and allocate some
+    * more. Save the new path.
+    */
+   if (strlen((DEFCHAR*)sp_path) > strlen((DEFCHAR*)CURRENT_FILE->fpath))
+   {
+      (*the_free)(CURRENT_FILE->fpath);
+      if ((CURRENT_FILE->fpath = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)sp_path))) == NULL)
       {
-       display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_OUT_OF_MEMORY);
+         display_error(30,(CHARTYPE *)"",FALSE);
+         TRACE_RETURN();
+         return(RC_OUT_OF_MEMORY);
       }
    }
- strcpy((DEFCHAR *)CURRENT_FILE->fpath,(DEFCHAR *)sp_path);
-/*
- * Re-display the IDLINE
- */
- if (display_screens > 1
- &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
-    show_heading(other_screen);
- show_heading(current_screen);
-#ifdef THE_TRACE
- trace_return();
+   strcpy((DEFCHAR *)CURRENT_FILE->fpath,(DEFCHAR *)sp_path);
+   /*
+    * Re-display the IDLINE
+    */
+   if (curses_started)
+   {
+      if (display_screens > 1
+      &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
+      {
+         show_heading( (CHARTYPE)(other_screen) );
+      }
+      show_heading(current_screen);
+   }
 #endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -3837,112 +4527,112 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- CHARTYPE tmp_name[MAX_FILE_NAME+1];
- short rc=RC_OK;
- int last_period=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Fname");
-#endif
-/*
- * Must supply a parameter...
- */
- if (blank_field(params))
-   {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
-   }
-/*
- * If a pseudo file is being changed, then error...
- */
- if (CURRENT_FILE->pseudo_file)
-   {
-    display_error(8,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
-   }
- strcpy((DEFCHAR *)tmp_name,(DEFCHAR *)CURRENT_FILE->fpath);
- last_period = strzreveq(CURRENT_FILE->fname,(CHARTYPE)'.');
- if (last_period == (-1)) /* no period */
-   {
-    strcat((DEFCHAR*)tmp_name,(DEFCHAR*)params);
-   }
- else
-   {
-    int len=strlen((DEFCHAR*)CURRENT_FILE->fpath);
-    int lenext=strlen((DEFCHAR*)CURRENT_FILE->fname)-last_period;
-    strcat((DEFCHAR*)tmp_name,(DEFCHAR*)CURRENT_FILE->fname+last_period);
-    meminsmem(tmp_name,params,strlen((DEFCHAR*)params),len,MAX_FILE_NAME+1,
-              len+lenext+1);
-   }
+   CHARTYPE tmp_name[MAX_FILE_NAME+1];
+   short rc=RC_OK;
+   int last_period=0;
 
-/*
- * Split the new path supplied...
- */
- if ((rc = splitpath(strrmdup(strtrans(tmp_name,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
+   TRACE_FUNCTION( "commset1.c:Fname" );
+   /*
+    * Must supply a parameter...
+    */
+   if ( blank_field( params ) )
    {
-    display_error(10,tmp_name,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If the resulting path is different to the current one, error.
- */
- if (strcmp((DEFCHAR *)sp_path,(DEFCHAR *)CURRENT_FILE->fpath) != 0)
+   /*
+    * If a pseudo file is being changed, then error...
+    */
+   if ( CURRENT_FILE->pseudo_file )
    {
-    display_error(8,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 8, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If the file name is the same as already assigned, exit...
- */
- if (strcmp((DEFCHAR *)sp_fname,(DEFCHAR *)CURRENT_FILE->fname) == 0)
+   /*
+    * The filename can be quoted; so strip leading and trailing
+    * double quotes
+    */
+   params = MyStrip( params, STRIP_BOTH, '"' );
+   strcpy( (DEFCHAR *)tmp_name, (DEFCHAR *)CURRENT_FILE->fpath );
+   last_period = strzreveq( CURRENT_FILE->fname, (CHARTYPE)'.' );
+   if ( last_period == (-1) ) /* no period */
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      strcat( (DEFCHAR*)tmp_name, (DEFCHAR*)params );
    }
-/*
- * If the length of the new path is > the existing one,
- * free up any memory for the existing path and allocate some
- * more. Save the new path.
- */
- if (strlen((DEFCHAR*)sp_fname) > strlen((DEFCHAR*)CURRENT_FILE->fname))
+   else
    {
-    (*the_free)(CURRENT_FILE->fname);
-    if ((CURRENT_FILE->fname = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)sp_fname))) == NULL)
+      int len = strlen( (DEFCHAR*)CURRENT_FILE->fpath );
+      int lenext = strlen( (DEFCHAR*)CURRENT_FILE->fname) - last_period;
+      strcat( (DEFCHAR*)tmp_name, (DEFCHAR*)CURRENT_FILE->fname + last_period );
+      meminsmem( tmp_name, params, strlen( (DEFCHAR*)params), len, MAX_FILE_NAME + 1, len + lenext + 1 );
+   }
+   /*
+    * Split the new path supplied...
+    */
+   if ( ( rc = splitpath( strrmdup( strtrans( tmp_name, OSLASH, ISLASH ), ISLASH, TRUE ) ) ) != RC_OK )
+   {
+      display_error( 10, tmp_name, FALSE );
+      TRACE_RETURN();
+      return(rc);
+   }
+   /*
+    * If the resulting path is different to the current one, error.
+    */
+   if ( strcmp( (DEFCHAR *)sp_path, (DEFCHAR *)CURRENT_FILE->fpath ) != 0 )
+   {
+      display_error( 8, params, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * If the file name is the same as already assigned, exit...
+    */
+   if ( strcmp( (DEFCHAR *)sp_fname, (DEFCHAR *)CURRENT_FILE->fname ) == 0 )
+   {
+      TRACE_RETURN();
+      return(RC_OK);
+   }
+   /*
+    * Check we don't already have this filename in the ring
+    */
+   if ( is_file_in_ring( CURRENT_FILE->fpath, sp_fname ) )
+   {
+      display_error( 76, tmp_name, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * If the length of the new path is > the existing one,
+    * free up any memory for the existing path and allocate some
+    * more. Save the new path.
+    */
+   if ( strlen( (DEFCHAR*)sp_fname ) > strlen( (DEFCHAR*)CURRENT_FILE->fname ) )
+   {
+      (*the_free)( CURRENT_FILE->fname );
+      if ( ( CURRENT_FILE->fname = (CHARTYPE *)(*the_malloc)( strlen( (DEFCHAR *)sp_fname ) ) ) == NULL )
       {
-       display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_OUT_OF_MEMORY);
+         display_error( 30, (CHARTYPE *)"", FALSE );
+         TRACE_RETURN();
+         return(RC_OUT_OF_MEMORY);
       }
    }
- strcpy((DEFCHAR *)CURRENT_FILE->fname,(DEFCHAR *)sp_fname);
-/*
- * Re-display the IDLINE
- */
- if (display_screens > 1
- &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
-    show_heading(other_screen);
- show_heading(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   strcpy( (DEFCHAR *)CURRENT_FILE->fname, (DEFCHAR *)sp_fname );
+   /*
+    * Re-display the IDLINE
+    */
+   if (curses_started)
+   {
+      if (display_screens > 1
+      &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
+      {
+         show_heading( (CHARTYPE)(other_screen) );
+      }
+      show_heading(current_screen);
+   }
+    TRACE_RETURN();
+    return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -3956,7 +4646,7 @@ DESCRIPTION
      the file currently being edited.
 
      The 'path' parameter can be specified with or without the
-     trailing directory seperator.  Under DOS, OS/2 and Windows ports,
+     trailing directory separator.  Under DOS, OS/2 and Windows ports,
      the drive letter is considered part of the file's path.
 
      See <SET FILENAME> for a full explanation of THE's definitions
@@ -3982,96 +4672,100 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Fpath");
-#endif
-/*
- * Must supply a parameter...
- */
- if (blank_field(params))
+   CHARTYPE tmp_name[MAX_FILE_NAME+1];
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Fpath");
+   /*
+    * Must supply a parameter...
+    */
+   if ( blank_field( params ) )
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If a pseudo file is being changed, then error...
- */
- if (CURRENT_FILE->pseudo_file)
+   /*
+    * If a pseudo file is being changed, then error...
+    */
+   if ( CURRENT_FILE->pseudo_file )
    {
-    display_error(8,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 8, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * Split the new path supplied...
- */
- if ((rc = splitpath(strrmdup(strtrans(params,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
+   /*
+    * The filename can be quoted; so strip leading and trailing
+    * double quotes
+    */
+   params = MyStrip( params, STRIP_BOTH, '"' );
+   /*
+    * Split the new path supplied...
+    */
+   if ( ( rc = splitpath( strrmdup( strtrans( params, OSLASH, ISLASH ), ISLASH, TRUE ) ) ) != RC_OK )
    {
-    display_error(10,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      display_error( 10, params, FALSE );
+      TRACE_RETURN();
+      return(rc);
    }
-/*
- * If a filename results, then the path name specified would conflict
- * with an existing file.
- */
- if (!blank_field(sp_fname))
+   /*
+    * If a filename results, then the path name specified would conflict
+    * with an existing file.
+    */
+   if ( !blank_field( sp_fname ) )
    {
-    display_error(8,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 8, params, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*
- * If the path is the same as already assigned, exit...
- */
- if (strcmp((DEFCHAR *)sp_path,(DEFCHAR *)CURRENT_FILE->fpath) == 0)
+   /*
+    * If the path is the same as already assigned, exit...
+    */
+   if ( strcmp( (DEFCHAR *)sp_path, (DEFCHAR *)CURRENT_FILE->fpath ) == 0 )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*
- * If the length of the new path is > the existing one,
- * free up any memory for the existing path and allocate some
- * more. Save the new path.
- */
- if (strlen((DEFCHAR*)sp_path) > strlen((DEFCHAR*)CURRENT_FILE->fpath))
+   /*
+    * Check we don't already have this filename in the ring
+    */
+   if ( is_file_in_ring( sp_path, CURRENT_FILE->fname ) )
    {
-    (*the_free)(CURRENT_FILE->fpath);
-    if ((CURRENT_FILE->fpath = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)sp_path))) == NULL)
+      sprintf( (DEFCHAR *)tmp_name, "%s%s", (CHARTYPE *)sp_path, CURRENT_FILE->fname );
+      display_error( 76, tmp_name, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * If the length of the new path is > the existing one,
+    * free up any memory for the existing path and allocate some
+    * more. Save the new path.
+    */
+   if ( strlen( (DEFCHAR*)sp_path) > strlen( (DEFCHAR*)CURRENT_FILE->fpath ) )
+   {
+      (*the_free)( CURRENT_FILE->fpath );
+      if ( ( CURRENT_FILE->fpath = (CHARTYPE *)(*the_malloc)( strlen( (DEFCHAR *)sp_path ) ) ) == NULL )
       {
-       display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_OUT_OF_MEMORY);
+         display_error( 30, (CHARTYPE *)"", FALSE );
+         TRACE_RETURN();
+         return(RC_OUT_OF_MEMORY);
       }
    }
- strcpy((DEFCHAR *)CURRENT_FILE->fpath,(DEFCHAR *)sp_path);
-/*
- * Re-display the IDLINE
- */
- if (display_screens > 1
- &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
-    show_heading(other_screen);
- show_heading(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   strcpy( (DEFCHAR *)CURRENT_FILE->fpath, (DEFCHAR *)sp_path );
+   /*
+    * Re-display the IDLINE
+    */
+   if (curses_started)
+   {
+      if (display_screens > 1
+      &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
+      {
+         show_heading( (CHARTYPE)(other_screen) );
+      }
+      show_heading(current_screen);
+   }
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4104,7 +4798,9 @@ SYNTAX
 DESCRIPTION
      The SET FULLFNAME command allows the user to determine if the
      fully qualified filename is displayed on the IDLINE or just the
-     filename that the user entered.
+     FNAME component.
+     See <SET FILENAME> for a full explanation of THE's definitions
+     of fpath, filename, fname, fext and fmode.
 
 COMPATIBILITY
      XEDIT: N/A
@@ -4124,21 +4820,121 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Fullfname");
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Fullfname");
+   rc = execute_set_on_off(params,&CURRENT_FILE->display_actual_filename, TRUE );
+   if (curses_started)
+   {
+      if (display_screens > 1
+      &&  SCREEN_FILE(current_screen) == SCREEN_FILE( (CHARTYPE)(other_screen) ))
+      {
+         show_heading( (CHARTYPE)(other_screen) );
+      }
+      show_heading(current_screen);
+   }
+   TRACE_RETURN();
+   return(rc);
+}
+/*man-start*********************************************************************
+COMMAND
+     set header - turn on or off syntax highlighting headers
+
+SYNTAX
+     [SET] HEADer section ON|OFF
+
+DESCRIPTION
+     The SET HEADER command allows fine tuning of which sections of a
+     TLD file are to be applied for the current view.
+
+     'section' refers to one of the following headers that can be specified
+     in a TLD file:
+     NUMBER, COMMENT, STRING, KEYWORD, FUNCTION, HEADER, LABEL, MATCH,
+     COLUMN, POSTCOMPARE, MARKUP, DIRECTORY.
+     'section' can also be specified as '*', in which case all headers
+     are applied or not applied.
+
+COMPATIBILITY
+     XEDIT: N/A
+     KEDIT: N/A
+
+DEFAULT
+     * ON
+
+SEE ALSO
+     <SET PARSER>, <SET COLORING>, <SET AUTOCOLOR>
+
+STATUS
+     Complete.
+**man-end**********************************************************************/
+#ifdef HAVE_PROTO
+short THEHeader(CHARTYPE *params)
+#else
+short THEHeader(params)
+CHARTYPE *params;
 #endif
- rc = execute_set_on_off(params,&CURRENT_FILE->display_actual_filename);
- if (display_screens > 1
- &&  SCREEN_FILE(current_screen) == SCREEN_FILE(other_screen))
-    show_heading(other_screen);
- show_heading(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+/***********************************************************************/
+{
+   short rc=RC_OK;
+#define HEA_PARAMS  2
+   CHARTYPE *word[HEA_PARAMS+1];
+   CHARTYPE strip[HEA_PARAMS];
+   short num_params=0;
+   LINETYPE save_syntax_headers=CURRENT_VIEW->syntax_headers,val=0;
+   bool on_or_off;
+   int i;
+
+   TRACE_FUNCTION("commset1.c:THEHeader");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split(params,word,HEA_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params < 1)
+   {
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Validate first parameter...
+    */
+   for ( i = 0; thm[i].the_header_name != NULL; i++ )
+   {
+      if (equal((CHARTYPE *)thm[i].the_header_name,word[0],thm[i].the_header_name_len))
+      {
+         val = thm[i].the_header;
+         break;
+      }
+   }
+   if ( val == 0 )
+   {
+      display_error(1,word[0],FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+
+   rc = execute_set_on_off(word[1],&on_or_off, TRUE );
+   if ( rc != RC_OK )
+   {
+      TRACE_RETURN();
+      return(rc);
+   }
+
+   /*
+    * Have a valid header, and a valid ON|OFF...
+    */
+   if ( on_or_off )
+      CURRENT_VIEW->syntax_headers |= val;
+   else
+      CURRENT_VIEW->syntax_headers &= ~val;
+
+   if ( CURRENT_VIEW->syntax_headers != save_syntax_headers )
+   {
+      build_screen(current_screen);
+      display_screen(current_screen);
+   }
+
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4164,7 +4960,7 @@ DESCRIPTION
 COMPATIBILITY
      XEDIT: Adds support for decimal representation. See below.
      KEDIT: Compatible. See below.
-     Spaces must seperate each character representation.
+     Spaces must separate each character representation.
 
 DEFAULT
      OFF
@@ -4180,17 +4976,12 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Hex");
-#endif
- rc = execute_set_on_off(params,&CURRENT_VIEW->hex);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Hex");
+   rc = execute_set_on_off(params,&CURRENT_VIEW->hex, TRUE );
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4200,7 +4991,7 @@ SYNTAX
      [SET] HEXDISPlay ON|OFF
 
 DESCRIPTION
-     The SET HEXDISPLAY command turns on or off the display of the 
+     The SET HEXDISPLAY command turns on or off the display of the
      character under the cursor on the <status line>.
 
 COMPATIBILITY
@@ -4221,20 +5012,15 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Hexdisplay");
-#endif
- rc = execute_set_on_off(params,&HEXDISPLAYx);
- if (rc == RC_OK
- &&  curses_started)
-    clear_statarea();
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Hexdisplay");
+   rc = execute_set_on_off(params,&HEXDISPLAYx, TRUE );
+   if (rc == RC_OK
+   &&  curses_started)
+      clear_statarea();
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4249,20 +5035,20 @@ DESCRIPTION
 
      The first form of parameters is:
 
-     M[+n|-n] 
+     M[+n|-n]
      this sets the hexshow line to be relative to the middle of
-     the screen. A positive value adds to the middle line number, 
+     the screen. A positive value adds to the middle line number,
      a negative subtracts from it.
-     eg. M+3 on a 24 line screen will be line 15
+     e.g. M+3 on a 24 line screen will be line 15
          M-5 on a 24 line screen will be line 7
 
      The second form of parameters is:
 
      [+|-]n
      this sets the hexshow line to be relative to the top of the
-     screen (if positive or no sign) or relative to the bottom 
+     screen (if positive or no sign) or relative to the bottom
      of the screen if negative.
-     eg. +3 or 3 will set current line to line 3
+     e.g. +3 or 3 will set current line to line 3
          -3 on a 24 line screen will be line 21
 
      If the resulting line is outside the bounds of the screen
@@ -4293,85 +5079,72 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define HEXS_PARAMS  2
- CHARTYPE *word[HEXS_PARAMS+1];
- CHARTYPE strip[HEXS_PARAMS];
- short num_params=0;
- short rc=RC_OK;
- short base=(short)CURRENT_VIEW->hexshow_base;
- short off=CURRENT_VIEW->hexshow_off;
- bool hexshowsts=FALSE;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Hexshow");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- num_params = param_split(params,word,HEXS_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 1)
+   CHARTYPE *word[HEXS_PARAMS+1];
+   CHARTYPE strip[HEXS_PARAMS];
+   short num_params=0;
+   short rc=RC_OK;
+   short base=CURRENT_VIEW->hexshow_base;
+   short off=CURRENT_VIEW->hexshow_off;
+   bool hexshowsts=FALSE;
+
+   TRACE_FUNCTION("commset1.c:Hexshow");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split(params,word,HEXS_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params < 1)
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*---------------------------------------------------------------------*/
-/* Parse the status parameter...                                       */
-/*---------------------------------------------------------------------*/
- rc = execute_set_on_off(word[0],&hexshowsts);
- if (rc != RC_OK)
+   /*
+    * Parse the status parameter...
+    */
+   rc = execute_set_on_off(word[0],&hexshowsts, TRUE );
+   if (rc != RC_OK)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      TRACE_RETURN();
+      return(rc);
    }
-/*---------------------------------------------------------------------*/
-/* Parse the position parameter...                                     */
-/*---------------------------------------------------------------------*/
- if (num_params > 1)
+   /*
+    * Parse the position parameter...
+    */
+   if (num_params > 1)
    {
-    rc = execute_set_row_position(word[1],&base,&off);
-    if (rc != RC_OK)
+      rc = execute_set_row_position(word[1],&base,&off);
+      if (rc != RC_OK)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(rc);
+         TRACE_RETURN();
+         return(rc);
       }
    }
-/*---------------------------------------------------------------------*/
-/* If the HEXSHOW row (or the next row) is the same row as CURLINE and */
-/* it is being turned on, return ERROR.                                */
-/*---------------------------------------------------------------------*/
- if ((calculate_actual_row(CURRENT_VIEW->current_base,
-                          CURRENT_VIEW->current_off,
-                          CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE) ==
-     calculate_actual_row(base,off,CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE)
-     || calculate_actual_row(CURRENT_VIEW->current_base,
-                             CURRENT_VIEW->current_off,
-                             CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE) ==
-        calculate_actual_row(base,off,CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE) + 1)
- && hexshowsts)
+   /*
+    * If the HEXSHOW row (or the next row) is the same row as CURLINE and
+    * it is being turned on, return ERROR.
+    */
+   if ( ( calculate_actual_row( CURRENT_VIEW->current_base,
+                                CURRENT_VIEW->current_off,
+                                CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE ) ==
+          calculate_actual_row( base, off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE )
+       || calculate_actual_row( CURRENT_VIEW->current_base,
+                                CURRENT_VIEW->current_off,
+                                CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE ) ==
+          calculate_actual_row( base, off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE ) + 1 )
+   && hexshowsts )
    {
-    display_error(64,(CHARTYPE *)"- same line as CURLINE",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_ENVIRON);
+      display_error(64,(CHARTYPE *)"- same line as CURLINE",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_ENVIRON);
    }
- CURRENT_VIEW->hexshow_base = (CHARTYPE)base;
- CURRENT_VIEW->hexshow_off = off;
- CURRENT_VIEW->hexshow_on = hexshowsts;
- post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
- build_screen(current_screen); 
- display_screen(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   CURRENT_VIEW->hexshow_base = base;
+   CURRENT_VIEW->hexshow_off = off;
+   CURRENT_VIEW->hexshow_on = hexshowsts;
+   post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
+   build_screen(current_screen);
+   display_screen(current_screen);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4416,84 +5189,73 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define HIGH_PARAMS  2
- CHARTYPE *word[HIGH_PARAMS+1];
- CHARTYPE strip[HIGH_PARAMS];
- short num_params=0;
- short col1=0,col2=0;
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Highlight");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- num_params = param_split(params,word,HIGH_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 1)
+   CHARTYPE *word[HIGH_PARAMS+1];
+   CHARTYPE strip[HIGH_PARAMS];
+   short num_params=0;
+   short col1=0,col2=0;
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Highlight");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split(params,word,HIGH_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params < 1)
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- switch (num_params)
+   switch (num_params)
    {
-    case 1:
+      case 1:
          if (equal((CHARTYPE *)"off",word[0],3))
-           {
+         {
             CURRENT_VIEW->highlight = HIGHLIGHT_NONE;
             break;
-           }
+         }
          if (equal((CHARTYPE *)"tagged",word[0],3))
-           {
+         {
             CURRENT_VIEW->highlight = HIGHLIGHT_TAG;
             break;
-           }
+         }
          if (equal((CHARTYPE *)"altered",word[0],3))
-           {
+         {
             CURRENT_VIEW->highlight = HIGHLIGHT_ALT;
             break;
-           }
+         }
          display_error(1,word[0],FALSE);
          rc = RC_INVALID_OPERAND;
          break;
-    case 2:
-    case 3:
+      case 2:
+      case 3:
          if (!equal((CHARTYPE *)"select",word[0],3))
-           {
+         {
             display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-            trace_return();
-#endif
+            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
-           }
+         }
          if ((rc = validate_n_m(word[1],&col1,&col2)) != RC_OK)
-           {
-#ifdef THE_TRACE
-            trace_return();
-#endif
+         {
+            TRACE_RETURN();
             return(rc);
-           }
+         }
          CURRENT_VIEW->highlight = HIGHLIGHT_SELECT;
          CURRENT_VIEW->highlight_low = col1;
          CURRENT_VIEW->highlight_high = col2;
          break;
-    default:
+      default:
          display_error(1,word[0],FALSE);
          rc = RC_INVALID_OPERAND;
          break;
   }
- if (rc == RC_OK)
+   if (rc == RC_OK)
    {
-    build_screen(current_screen); 
-    display_screen(current_screen);
+      build_screen(current_screen);
+      display_screen(current_screen);
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4524,55 +5286,44 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
- bool save_id_line=FALSE;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Idline");
-#endif
- save_id_line = CURRENT_VIEW->id_line;
- rc = execute_set_on_off(params,&CURRENT_VIEW->id_line);
- if (rc != RC_OK)
+   short rc=RC_OK;
+   bool save_id_line=FALSE;
+
+   TRACE_FUNCTION("commset1.c:Idline");
+   save_id_line = CURRENT_VIEW->id_line;
+   rc = execute_set_on_off(params,&CURRENT_VIEW->id_line, TRUE );
+   if (rc != RC_OK)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      TRACE_RETURN();
+      return(rc);
    }
-/*---------------------------------------------------------------------*/
-/* If the new value of id_line is the same as before, exit now.        */
-/*---------------------------------------------------------------------*/
- if (save_id_line == CURRENT_VIEW->id_line)
+   /*
+    * If the new value of id_line is the same as before, exit now.
+    */
+   if (save_id_line == CURRENT_VIEW->id_line)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      TRACE_RETURN();
+      return(rc);
    }
-/*---------------------------------------------------------------------*/
-/* Redefine the screen sizes...                                        */
-/*---------------------------------------------------------------------*/
- set_screen_defaults();
-/*---------------------------------------------------------------------*/
-/* Recreate windows for the current screen...                          */
-/*---------------------------------------------------------------------*/
- if (curses_started)
+   /*
+    * Redefine the screen sizes...
+    */
+   set_screen_defaults();
+   /*
+    * Recreate windows for the current screen...
+    */
+   if (curses_started)
    {
-    if (set_up_windows(current_screen) != RC_OK)
+      if (set_up_windows(current_screen) != RC_OK)
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(rc);
+         TRACE_RETURN();
+         return(rc);
       }
    }
- build_screen(current_screen);
- display_screen(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   build_screen(current_screen);
+   display_screen(current_screen);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4582,9 +5333,9 @@ SYNTAX
      [SET] IMPcmscp ON|OFF
 
 DESCRIPTION
-     The SET IMPCMSCP command is used to toggle implied operating system
-     command processing from the command line. By turning this feature 
-     on you can then issue an operating system command without the need 
+     The SET IMPCMSCP command is used to set implied operating system
+     command processing from the command line. By turning this feature
+     on you can then issue an operating system command without the need
      to prefix the operating system command with the <OS> command.
 
 COMPATIBILITY
@@ -4609,7 +5360,7 @@ SYNTAX
      [SET] IMPMACro ON|OFF
 
 DESCRIPTION
-     The SET IMPMACRO command is used to toggle implied macro processing
+     The SET IMPMACRO command is used to set implied macro processing
      from the command line. By turning this feature on you can then
      issue a <macro> command without the need to prefix the macro name
      with the <MACRO> command.
@@ -4635,17 +5386,12 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Impmacro");
-#endif
- rc = execute_set_on_off(params,&CURRENT_VIEW->imp_macro);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Impmacro");
+   rc = execute_set_on_off(params,&CURRENT_VIEW->imp_macro, TRUE );
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4655,9 +5401,9 @@ SYNTAX
      [SET] IMPOS ON|OFF
 
 DESCRIPTION
-     The SET IMPOS command is used to toggle implied operating system
-     command processing from the command line. By turning this feature 
-     on you can then issue an operating system command without the need 
+     The SET IMPOS command is used to set implied operating system
+     command processing from the command line. By turning this feature
+     on you can then issue an operating system command without the need
      to prefix the operating system command with the <OS> command.
 
 COMPATIBILITY
@@ -4681,17 +5427,12 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Impos");
-#endif
- rc = execute_set_on_off(params,&CURRENT_VIEW->imp_os);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Impos");
+   rc = execute_set_on_off(params,&CURRENT_VIEW->imp_os, TRUE );
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4736,31 +5477,22 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Inputmode");
-#endif
- if (equal((CHARTYPE *)"off",params,3))
-    CURRENT_VIEW->inputmode = INPUTMODE_OFF;
- else
-    if (equal((CHARTYPE *)"full",params,2))
-       CURRENT_VIEW->inputmode = INPUTMODE_FULL;
-    else
-       if (equal((CHARTYPE *)"line",params,2))
-          CURRENT_VIEW->inputmode = INPUTMODE_LINE;
-       else
-         {
-          display_error(1,(CHARTYPE *)params,FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-         }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_FUNCTION( "commset1.c:Inputmode" );
+   params = MyStrip( params, STRIP_BOTH, ' ' );
+   if ( equal( (CHARTYPE *)"off", params, 3 ) )
+      CURRENT_VIEW->inputmode = INPUTMODE_OFF;
+   else if ( equal( (CHARTYPE *)"full", params, 2 ) )
+      CURRENT_VIEW->inputmode = INPUTMODE_FULL;
+   else if ( equal( (CHARTYPE *)"line", params, 2 ) )
+      CURRENT_VIEW->inputmode = INPUTMODE_LINE;
+   else
+   {
+      display_error( 1, (CHARTYPE *)params, FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -4770,7 +5502,7 @@ SYNTAX
      [SET] INSERTMode ON|OFF|TOGGLE
 
 DESCRIPTION
-     The SET INSERTMODE command enable the user to set the insert mode 
+     The SET INSERTMODE command enable the user to set the insert mode
      within THE.
 
      The 'TOGGLE' option turns insert mode 'ON' if it is currently
@@ -4794,34 +5526,181 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Insertmode");
-#endif
- if (equal((CHARTYPE *)"off",params,3))
-    INSERTMODEx = FALSE;
- else
-    if (equal((CHARTYPE *)"on",params,2))
-       INSERTMODEx = TRUE;
-    else
-       if (equal((CHARTYPE *)"toggle",params,6))
-          INSERTMODEx = (INSERTMODEx) ? FALSE : TRUE;
-       else
-         {
-          display_error(1,(CHARTYPE *)params,FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-         }
- if (curses_started)
-    draw_cursor(TRUE);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_FUNCTION("commset1.c:Insertmode");
+   params = MyStrip( params, STRIP_BOTH, ' ' );
+   if ( equal( (CHARTYPE *)"off", params, 3 ) )
+      INSERTMODEx = FALSE;
+   else if ( equal( (CHARTYPE *)"on", params, 2 ) )
+      INSERTMODEx = TRUE;
+   else if ( equal( (CHARTYPE *)"toggle", params, 6 ) )
+      INSERTMODEx = (INSERTMODEx) ? FALSE : TRUE;
+   else
+   {
+      display_error(1,(CHARTYPE *)params,FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if (curses_started)
+      draw_cursor(TRUE);
+   TRACE_RETURN();
+   return(RC_OK);
 }
+/*man-start*********************************************************************
+COMMAND
+     set interface - set overall behaviour of THE
+
+SYNTAX
+     [SET] INTerface CLASSIC|CUA
+
+DESCRIPTION
+     The SET INTERFACE command changes the behaviour of several operations
+     within THE.  THE normally operates in a block-mode manner, however
+     many applications conform to the Common User Access (CUA) standard
+     developed by IBM.  This command specifies that CUA behaviour should
+     occur on various actions during the edit session.
+
+     The major differences between CLASSIC and CUA behaviour involve
+     keyboard and mouse actions. Various THE commands have CUA options to
+     allow the user to customise the behaviour individual keys or the
+     mouse to behave in a CUA manner.
+
+     Where behaviour is not related to particular key or mouse actions,
+     this command provides the mechanism for changing the behaviour.
+     The behaviour that SET INTERFACE affects:
+
+     - entering text in the filearea with a marked CUA block will
+       first delete the block and reposition the cursor
+     - executing <SOS DELCHAR> or <SOS DELBACK> will delete the
+       marked CUA block
+     - executing any positioning command, such as <CURSOR> DOWN,
+       <FORWARD> or <CURSOR> MOUSE, will unmark the CUA block
+
+COMPATIBILITY
+     XEDIT: N/A
+     KEDIT: Compatible with KEDIT for Windows.
+
+DEFAULT
+     CLASSIC
+
+SEE ALSO
+     <MARK> <CURSOR>
+
+STATUS
+     Complete.
+**man-end**********************************************************************/
+#ifdef HAVE_PROTO
+short THEInterface(CHARTYPE *params)
+#else
+short THEInterface(params)
+CHARTYPE *params;
+#endif
+/***********************************************************************/
+{
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:THEInterface");
+
+   params = MyStrip( params, STRIP_BOTH, ' ' );
+   if ( equal( (CHARTYPE *)"classic", params, 7 ) )
+      INTERFACEx = INTERFACE_CLASSIC;
+   else if ( equal( (CHARTYPE *)"cua", params, 3 ) )
+      INTERFACEx = INTERFACE_CUA;
+   else
+   {
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      rc = RC_INVALID_OPERAND;
+   }
+   TRACE_RETURN();
+   return(rc);
+}
+/*man-start*********************************************************************
+COMMAND
+     set lastop - set the contents of the lastop argument
+
+SYNTAX
+     [SET] LASTOP operand text
+
+DESCRIPTION
+     The SET LASTOP command sets the values of the specified 'operand' to the
+     'text' supplied. This command is most useful when run from a macro, to
+     set the string to be passed to the next invocation of the equivalent
+     'operand' command; eg LOCATE, FIND, etc.
+
+     Because THE does not save the contents of the lastop from a command when
+     run from a macro, sometimes the macro is intended to set this value. This
+     command allows that capability.
+
+COMPATIBILITY
+     XEDIT: N/A
+     KEDIT: Compatible.
+
+SEE ALSO
+     <LOCATE>, <FIND>, <SEARCH>
+
+STATUS
+     Complete.
+**man-end**********************************************************************/
+#ifdef HAVE_PROTO
+short Lastop(CHARTYPE *params)
+#else
+short Lastop(params)
+CHARTYPE *params;
+#endif
+/***********************************************************************/
+{
+#define LOP_PARAMS  2
+   CHARTYPE *word[LOP_PARAMS+1];
+   CHARTYPE strip[LOP_PARAMS];
+   unsigned short num_params=0;
+   bool found=FALSE;
+   int i;
+   short rc=RC_OK;
+
+   TRACE_FUNCTION( "commset1.c:Lastop" );
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split( params, word, LOP_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE );
+   if ( num_params < 2 )
+   {
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return RC_INVALID_OPERAND;
+   }
+   else if ( num_params > 2 )
+   {
+      display_error( 2, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return RC_INVALID_OPERAND;
+   }
+   /*
+    * Find a match for the supplied lastop operand
+    */
+   for ( i = 0; i < LASTOP_MAX; i++ )
+   {
+      if ( equal( lastop[i].command, word[0], lastop[i].min_len ) )
+      {
+         found = TRUE;
+         break;
+      }
+   }
+   if ( !found )
+   {
+      display_error(1,word[0],FALSE);
+      rc = RC_INVALID_OPERAND;
+   }
+   else
+   {
+      rc = save_lastop( i, word[1] );
+      if ( rc != RC_OK )
+      {
+         display_error( 30, (CHARTYPE *)"", FALSE );
+         rc = RC_OUT_OF_MEMORY;
+      }
+   }
+   TRACE_RETURN();
+   return(rc);
+}
+
 /*man-start*********************************************************************
 COMMAND
      set lineflag - set the line characteristics of lines
@@ -4864,7 +5743,6 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define LF_PARAMS  4
    CHARTYPE *word[LF_PARAMS+1];
    CHARTYPE strip[LF_PARAMS];
@@ -4872,22 +5750,21 @@ CHARTYPE *params;
    CHARTYPE *save_params;
    short num_params=0,num_flags;
    short rc=RC_OK;
-   short target_type=TARGET_NORMAL|TARGET_BLOCK_CURRENT|TARGET_ALL;
-   short save_target_type=TARGET_UNFOUND;
+   long target_type=TARGET_NORMAL|TARGET_BLOCK_CURRENT|TARGET_ALL;
+   long save_target_type=TARGET_UNFOUND;
    TARGET target;
    bool num_lines_based_on_scope=FALSE,no_flag=FALSE;
    unsigned int new_flag=2;
    unsigned int changed_flag=2;
    unsigned int tag_flag=2;
    int i,j;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
-   trace_function("comm4.c:   Lineflag");
-#endif
+
+   TRACE_FUNCTION("comm4.c:   Lineflag");
    save_params = my_strdup( params );
    if ( save_params == NULL )
    {
       display_error(30,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
 
@@ -4900,9 +5777,7 @@ CHARTYPE *params;
    {
       display_error(3,(CHARTYPE *)"",FALSE);
       (*the_free)( save_params );
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    for (i = 0; i < num_params; i++)
@@ -4926,9 +5801,7 @@ CHARTYPE *params;
    {
       display_error(3,(CHARTYPE *)"",FALSE);
       (*the_free)( save_params );
-#ifdef THE_TRACE
-      trace_return();
-#endif
+      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -4951,16 +5824,14 @@ CHARTYPE *params;
             strip[0]=STRIP_BOTH;
          }
          strip[i]=STRIP_NONE;
-         num_params = param_split(params,word,i+1,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+         num_params = param_split( params, word, i + 1, WORD_DELIMS, TEMP_PARAM, strip, FALSE );
       }
       initialise_target(&target);
       if  ( ( rc = validate_target( word[num_params-1], &target, target_type, get_true_line(TRUE), TRUE, TRUE ) ) != RC_OK )
       {
          free_target( &target );
          (*the_free)( save_params );
-#ifdef THE_TRACE
-         trace_return();
-#endif
+         TRACE_RETURN();
          return(rc);
       }
       switch ( target.rt[0].target_type )
@@ -4974,18 +5845,14 @@ CHARTYPE *params;
                   display_error(49,(CHARTYPE*)"",FALSE);
                   free_target(&target);
                   (*the_free)( save_params );
-#ifdef THE_TRACE
-                  trace_return();
-#endif
+                  TRACE_RETURN();
                   return(RC_INVALID_OPERAND);
                   break;
                case M_BOX:
                   display_error(48,(CHARTYPE*)"",FALSE);
                   free_target(&target);
                   (*the_free)( save_params );
-#ifdef THE_TRACE
-                  trace_return();
-#endif
+                  TRACE_RETURN();
                   return(RC_INVALID_OPERAND);
                   break;
                default:
@@ -4996,9 +5863,7 @@ CHARTYPE *params;
             display_error(45,(CHARTYPE*)"",FALSE);
             free_target(&target);
             (*the_free)( save_params );
-#ifdef THE_TRACE
-            trace_return();
-#endif
+            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          default:
@@ -5029,13 +5894,11 @@ CHARTYPE *params;
          ;
    }
    /*
-    * Now we are here, everything's OK, do the actual modification...  
+    * Now we are here, everything's OK, do the actual modification...
     */
    rc = execute_set_lineflag( new_flag, changed_flag, tag_flag, true_line, num_lines, num_lines_based_on_scope, save_target_type );
    (*the_free)( save_params );
-#ifdef THE_TRACE
-   trace_return();
-#endif
+   TRACE_RETURN();
    return(rc);
 }
 /*man-start*********************************************************************
@@ -5068,59 +5931,54 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define LE_PARAMS  2
- CHARTYPE *word[LE_PARAMS+1];
- CHARTYPE strip[LE_PARAMS];
- unsigned short num_params=0;
- bool le_status=CURRENT_VIEW->linend_status;
- CHARTYPE le_value=CURRENT_VIEW->linend_value;
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Linend");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- num_params = param_split(params,word,LE_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- switch(num_params)
+   CHARTYPE *word[LE_PARAMS+1];
+   CHARTYPE strip[LE_PARAMS];
+   unsigned short num_params=0;
+   bool le_status=CURRENT_VIEW->linend_status;
+   CHARTYPE le_value=CURRENT_VIEW->linend_value;
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Linend");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split(params,word,LE_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   switch(num_params)
    {
-    case 1:
-    case 2:
-           rc = execute_set_on_off(word[0],&le_status);
+      case 1:
+      case 2:
+           rc = execute_set_on_off(word[0],&le_status, TRUE );
            if (rc != RC_OK)
-             {
+           {
               display_error(1,word[0],FALSE);
               rc = RC_INVALID_OPERAND;
               break;
-             }
+           }
            if (num_params == 1)
               break;
            if ((int)strlen((DEFCHAR *)word[1]) > (int)1)
-             {
+           {
               display_error(1,word[1],FALSE);
               break;
-             }
+           }
            le_value = word[1][0];
            break;
-    case 0:
+      case 0:
            display_error(3,(CHARTYPE *)"",FALSE);
            rc = RC_INVALID_OPERAND;
            break;
-    default:
+      default:
            display_error(2,(CHARTYPE *)"",FALSE);
            rc = RC_INVALID_OPERAND;
            break;
    }
- if (rc == RC_OK)
+   if (rc == RC_OK)
    {
-    CURRENT_VIEW->linend_status = le_status;
-    CURRENT_VIEW->linend_value = le_value;
+      CURRENT_VIEW->linend_status = le_status;
+      CURRENT_VIEW->linend_value = le_value;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5137,8 +5995,8 @@ DESCRIPTION
      from the <MACRO> command.
 
      A macro with the same name as a built-in command will only
-     be executed before the built-in command if <SET IMPMACRO> 
-     is ON, <SET MACRO> is ON, and the command was NOT executed 
+     be executed before the built-in command if <SET IMPMACRO>
+     is ON, <SET MACRO> is ON, and the command was NOT executed
      with the <COMMAND> command.
 
 COMPATIBILITY
@@ -5162,17 +6020,12 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:SetMacro");
-#endif
- rc = execute_set_on_off(params,&CURRENT_VIEW->macro);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:SetMacro");
+   rc = execute_set_on_off(params,&CURRENT_VIEW->macro, TRUE );
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5211,34 +6064,26 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Macroext");
-#endif
-/*---------------------------------------------------------------------*/
-/* If no value is specified for ext, set the value of macro_suffix to  */
-/* "", otherwise set it to the supplied value, prefixed with '.'       */
-/*---------------------------------------------------------------------*/
- if (strlen((DEFCHAR *)params) == 0)
-    strcpy((DEFCHAR *)macro_suffix,"");
- else
+   TRACE_FUNCTION("commset1.c:Macroext");
+   /*
+    * If no value is specified for ext, set the value of macro_suffix to
+    * "", otherwise set it to the supplied value, prefixed with '.'
+    */
+   if (strlen((DEFCHAR *)params) == 0)
+      strcpy((DEFCHAR *)macro_suffix,"");
+   else
    {
-    if ((int)strlen((DEFCHAR *)params) > (int)10)
+      if ((int)strlen((DEFCHAR *)params) > (int)10)
       {
-       display_error(85,(CHARTYPE *)params,FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_INVALID_OPERAND);
+         display_error(85,(CHARTYPE *)params,FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
       }
-    strcpy((DEFCHAR *)macro_suffix,".");
-    strcat((DEFCHAR *)macro_suffix,(DEFCHAR *)params);
+      strcpy((DEFCHAR *)macro_suffix,".");
+      strcat((DEFCHAR *)macro_suffix,(DEFCHAR *)params);
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5249,7 +6094,7 @@ SYNTAX
 
 DESCRIPTION
      The SET MACROPATH command sets up the search path from which macro
-     command files are executed. Each directory is seperated by a
+     command files are executed. Each directory is separated by a
      colon (Unix) or semi-colon (DOS & OS/2). Only 20 directories are
      allowed to be specified.
 
@@ -5278,66 +6123,87 @@ CHARTYPE *params;
 /***********************************************************************/
 {
 #if defined(UNIX)
-#   define PATH_DELIM ':'
+# define PATH_DELIM ':'
 #else
-#   define PATH_DELIM ';'
+# define PATH_DELIM ';'
 #endif
-/*--------------------------- local data ------------------------------*/
- register int len=0;
- DEFCHAR *ptr=NULL;
- CHARTYPE *src;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Macropath");
-#endif
-/*---------------------------------------------------------------------*/
-/* No checking is done on macro path supplied other than it contains a */
-/* value. Path delimiters are translated if necessary.                 */
-/*---------------------------------------------------------------------*/
- if (strlen((DEFCHAR *)params) == 0)
+   register int len=0;
+   int num_dirs,i;
+   DEFCHAR *ptr=NULL;
+   CHARTYPE *src;
+
+   TRACE_FUNCTION( "commset1.c:Macropath" );
+   /*
+    * No checking is done on macro path supplied other than it contains a
+    * value. Path delimiters are translated if necessary.
+    */
+   if ( strlen( (DEFCHAR *)params ) == 0 )
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- if (my_stricmp((DEFCHAR *)params,"PATH") == 0)
-    src = (CHARTYPE *)getenv("PATH");
- else
-    src = params;
- strcpy((DEFCHAR *)the_macro_path_buf,(DEFCHAR *)src);
- (void *)strrmdup(strtrans(the_macro_path_buf,OSLASH,ISLASH),ISLASH,TRUE);
- (void *)strrmdup(the_macro_path_buf,PATH_DELIM,FALSE);
- len = strlen((DEFCHAR *)the_macro_path_buf);
- if (the_macro_path_buf[len-1] == PATH_DELIM)
+   if ( my_stricmp( (DEFCHAR *)params, "PATH" ) == 0 )
+      src = (CHARTYPE *)getenv( "PATH" );
+   else
+      src = params;
+   strcpy( (DEFCHAR *)the_macro_path_buf, (DEFCHAR *)src );
+   strrmdup( strtrans( the_macro_path_buf, OSLASH, ISLASH ), ISLASH, TRUE );
+   strrmdup( the_macro_path_buf, PATH_DELIM, FALSE );
+   len = strlen( (DEFCHAR *)the_macro_path_buf );
+   if ( the_macro_path_buf[len-1] == PATH_DELIM )
    {
-     the_macro_path_buf[len-1] = '\0';
-     len--;
+      the_macro_path_buf[len-1] = '\0';
+      len--;
    }
- strcpy((DEFCHAR *)the_macro_path,(DEFCHAR *)the_macro_path_buf);
- the_macro_dir[0] = the_macro_path_buf;
- max_macro_dirs = 1;
- for (ptr=(DEFCHAR*)the_macro_path_buf; *ptr != '\0'; ptr++)
+   if ( len == 0 )
    {
-    if (*ptr == PATH_DELIM)
+      display_error( 3, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   strcpy( (DEFCHAR *)the_macro_path, (DEFCHAR *)the_macro_path_buf );
+   /*
+    * Count the number of PATH_DELIM in the buffer to determine
+    * how many pointers to allocate.
+    */
+   for ( num_dirs = 1, i = 0; i < len; i++ )
+   {
+      if ( *(the_macro_path+i) == PATH_DELIM )
+         num_dirs++;
+   }
+   /*
+    * If we have already allocated enough pointer memory
+    * don't bother allocating more
+    */
+   if ( num_dirs > total_macro_dirs )
+   {
+      if ( the_macro_dir == NULL )
+         the_macro_dir = (CHARTYPE **)(*the_malloc)( num_dirs * sizeof(DEFCHAR *) );
+      else
+         the_macro_dir = (CHARTYPE **)(*the_realloc)( the_macro_dir, num_dirs * sizeof(DEFCHAR *) );
+      if ( the_macro_dir == NULL )
       {
-       *ptr = '\0';
-       the_macro_dir[max_macro_dirs++] = (CHARTYPE*)++ptr;
-       if (max_macro_dirs > MAX_MACRO_DIRS)
-         {
-          display_error(2,(CHARTYPE *)"More than 20 directories specified",FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
-         }
+         max_macro_dirs = total_macro_dirs = 0;
+         display_error( 30, (CHARTYPE *)"",FALSE );
+         TRACE_RETURN();
+         return(RC_OUT_OF_MEMORY);
+      }
+      total_macro_dirs = num_dirs;
+   }
+   the_macro_dir[0] = the_macro_path_buf;
+   max_macro_dirs = 0;
+   for ( ptr = (DEFCHAR*)the_macro_path_buf; *ptr != '\0'; ptr++ )
+   {
+      if ( *ptr == PATH_DELIM )
+      {
+         *ptr = '\0';
+         the_macro_dir[++max_macro_dirs] = (CHARTYPE*)++ptr;
       }
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   max_macro_dirs++;
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5352,6 +6218,9 @@ DESCRIPTION
 
      These values are used with the <SET WORDWRAP> option.
 
+     All options can be specified as the current EQUIVCHAR to retain the
+     existing value.
+
 COMPATIBILITY
      XEDIT: N/A
      KEDIT: Compatible.
@@ -5360,7 +6229,7 @@ DEFAULT
      1 72 +0
 
 SEE ALSO
-     <SET WORDWRAP>
+     <SET WORDWRAP>, <SET EQUIVCHAR>
 
 STATUS
      Complete.
@@ -5373,185 +6242,186 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define MAR_PARAMS  3
- CHARTYPE *word[MAR_PARAMS+1];
- CHARTYPE strip[MAR_PARAMS];
- short num_params=0;
- short left=0,right=0,indent=0;
- bool offset=FALSE,consistancy_error=FALSE;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Margins");
-#endif
-/*---------------------------------------------------------------------*/
-/* Two parameters are mandatory, the third is optional.                */
-/*---------------------------------------------------------------------*/
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- strip[2]=STRIP_BOTH;
- num_params = param_split(params,word,MAR_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 2)
+   CHARTYPE *word[MAR_PARAMS+1];
+   CHARTYPE strip[MAR_PARAMS];
+   short num_params=0;
+   LENGTHTYPE left=0,right=0,indent=0;
+   bool offset=FALSE,consistancy_error=FALSE;
+
+   TRACE_FUNCTION("commset1.c:Margins");
+   /*
+    * Two parameters are mandatory, the third is optional.
+    */
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   strip[2]=STRIP_BOTH;
+   num_params = param_split(params,word,MAR_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params < 2)
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- if (num_params > 3)
+   if (num_params > 3)
    {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*---------------------------------------------------------------------*/
-/* Parse the parameters...                                             */
-/*---------------------------------------------------------------------*/
- left = atoi((DEFCHAR *)word[0]);
- if (left < 1)
+   /*
+    * Parse the parameters...
+    */
+   if ( equal(EQUIVCHARstr, word[0], 1 ) )
    {
-    display_error(5,word[0],FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      left = CURRENT_VIEW->margin_left;
    }
-/*---------------------------------------------------------------------*/
-/* Right margin value can be *, set to maximum line length.            */
-/*---------------------------------------------------------------------*/
- if (*(word[1]+1) == '*')
+   else
    {
-    right = max_line_length;
-   }
- else
-   {
-    right = atoi((DEFCHAR *)word[1]);
-    if (right < 1)
+      left = atol((DEFCHAR *)word[0]);
+      if (left < 1)
       {
-       display_error(5,word[1],FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_INVALID_OPERAND);
+         display_error(5,word[0],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
       }
    }
-/*---------------------------------------------------------------------*/
-/* Left margin must be less than right margin.                         */
-/*---------------------------------------------------------------------*/
- if (right < left)
+   /*
+    * Right margin value can be *, set to maximum line length.
+    */
+   if ( equal( EQUIVCHARstr, word[1], 1 ) )
    {
-    display_error(5,word[1],FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      right = CURRENT_VIEW->margin_right;
    }
-/*---------------------------------------------------------------------*/
-/* Obtain current values for indent, in case they aren't changed by    */
-/* the current command. (ie. no third parameter)                       */
-/*---------------------------------------------------------------------*/
- indent = CURRENT_VIEW->margin_indent;
- offset = CURRENT_VIEW->margin_indent_offset_status;
-/*---------------------------------------------------------------------*/
-/* Determine the type of offset for the indent value. If a sign is     */
-/* specified, then the number supplied is relative to the left margin  */
-/* otherwise it is an absolute column value.                           */
-/*---------------------------------------------------------------------*/
- if (num_params == 3)
+   else if ( equal( (CHARTYPE *)"*", word[1], 1 ) )
    {
-    if (*(word[2]) == '-'
-    ||  *(word[2]) == '+')
+      right = max_line_length;
+   }
+   else
+   {
+      right = atol((DEFCHAR *)word[1]);
+      if (right > max_line_length)
       {
-       offset = TRUE;
-       if ((indent = atoi((DEFCHAR *)word[2])) == 0)
+         display_error(6,word[1],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+      if (right < 1)
+      {
+         display_error(5,word[1],FALSE);
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+   }
+   /*
+    * Left margin must be less than right margin.
+    */
+   if (right < left)
+   {
+      display_error(5,word[1],FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Obtain current values for indent, in case they aren't changed by
+    * the current command. (i.e. no third parameter)
+    */
+   indent = CURRENT_VIEW->margin_indent;
+   offset = CURRENT_VIEW->margin_indent_offset_status;
+   /*
+    * Determine the type of offset for the indent value. If a sign is
+    * specified, then the number supplied is relative to the left margin
+    * otherwise it is an absolute column value.
+    * Do the following processing only if the indent parameter is NOT
+    * the EQUIVCHAR.
+    */
+   if ( num_params == 3
+   &&   !equal( EQUIVCHARstr, word[2], 1 ) )
+   {
+      if (*(word[2]) == '-'
+      ||  *(word[2]) == '+')
+      {
+         offset = TRUE;
+         if ((indent = atol((DEFCHAR *)word[2])) == 0)
          {
-          if (strcmp((DEFCHAR *)word[2],"+0") != 0)
+            if (strcmp((DEFCHAR *)word[2],"+0") != 0)
             {
-             display_error(1,word[2],FALSE);
-#ifdef THE_TRACE
-             trace_return();
-#endif
-             return(RC_INVALID_OPERAND);
+               display_error(1,word[2],FALSE);
+               TRACE_RETURN();
+               return(RC_INVALID_OPERAND);
             }
          }
       }
-    else
+      else
       {
-       offset = FALSE;
-/*---------------------------------------------------------------------*/
-/* Absolute indent cannot be negative.                                 */
-/*---------------------------------------------------------------------*/
-       if ((indent = atoi((DEFCHAR *)word[2])) < 0)
+         offset = FALSE;
+         /*
+          * Absolute indent cannot be negative.
+          */
+         if ((indent = atol((DEFCHAR *)word[2])) < 0)
          {
-          display_error(1,word[2],FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_INVALID_OPERAND);
+            display_error(1,word[2],FALSE);
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
          }
       }
    }
-/*---------------------------------------------------------------------*/
-/* Once all values are determined, validate the relationship between   */
-/* the margins and the indent values.                                  */
-/* Rules:                                                              */
-/*       o If indent is a negative offset, the resultant column value  */
-/*         cannot be negative.                                         */
-/*       o If indent is a positive offset, the resultant column value  */
-/*         cannot be > max_line_length or right margin                 */
-/*       o If indent is an absolute value, it cannot be > right margin */
-/*---------------------------------------------------------------------*/
- consistancy_error = FALSE;
- if (offset
- && indent < 0
- && indent + left < 0)
-    consistancy_error = TRUE;
- if (offset
- && indent > 0
- && indent + left > right)
-    consistancy_error = TRUE;
- if (offset
- && indent > 0
- && (LENGTHTYPE)(indent + left) > max_line_length)
-    consistancy_error = TRUE;
- if (!offset
- && indent > right)
-    consistancy_error = TRUE;
- if (consistancy_error)
-   {
-    if (offset)
-       sprintf((DEFCHAR *)temp_cmd,"%d %d %+d",left,right,indent);
-    else
-       sprintf((DEFCHAR *)temp_cmd,"%d %d %d",left,right,indent);
-    display_error(12,temp_cmd,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+   /*
+    * Once all values are determined, validate the relationship between
+    * the margins and the indent values.
+    * Rules:
+    *       o If indent is a negative offset, the resultant column value
+    *         cannot be negative.
+    *       o If indent is a positive offset, the resultant column value
+    *         cannot be > max_line_length or right margin
+    *       o If indent is an absolute value, it cannot be > right margin
+    */
+   consistancy_error = FALSE;
+   if (offset
+   && indent < 0
+   && indent + left < 0)
+      consistancy_error = TRUE;
+   if (offset
+   && indent > 0
+   && indent + left > right)
+      consistancy_error = TRUE;
+   if (offset
+   && indent > 0
+   && (LENGTHTYPE)(indent + left) > max_line_length)
+      consistancy_error = TRUE;
+   if (!offset
+   && indent > right)
+      consistancy_error = TRUE;
+   if (consistancy_error)
+     {
+      if (offset)
+         sprintf((DEFCHAR *)temp_cmd,"%ld %ld %+ld",left,right,indent);
+      else
+         sprintf((DEFCHAR *)temp_cmd,"%ld %ld %ld",left,right,indent);
+      display_error(12,temp_cmd,FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
-/*---------------------------------------------------------------------*/
-/* All OK, so save the values...                                       */
-/*---------------------------------------------------------------------*/
- CURRENT_VIEW->margin_left = left;
- CURRENT_VIEW->margin_right = right;
- CURRENT_VIEW->margin_indent = indent;
- CURRENT_VIEW->margin_indent_offset_status = offset;
-/*---------------------------------------------------------------------*/
-/* If the SCALE line is currently displayed, display the page so that  */
-/* any changes are reflected in the SCALE line.                        */
-/*---------------------------------------------------------------------*/
- if (CURRENT_VIEW->scale_on)
+   /*
+    * All OK, so save the values...
+    */
+   CURRENT_VIEW->margin_left = left;
+   CURRENT_VIEW->margin_right = right;
+   CURRENT_VIEW->margin_indent = indent;
+   CURRENT_VIEW->margin_indent_offset_status = offset;
+   /*
+    * If the SCALE line is currently displayed, display the page so that
+    * any changes are reflected in the SCALE line. Also display page if
+    * boundmark is not off.
+    */
+   if ( CURRENT_VIEW->scale_on
+   ||   CURRENT_VIEW->boundmark != BOUNDMARK_OFF )
    {
-    build_screen(current_screen); 
-    display_screen(current_screen);
+      build_screen(current_screen);
+      display_screen(current_screen);
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5590,23 +6460,18 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Mouse");
-#endif
- rc = execute_set_on_off(params,&MOUSEx);
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Mouse");
+   rc = execute_set_on_off(params,&MOUSEx, TRUE );
 #if defined(PDCURSES_MOUSE_ENABLED)
- mouse_set((MOUSEx)?ALL_MOUSE_EVENTS:0L);
+   mouse_set((MOUSEx)?ALL_MOUSE_EVENTS:0L);
 #endif
 #if defined(NCURSES_MOUSE_VERSION)
- mousemask((MOUSEx)?ALL_MOUSE_EVENTS:0, (mmask_t*)NULL);
+   mousemask((MOUSEx)?ALL_MOUSE_EVENTS:0, (mmask_t*)NULL);
 #endif
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5614,41 +6479,61 @@ COMMAND
 
 SYNTAX
      [SET] MSGLine ON M[+n|-n]|[+|-]n [lines] [Overlay]
+     [SET] MSGLine CLEAR
 
 DESCRIPTION
-     The SET MSGLINE set command specifies the position of the 
+     The SET MSGLINE set command specifies the position of the
      <message line> and the size of the message line window.
 
-     The first form of parameters is:
+     The first form of positional parameters is:
 
-     M[+n|-n] 
+     M[+n|-n]
      this sets the first line to be relative to the middle of
-     the screen. A positive value adds to the middle line number, 
+     the screen. A positive value adds to the middle line number,
      a negative subtracts from it.
-     eg. M+3 on a 24 line screen will be line 15
+     e.g. M+3 on a 24 line screen will be line 15
          M-5 on a 24 line screen will be line 7
 
-     The second form of parameters is:
+     The second form of positional parameters is:
 
      [+|-]n
      this sets the first line to be relative to the top of the
-     screen (if positive or no sign) or relative to the bottom 
+     screen (if positive or no sign) or relative to the bottom
      of the screen if negative.
-     eg. +3 or 3 will set current line to line 3
-         -3 on a 24 line screen will be line 21
+     e.g. +3 or 3 will set first line to line 3
+         -3 on a 24 line screen will set first line to line 21
 
      If the resulting line is outside the bounds of the screen
      the position of the message line will become the middle line
      on the screen.
 
+     The 'lines' argument specifies the maximum number of lines of
+     error messages to display at the one time.  If this value is
+     specified as a whole number it must be less than or equal to the
+     number of lines that could fit on the screen from the starting row.
+     '*' can be specified to indicate that as many lines as possible should
+     be displayed.
+
+     All options can be specified as the current EQUIVCHAR to retain the
+     existing value.
+
+     The second format of the command clears the messages being displayed.
+     This is useful in macros where you need to display an error message
+     but also want to be able to clear it.
+
 COMPATIBILITY
      XEDIT: Compatible.
             The OVERLAY option is the default but ignored.
+            The second format is not supported.
      KEDIT: Compatible
             The OVERLAY option is the default but ignored.
+            The second format is not supported.
 
 DEFAULT
      ON 2 5 Overlay
+
+SEE ALSO
+     <SET EQUIVCHAR>
 
 STATUS
      Complete
@@ -5662,143 +6547,200 @@ CHARTYPE *params;
 /***********************************************************************/
 {
 #define MSG_PARAMS  5
- CHARTYPE *word[MSG_PARAMS+1];
- CHARTYPE strip[MSG_PARAMS];
- short num_params=0;
- short rc=RC_OK;
- short base=(short)CURRENT_VIEW->msgline_base;
- short off=CURRENT_VIEW->msgline_off;
- bool msgsts=FALSE;
- ROWTYPE num_lines=CURRENT_VIEW->msgline_rows;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Msgline");
-#endif
- strip[0]=STRIP_BOTH;
- strip[1]=STRIP_BOTH;
- strip[2]=STRIP_BOTH;
- strip[3]=STRIP_BOTH;
- strip[4]=STRIP_NONE;
- num_params = param_split(params,word,MSG_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params < 2)
+   CHARTYPE *word[MSG_PARAMS+1];
+   CHARTYPE strip[MSG_PARAMS];
+   short num_params=0;
+   short rc=RC_OK;
+   short base=CURRENT_VIEW->msgline_base;
+   short off=CURRENT_VIEW->msgline_off;
+   int start_row;
+   bool msgsts=FALSE;
+   int num_lines=CURRENT_VIEW->msgline_rows;
+
+   TRACE_FUNCTION( "commset1.c:Msgline" );
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   strip[2]=STRIP_BOTH;
+   strip[3]=STRIP_BOTH;
+   strip[4]=STRIP_NONE;
+   num_params = param_split( params, word, MSG_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE );
+   /*
+    * If only 1 parameter, it must be CLEAR...
+    */
+   if ( num_params == 1 )
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
-   }
- if (num_params > 4)
-   {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
-   }
-/*---------------------------------------------------------------------*/
-/* Parse the status parameter...                                       */
-/*---------------------------------------------------------------------*/
- rc = execute_set_on_off(word[0],&msgsts);
- if (rc != RC_OK)
-   {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
-   }
-/*---------------------------------------------------------------------*/
-/* ... only "ON" is allowed...                                         */
-/*---------------------------------------------------------------------*/
- if (!msgsts)
-   {
-    display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
-   }
-/*---------------------------------------------------------------------*/
-/* Parse the position parameter...                                     */
-/*---------------------------------------------------------------------*/
- if (num_params > 1)
-   {
-    rc = execute_set_row_position(word[1],&base,&off);
-    if (rc != RC_OK)
+      if ( equal( (CHARTYPE *)"CLEAR", word[0], 5 ) )
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(rc);
+         clear_msgline( -1 );
+         TRACE_RETURN();
+         return(RC_OK);
       }
    }
-/*---------------------------------------------------------------------*/
-/* To get here we have either two arguments or one. If two, the first  */
-/* is the number of lines, and the second MUST be Overlay.             */
-/* If one argument, it is either Overlay or number of lines.           */
-/*---------------------------------------------------------------------*/
- switch(num_params)
+   /*
+    * more than 1 parameter or only parameter not CLEAR
+    */
+   if ( num_params < 2 )
    {
-    case 3:
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   if (num_params > 4)
+   {
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Parse the status parameter...
+    */
+   if ( equal( EQUIVCHARstr, word[0], 1 ) )
+   {
+      msgsts = TRUE;
+   }
+   else
+   {
+      rc = execute_set_on_off( word[0], &msgsts , TRUE );
+      if (rc != RC_OK)
+      {
+         TRACE_RETURN();
+         return(rc);
+      }
+   }
+   /*
+    * ... only "ON" is allowed...
+    */
+   if (!msgsts)
+   {
+      display_error(1,word[0],FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Parse the position parameter...
+    */
+   if (num_params > 1)
+   {
+      if ( equal( EQUIVCHARstr, word[1], 1 ) )
+      {
+         base = CURRENT_VIEW->msgline_base;
+         off = CURRENT_VIEW->msgline_off;
+      }
+      else
+      {
+         rc = execute_set_row_position( word[1], &base, &off );
+         if (rc != RC_OK)
+         {
+            TRACE_RETURN();
+            return(rc);
+         }
+      }
+   }
+   /*
+    * To get here we have either two arguments or one. If two, the first
+    * is the number of lines, and the second MUST be Overlay.
+    * If one argument, it is either Overlay or number of lines.
+    */
+   switch(num_params)
+   {
+      case 3:
          if (equal((CHARTYPE *)"overlay",word[2],1))
             num_lines = 1;
+         else if ( equal( (CHARTYPE *)EQUIVCHARstr, word[2], 1 ) )
+            num_lines = CURRENT_VIEW->msgline_rows;
+         else if ( equal( (CHARTYPE *)"*", word[2], 1 ) )
+            num_lines = 0;
          else
-           {
-            num_lines = atoi((DEFCHAR *)word[2]);
+         {
+            num_lines = atoi( (DEFCHAR *)word[2] );
             if (num_lines < 1)
-              {
-               display_error(5,word[2],FALSE);
-#ifdef THE_TRACE
-               trace_return();
-#endif
+            {
+               display_error( 5, word[2], FALSE );
+               TRACE_RETURN();
                return(rc);
-              }
-           }
+            }
+            start_row = calculate_actual_row( base, off, CURRENT_SCREEN.screen_rows, TRUE );
+            if ( base == POSITION_BOTTOM )
+            {
+               if ( num_lines > start_row )
+                  rc = RC_INVALID_OPERAND;
+            }
+            else
+            {
+               if ( start_row + num_lines > CURRENT_SCREEN.screen_rows )
+                  rc = RC_INVALID_OPERAND;
+            }
+            if ( rc == RC_INVALID_OPERAND )
+            {
+               display_error( 6, word[2], FALSE );
+               TRACE_RETURN();
+               return(rc);
+            }
+         }
          break;
-    case 4:
-         num_lines = atoi((DEFCHAR *)word[2]);
-         if (num_lines < 1)
-           {
-            display_error(5,word[2],FALSE);
-#ifdef THE_TRACE
-            trace_return();
-#endif
+      case 4:
+         if ( equal( (CHARTYPE *)EQUIVCHARstr, word[2], 1 ) )
+            num_lines = CURRENT_VIEW->msgline_rows;
+         else if ( equal( (CHARTYPE *)"*", word[2], 1 ) )
+            num_lines = 0;
+         else
+         {
+            num_lines = atoi( (DEFCHAR *)word[2] );
+            if (num_lines < 1)
+            {
+               display_error( 5, word[2], FALSE );
+               TRACE_RETURN();
+               return(rc);
+            }
+            start_row = calculate_actual_row( base, off, CURRENT_SCREEN.screen_rows, TRUE );
+            if ( base == POSITION_BOTTOM )
+            {
+               if ( num_lines > start_row )
+                  rc = RC_INVALID_OPERAND;
+            }
+            else
+            {
+               if ( start_row + num_lines > CURRENT_SCREEN.screen_rows )
+                  rc = RC_INVALID_OPERAND;
+            }
+            if ( rc == RC_INVALID_OPERAND )
+            {
+               display_error( 6, word[2], FALSE );
+               TRACE_RETURN();
+               return(rc);
+            }
+         }
+         if ( !equal((CHARTYPE *)"overlay", word[3], 1 )
+         &&   !equal((CHARTYPE *)EQUIVCHARstr, word[3], 1 ) )
+         {
+            display_error( 1, word[3], FALSE );
+            TRACE_RETURN();
             return(rc);
-           }
-         if (!equal((CHARTYPE *)"overlay",word[3],1))
-           {
-            display_error(1,word[3],FALSE);
-#ifdef THE_TRACE
-            trace_return();
-#endif
-            return(rc);
-           }
+         }
          break;
-    default:
+      default:
          num_lines = 1;
          break;
    }
- CURRENT_VIEW->msgline_base = (CHARTYPE)base;
- CURRENT_VIEW->msgline_off = off;
- CURRENT_VIEW->msgline_rows = num_lines;
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   CURRENT_VIEW->msgline_base = base;
+   CURRENT_VIEW->msgline_off = off;
+   CURRENT_VIEW->msgline_rows = num_lines;
+   TRACE_RETURN();
+   return(rc);
 }
 /*man-start*********************************************************************
 COMMAND
      set msgmode - set display of messages on or off
 
 SYNTAX
-     [SET] MSGMode ON|OFF
+     [SET] MSGMode ON|OFF [Short|Long]
 
 DESCRIPTION
      The SET MSGMODE set command determines whether error messages will
      be displayed or suppressed.
 
 COMPATIBILITY
-     XEDIT: Does not support [Short|Long] options.
+     XEDIT: Does not implement [Short|Long] options.
      KEDIT: Compatible
 
 DEFAULT
@@ -5815,17 +6757,59 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Msgmode");
-#endif
- rc = execute_set_on_off(params,&CURRENT_VIEW->msgmode_status);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+#define MSGM_PARAMS  2
+   CHARTYPE *word[MSGM_PARAMS+1];
+   CHARTYPE strip[MSGM_PARAMS];
+   short num_params=0;
+   short rc=RC_OK;
+   bool new_msgmode=FALSE;
+
+   TRACE_FUNCTION("commset1.c:Msgmode");
+   strip[0]=STRIP_BOTH;
+   strip[1]=STRIP_BOTH;
+   num_params = param_split(params,word,MSGM_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if ( num_params < 1 )
+   {
+      display_error( 3,(CHARTYPE *)"",FALSE );
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
+   }
+   /*
+    * Parse the status parameter...
+    */
+   rc = execute_set_on_off( word[0],&new_msgmode, TRUE );
+   if (rc != RC_OK)
+   {
+      TRACE_RETURN();
+      return(rc);
+   }
+   /*
+    * If present the second argument is validated but ignored...
+    */
+   if ( num_params > 1 )
+   {
+      if ( equal( (CHARTYPE *)"SHORT", word[1], 1 ) )
+      {
+         /*
+          * Ignore
+          */
+      }
+      else if ( equal( (CHARTYPE *)"LONG", word[1], 1 ) )
+      {
+         /*
+          * Ignore
+          */
+      }
+      else
+      {
+         display_error( 1, word[1], FALSE );
+         TRACE_RETURN();
+         return(RC_INVALID_OPERAND);
+      }
+   }
+   CURRENT_VIEW->msgmode_status = new_msgmode;
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5862,53 +6846,42 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #define NEW_PARAMS  1
- CHARTYPE parm[NEW_PARAMS];
- CHARTYPE *word[NEW_PARAMS+1];
- CHARTYPE strip[NEW_PARAMS];
- unsigned short num_params=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Newlines");
-#endif
- strip[0]=STRIP_BOTH;
- num_params = param_split(params,word,NEW_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
- if (num_params > 1)
+   CHARTYPE parm[NEW_PARAMS];
+   CHARTYPE *word[NEW_PARAMS+1];
+   CHARTYPE strip[NEW_PARAMS];
+   unsigned short num_params=0;
+
+   TRACE_FUNCTION("commset1.c:Newlines");
+   strip[0]=STRIP_BOTH;
+   num_params = param_split(params,word,NEW_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
+   if (num_params > 1)
    {
-    display_error(2,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(2,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- if (num_params < 1)
+   if (num_params < 1)
    {
-    display_error(3,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(3,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
 
- parm[0] = (CHARTYPE)UNDEFINED_OPERAND;
- if (equal((CHARTYPE *)"aligned",word[0],1))
-    parm[0] = TRUE;
- if (equal((CHARTYPE *)"left",word[0],1))
-    parm[0] = FALSE;
- if (parm[0] == (CHARTYPE)UNDEFINED_OPERAND)
+   parm[0] = (CHARTYPE)UNDEFINED_OPERAND;
+   if (equal((CHARTYPE *)"aligned",word[0],1))
+      parm[0] = TRUE;
+   if (equal((CHARTYPE *)"left",word[0],1))
+      parm[0] = FALSE;
+   if (parm[0] == (CHARTYPE)UNDEFINED_OPERAND)
    {
-    display_error(1,word[0],FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(1,word[0],FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- CURRENT_VIEW->newline_aligned = parm[0];
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   CURRENT_VIEW->newline_aligned = parm[0];
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5918,8 +6891,8 @@ SYNTAX
      [SET] NONDisp character
 
 DESCRIPTION
-     The SET NONDISP command allows the user to change the 'character' 
-     that is displayed for non-displaying commands when <SET ETMODE> 
+     The SET NONDISP command allows the user to change the 'character'
+     that is displayed for non-displaying commands when <SET ETMODE>
      is OFF.
 
 COMPATIBILITY
@@ -5943,26 +6916,18 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Nondisp");
-#endif
- if (strlen((DEFCHAR *)params) != 1)
+   TRACE_FUNCTION("commset1.c:Nondisp");
+   if (strlen((DEFCHAR *)params) != 1)
    {
-    display_error(1,params,FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_INVALID_OPERAND);
+      display_error(1,params,FALSE);
+      TRACE_RETURN();
+      return(RC_INVALID_OPERAND);
    }
- NONDISPx = *params;
- build_screen(current_screen); 
- display_screen(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   NONDISPx = *params;
+   build_screen(current_screen);
+   display_screen(current_screen);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /*man-start*********************************************************************
 COMMAND
@@ -5972,7 +6937,7 @@ SYNTAX
      [SET] NUMber ON|OFF
 
 DESCRIPTION
-     The SET NUMBER command allows the user to toggle the display of 
+     The SET NUMBER command allows the user to set the display of
      numbers in the <prefix area>.
 
 COMPATIBILITY
@@ -5996,20 +6961,15 @@ CHARTYPE *params;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("commset1.c:Number");
-#endif
- rc = execute_set_on_off(params,&CURRENT_VIEW->number);
- if (rc == RC_OK)
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("commset1.c:Number");
+   rc = execute_set_on_off(params,&CURRENT_VIEW->number, TRUE );
+   if (rc == RC_OK)
    {
-    build_screen(current_screen); 
-    display_screen(current_screen);
+      build_screen(current_screen);
+      display_screen(current_screen);
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }

@@ -30,7 +30,7 @@
 /* System V curses key names and codes returned by getch */
 
 /*
-$Id: getch.h,v 1.1 1999/06/25 06:11:56 mark Exp mark $
+$Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
 */
 
 
@@ -38,145 +38,145 @@ $Id: getch.h,v 1.1 1999/06/25 06:11:56 mark Exp mark $
 #define KEY_MIN         0x101           /* Minimum curses key */
 #endif
 #ifndef KEY_BREAK
-#define KEY_BREAK	0x101	/* Not on PC KBD		 */
+#define KEY_BREAK 0x101 /* Not on PC KBD      */
 #endif
 #ifndef KEY_DOWN
-#define KEY_DOWN	0x102	/* Down arrow key		 */
+#define KEY_DOWN  0x102 /* Down arrow key     */
 #endif
 #ifndef KEY_UP
-#define KEY_UP		0x103	/* Up arrow key			 */
+#define KEY_UP    0x103 /* Up arrow key          */
 #endif
 #ifndef KEY_LEFT
-#define KEY_LEFT	0x104	/* Left arrow key		 */
+#define KEY_LEFT  0x104 /* Left arrow key     */
 #endif
 #ifndef KEY_RIGHT
-#define KEY_RIGHT	0x105	/* Right arrow key		 */
+#define KEY_RIGHT 0x105 /* Right arrow key       */
 #endif
 #ifndef KEY_HOME
-#define KEY_HOME	0x106	/* home key			 */
+#define KEY_HOME  0x106 /* home key        */
 #endif
 #ifndef KEY_BACKSPACE
-#define KEY_BACKSPACE	0x107	/* not on pc			 */
+#define KEY_BACKSPACE   0x107 /* not on pc          */
 #endif
 #ifndef KEY_F0
-#define KEY_F0		0x108	/* function keys. space for	 */
-#define KEY_F(n)    (KEY_F0+(n))/* 64 keys are reserved.	 */
+#define KEY_F0    0x108 /* function keys. space for    */
+#define KEY_F(n)    (KEY_F0+(n))/* 64 keys are reserved.  */
 #endif
 #ifndef KEY_DL
-#define KEY_DL		0x148	/* not on pc			 */
+#define KEY_DL    0x148 /* not on pc          */
 #endif
 #ifndef KEY_IL
-#define KEY_IL		0x149	/* insert line			 */
+#define KEY_IL    0x149 /* insert line        */
 #endif
 #ifndef KEY_DC
-#define KEY_DC		0x14a	/* delete character		 */
+#define KEY_DC    0x14a /* delete character      */
 #endif
 #ifndef KEY_IC
-#define KEY_IC		0x14b	/* insert char or enter ins mode */
+#define KEY_IC    0x14b /* insert char or enter ins mode */
 #endif
 #ifndef KEY_EIC
-#define KEY_EIC		0x14c	/* exit insert char mode	 */
+#define KEY_EIC      0x14c /* exit insert char mode    */
 #endif
 #ifndef KEY_CLEAR
-#define KEY_CLEAR	0x14d	/* clear screen			 */
+#define KEY_CLEAR 0x14d /* clear screen          */
 #endif
 #ifndef KEY_EOS
-#define KEY_EOS		0x14e	/* clear to end of screen	 */
+#define KEY_EOS      0x14e /* clear to end of screen   */
 #endif
 #ifndef KEY_EOL
-#define KEY_EOL		0x14f	/* clear to end of line		 */
+#define KEY_EOL      0x14f /* clear to end of line     */
 #endif
 #ifndef KEY_SF
-#define KEY_SF		0x150	/* scroll 1 line forward	 */
+#define KEY_SF    0x150 /* scroll 1 line forward    */
 #endif
 #ifndef KEY_SR
-#define KEY_SR		0x151	/* scroll 1 line back (reverse)	 */
+#define KEY_SR    0x151 /* scroll 1 line back (reverse)   */
 #endif
 #ifndef KEY_NPAGE
-#define KEY_NPAGE	0x152	/* next page			 */
+#define KEY_NPAGE 0x152 /* next page          */
 #endif
 #ifndef KEY_PPAGE
-#define KEY_PPAGE	0x153	/* previous page		 */
+#define KEY_PPAGE 0x153 /* previous page      */
 #endif
 #ifndef KEY_STAB
-#define KEY_STAB	0x154	/* set tab			 */
+#define KEY_STAB  0x154 /* set tab         */
 #endif
 #ifndef KEY_CTAB
-#define KEY_CTAB	0x155	/* clear tab			 */
+#define KEY_CTAB  0x155 /* clear tab          */
 #endif
 #ifndef KEY_CATAB
-#define KEY_CATAB	0x156	/* clear all tabs		 */
+#define KEY_CATAB 0x156 /* clear all tabs     */
 #endif
 #ifndef KEY_ENTER
-#define KEY_ENTER	0x157	/* enter or send (unreliable)	 */
+#define KEY_ENTER 0x157 /* enter or send (unreliable)  */
 #endif
 #ifndef KEY_SRESET
-#define KEY_SRESET	0x158	/* soft/reset (partial/unreliable)*/
+#define KEY_SRESET   0x158 /* soft/reset (partial/unreliable)*/
 #endif
 #ifndef KEY_RESET
-#define KEY_RESET	0x159	/* reset/hard reset (unreliable) */
+#define KEY_RESET 0x159 /* reset/hard reset (unreliable) */
 #endif
 #ifndef KEY_PRINT
-#define KEY_PRINT	0x15a	/* print/copy			 */
+#define KEY_PRINT 0x15a /* print/copy         */
 #endif
 #ifndef KEY_LL
-#define KEY_LL		0x15b	/* home down/bottom (lower left) */
+#define KEY_LL    0x15b /* home down/bottom (lower left) */
 #endif
 #ifndef KEY_ABORT
-#define KEY_ABORT	0x15c	/* abort/terminate key (any)	 */
+#define KEY_ABORT 0x15c /* abort/terminate key (any)   */
 #endif
 #ifndef KEY_SHELP
-#define KEY_SHELP	0x15d	/* short help			 */
+#define KEY_SHELP 0x15d /* short help         */
 #endif
 #ifndef KEY_LHELP
-#define KEY_LHELP	0x15e	/* long help			 */
+#define KEY_LHELP 0x15e /* long help          */
 #endif
-#ifndef KEY_BTAB 
+#ifndef KEY_BTAB
 #define KEY_BTAB        0x15f            /* Back tab key */
 #endif
-#ifndef KEY_BEG  
+#ifndef KEY_BEG
 #define KEY_BEG         0x160            /* beg(inning) key */
 #endif
 #ifndef KEY_CANCEL
 #define KEY_CANCEL      0x161             /* cancel key */
 #endif
-#ifndef KEY_CLOSE 
+#ifndef KEY_CLOSE
 #define KEY_CLOSE       0x162             /* close key */
 #endif
 #ifndef KEY_COMMAND
 #define KEY_COMMAND     0x163             /* cmd (command) key */
 #endif
-#ifndef KEY_COPY   
+#ifndef KEY_COPY
 #define KEY_COPY        0x164             /* copy key */
 #endif
-#ifndef KEY_CREATE 
+#ifndef KEY_CREATE
 #define KEY_CREATE      0x165             /* create key */
 #endif
-#ifndef KEY_END    
+#ifndef KEY_END
 #define KEY_END         0x166             /* end key */
 #endif
-#ifndef KEY_EXIT   
+#ifndef KEY_EXIT
 #define KEY_EXIT        0x167             /* exit key */
 #endif
-#ifndef KEY_FIND   
+#ifndef KEY_FIND
 #define KEY_FIND        0x168             /* find key */
 #endif
-#ifndef KEY_HELP   
+#ifndef KEY_HELP
 #define KEY_HELP        0x169             /* help key */
 #endif
-#ifndef KEY_MARK   
+#ifndef KEY_MARK
 #define KEY_MARK        0x16a             /* mark key */
 #endif
 #ifndef KEY_MESSAGE
 #define KEY_MESSAGE     0x16b             /* message key */
 #endif
-#ifndef KEY_MOVE   
+#ifndef KEY_MOVE
 #define KEY_MOVE        0x16c             /* move key */
 #endif
-#ifndef KEY_NEXT   
+#ifndef KEY_NEXT
 #define KEY_NEXT        0x16d             /* next object key */
 #endif
-#ifndef KEY_OPEN   
+#ifndef KEY_OPEN
 #define KEY_OPEN        0x16e             /* open key */
 #endif
 #ifndef KEY_OPTIONS
@@ -185,151 +185,151 @@ $Id: getch.h,v 1.1 1999/06/25 06:11:56 mark Exp mark $
 #ifndef KEY_PREVIOUS
 #define KEY_PREVIOUS    0x170             /* previous object key */
 #endif
-#ifndef KEY_REDO    
+#ifndef KEY_REDO
 #define KEY_REDO        0x171             /* redo key */
 #endif
 #ifndef KEY_REFERENCE
 #define KEY_REFERENCE   0x172             /* ref(erence) key */
 #endif
-#ifndef KEY_REFRESH  
+#ifndef KEY_REFRESH
 #define KEY_REFRESH     0x173             /* refresh key */
 #endif
-#ifndef KEY_REPLACE  
+#ifndef KEY_REPLACE
 #define KEY_REPLACE     0x174             /* replace key */
 #endif
-#ifndef KEY_RESTART  
+#ifndef KEY_RESTART
 #define KEY_RESTART     0x175             /* restart key */
 #endif
-#ifndef KEY_RESUME   
+#ifndef KEY_RESUME
 #define KEY_RESUME      0x176             /* resume key */
 #endif
-#ifndef KEY_SAVE     
+#ifndef KEY_SAVE
 #define KEY_SAVE        0x177             /* save key */
 #endif
-#ifndef KEY_SBEG     
+#ifndef KEY_SBEG
 #define KEY_SBEG        0x178             /* shifted beginning key */
 #endif
-#ifndef KEY_SCANCEL  
+#ifndef KEY_SCANCEL
 #define KEY_SCANCEL     0x179             /* shifted cancel key */
 #endif
-#ifndef KEY_SCOMMAND 
+#ifndef KEY_SCOMMAND
 #define KEY_SCOMMAND    0x17a             /* shifted command key */
 #endif
-#ifndef KEY_SCOPY    
+#ifndef KEY_SCOPY
 #define KEY_SCOPY       0x17b             /* shifted copy key */
 #endif
-#ifndef KEY_SCREATE  
+#ifndef KEY_SCREATE
 #define KEY_SCREATE     0x17c             /* shifted create key */
 #endif
-#ifndef KEY_SDC      
+#ifndef KEY_SDC
 #define KEY_SDC         0x17d             /* shifted delete char key */
 #endif
-#ifndef KEY_SDL      
+#ifndef KEY_SDL
 #define KEY_SDL         0x17e             /* shifted delete line key */
 #endif
-#ifndef KEY_SELECT   
+#ifndef KEY_SELECT
 #define KEY_SELECT      0x17f             /* select key */
 #endif
-#ifndef KEY_SEND     
+#ifndef KEY_SEND
 #define KEY_SEND        0x180             /* shifted end key */
 #endif
-#ifndef KEY_SEOL     
+#ifndef KEY_SEOL
 #define KEY_SEOL        0x181             /* shifted clear line key */
 #endif
-#ifndef KEY_SEXIT    
+#ifndef KEY_SEXIT
 #define KEY_SEXIT       0x182             /* shifted exit key */
 #endif
-#ifndef KEY_SFIND    
+#ifndef KEY_SFIND
 #define KEY_SFIND       0x183             /* shifted find key */
 #endif
-#ifndef KEY_SHOME    
+#ifndef KEY_SHOME
 #define KEY_SHOME       0x184             /* shifted home key */
 #endif
-#ifndef KEY_SIC      
+#ifndef KEY_SIC
 #define KEY_SIC         0x185             /* shifted input key */
 #endif
-#ifndef KEY_SLEFT    
+#ifndef KEY_SLEFT
 #define KEY_SLEFT       0x187             /* shifted left arrow key */
 #endif
-#ifndef KEY_SMESSAGE 
+#ifndef KEY_SMESSAGE
 #define KEY_SMESSAGE    0x188             /* shifted message key */
 #endif
-#ifndef KEY_SMOVE    
+#ifndef KEY_SMOVE
 #define KEY_SMOVE       0x189             /* shifted move key */
 #endif
-#ifndef KEY_SNEXT    
+#ifndef KEY_SNEXT
 #define KEY_SNEXT       0x18a             /* shifted next key */
 #endif
-#ifndef KEY_SOPTIONS 
+#ifndef KEY_SOPTIONS
 #define KEY_SOPTIONS    0x18b             /* shifted options key */
 #endif
 #ifndef KEY_SPREVIOUS
 #define KEY_SPREVIOUS   0x18c             /* shifted prev key */
 #endif
-#ifndef KEY_SPRINT   
+#ifndef KEY_SPRINT
 #define KEY_SPRINT      0x18d             /* shifted print key */
 #endif
-#ifndef KEY_SREDO    
+#ifndef KEY_SREDO
 #define KEY_SREDO       0x18e             /* shifted redo key */
 #endif
-#ifndef KEY_SREPLACE 
+#ifndef KEY_SREPLACE
 #define KEY_SREPLACE    0x18f             /* shifted replace key */
 #endif
-#ifndef KEY_SRIGHT   
+#ifndef KEY_SRIGHT
 #define KEY_SRIGHT      0x190             /* shifted right arrow */
 #endif
-#ifndef KEY_SRSUME   
+#ifndef KEY_SRSUME
 #define KEY_SRSUME      0x191             /* shifted resume key */
 #endif
-#ifndef KEY_SSAVE    
+#ifndef KEY_SSAVE
 #define KEY_SSAVE       0x192             /* shifted save key */
 #endif
-#ifndef KEY_SSUSPEND 
+#ifndef KEY_SSUSPEND
 #define KEY_SSUSPEND    0x193             /* shifted suspend key */
 #endif
-#ifndef KEY_SUNDO    
+#ifndef KEY_SUNDO
 #define KEY_SUNDO       0x194             /* shifted undo key */
 #endif
-#ifndef KEY_SUSPEND  
+#ifndef KEY_SUSPEND
 #define KEY_SUSPEND     0x195             /* suspend key */
 #endif
-#ifndef KEY_UNDO     
+#ifndef KEY_UNDO
 #define KEY_UNDO        0x196             /* undo key */
 #endif
-#ifndef KEY_A1       
+#ifndef KEY_A1
 #define KEY_A1          0x197             /* Upper left of keypad */
 #endif
 #ifndef KEY_A2
 #define KEY_A2          0x198             /* Upper centre of keypad */
 #endif
-#ifndef KEY_A3       
+#ifndef KEY_A3
 #define KEY_A3          0x199             /* Upper right of keypad */
 #endif
 #ifndef KEY_B1
 #define KEY_B1          0x19a             /* Middle left of keypad */
 #endif
-#ifndef KEY_B2       
+#ifndef KEY_B2
 #define KEY_B2          0x19b             /* Middle centre of keypad */
 #endif
 #ifndef KEY_B3
 #define KEY_B3          0x19c             /* Middle right of keypad */
 #endif
-#ifndef KEY_C1       
+#ifndef KEY_C1
 #define KEY_C1          0x19d             /* Lower left of keypad */
 #endif
 #ifndef KEY_C2
 #define KEY_C2          0x19e             /* Lower centre of keypad */
 #endif
-#ifndef KEY_C3       
+#ifndef KEY_C3
 #define KEY_C3          0x19f             /* Lower right of keypad */
 #endif
-#ifndef KEY_MAX      
+#ifndef KEY_MAX
 #define KEY_MAX         0xfff             /* Maximum curses key */
 #endif
-  
+
 #define KEY_DELETE  127
 
-#if !defined(DOS) && !defined(OS2) && !defined(XCURSES) && !defined(WIN32)
+#if !defined(DOS) && !defined(OS2) && !defined(USE_XCURSES) && !defined(WIN32) && !defined(USE_SDLCURSES)
 
 /* vt220 special keys */
 
@@ -343,16 +343,24 @@ $Id: getch.h,v 1.1 1999/06/25 06:11:56 mark Exp mark $
 #define CTL_PGDN       0x309
 
 # ifndef KEY_RETURN
-#  define KEY_RETURN     KEY_ENTER
+#  define KEY_RETURN     0xd
+# endif
+
+# ifndef KEY_ENTER
+#  define KEY_ENTER      0xd
 # endif
 
 # ifndef KEY_NUMENTER
 #  define KEY_NUMENTER   KEY_ENTER
 # endif
 
+# ifndef KEY_BKSP
+#  define KEY_BKSP      0x8
+# endif
+
 #endif
 
-#if defined(DOS) || defined(OS2) || defined(XCURSES) || defined(WIN32)
+#if defined(DOS) || defined(OS2) || defined(WIN32) || defined(USE_XCURSES) || defined(USE_SDLCURSES)
 /* normal characters */
 #define KEY_a      0x61
 #define KEY_b      0x62
@@ -463,10 +471,10 @@ $Id: getch.h,v 1.1 1999/06/25 06:11:56 mark Exp mark $
 #define KEY_S_STOP      0x3e
 #define KEY_S_FSLASH      0x3f
 #define KEY_S_TAB     KEY_BTAB
-#define KEY_S_CURU    KEY_CURU
-#define KEY_S_CURD    KEY_CURD
-#define KEY_S_INS     KEY_INS
-#define KEY_S_DEL     KEY_DEL
+#define KEY_S_CURU    KEY_SUP
+#define KEY_S_CURD    KEY_SDOWN
+#define KEY_S_INS     KEY_SIC
+#define KEY_S_DEL     KEY_SDC
 #define KEY_S_NUMCENTER  KEY_5
 /* control characters */
 /* Control-A to Control-Z at end */

@@ -407,7 +407,7 @@ extern reg_syntax_t re_set_syntax _RE_ARGS ((reg_syntax_t syntax));
    and syntax given by the global `re_syntax_options', into the buffer
    BUFFER.  Return NULL if successful, and an error string if not.  */
 extern const char *re_compile_pattern
-  _RE_ARGS ((const char *pattern, int length,
+  _RE_ARGS ((const char *pattern, reg_syntax_t re_syntax_options, int length,
              struct re_pattern_buffer *buffer));
 
 
@@ -466,18 +466,18 @@ extern void re_set_registers
              unsigned num_regs, regoff_t *starts, regoff_t *ends));
 
 /* 4.2 bsd compatibility.  */
-extern char *re_comp _RE_ARGS ((const char *));
+extern char *the_re_comp _RE_ARGS ((const char *s,reg_syntax_t re_syntax_options));
 extern int re_exec _RE_ARGS ((const char *));
 
 /* POSIX compatibility.  */
-extern int regcomp _RE_ARGS ((regex_t *preg, const char *pattern, int cflags));
-extern int regexec
+extern int the_regcomp _RE_ARGS ((regex_t *preg, const char *pattern, int cflags));
+extern int the_regexec
   _RE_ARGS ((const regex_t *preg, const char *string, size_t nmatch,
              regmatch_t pmatch[], int eflags));
-extern size_t regerror
+extern size_t the_regerror
   _RE_ARGS ((int errcode, const regex_t *preg, char *errbuf,
              size_t errbuf_size));
-extern void regfree _RE_ARGS ((regex_t *preg));
+extern void the_regfree _RE_ARGS ((regex_t *preg));
 
 #endif /* not __REGEXP_LIBRARY_H__ */
 

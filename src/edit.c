@@ -3,7 +3,7 @@
 /***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-1999 Mark Hessling
+ * Copyright (C) 1991-2013 Mark Hessling
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -29,20 +29,15 @@
  * This software is going to be maintained and enhanced as deemed
  * necessary by the community.
  *
- * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
- * PO Box 203, Bellara, QLD 4507, AUSTRALIA
- * Author of THE, a Free XEDIT/KEDIT editor and, Rexx/SQL
- * Maintainer of PDCurses: Public Domain Curses and, Regina Rexx interpreter
- * Use Rexx ? join the Rexx Language Association: http://www.rexxla.org
+ * Mark Hessling, mark@rexx.org  http://www.rexx.org/
  */
 
-static char RCSid[] = "$Id: edit.c,v 1.1 1999/06/25 06:11:56 mark Exp mark $";
 
 #include <the.h>
 #include <proto.h>
 
-/*#define THE_TRACE*/
- bool prefix_changed=FALSE;
+bool prefix_changed=FALSE;
+
 /***********************************************************************/
 #ifdef HAVE_PROTO
 void editor(void)
@@ -51,48 +46,43 @@ void editor()
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short y=0,x=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("edit.c:    editor");
-#endif
- /*
-  * Reset any command line positioning parameters so only those files
-  * edited from the command line take on the line/col, command line
-  * position.
-  */
- startup_line = startup_column = 0;
+   short y=0,x=0;
 
- if (display_screens > 1)
-    display_screen(other_screen);
+   TRACE_FUNCTION("edit.c:    editor");
+   /*
+    * Reset any command line positioning parameters so only those files
+    * edited from the command line take on the line/col, command line
+    * position.
+    */
+   startup_line = startup_column = 0;
 
- getyx(CURRENT_WINDOW,y,x);
- wmove(CURRENT_WINDOW,y,x);
- wrefresh(CURRENT_WINDOW);
- if (error_on_screen)
+   if (display_screens > 1)
+      display_screen((CHARTYPE)(other_screen));
+
+   getyx(CURRENT_WINDOW,y,x);
+   wmove(CURRENT_WINDOW,y,x);
+   wrefresh(CURRENT_WINDOW);
+   if (error_on_screen)
    {
-    if (error_window != NULL)
+      if (error_window != NULL)
       {
-       touchwin(error_window);
-       wrefresh(error_window);
-       wmove(CURRENT_WINDOW,y,x);
-       wrefresh(CURRENT_WINDOW);
+         touchwin(error_window);
+         wrefresh(error_window);
+         wmove(CURRENT_WINDOW,y,x);
+         wrefresh(CURRENT_WINDOW);
       }
    }
 #ifdef MSWIN
- draw_cursor(TRUE);
+   draw_cursor(TRUE);
 #endif
 
- while (1)
+   for ( ; ; )
    {
-    if (process_key(-1,FALSE) != RC_OK)
-       break;
+      if ( process_key( -1, FALSE ) != RC_OK )
+         break;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   TRACE_RETURN();
+   return;
 }
 
 /***********************************************************************/
@@ -105,120 +95,173 @@ bool mouse_details_present;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- unsigned short x=0,y=0;
- short rc=RC_OK;
- CHARTYPE string_key[2];
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("edit.c:    process_key");
-#endif
+   unsigned short x=0,y=0;
+   short rc=RC_OK;
+   CHARTYPE string_key[2];
+
+   TRACE_FUNCTION("edit.c:    process_key");
 #if defined(USE_EXTCURSES)
- getyx(CURRENT_WINDOW,y,x);
- wmove(CURRENT_WINDOW,y,x);
- wrefresh(CURRENT_WINDOW);
+   getyx(CURRENT_WINDOW,y,x);
+   wmove(CURRENT_WINDOW,y,x);
+   wrefresh(CURRENT_WINDOW);
 #endif
- string_key[1] = '\0';
+   string_key[1] = '\0';
 
 #ifdef CAN_RESIZE
- if (is_termresized())
- {
-    (void)THE_Resize(0,0);
-    (void)THERefresh((CHARTYPE *)"");
- }
+   if (is_termresized())
+   {
+      (void)THE_Resize(0,0);
+      (void)THERefresh((CHARTYPE *)"");
+   }
 #endif
-
- if (key == (-1))
-    key = my_getch(stdscr);
+#ifdef THE_SINGLE_INSTANCE_ENABLED
+   if ( single_instance_server )
+      key = process_fifo_input( key );
+#endif
+   if (key == (-1))
+   {
+      key = my_getch( CURRENT_WINDOW );
+   }
 #if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
-    if (key == KEY_MOUSE)
-    {
-       int b,ba,bm;
-       if (get_mouse_info(&b,&ba,&bm) != RC_OK)
-       {
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_OK);
-       }
-    }
-    else
-    {
-       if (!mouse_details_present)
-          reset_saved_mouse_pos();
-    }
+   if (key != KEY_MOUSE)
+   {
+      if (!mouse_details_present)
+         reset_saved_mouse_pos();
+   }
 #endif
 
 #ifdef CAN_RESIZE
- if (is_termresized())
- {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
- }
-#endif
-
- initial = FALSE;                 /* set first time a key is requested */
- if (error_on_screen)
-    clear_msgline(key);
- if (current_key == -1)
-    current_key = 0;
- else
-    current_key = (current_key == 7) ? 0 : current_key++;
- lastkeys[current_key] = key;
- rc = function_key(key,OPTION_NORMAL,mouse_details_present);
- if (number_of_files == 0)
+   if (is_termresized())
    {
-#ifdef THE_TRACE
-    trace_return();
+      TRACE_RETURN();
+      return(RC_OK);
+   }
 #endif
-    return(RC_INVALID_ENVIRON);
+   if ( key == -1 )
+   {
+      TRACE_RETURN();
+      return(RC_OK);
    }
 
- if (rc >= RAW_KEY)
+   initial = FALSE;                 /* set first time a key is requested */
+   if (error_on_screen)
+      clear_msgline(key);
+   if (current_key == -1)
+      current_key = 0;
+   else
    {
-    if (rc > RAW_KEY)
-       key = rc - (RAW_KEY*2);
-    if (key < 256 && key >= 0)
+      if ( current_key == 7 )
+         current_key = 0;
+      else
+         current_key++;
+   }
+   /*
+    * Save details about the last key pressed
+    */
+   lastkeys[current_key] = key;
+   if ( key == KEY_MOUSE )
+      lastkeys_is_mouse[current_key] = 1;
+   else
+      lastkeys_is_mouse[current_key] = 0;
+   /*
+    * If we are recording a macro, check if the key hit is the end-of-record
+    * key.
+    */
+   if ( record_fp )
+   {
+      if ( key == record_key )
       {
-       string_key[0] = (CHARTYPE)key;
-       (void)Text(string_key);
+         char ctime_buf[26];
+         time_t now;
+         /*
+          * Write a comment at the bottom
+          */
+         now = time( NULL );
+         strcpy( ctime_buf, ctime( &now ) );
+         ctime_buf[24] = '\0';
+         fprintf( record_fp, "/* Recording of macro ended %s */\n", ctime_buf );
+         fclose( record_fp );
+         (*the_free)( record_status );
+         record_fp = NULL;
+         record_status = NULL;
+         /*
+          * Refresh the status area to reflect we are no longer recording
+          */
+         show_statarea();
+         getyx(CURRENT_WINDOW,y,x);
+         wmove(CURRENT_WINDOW,y,x);
+         wrefresh(CURRENT_WINDOW);
+         TRACE_RETURN();
+         return(RC_OK);
+      }
+      /*
+       * If we are recording a macro, write the key definintion
+       * here
+       */
+      write_macro( get_key_definition( key, THE_KEY_DEFINE_RAW, TRUE, (bool)((key == KEY_MOUSE) ? TRUE : FALSE ) ) );
+   }
+   save_for_repeat = 0;
+   rc = function_key( key, OPTION_NORMAL, mouse_details_present );
+   save_for_repeat = 1;
+   if ( number_of_files == 0 )
+   {
+      TRACE_RETURN();
+      return(RC_INVALID_ENVIRON);
+   }
+
+   if (rc >= RAW_KEY)
+   {
+      if (rc > RAW_KEY)
+         key = rc - (RAW_KEY*2);
+      if (key < 256 && key >= 0)
+      {
+         string_key[0] = (CHARTYPE)key;
+         /*
+          * If operating in CUA mode, and a CUA block exists, check
+          * if the block should be reset or deleted before executing
+          * the command.
+          */
+         if ( INTERFACEx == INTERFACE_CUA
+         &&  CURRENT_VIEW->mark_type == M_CUA )
+         {
+            ResetOrDeleteCUABlock( CUA_DELETE_BLOCK );
+         }
+         (void)Text(string_key);
       }
    }
- show_statarea();
- if (display_screens > 1
- &&  SCREEN_FILE(0) == SCREEN_FILE(1))
+
+   show_statarea();
+
+   if (display_screens > 1
+   &&  SCREEN_FILE(0) == SCREEN_FILE(1))
    {
-    build_screen(other_screen);
-    display_screen(other_screen);
+      build_screen((CHARTYPE)(other_screen));
+      display_screen((CHARTYPE)(other_screen));
 /*    refresh_screen(other_screen);*/
-    show_heading(other_screen);
+      show_heading((CHARTYPE)(other_screen));
    }
- refresh_screen(current_screen);
- if (error_on_screen)
+   refresh_screen(current_screen);
+   if (error_on_screen)
    {
-    getyx(CURRENT_WINDOW,y,x);
-    if (error_window != NULL)
+      getyx(CURRENT_WINDOW,y,x);
+      if (error_window != NULL)
       {
-       touchwin(error_window);
-       wnoutrefresh(error_window);
+         touchwin(error_window);
+         wnoutrefresh(error_window);
       }
-    wmove(CURRENT_WINDOW,y,x);
-    wnoutrefresh(CURRENT_WINDOW);
+      wmove(CURRENT_WINDOW,y,x);
+      wnoutrefresh(CURRENT_WINDOW);
    }
 
 #ifdef HAVE_BROKEN_SYSVR4_CURSES
- getyx(CURRENT_WINDOW,y,x);
- wmove(CURRENT_WINDOW,y,x);
- wrefresh(CURRENT_WINDOW);
+   getyx(CURRENT_WINDOW,y,x);
+   wmove(CURRENT_WINDOW,y,x);
+   wrefresh(CURRENT_WINDOW);
 #else
- doupdate();
+   doupdate();
 #endif
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 
 /***********************************************************************/
@@ -231,222 +274,203 @@ bool external_command_line;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK,y=0,x=0;
- VIEW_DETAILS *save_current_view=NULL;
- VIEW_DETAILS *previous_current_view=NULL;
- CHARTYPE save_prefix=0;
- short save_gap=0;
- ROWTYPE save_cmd_line=0;
- bool save_id_line=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("edit.c:    EditFile");
-#endif
-/*---------------------------------------------------------------------*/
-/* With no arguments, edit the next file in the ring...                */
-/*---------------------------------------------------------------------*/
- if (strcmp((DEFCHAR *)fn,"") == 0)
+   short rc=RC_OK,y=0,x=0;
+   VIEW_DETAILS *save_current_view=NULL;
+   VIEW_DETAILS *previous_current_view=NULL;
+   CHARTYPE save_prefix=0;
+   short save_gap=0;
+   ROWTYPE save_cmd_line=0;
+   bool save_id_line=0;
+
+   TRACE_FUNCTION("edit.c:    EditFile");
+   /*
+    * With no arguments, edit the next file in the ring...
+    */
+   if (strcmp((DEFCHAR *)fn,"") == 0)
    {
-    rc = advance_view(NULL,DIRECTION_FORWARD);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      rc = advance_view(NULL,DIRECTION_FORWARD);
+      TRACE_RETURN();
+      return(rc);
    }
-/*---------------------------------------------------------------------*/
-/* With "-" as argument, edit the previous file in the ring...         */
-/*---------------------------------------------------------------------*/
- if (strcmp((DEFCHAR *)fn,"-") == 0)
+   /*
+    * With "-" as argument, edit the previous file in the ring...
+    */
+   if (strcmp((DEFCHAR *)fn,"-") == 0)
    {
-    rc = advance_view(NULL,DIRECTION_BACKWARD);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      rc = advance_view(NULL,DIRECTION_BACKWARD);
+      TRACE_RETURN();
+      return(rc);
    }
-/*---------------------------------------------------------------------*/
-/* If there are still file(s) in the ring, clear the command line and  */
-/* save any changes to the focus line.                                 */
-/*---------------------------------------------------------------------*/
- if (number_of_files > 0)
+   /*
+    * If there are still file(s) in the ring, clear the command line and
+    * save any changes to the focus line.
+    */
+   if (number_of_files > 0)
    {
-    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
-    memset(cmd_rec,' ',max_line_length);
-    cmd_rec_len = 0;
+      post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
+      memset(cmd_rec,' ',max_line_length);
+      cmd_rec_len = 0;
    }
- previous_current_view = CURRENT_VIEW;
-/*---------------------------------------------------------------------*/
-/* Save the position of the cursor for the current view before getting */
-/* the contents of the new file...                                     */
-/*---------------------------------------------------------------------*/
- if (curses_started
- &&  number_of_files > 0)
+   previous_current_view = CURRENT_VIEW;
+   /*
+    * Save the position of the cursor for the current view before getting
+    * the contents of the new file...
+    */
+   if (curses_started
+   &&  number_of_files > 0)
    {
-    if (CURRENT_WINDOW_COMMAND != NULL)
+      if (CURRENT_WINDOW_COMMAND != NULL)
       {
-       wmove(CURRENT_WINDOW_COMMAND,0,0);
-       my_wclrtoeol(CURRENT_WINDOW_COMMAND);
+         wmove(CURRENT_WINDOW_COMMAND,0,0);
+         my_wclrtoeol(CURRENT_WINDOW_COMMAND);
       }
-    getyx(CURRENT_WINDOW_FILEAREA,CURRENT_VIEW->y[WINDOW_FILEAREA],CURRENT_VIEW->x[WINDOW_FILEAREA]);
-    if (CURRENT_WINDOW_PREFIX != NULL)
-       getyx(CURRENT_WINDOW_PREFIX,CURRENT_VIEW->y[WINDOW_PREFIX],CURRENT_VIEW->x[WINDOW_PREFIX]);
+      getyx(CURRENT_WINDOW_FILEAREA,CURRENT_VIEW->y[WINDOW_FILEAREA],CURRENT_VIEW->x[WINDOW_FILEAREA]);
+      if (CURRENT_WINDOW_PREFIX != NULL)
+         getyx(CURRENT_WINDOW_PREFIX,CURRENT_VIEW->y[WINDOW_PREFIX],CURRENT_VIEW->x[WINDOW_PREFIX]);
    }
- if (number_of_files > 0)
+   if (number_of_files > 0)
    {
-    save_prefix=CURRENT_VIEW->prefix;
-    save_gap=CURRENT_VIEW->prefix_gap;
-    save_cmd_line=CURRENT_VIEW->cmd_line;
-    save_id_line=CURRENT_VIEW->id_line;
+      save_prefix=CURRENT_VIEW->prefix;
+      save_gap=CURRENT_VIEW->prefix_gap;
+      save_cmd_line=CURRENT_VIEW->cmd_line;
+      save_id_line=CURRENT_VIEW->id_line;
    }
-/*---------------------------------------------------------------------*/
-/* Read the contents of the new file into memory...                    */
-/*---------------------------------------------------------------------*/
- if ((rc = get_file(strrmdup(strtrans(fn,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
+   /*
+    * Read the contents of the new file into memory...
+    */
+   if ((rc = get_file(strrmdup(strtrans(fn,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      TRACE_RETURN();
+      return(rc);
    }
-/*---------------------------------------------------------------------*/
-/* If more than one screen is displayed, sort out which view is to be  */
-/* displayed...                                                        */
-/*---------------------------------------------------------------------*/
- if (display_screens > 1)
+   /*
+    * If more than one screen is displayed, sort out which view is to be
+    * displayed...
+    */
+   if (display_screens > 1)
    {
-    save_current_view = CURRENT_VIEW;
-    CURRENT_SCREEN.screen_view = CURRENT_VIEW = previous_current_view;
-    advance_view(save_current_view,DIRECTION_FORWARD);
+      save_current_view = CURRENT_VIEW;
+      CURRENT_SCREEN.screen_view = CURRENT_VIEW = previous_current_view;
+      advance_view(save_current_view,DIRECTION_FORWARD);
    }
- else
+   else
    {
-    if (number_of_files > 0)
+      if (number_of_files > 0)
       {
-/*---------------------------------------------------------------------*/
-/* If the position of the prefix or command line for the new view is   */
-/* different from the previous view, rebuild the windows...            */
-/*---------------------------------------------------------------------*/
-       if ((save_prefix&PREFIX_LOCATION_MASK) != (CURRENT_VIEW->prefix&PREFIX_LOCATION_MASK)
-       ||  save_gap != CURRENT_VIEW->prefix_gap
-       ||  save_cmd_line != CURRENT_VIEW->cmd_line
-       ||  save_id_line != CURRENT_VIEW->id_line)
+         /*
+          * If the position of the prefix or command line for the new view is
+          * different from the previous view, rebuild the windows...
+          */
+         if ((save_prefix&PREFIX_LOCATION_MASK) != (CURRENT_VIEW->prefix&PREFIX_LOCATION_MASK)
+         ||  save_gap != CURRENT_VIEW->prefix_gap
+         ||  save_cmd_line != CURRENT_VIEW->cmd_line
+         ||  save_id_line != CURRENT_VIEW->id_line)
          {
-          set_screen_defaults();
-          if (curses_started)
+            set_screen_defaults();
+            if (curses_started)
             {
-             if (set_up_windows(current_screen) != RC_OK)
+               if (set_up_windows(current_screen) != RC_OK)
                {
-#ifdef THE_TRACE
-                trace_return();
-#endif
-                return(RC_OK);
+                  TRACE_RETURN();
+                  return(RC_OK);
                }
             }
          }
       }
-/*---------------------------------------------------------------------*/
-/* Re-calculate CURLINE for the new view in case the CURLINE is no     */
-/* longer in the display area.                                         */
-/*---------------------------------------------------------------------*/
-    prepare_view(current_screen);
- }
- pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
- build_screen(current_screen);
-/*---------------------------------------------------------------------*/
-/* Position the cursor in the main window depending on the type of file*/
-/*---------------------------------------------------------------------*/
- if (curses_started)
+      /*
+       * Re-calculate CURLINE for the new view in case the CURLINE is no
+       * longer in the display area.
+       */
+      prepare_view(current_screen);
+   }
+   pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
+   build_screen(current_screen);
+   /*
+    * Position the cursor in the main window depending on the type of file
+    */
+   if (curses_started)
    {
-    if (CURRENT_VIEW->in_ring)
+      if (CURRENT_VIEW->in_ring)
       {
-       wmove(CURRENT_WINDOW_FILEAREA,CURRENT_VIEW->y[WINDOW_FILEAREA],CURRENT_VIEW->x[WINDOW_FILEAREA]);
-       if (CURRENT_WINDOW_PREFIX != NULL)
-          wmove(CURRENT_WINDOW_PREFIX,CURRENT_VIEW->y[WINDOW_PREFIX],CURRENT_VIEW->x[WINDOW_PREFIX]);
-       getyx(CURRENT_WINDOW,y,x);
-       wmove(CURRENT_WINDOW,y,x);
+         wmove(CURRENT_WINDOW_FILEAREA,CURRENT_VIEW->y[WINDOW_FILEAREA],CURRENT_VIEW->x[WINDOW_FILEAREA]);
+         if (CURRENT_WINDOW_PREFIX != NULL)
+            wmove(CURRENT_WINDOW_PREFIX,CURRENT_VIEW->y[WINDOW_PREFIX],CURRENT_VIEW->x[WINDOW_PREFIX]);
+         getyx(CURRENT_WINDOW,y,x);
+         wmove(CURRENT_WINDOW,y,x);
       }
-    else
+      else
       {
-       if (CURRENT_FILE->pseudo_file == PSEUDO_DIR)
-          wmove(CURRENT_WINDOW_FILEAREA,CURRENT_VIEW->current_row,file_start-1);
-       else
-          wmove(CURRENT_WINDOW_FILEAREA,CURRENT_VIEW->current_row,0);
+         if (CURRENT_FILE->pseudo_file == PSEUDO_DIR)
+            wmove(CURRENT_WINDOW_FILEAREA,CURRENT_VIEW->current_row,FILE_START-1);
+         else
+            wmove(CURRENT_WINDOW_FILEAREA,CURRENT_VIEW->current_row,0);
       }
    }
-/*---------------------------------------------------------------------*/
-/* If startup values were specified on the command, line, move cursor  */
-/* there...                                                            */
-/*---------------------------------------------------------------------*/
- if (startup_line != 0
- ||  startup_column != 0)
- {
-    CHARTYPE tmp[30];
-    sprintf((DEFCHAR*)tmp,":%ld",(long)startup_line);
-    command_line(tmp,TRUE);
-    sprintf((DEFCHAR*)tmp,"cl :%d",startup_column);
-    command_line(tmp,TRUE);
-    THEcursor_column();
- }
-/*---------------------------------------------------------------------*/
-/* Execute any profile file...                                         */
-/*---------------------------------------------------------------------*/
- if ((REPROFILEx && CURRENT_VIEW->in_ring == FALSE)
- ||  (in_profile && external_command_line))
+   /*
+    * Execute any profile file...
+    */
+   if ((REPROFILEx && CURRENT_VIEW->in_ring == FALSE)
+   ||  (in_profile && external_command_line))
    {
-    profile_file_executions++;
-    in_reprofile = TRUE;
-    if (execute_profile)
+      profile_file_executions++;
+      in_reprofile = TRUE;
+      if (execute_profile)
       {
-       if (local_prf != (CHARTYPE *)NULL)
-          rc = get_profile(local_prf,prf_arg);
+         if (local_prf != (CHARTYPE *)NULL)
+            rc = get_profile(local_prf,prf_arg);
       }
-    in_reprofile = FALSE;
+      in_reprofile = FALSE;
    }
-/*---------------------------------------------------------------------*/
-/* If the result of processing the profile file results in no files    */
-/* in the ring, we need to get out NOW.                                */
-/*---------------------------------------------------------------------*/
- if (number_of_files == 0)
+   /*
+    * If the result of processing the profile file results in no files
+    * in the ring, we need to get out NOW.
+    */
+   if (number_of_files == 0)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(rc);
+      TRACE_RETURN();
+      return(rc);
    }
 /* pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);*/
- build_screen(current_screen);
-/*---------------------------------------------------------------------*/
-/* If curses hasn't started, don't try to use curses functions...      */
-/*---------------------------------------------------------------------*/
- if (curses_started)
+   build_screen(current_screen);
+   /*
+    * If startup values were specified on the command, line, move cursor
+    * there...
+    */
+   if (startup_line != 0
+   ||  startup_column != 0)
    {
-    display_screen(current_screen);
-    if (CURRENT_WINDOW_COMMAND != NULL)
-       wmove(CURRENT_WINDOW_COMMAND,0,0);
-    if (CURRENT_WINDOW_PREFIX != NULL)
-       touchwin(CURRENT_WINDOW_PREFIX);
-    if (CURRENT_WINDOW_GAP != NULL)
-       touchwin(CURRENT_WINDOW_GAP);
-    if (CURRENT_WINDOW_COMMAND != NULL)
-       touchwin(CURRENT_WINDOW_COMMAND);
-    if (CURRENT_WINDOW_IDLINE != NULL)
-       touchwin(CURRENT_WINDOW_IDLINE);
-    touchwin(CURRENT_WINDOW_FILEAREA);
-    show_statarea();
+      THEcursor_goto( startup_line, startup_column );
    }
-/*---------------------------------------------------------------------*/
-/* If we have a Rexx interpreter, register a handler for ring.x where  */
-/* x is the number of files in the ring.                               */
-/*---------------------------------------------------------------------*/
+   filetabs_start_view = NULL;
+   /*
+    * If curses hasn't started, don't try to use curses functions...
+    */
+   if (curses_started)
+   {
+      display_screen(current_screen);
+      if (CURRENT_WINDOW_COMMAND != NULL)
+         wmove(CURRENT_WINDOW_COMMAND,0,0);
+      if (CURRENT_WINDOW_PREFIX != NULL)
+         touchwin(CURRENT_WINDOW_PREFIX);
+      if (CURRENT_WINDOW_GAP != NULL)
+         touchwin(CURRENT_WINDOW_GAP);
+      if (CURRENT_WINDOW_COMMAND != NULL)
+         touchwin(CURRENT_WINDOW_COMMAND);
+      if (CURRENT_WINDOW_IDLINE != NULL)
+         touchwin(CURRENT_WINDOW_IDLINE);
+      touchwin(CURRENT_WINDOW_FILEAREA);
+      show_statarea();
+   }
+   /*
+    * If we have a Rexx interpreter, register a handler for ring.x where
+    * x is the number of files in the ring.
+    */
    if (rexx_support)
    {
       CHARTYPE tmp[20];
-      sprintf(tmp,"ring.%d",number_of_files);
-      MyRexxRegisterFunctionExe(tmp);
+      sprintf( (DEFCHAR *)tmp, "ring.%ld", number_of_files + ( (compatible_feel==COMPAT_XEDIT) ? 1 : 0 ) );
+      MyRexxRegisterFunctionExe( tmp );
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   TRACE_RETURN();
+   return(rc);
 }

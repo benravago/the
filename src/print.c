@@ -3,7 +3,7 @@
 /***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-1999 Mark Hessling
+ * Copyright (C) 1991-2013 Mark Hessling
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -29,19 +29,14 @@
  * This software is going to be maintained and enhanced as deemed
  * necessary by the community.
  *
- * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
- * PO Box 203, Bellara, QLD 4507, AUSTRALIA
- * Author of THE, a Free XEDIT/KEDIT editor and, Rexx/SQL
- * Maintainer of PDCurses: Public Domain Curses and, Regina Rexx interpreter
- * Use Rexx ? join the Rexx Language Association: http://www.rexxla.org
+ * Mark Hessling, mark@rexx.org  http://www.rexx.org/
  */
 
-static char RCSid[] = "$Id: print.c,v 1.1 1999/06/25 06:11:56 mark Exp mark $";
 
 #include <the.h>
 #include <proto.h>
 
-#if !defined(WIN32)
+#if !defined(WIN32) || defined(__CYGWIN32__)
 # ifdef HAVE_PROTO
 static void print_shadow_line(FILE *,CHARTYPE *,LINETYPE);
 # else
@@ -49,7 +44,7 @@ static void print_shadow_line( );
 # endif
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN32__)
 /*
  * Because curses implementations use MOUSE_MOVED and it clashes with
  * <windows.h> on Windows platforms, we have to undef it here to avoid
@@ -67,9 +62,6 @@ static DWORD dwCharExtent=0;
 static BOOL bLineWrapping=TRUE;
 static BOOL documentON=FALSE;
 static BOOL defaultprinter=TRUE;
-static int ask,debug,printit,background;
-static char work[255];
-static char *ini;
 static int offsetx, offsety, savelpi, savecpi, orient;
 static int row=0;
 static int column=0;
@@ -261,30 +253,30 @@ static void SetOrient( int or )
 *****************************************************************************/
 void StartTextPrnt(void)
 {
-  memset(&pd, 0, sizeof(PRINTDLG));
-  pd.lStructSize = sizeof(PRINTDLG);
+   memset( &pd, 0, sizeof(PRINTDLG) );
+   pd.lStructSize = sizeof(PRINTDLG);
 
-  memset(&lf, 0, sizeof(LOGFONT));
+   memset( &lf, 0, sizeof(LOGFONT) );
 
-  strcpy(lf.lfFaceName, "LinePrinter BM");
-  offsetx = 450;
-  offsety = 200;
-  savelpi = 8;
-  savecpi = 16;
-  SetCPI(MAKELONG(savecpi,savelpi));
-  lf.lfWidth = lf.lfHeight = 1;
-  lf.lfWeight = 400;
-  lf.lfPitchAndFamily = FF_MODERN|FIXED_PITCH;
-  // Get a DC handle to the system`s default printer. using
-  // the PD_RETURNDEFAULT flag ensures that no dialog is opened.
-  pd.Flags = PD_RETURNDC | PD_RETURNDEFAULT | PD_NOSELECTION;
-  PrintDlg(&pd);
-  if (pd.hDevMode == NULL)
-  {
-     display_error(78,"Unable to initialise default printer",FALSE);
-     return;
-  }
-  SetOrient(DMORIENT_PORTRAIT);
+   strcpy( lf.lfFaceName, "LinePrinter BM" );
+   offsetx = 450;
+   offsety = 200;
+   savelpi = 8;
+   savecpi = 16;
+   SetCPI( MAKELONG(savecpi,savelpi) );
+   lf.lfWidth = lf.lfHeight = 1;
+   lf.lfWeight = 400;
+   lf.lfPitchAndFamily = FF_MODERN|FIXED_PITCH;
+   // Get a DC handle to the system`s default printer. using
+   // the PD_RETURNDEFAULT flag ensures that no dialog is opened.
+   pd.Flags = PD_RETURNDC | PD_RETURNDEFAULT | PD_NOSELECTION;
+   PrintDlg(&pd);
+   if ( pd.hDevMode == NULL )
+   {
+      display_error(78,"Unable to initialise default printer",FALSE);
+      return;
+   }
+   SetOrient( DMORIENT_PORTRAIT );
 }
 
 /*****************************************************************************
@@ -314,7 +306,7 @@ void StopTextPrnt( void )
 /*****************************************************************************
  * Write a string to the current document
 *****************************************************************************/
-void WriteString(char* sz, int len)
+static void WriteString(char* sz, int len)
 {
    int tabn = (int)CURRENT_FILE->tabsout_num;
    int i=0;
@@ -345,7 +337,7 @@ void WriteString(char* sz, int len)
 
          case '\t' :                             // Tab
             column += tabn - (column % tabn);
-            if ( bLineWrapping 
+            if ( bLineWrapping
             && column >= LOWORD(dwCharExtent) )
                NextLine();
             break;
@@ -357,7 +349,7 @@ void WriteString(char* sz, int len)
                else
                   WritePrinter( hPrinter, p, 1, &dwNumWritten );
                // Wrap line
-               if ( bLineWrapping 
+               if ( bLineWrapping
                && column >= LOWORD(dwCharExtent) )
                   NextLine();
             }
@@ -399,30 +391,26 @@ short target_type;
  LINETYPE start=0L,end=0L,len=0L;
  CHARTYPE *ptr=NULL;
 /*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   print_line");
-#endif
+ TRACE_FUNCTION("print.c:   print_line");
 
  if (close_spooler)
    {
     if (spooler_open)
       {
        spooler_open = FALSE;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN32__)
        EndDocument();
 #elif defined(UNIX)
        pclose(pp);
 #else
        fclose(pp);
 #endif
-# ifdef THE_TRACE
-       trace_return();
-# endif
+       TRACE_RETURN();
        return;
       }
    }
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN32__)
  if (!spooler_open)
    {
     StartDocument();
@@ -434,9 +422,7 @@ short target_type;
     pp = popen((DEFCHAR *)spooler_name,"w");
     if (pp == NULL)
      {
-# ifdef THE_TRACE
-      trace_return();
-# endif
+      TRACE_RETURN();
       return;
      }
     spooler_open = TRUE;
@@ -447,9 +433,7 @@ short target_type;
     pp = fopen((DEFCHAR *)spooler_name,"ab");
     if (pp == NULL)
      {
-# ifdef THE_TRACE
-      trace_return();
-# endif
+      TRACE_RETURN();
       return;
      }
     spooler_open = TRUE;
@@ -458,15 +442,13 @@ short target_type;
 
  if (num_lines == 0L)
    {
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN32__)
     WriteString(text,strlen(text));
     WriteString(line_term,strlen(line_term));
 #else
     fprintf(pp,"%s%s",text,line_term);
 #endif
-#ifdef THE_TRACE
-    trace_return();
-#endif
+    TRACE_RETURN();
     return;
    }
 /*---------------------------------------------------------------------*/
@@ -506,7 +488,7 @@ short target_type;
        default:
             if (num_excluded != 0)
               {
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN32__)
                print_shadow_line(line_term,num_excluded);
 #else
                print_shadow_line(pp,line_term,num_excluded);
@@ -534,6 +516,7 @@ short target_type;
                             ptr = rec+start;
                             break;
                        case M_STREAM:
+                       case M_CUA:
                             pre_process_line(CURRENT_VIEW,true_line+(LINETYPE)(j*direction),curr);
                             start = 0;
                             end = (curr->length)-1;
@@ -561,7 +544,7 @@ short target_type;
                     }
                     break;
               }
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN32__)
             WriteString(ptr,len);
             WriteString(line_term,strlen(line_term));
 #else
@@ -572,7 +555,7 @@ short target_type;
             if (line_number == pagesize
             && pagesize != 0)
               {
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN32__)
                WriteString("\f",1);
 #else
                fputc('\f',pp);
@@ -597,7 +580,7 @@ short target_type;
 /*---------------------------------------------------------------------*/
  if (num_excluded != 0)
    {
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN32__)
     print_shadow_line(line_term,num_excluded);
 #else
     print_shadow_line(pp,line_term,num_excluded);
@@ -625,9 +608,7 @@ short target_type;
     else
        wmove(CURRENT_WINDOW,y,x);
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
+ TRACE_RETURN();
  return;
 }
 
@@ -643,33 +624,28 @@ int width;
 /***********************************************************************/
 {
 #define LINES_NOT_DISPLAYED " line(s) not displayed "
-/*--------------------------- local data ------------------------------*/
- int numlen=0,first=0;
- char numbuf[33]; /* 10 + length of LINES_NOT_DISPLAYED */
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   make_shadow_line");
-#endif
- numlen = sprintf(numbuf," %ld%s",num_excluded,LINES_NOT_DISPLAYED);
- if (numlen > width)
-    numlen = width;
- /* distribute pad characters */
- first = (width - numlen) >> 1;
- memset(buf,'-',first);
- buf += first;
- memcpy(buf,numbuf,numlen);
- buf += numlen;
- /* fill up to end */
- memset(buf,'-',width - first - numlen);
- /* terminate string */
- buf[width - first - numlen] = '\0';
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   int numlen=0,first=0;
+   char numbuf[33]; /* 10 + length of LINES_NOT_DISPLAYED */
+
+   TRACE_FUNCTION("print.c:   make_shadow_line");
+   numlen = sprintf(numbuf," %ld%s",num_excluded,LINES_NOT_DISPLAYED);
+   if (numlen > width)
+      numlen = width;
+   /* distribute pad characters */
+   first = (width - numlen) >> 1;
+   memset(buf,'-',first);
+   buf += first;
+   memcpy(buf,numbuf,numlen);
+   buf += numlen;
+   /* fill up to end */
+   memset(buf,'-',width - first - numlen);
+   /* terminate string */
+   buf[width - first - numlen] = '\0';
+   TRACE_RETURN();
+   return;
 }
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN32__)
 /***********************************************************************/
 #ifdef HAVE_PROTO
 static void print_shadow_line(CHARTYPE *line_term,LINETYPE num_excluded)
@@ -680,24 +656,19 @@ LINETYPE num_excluded;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register int width=0;
- char buf[512];
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   print_shadow_line");
-#endif
- if (CURRENT_VIEW->shadow)
+   register int width=0;
+   char buf[512];
+
+   TRACE_FUNCTION("print.c:   print_shadow_line");
+   if (CURRENT_VIEW->shadow)
    {
-    width = min(sizeof(buf)-1,CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
-    make_shadow_line(buf,num_excluded,width);
-    WriteString(buf,width);
-    WriteString(line_term,strlen(line_term));
+      width = min(sizeof(buf)-1,CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
+      make_shadow_line(buf,num_excluded,width);
+      WriteString(buf,width);
+      WriteString(line_term,strlen(line_term));
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   TRACE_RETURN();
+   return;
 }
 #else
 /***********************************************************************/
@@ -711,24 +682,19 @@ LINETYPE num_excluded;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register int width=0;
- char buf[512];
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   print_shadow_line");
-#endif
- if (CURRENT_VIEW->shadow)
+   register int width=0;
+   char buf[512];
+
+   TRACE_FUNCTION("print.c:   print_shadow_line");
+   if (CURRENT_VIEW->shadow)
    {
-    width = min(sizeof(buf)-1,CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
-    make_shadow_line(buf,num_excluded,width);
-    fwrite(buf,width,1,pp);
-    fputs((DEFCHAR *)line_term,pp);
+      width = min(sizeof(buf)-1,CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
+      make_shadow_line(buf,num_excluded,width);
+      fwrite(buf,width,1,pp);
+      fputs((DEFCHAR *)line_term,pp);
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   TRACE_RETURN();
+   return;
 }
 #endif
 
@@ -741,39 +707,33 @@ char *pn;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   setprintername");
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("print.c:   setprintername");
+#if defined(WIN32)  && !defined(__CYGWIN32__)
+   if ( hPrinter )
+   {
+      ClosePrinter( hPrinter );
+      hPrinter = 0;
+   }
+   if ( my_stricmp( pn, "default" ) != 0 )
+   {
+      if ( OpenPrinter( pn, &hPrinter, NULL ) == 0 )
+      {
+         char buf[25];
+         display_error(78,"no access to printer",FALSE);
+         sprintf(buf,"Win32 error: %d",GetLastError());
+         display_error(78,buf,FALSE);
+         rc = RC_INVALID_OPERAND;
+      }
+      defaultprinter = FALSE;
+   }
+   if ( documentON )
+      EndDocument();
 #endif
 
-#ifdef WIN32
- if ( hPrinter )
- {
-    ClosePrinter( hPrinter );
-    hPrinter = 0;
- }
- if ( stricmp( pn, "default" ) != 0 )
- {
-    if ( OpenPrinter( pn, &hPrinter, NULL ) == 0 )
-    {
-       char buf[25];
-       display_error(78,"no access to printer",FALSE);
-       sprintf(buf,"Win32 error: %d",GetLastError());
-       display_error(78,buf,FALSE);
-       rc = RC_INVALID_OPERAND;
-    }
-    defaultprinter = FALSE;
- }
- if ( documentON )
-    EndDocument();
-#endif
-
-#ifdef THE_TRACE
- trace_return();
-#endif
- return (rc);
+   TRACE_RETURN();
+   return (rc);
 }
 
 /***********************************************************************/
@@ -785,18 +745,12 @@ int cpi;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   setfontcpi");
+   TRACE_FUNCTION("print.c:   setfontcpi");
+#if defined(WIN32) && !defined(__CYGWIN32__)
+   SetCPI(MAKELONG(cpi,savelpi));
 #endif
-#ifdef WIN32
- SetCPI(MAKELONG(cpi,savelpi));
-#endif
-#ifdef THE_TRACE
- trace_return();
-#endif
- return (RC_OK);
+   TRACE_RETURN();
+   return (RC_OK);
 }
 
 /***********************************************************************/
@@ -808,18 +762,12 @@ int lpi;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   setfontlpi");
+   TRACE_FUNCTION("print.c:   setfontlpi");
+#if defined(WIN32) && !defined(__CYGWIN32__)
+   SetCPI(MAKELONG(savecpi,lpi));
 #endif
-#ifdef WIN32
- SetCPI(MAKELONG(savecpi,lpi));
-#endif
-#ifdef THE_TRACE
- trace_return();
-#endif
- return (RC_OK);
+   TRACE_RETURN();
+   return (RC_OK);
 }
 
 /***********************************************************************/
@@ -831,15 +779,9 @@ int ps;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   setpagesize");
-#endif
-#ifdef THE_TRACE
- trace_return();
-#endif
- return (RC_OK);
+   TRACE_FUNCTION("print.c:   setpagesize");
+   TRACE_RETURN();
+   return (RC_OK);
 }
 
 /***********************************************************************/
@@ -851,42 +793,28 @@ char *font;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   setfontname");
-#endif
-#ifdef THE_TRACE
- trace_return();
-#endif
- return (RC_OK);
+   TRACE_FUNCTION("print.c:   setfontname");
+   TRACE_RETURN();
+   return (RC_OK);
 }
 
 /***********************************************************************/
 #ifdef HAVE_PROTO
-short setorient(char or)
+short setorient(char ori)
 #else
-short setorient(or)
+short setorient(ori)
 char or;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("print.c:   setorient");
+   TRACE_FUNCTION("print.c:   setorient");
+#if defined(WIN32) && !defined(__CYGWIN32__)
+   if (ori == 'L')
+      SetOrient(DMORIENT_LANDSCAPE);
+   else
+      SetOrient(DMORIENT_PORTRAIT);
 #endif
-
-#ifdef WIN32
- if (or == 'L') 
-    SetOrient(DMORIENT_LANDSCAPE);
- else
-    SetOrient(DMORIENT_PORTRAIT);
-#endif
-
-#ifdef THE_TRACE
- trace_return();
-#endif
- return (RC_OK);
+   TRACE_RETURN();
+   return (RC_OK);
 }
 #endif

@@ -21,7 +21,6 @@ Cambridge, MA 02139, USA.  */
  * that supply their own fnmatch() function.
  */
 
-static char RCSid[] = "$Id: thematch.c,v 1.1 1999/06/25 06:11:56 mark Exp mark $";
 
 #include <ctype.h>
 #include <errno.h>
@@ -33,11 +32,14 @@ extern int errno;
 
 /* Match STRING against the filename pattern PATTERN, returning zero if
    it matches, nonzero if not.  */
-int
-thematch(pattern, string, flags)
+#ifdef __cplusplus
+int thematch( char *pattern, char *string, int flags )
+#else
+int thematch(pattern, string, flags)
      char *pattern;
      char *string;
      int flags;
+#endif
 {
   register char *p = pattern, *n = string;
   register char c;
@@ -96,7 +98,7 @@ thematch(pattern, string, flags)
         {
           /* Nonzero if this if the sense of
              the character class is inverted.  */
-          register int not;
+          register int nott;
 
           if (*n == '\0')
             return FNM_NOMATCH;
@@ -105,8 +107,8 @@ thematch(pattern, string, flags)
               (n == string || ((flags & FNM_PATHNAME) && n[-1] == '/')))
             return FNM_NOMATCH;
 
-          not = *p == '!';
-          if (not)
+          nott = *p == '!';
+          if (nott)
             ++p;
 
           c = *p++;
@@ -141,7 +143,7 @@ thematch(pattern, string, flags)
               if (c == ']')
                 break;
             }
-          if (!not)
+          if (!nott)
             return FNM_NOMATCH;
           break;
 
@@ -158,7 +160,7 @@ thematch(pattern, string, flags)
                 /* 1003.2d11 is unclear if this is right.  %%% */
                 ++p;
             }
-          if (not)
+          if (nott)
             return FNM_NOMATCH;
 
           ++n;

@@ -5,7 +5,7 @@
 /***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-1999 Mark Hessling
+ * Copyright (C) 1991-2013 Mark Hessling
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -31,14 +31,9 @@
  * This software is going to be maintained and enhanced as deemed
  * necessary by the community.
  *
- * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
- * PO Box 203, Bellara, QLD 4507, AUSTRALIA
- * Author of THE, a Free XEDIT/KEDIT editor and, Rexx/SQL
- * Maintainer of PDCurses: Public Domain Curses and, Regina Rexx interpreter
- * Use Rexx ? join the Rexx Language Association: http://www.rexxla.org
+ * Mark Hessling, mark@rexx.org  http://www.rexx.org/
  */
 
-static char RCSid[] = "$Id: column.c,v 1.1 1999/06/25 06:11:56 mark Exp mark $";
 
 #include <the.h>
 #include <proto.h>
@@ -53,182 +48,166 @@ int cmd_type;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- LENGTHTYPE i=0;
- LINETYPE true_line=0L;
- short rc=RC_OK;
- short len_params=0;
- unsigned short y=0,x=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("column.c:  column_command");
-#endif
-/*---------------------------------------------------------------------*/
-/* All column commands under XEDIT compatibility refer to current line.*/
-/* ******* At this stage, revert to THE behaviour at all times ******* */
-/*---------------------------------------------------------------------*/
- if (compatible_feel == COMPAT_XEDIT)
-    true_line = CURRENT_VIEW->current_line;
- else
-    true_line = get_true_line(TRUE);
-/*---------------------------------------------------------------------*/
-/* If on TOF or BOF, exit with error.                                  */
-/*---------------------------------------------------------------------*/
- if (TOF(true_line)
- ||  BOF(true_line))
+   LENGTHTYPE i=0;
+   LINETYPE true_line=0L;
+   short rc=RC_OK;
+   LENGTHTYPE len_params=0;
+   unsigned short y=0,x=0;
+
+   TRACE_FUNCTION("column.c:  column_command");
+   /*
+    * All column commands under XEDIT compatibility refer to current line.
+    * ******* At this stage, revert to THE behaviour at all times *******
+    */
+   if (compatible_feel == COMPAT_XEDIT)
+      true_line = CURRENT_VIEW->current_line;
+   else
+      true_line = get_true_line(TRUE);
+   /*
+    * If on TOF or BOF, exit with error.
+    */
+   if (TOF(true_line)
+   ||  BOF(true_line))
    {
-    display_error(36,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_NO_LINES_CHANGED);
+      display_error(36,(CHARTYPE *)"",FALSE);
+      TRACE_RETURN();
+      return(RC_NO_LINES_CHANGED);
    }
-/*---------------------------------------------------------------------*/
-/* If HEX mode is on, convert the hex string...                        */
-/*---------------------------------------------------------------------*/
- if (CURRENT_VIEW->hex)
+   /*
+    * If HEX mode is on, convert the hex string...
+    */
+   if (CURRENT_VIEW->hex)
    {
-    if ((len_params = convert_hex_strings(cmd_text)) == (-1))
+      len_params = convert_hex_strings( cmd_text );
+      switch( len_params )
       {
-       display_error(32,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_INVALID_OPERAND);
+         case -1: /* invalid hex value */
+            display_error( 32, cmd_text, FALSE );
+            TRACE_RETURN();
+            return(RC_INVALID_OPERAND);
+            break;
+         case -2: /* memory exhausted */
+            display_error( 30, (CHARTYPE *)"", FALSE );
+            TRACE_RETURN();
+            return(RC_OUT_OF_MEMORY);
+            break;
+         default:
+            break;
       }
    }
- else
-   len_params = strlen((DEFCHAR *)cmd_text);
-/*---------------------------------------------------------------------*/
-/* If on command line, copy current line into rec                      */
-/*---------------------------------------------------------------------*/
- if (CURRENT_VIEW->current_window == WINDOW_COMMAND
- ||  compatible_feel == COMPAT_XEDIT)
+   else
+     len_params = strlen((DEFCHAR *)cmd_text);
+   /*
+    * If on command line, copy current line into rec
+    */
+   if (CURRENT_VIEW->current_window == WINDOW_COMMAND
+   ||  compatible_feel == COMPAT_XEDIT)
    {
-    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
-    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->current_line,(LINE *)NULL);
-    x = CURRENT_VIEW->current_column-1;
+      post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
+      pre_process_line(CURRENT_VIEW,CURRENT_VIEW->current_line,(LINE *)NULL);
+      x = CURRENT_VIEW->current_column-1;
    }
- else
+   else
    {
-    if (CURRENT_VIEW->current_window == WINDOW_PREFIX)
+      if (CURRENT_VIEW->current_window == WINDOW_PREFIX)
       {
-       if (cmd_type != COLUMN_CAPPEND)
+         if (cmd_type != COLUMN_CAPPEND)
          {
-          display_error(36,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_NO_LINES_CHANGED);
+            display_error(36,(CHARTYPE *)"",FALSE);
+            TRACE_RETURN();
+            return(RC_NO_LINES_CHANGED);
          }
       }
-    if (curses_started)
-       getyx(CURRENT_WINDOW,y,x);
-    x = CURRENT_VIEW->verify_col-1+x;
+      if (curses_started)
+         getyx(CURRENT_WINDOW,y,x);
+      x = CURRENT_VIEW->verify_col-1+x;
    }
- switch(cmd_type)
+   switch(cmd_type)
    {
-    case COLUMN_CAPPEND:
+      case COLUMN_CAPPEND:
          CURRENT_VIEW->current_column = rec_len+1;
          for (i=0;i<len_params;i++)
-           {
+         {
             if (rec_len > max_line_length)
                break;
             rec[rec_len] = *(cmd_text+i);
             rec_len++;
-           }
-#if 0
-         rec[rec_len] = '\0';
-#endif
+         }
          break;
-    case COLUMN_CINSERT:
+      case COLUMN_CINSERT:
          if (x > rec_len)
-           {
+         {
             rec_len = x;
             for (i=0;i<len_params;i++)
-              {
+            {
                if (rec_len > max_line_length)
                   break;
                rec[rec_len] = *(cmd_text+i);
                rec_len++;
-              }
-#if 0
-            rec[rec_len] = '\0';
-#endif
-           }
+            }
+         }
          else
-           {
+         {
             rec = meminsmem(rec,cmd_text,len_params,x,max_line_length,rec_len);
             rec_len = min(max_line_length,rec_len+len_params);
-#if 0
-            rec[rec_len] = '\0';
-#endif
-           }
+         }
          break;
-    case COLUMN_COVERLAY:
+      case COLUMN_COVERLAY:
          for (i=0;i<len_params;i++)
-           {
+         {
             if (x > max_line_length)
                break;
             switch(*(cmd_text+i))
-              {
+            {
                case '_':
-                    rec[x] = ' ';
-                    break;
+                  rec[x] = ' ';
+                  break;
                case ' ':
-                    break;
+                   break;
                default:
-                    rec[x] = *(cmd_text+i);
-                    break;
-              }
+                  rec[x] = *(cmd_text+i);
+                  break;
+            }
             x++;
-           }
+         }
          rec_len = max(rec_len,x+1);
-#if 0
-         rec[rec_len] = '\0';
-#endif
          break;
-    case COLUMN_CREPLACE:
+      case COLUMN_CREPLACE:
          for (i=0;i<len_params;i++)
-           {
+         {
             if (x > max_line_length)
                break;
             rec[x] = *(cmd_text+i);
             x++;
-           }
+         }
          rec_len = max(rec_len,x+1);
-#if 0
-         rec[rec_len] = '\0';
-#endif
          break;
    }
- if (CURRENT_VIEW->current_window == WINDOW_COMMAND
- ||  compatible_feel == COMPAT_XEDIT)
+   if (CURRENT_VIEW->current_window == WINDOW_COMMAND
+   ||  compatible_feel == COMPAT_XEDIT)
    {
-    post_process_line(CURRENT_VIEW,CURRENT_VIEW->current_line,(LINE *)NULL,TRUE);
-    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
+      post_process_line(CURRENT_VIEW,CURRENT_VIEW->current_line,(LINE *)NULL,TRUE);
+      pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
    }
- else
+   else
    {
-    switch(cmd_type)
+      switch(cmd_type)
       {
-       case COLUMN_CAPPEND:
+         case COLUMN_CAPPEND:
             if (CURRENT_VIEW->current_window == WINDOW_PREFIX)
-              {
+            {
                CURRENT_VIEW->current_window = WINDOW_FILEAREA;
                if (curses_started)
                   wmove(CURRENT_WINDOW,y,0);
-              }
-            rc = execute_move_cursor(CURRENT_VIEW->current_column-1);
+            }
+            rc = execute_move_cursor( current_screen, CURRENT_VIEW, CURRENT_VIEW->current_column-1);
             break;
-       case COLUMN_CINSERT:
+         case COLUMN_CINSERT:
             break;
       }
    }
- build_screen(current_screen);
- display_screen(current_screen);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   build_screen(current_screen);
+   display_screen(current_screen);
+   TRACE_RETURN();
+   return(rc);
 }

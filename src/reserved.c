@@ -4,7 +4,7 @@
 /***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-1999 Mark Hessling
+ * Copyright (C) 1991-2013 Mark Hessling
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -30,90 +30,80 @@
  * This software is going to be maintained and enhanced as deemed
  * necessary by the community.
  *
- * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
- * PO Box 203, Bellara, QLD 4507, AUSTRALIA
- * Author of THE, a Free XEDIT/KEDIT editor and, Rexx/SQL
- * Maintainer of PDCurses: Public Domain Curses and, Regina Rexx interpreter
- * Use Rexx ? join the Rexx Language Association: http://www.rexxla.org
+ * Mark Hessling, mark@rexx.org  http://www.rexx.org/
  */
 
-static char RCSid[] = "$Id: reserved.c,v 1.1 1999/06/25 06:11:56 mark Exp mark $";
 
 #include <the.h>
 #include <proto.h>
 
 /***********************************************************************/
 #ifdef HAVE_PROTO
-RESERVED *add_reserved_line(CHARTYPE *spec,CHARTYPE *line,short base,short off,COLOUR_ATTR *attr)
+RESERVED *add_reserved_line(CHARTYPE *spec,CHARTYPE *line,short base,short off,COLOUR_ATTR *attr, bool autoscroll)
 #else
-RESERVED *add_reserved_line(spec,line,base,off,attr)
+RESERVED *add_reserved_line(spec,line,base,off,attr,autoscroll)
 CHARTYPE *spec,*line;
 short base;
 short off;
 COLOUR_ATTR *attr;
+bool autoscroll;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- RESERVED *curr=NULL;
- CHARTYPE *templine=line;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("reserved.c:add_reserved_line");
-#endif
-/*---------------------------------------------------------------------*/
-/* First check if the row already has a reserved line on it...         */
-/*---------------------------------------------------------------------*/
- if ((curr = find_reserved_line(current_screen,FALSE,0,base,off)) != NULL)
-    delete_reserved_line(base,off);
- curr = rll_add(CURRENT_FILE->first_reserved,CURRENT_FILE->first_reserved,sizeof(RESERVED));
- if (CURRENT_FILE->first_reserved == NULL)
-    CURRENT_FILE->first_reserved = curr;
- if (templine == NULL)
-    templine = (CHARTYPE *)"";
- if ((curr->line = (CHARTYPE *)(*the_malloc)((strlen((DEFCHAR *)templine)+1)*sizeof(CHARTYPE))) == NULL)
+   RESERVED *curr=NULL;
+   CHARTYPE *templine=line;
+
+   TRACE_FUNCTION( "reserved.c:add_reserved_line" );
+   /*
+    * First check if the row already has a reserved line on it...
+    */
+   if ( ( curr = find_reserved_line( current_screen, FALSE, 0, base, off ) ) != NULL )
+      delete_reserved_line( base, off );
+   curr = rll_add( CURRENT_FILE->first_reserved, CURRENT_FILE->first_reserved, sizeof(RESERVED) );
+   if ( CURRENT_FILE->first_reserved == NULL )
+      CURRENT_FILE->first_reserved = curr;
+   if ( templine == NULL )
+      templine = (CHARTYPE *)"";
+   if ( ( curr->line = (CHARTYPE *)(*the_malloc)( ( strlen( (DEFCHAR *)templine ) + 1 ) * sizeof(CHARTYPE) ) ) == NULL )
    {
-    display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(NULL);
+      display_error( 30, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(NULL);
    }
- if ((curr->disp = (CHARTYPE *)(*the_malloc)((strlen((DEFCHAR *)templine)+1)*sizeof(CHARTYPE))) == NULL)
+   if ( ( curr->disp = (CHARTYPE *)(*the_malloc)( ( strlen( (DEFCHAR *)templine ) + 1 ) * sizeof(CHARTYPE) ) ) == NULL )
    {
-    display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(NULL);
+      display_error( 30, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(NULL);
    }
- if ((curr->spec = (CHARTYPE *)(*the_malloc)((strlen((DEFCHAR *)spec)+1)*sizeof(CHARTYPE))) == NULL)
+   if ( ( curr->highlighting = (chtype *)(*the_malloc)( ( strlen( (DEFCHAR *)templine ) + 1 ) * sizeof(chtype) ) ) == NULL )
    {
-    display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(NULL);
+      display_error( 30, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(NULL);
    }
- if ((curr->attr = (COLOUR_ATTR *)(*the_malloc)(sizeof(COLOUR_ATTR))) == NULL)
+   if ( ( curr->spec = (CHARTYPE *)(*the_malloc)( ( strlen( (DEFCHAR *)spec ) + 1 ) * sizeof(CHARTYPE) ) ) == NULL )
    {
-    display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(NULL);
+      display_error( 30, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(NULL);
    }
- strcpy((DEFCHAR *)curr->line,(DEFCHAR *)templine);
- strcpy((DEFCHAR *)curr->spec,(DEFCHAR *)spec);
- curr->length = strlen((DEFCHAR *)templine);
- curr->base = base;
- curr->off = off;
- memcpy(curr->attr,attr,sizeof(COLOUR_ATTR));
- parse_reserved_line(curr);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(curr);
+   if ( ( curr->attr = (COLOUR_ATTR *)(*the_malloc)( sizeof(COLOUR_ATTR) ) ) == NULL )
+   {
+      display_error( 30, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(NULL);
+   }
+   strcpy( (DEFCHAR *)curr->line, (DEFCHAR *)templine );
+   strcpy( (DEFCHAR *)curr->spec, (DEFCHAR *)spec );
+   curr->length = strlen( (DEFCHAR *)templine );
+   curr->base = base;
+   curr->off = off;
+   curr->autoscroll = autoscroll;
+   memcpy( curr->attr, attr, sizeof(COLOUR_ATTR) );
+   parse_reserved_line( curr );
+   TRACE_RETURN();
+   return(curr);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -127,38 +117,33 @@ short base,off;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- RESERVED *curr=SCREEN_FILE(scrno)->first_reserved;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("reserved.c:find_reserved_line");
-#endif
- while(curr != NULL)
+   RESERVED *curr=SCREEN_FILE(scrno)->first_reserved;
+
+   TRACE_FUNCTION( "reserved.c:find_reserved_line" );
+   while( curr != NULL )
    {
-    if (find_by_row)
+      if ( find_by_row )
       {
-       if (curr->base == POSITION_TOP
-       &&  row == curr->off-1)
-          break;
-       if (curr->base == POSITION_BOTTOM
-       &&  row == (curr->off+screen[scrno].rows[WINDOW_FILEAREA]))
-          break;
-       if (curr->base == POSITION_MIDDLE
-       &&  row == (curr->off+(screen[scrno].rows[WINDOW_FILEAREA]/2))-1)
-          break;
+         if ( curr->base == POSITION_TOP
+         &&   row == curr->off - 1 )
+            break;
+         if ( curr->base == POSITION_BOTTOM
+         &&   row == ( curr->off + screen[scrno].rows[WINDOW_FILEAREA] ) )
+            break;
+         if ( curr->base == POSITION_MIDDLE
+         &&   row == ( curr->off + (screen[scrno].rows[WINDOW_FILEAREA]/2) ) - 1 )
+            break;
       }
-    else
+      else
       {
-       if (curr->base == base
-       &&  curr->off == off)
-          break;
+         if ( curr->base == base
+         &&   curr->off == off )
+            break;
       }
-    curr = curr->next;
+      curr = curr->next;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(curr);
+   TRACE_RETURN();
+   return(curr);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -169,31 +154,26 @@ short base,off;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- RESERVED *curr=NULL;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("reserved.c:delete_reserved_line");
-#endif
- if ((curr = find_reserved_line(current_screen,FALSE,0,base,off)) == NULL)
+   RESERVED *curr=NULL;
+
+   TRACE_FUNCTION( "reserved.c:delete_reserved_line" );
+   if ( ( curr = find_reserved_line( current_screen, FALSE, 0, base, off ) ) == NULL )
    {
-    display_error(64,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_NO_LINES_CHANGED);
+      display_error( 64, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_NO_LINES_CHANGED);
    }
- if (curr->line != NULL)
-    (*the_free)(curr->line);
- if (curr->disp != NULL)
-    (*the_free)(curr->disp);
- if (curr->spec != NULL)
-    (*the_free)(curr->spec);
- if (curr->attr != NULL)
-    (*the_free)(curr->attr);
- rll_del(&CURRENT_FILE->first_reserved,NULL,curr,DIRECTION_FORWARD);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   if ( curr->line != NULL )
+      (*the_free)(curr->line);
+   if ( curr->disp != NULL )
+      (*the_free)(curr->disp);
+   if ( curr->highlighting != NULL )
+      (*the_free)(curr->highlighting);
+   if ( curr->spec != NULL )
+      (*the_free)(curr->spec);
+   if ( curr->attr != NULL )
+      (*the_free)(curr->attr);
+   rll_del( &CURRENT_FILE->first_reserved, NULL, curr, DIRECTION_FORWARD );
+   TRACE_RETURN();
+   return(RC_OK);
 }

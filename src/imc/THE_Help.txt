@@ -1,13 +1,13 @@
                          THE Quick Reference
-                             Version 3.0
+                             Version 3.3RC7
 
  -----------------------
  Command-line invocation
  -----------------------
- 
+
   the [-h?nmrsbq] [-p profile] [-a prof_arg] [-l line_num] [-c col_num]
       [-w width] [-u disp_len] -k[fmt] [[dir] [file [...]]]
- 
+
   Where:
     -h or -?      Display usage information and version.
     -n            Do not execute a profile file.
@@ -21,12 +21,12 @@
     -c column_num specify column number to make current
     -p profile    The name of the profile file to use.  If not specified,
                   the file ".\PROFILE.THE" (under OS/2, DOS and Win95/NT)
-                  or "$HOME/.therc" (under UNIX), will be used, unless 
+                  or "$HOME/.therc" (under UNIX), will be used, unless
                   overridden by the environment variable "THE_PROFILE_FILE".
     -a prof_arg   Used to pass a string to the profile file as argument.
                   Only works with Rexx macros.
     -w width      Length of longest line THE can handle (default 512)
-    -u disp_len   display length in non-line mode
+    -u disp_width Run as binary editor with specified display width.
     dir           Will display a directory of the specified dir.
     file [...]    Specifications of file(s) to edit.  If multiple files
                   are specified, each will be put in a separate file in
@@ -35,7 +35,7 @@
                   be displayed.
                   Issuing [SOS EDIT] on a file spec will edit that file.
                   [SOS EDIT] on a subdir will display that directory.
- 
+
     Option flags are case-sensitive.
 
 
@@ -58,13 +58,13 @@
        display a user configurable dialog box with notification
  ALL [rtarget]
        select and display restricted set of lines
- BAckward [n|*]
-       scroll backwards [n] screens
+ BAckward [n|*|HALF] [Lines]
+       scroll backward by number of screens or lines
        Default: 1
  Bottom
        move to the bottom of the file
- CANcel
-       quit from all unaltered files in the ring
+ CANcel [SAVE]
+       quit from all files in the ring
  CAppend [text]
        append text after column pointer
  CCancel
@@ -80,7 +80,9 @@
        insert text starting at the column pointer
  CLAst
        move the column pointer to end of zone
- CLocate column target
+ CLIPBOARD COPY|CUT|PASTE|CLEAR
+       manipulate system clipboard
+ CLocate [column target]
        move the column pointer
  CMATCH
        find matching bracket character
@@ -99,16 +101,19 @@
        overlay text starting at the column pointer
  CReplace text
        replace text starting at the column pointer
- CURsor Column
- CURsor Screen UP|DOWN|LEFT|RIGHT
- CURsor Screen row [col]
- CURsor [Escreen] UP|DOWN
- CURsor [Escreen|Kedit] LEFT|RIGHT
- CURsor [Escreen] row [col]
- CURsor CMdline [n]
- CURsor HOME [SAVE]
- CURsor File line [col]
- CURsor Mouse
+ CURsor Column [Priority priority]
+ CURsor Screen UP|DOWN|LEFT|RIGHT [Priority priority]
+ CURsor Screen row [col] [Priority priority]
+ CURsor [Escreen] UP|DOWN [Priority priority]
+ CURsor [Escreen|Kedit] LEFT|RIGHT [Priority priority]
+ CURsor [Escreen] row [col] [Priority priority]
+ CURsor CUA UP|DOWN|LEFT|RIGHT [Priority priority]
+ CURsor CMdline [n] [Priority priority]
+ CURsor HOME [SAVE] [Priority priority]
+ CURsor File line [col] [Priority priority]
+ CURsor GOTO line col [Priority priority]
+ CURsor Mouse [Priority priority]
+ CURsor Prefix [Priority priority]
        move cursor to specified position
  DEFine key-name [REXX] [command [args] [[#command [args]...]]]
  DEFine mouse-key-definition IN window [REXX] [command [args] [[#command [args]...]]]
@@ -140,7 +145,7 @@
        set and retrieve persistent macro variables
  EMSG [message]
        display message
- enter
+ ENTER [CUA]
        execute a command
  EXPand [target]
        expand tab characters to spaces
@@ -154,16 +159,17 @@
        Default: With no parameters, the current file is written.
  FILLbox [c]
        fill the marked block with a character
- Find string
+ Find [string]
        locate forwards the line which begins with the supplied string
- FINDUp string
+ FINDUp [string]
        locate backwards the line which begins with the supplied string
- FOrward [n]
-       scroll forwards [n] screens
+ FOrward [n|*|HALF] [Lines]
+       scroll forward by number of screens or lines
        Default: 1
- FUp string
+ FUp [string]
        locate backwards the line which begins with the supplied string
- GET [filename|CLIP:] [fromline] [numlines]
+ GET [filename] [fromline] [numlines]
+ GET CLIP: [STREAM|BOX|LINE]
        insert into file the contents of specified file
  HELP
        edit help file for THE
@@ -175,7 +181,7 @@
        join a line with the line following
  Kedit [file]
        edit another file or switch to next file
- LEft [n|HALF]
+ LEft [n|HALF|FULL]
        scroll the screen to the left
  [Locate] target [command]
        search for a target
@@ -190,6 +196,7 @@
  MARK Stream [line1 col1 line2 col2]
  MARK Column [col1 col2]
  MARK Word [line1 col1]
+ MARK CUA [LEFT|RIGHT|UP|DOWN|START|END|FOrward|BAckward|TOP|Bottom|MOUSE]
        mark a portion of text
  MODify set-command
        display current SET command for alteration
@@ -203,11 +210,11 @@
        Default: 1
  NEXTWindow
        switch focus of editing session to another file
- NFind string
+ NFind [string]
        locate forwards the line which does NOT begin with the supplied string
- NFINDUp string
+ NFINDUp [string]
        locate backwards the line which does NOT begin with the supplied string
- NFUp string
+ NFUp [string]
        locate backwards the line which does NOT begin with the supplied string
  NOMSG command [arguments]
        execute a command suppressing any messages
@@ -223,8 +230,7 @@
        execute an operating system command and capture output
  OVERLAYBox
        overlay marked block on current cursor position
- POPUP [MOUSE|TEXT|CENTER|CENTRE] /item1[/item2/...]
- POPUP ESCAPE keyname
+ POPUP [MOUSE|TEXT|CENTER|CENTRE|BELOW|ABOVE] [INITIAL n] [ESCAPE keyname] [KEYS keyname,keyname,...] /item1[/item2/...]
        display popup menu
  PREServe
        save various editor settings
@@ -249,8 +255,12 @@
  READV Cmdline [initial text]
  READV KEY
        read keystrokes and pass to macro
+ RECORD stop_key filename
+       records all keystrokes into a macro file
  RECover [n|*]
        recover changed or deleted lines
+ REDIT
+       re-edit the current file
  REDRAW
        redraw the current screen
  REFRESH
@@ -259,7 +269,7 @@
        repeat the last command
  Replace [text]
        replace the current line with supplied text
- RESet ALL|Block|Prefix
+ RESet ALL|Block|Prefix|THIGHlight
        cancel the marked block or prefix commands or both
  REStore
        restore various editor settings
@@ -274,13 +284,15 @@
  SCHange /string1/string2/ [target] [n] [m]
        selectively change strings
        Default: 1 1 1
+ SEArch string target
+       locate a string
  SET set_command [set_command parameter(s) ...]
        execute various set commands
  SHift Left|Right [n] [target]
        move text left or right
  SHOWkey [ALL]
        display current key value and command assignation
- SORT target [[sort field 1] [...] [sort field 10]]
+ SORT target [[sort field 1] [...] [sort field 1000]]
        sort selected lines in a file
  SOS sos_command [sos_command ...]
        execute various sos commands
@@ -294,9 +306,9 @@
        display current settings of various variables
  SUSPend
        suspend THE and return to operating system
- tabpre
-       switch between FILEAREA and PREFIX area
- TAG [More|Less] [rtarget]
+ TABFILE [+|-]
+       edit the file under the file tab or shift FILETABS view
+ TAG [More|Less] [rtarget|Focus]
        displays lines matching target in different colour
  TEXT text
        simulate keyboard entry of characters
@@ -336,7 +348,7 @@
  [SET] AUTOCOLOR mask parser [MAGIC]
        specifies which parser to use for syntax highlighting
        Default: See <QUERY> AUTOCOLOR
- [SET] AUTOCOLOR mask parser [MAGIC]
+ [SET] AUTOCOLOUR mask parser [MAGIC]
        specifies which parser to use for syntax highlighting
        Default: See <QUERY> AUTOCOLOR
  [SET] AUtosave n|OFF
@@ -345,13 +357,16 @@
  [SET] AUTOSCroll n|OFF|Half
        set rate of automatic horizontal scrolling
        Default: HALF
- [SET] BACKup OFF|TEMP|KEEP|ON|INPLACE
+ [SET] BACKup OFF|TEMP|KEEP|ON|INPLACE [suffix]
        indicate if a backup copy of the file is to be kept
        Default: KEEP
  [SET] BEEP ON|OFF
        turn on or off the audible alarm when displaying errors
        Default: OFF
- [SET] CASE Mixed|Lower|Upper [Respect|Ignore] [Respect|Ignore] [Respect|Ignore]
+ [SET] BOUNDMARK OFF|Zone|TRunc|MARgins|TABs|Verify
+       set bounds marker display
+       Default: Zone
+ [SET] CASE Mixed|Lower|Upper [Respect|Ignore] [Respect|Ignore] [Respect|Ignore] [Mixed|Lower|Upper] [Mixed|Lower|Upper]
        set case sensitivity parameters
        Default: Mixed Ignore Respect Respect
  [SET] CLEARErrorkey *|keyname
@@ -369,10 +384,16 @@
  [SET] CMDline ON|OFF|Top|Bottom
        sets the position of the command line.
        Default: BOTTOM
- [SET] COLOR  area [modifier[...]] [foreground] [on] [background]
-       set colours for display
+ [SET] COLOR  area [modifier[...]] [foreground] [ON] [background]
+ [SET] COLOR  area [modifier[...]] ON|OFF
+ [SET] COLOUR color red blue green
+ [SET] COLOUR BOLD FONT|BRIGHT
+       set colors for display
        Default: Depends on compatibility mode setting and monitor type.
  [SET] COLOUR area [modifier[...]] [foreground] [on background]
+ [SET] COLOUR area [modifier[...]] ON|OFF
+ [SET] COLOUR colour red blue green
+ [SET] COLOUR BOLD FONT|BRIGHT
        set colours for display
        Default: Depends on compatibility mode setting and monitor type.
  [SET] COLORING ON|OFF [AUTO|parser]
@@ -381,15 +402,15 @@
  [SET] COLOURING ON|OFF [AUTO|parser]
        enable or disable syntax highlighting
        Default: ON AUTO
- [SET] COMPat The|Xedit|Kedit|KEDITW|= [The|Xedit|Kedit|KEDITW|=] [The|Xedit|Kedit|KEDITW|=]
+ [SET] COMPat The|Xedit|Kedit|KEDITW|Ispf|= [The|Xedit|Kedit|KEDITW|Ispf|=] [The|Xedit|Kedit|KEDITW|Ispf|=]
        set compatibility mode
        Default: THE THE THE
  [SET] CTLchar OFF
  [SET] CTLchar char Escape | OFF
- [SET] CTLchar char Protect|Noprotect [modifier[...]] [fore [ON back]]
+ [SET] CTLchar char Protect|Noprotect [modifier[...]] fore [ON back]
        define control character attributes
        Default: OFF
- [SET] CURLine M[+n|-n] | [+|-]n
+ [SET] CURLine [ON] M[+n|-n] | [+|-]n
        set position of current line on screen
        Default: M
  [SET] CURSORSTay ON|OFF
@@ -406,9 +427,11 @@
        specify which level of lines to display
        Default: 0 0
  [SET] ECOLOR char [modifier[...]] [foreground] [on background]
+ [SET] ECOLOR char [modifier[...]] ON|OFF
        set colors for syntax highlighting
        Default: See <QUERY> ECOLOR
  [SET] ECOLOUR char [modifier[...]] [foreground] [on background]
+ [SET] ECOLOUR char [modifier[...]] ON|OFF
        set colours for syntax highlighting
        Default: See <QUERY> ECOLOR
  [SET] EOLout CRLF|LF|CR|NONE
@@ -416,16 +439,27 @@
        Default: LF - UNIX
        Default: CRLF - DOS/OS2/WIN32
        Default: NONE - if THE started with -u option
+ [SET] EQUIVChar char
+       set the equivalence character
+       Default: =
+ [SET] ERRORFormat Normal|Extended
+       set format of error messages
+       Default: Normal
+ [SET] ERROROUTput ON|OFF
+       indicate whether THE error messages are echoed to screen
+       Default: OFF
  [SET] ETMODE ON|OFF [character list]
        indicate if extended display mode is possible
        Default: ON - DOS/OS2/WIN32
        Default: ON 32-255 - X11
-       Default: OFF - UNIX
+       Default: OFF - UNIX/AMIGA/QNX
  [SET] FExt ext
  [SET] FType ext
        change the extension of the existing file
  [SET] FILEName filename
        change the filename of the file being edited
+ [SET] FILETABS ON|OFF
+       determine if and where where file tabs are positioned
  [SET] FMode d[:]
        change the drive letter of the existing file
  [SET] FName filename
@@ -437,6 +471,9 @@
  [SET] FULLFName ON|OFF
        specify if complete filename to be displayed
        Default: ON
+ [SET] HEADer section ON|OFF
+       turn on or off syntax highlighting headers
+       Default: * ON
  [SET] HEX ON|OFF
        set how hexadecimal strings are treated in string operands
        Default: OFF
@@ -467,6 +504,11 @@
  [SET] INSERTMode ON|OFF|TOGGLE
        put editor into or out of insert mode
        Default: OFF
+ [SET] INTerface CLASSIC|CUA
+       set overall behaviour of THE
+       Default: CLASSIC
+ [SET] LASTOP operand text
+       set the contents of the lastop argument
  [SET] LINEFLAG CHAnge|NOCHange NEW|NONEW TAG|NOTAG [target]
        set the line characteristics of lines
        Default: NOCHANGE NONEW NOTAG
@@ -489,9 +531,10 @@
        turn mouse support on or off
        Default: ON - if mouse supported, OFF - otherwise
  [SET] MSGLine ON M[+n|-n]|[+|-]n [lines] [Overlay]
+ [SET] MSGLine CLEAR
        set position and size of message line
        Default: ON 2 5 Overlay
- [SET] MSGMode ON|OFF
+ [SET] MSGMode ON|OFF [Short|Long]
        set display of messages on or off
        Default: ON
  [SET] NEWLines Aligned|Left
@@ -502,6 +545,9 @@
        Default: #
  [SET] NUMber ON|OFF
        turn prefix numbers on or off
+       Default: ON
+ [SET] PAGEWRAP ON|OFF
+       determine if page scrolling wraps at bottom/top of file
        Default: ON
  [SET] PARSER parser file
        associates a language definition file with a parser
@@ -514,10 +560,11 @@
  [SET] POSition ON|OFF
        determine if LINE/COL is displayed on idline
        Default: ON
- [SET] PREfix ON [Left|Right] [n [m]]
- [SET] PREfix Nulls [Left|Right] [n [m]]
+ [SET] PREfix ON [Left|Right] [m [n]]
+ [SET] PREfix Nulls [Left|Right] [m [n]]
  [SET] PREfix OFF
  [SET] PREfix Synonym newname oldname
+ [SET] PREfix GAP n [LINE]
        set prefix area attributes
        Default: ON Left 6 0
  [SET] PRINTER spooler|[OPTION options]
@@ -526,14 +573,20 @@
  [SET] PSCReen height [width] [RESET|PRESET]
        set physical size of screen
        Default: System Dependent
- [SET] READONLY ON|OFF
+ [SET] READONLY ON|OFF|FORCE [File]
        allow/disallow changes to a file if it is readonly
        Default: OFF
+ [SET] REGEXP syntax
+       specify the regular expression syntax to use
+       Default: EMACS
  [SET] REPROFile ON|OFF
        indicate if profile file to be executed for all files
        Default: OFF
- [SET] RESERved *|+|-n [colour] [text|OFF]
+ [SET] RESERved [AUTOSCroll] *|+|-n [colour] [text|OFF]
        display a reserved line
+ [SET] REXXHALT Command|Function n|OFF
+       halt Rexx macro after specified number of events
+       Default: OFF
  [SET] REXXOUTput File|Display n
        indicate where Rexx output is to go
        Default: Display 1000
@@ -545,6 +598,7 @@
        Default: Display
  [SET] SCReen n [Horizontal|Vertical]
  [SET] SCReen Size l1|* [l2|*]
+ [SET] SCReen Width c1|* [c2|*]
        specify number of screens displayed
        Default: 1
  [SET] SELect [+|-]n [target]
@@ -553,9 +607,9 @@
  [SET] SHADOW ON|OFF
        determines if shadow lines are displayed or not
        Default: ON
- [SET] SLK n|OFF [text]
+ [SET] SLK n|ON|OFF [text]
        set Soft Label Key definitions
-       Default: OFF
+       Default: ON  - if support for Soft Label Keys is available
  [SET] SPAN ON|OFF [Blank|Noblank [n|*]]
        specify if a string target can span multiple lines (unavailable)
        Default: OFF Blank 2
@@ -594,11 +648,20 @@
  [SET] TABSOut ON|OFF [n]
        set tab processing on file output
        Default: OFF 8
+ [SET] TARGETSAVE ALL|NONE| STRING REGEXP ABSOLUTE RELATIVE POINT BLANK
+       set type(s) of targets to save for subsequent LOCATEs
+       Default: ALL
+ [SET] THIGHlight ON|OFF
+       specify if text highlighting is supported
+       Default: ON - THE/KEDIT/KEDITW OFF - XEDIT/ISPF
  [SET] TIMECHECK ON|OFF
        specify if time stamp checking done
        Default: ON
  [SET] TOFEOF ON|OFF
        specify if TOF and BOF lines are displayed
+       Default: ON
+ [SET] TRAILING ON|OFF|REMOVE|SINGLE|EMPTY
+       specify how to treat trailing blanks on lines
        Default: ON
  [SET] TRunc n|*
        specify the truncation column
@@ -647,10 +710,16 @@
        move cursor to start of marked block
  SOS BOTTOMEdge
        move cursor to bottom edge of FILEAREA
+ SOS CUADELBAck
+       delete the character to the left of the cursor
+ SOS CUADELChar
+       delete character under cursor
  SOS CURRent
        move cursor to current line
  SOS CURSORAdj
        move first non-blank character to cursor
+ SOS CURSORSHIFT
+       move text to right of cursor to cursor
  SOS DELBAck
        delete the character to the left of the cursor
  SOS DELChar
@@ -725,29 +794,51 @@
  Prefix commands
  ---------------
 
-  a      - add blank line
-  i      - add blank line
-  /      - make line current line
-  c      - copy line
-  m      - move line
-  d      - delete line
-  x      - exclude line
-  "      - duplicate line
-  s      - show excluded lines
-  p      - target for c and m - prior to line
-  f      - target for c and m - following line
-  >      - shift line right
-  <      - shift line left
-  cc     - copy line block
-  mm     - move line block
-  dd     - delete line block
-  xx     - exclude line block
-  ""     - duplicate line block
-  >>     - shift line block right
-  <<     - shift line block left
-  .xxxxx - give name to line
-  TABL   - display tab line
-  SCALE  - display scale line
+ +---------+------------------------------+------------------------------|
+ |         |                              |                              |
+ | Prefix  |             ISPF             |              All             |
+ | Command |             Mode             |             Others           |
+ |         |                              |                              |
+ +---------+------------------------------+------------------------------|
+ |  a      | target - after line          | add blank line               |
+ |  b      | target - before line         | N/A                          |
+ |  i      | insert blank line            | insert blank line            |
+ |  /      | N/A                          | make line current line       |
+ |  c      | copy line                    | copy line                    |
+ |  m      | move line                    | move line                    |
+ |  d      | delete line                  | delete line                  |
+ |  x      | exclude line                 | exclude line                 |
+ |  "      | N/A                          | duplicate line               |
+ |  r      | repeat line                  | N/A                          |
+ |  o      | overlay line                 | overlay line                 |
+ |  s      | show excluded lines          | show excluded lines          |
+ |  p      | N/A                          | target - prior to line       |
+ |  f      | N/A                          | target - following line      |
+ |  >      | shift line right             | shift line right             |
+ |  <      | shift line left              | shift line left              |
+ |  )      | shift line right zoned       | shift line right zoned       |
+ |  (      | shift line left  zoned       | shift line left zoned        |
+ |  lc     | lowercase line               | lowercase line               |
+ |  uc     | uppercase line               | uppercase line               |
+ |  cc     | copy line block              | copy line block              |
+ |  mm     | move line block              | move line block              |
+ |  dd     | delete line block            | delete line block            |
+ |  xx     | exclude line block           | exclude line block           |
+ |  ""     | N/A                          | duplicate line block         |
+ |  rr     | repeat line block            | N/A                          |
+ |  oo     | overlay line block           | overlay line block           |
+ |  >>     | shift line block right       | shift line block right       |
+ |  <<     | shift line block left        | shift line block left        |
+ |  ))     | shift line block right zoned | shift line block right zoned |
+ |  ((     | shift line block left zoned  | shift line block left zoned  |
+ |  lcc    | lowercase line block         | lowercase line block         |
+ |  ucc    | uppercase line block         | uppercase line block         |
+ |  .xxxxx | give name to line            | give name to line            |
+ |  TABL   | N/A                          | display tab line             |
+ |  SCALE  | N/A                          | display scale line           |
+ |  TABS   | display tab line             | N/A                          |
+ |  COLS   | display scale line           | N/A                          |
+ +---------+------------------------------+------------------------------|
 
 
  ------------

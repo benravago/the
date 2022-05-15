@@ -1,6 +1,6 @@
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-1999 Mark Hessling
+ * Copyright (C) 1991-2001 Mark Hessling
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -27,14 +27,10 @@
  * necessary by the community.
  *
  * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
- * PO Box 203, Bellara, QLD 4507, AUSTRALIA
- * Author of THE, a Free XEDIT/KEDIT editor and, Rexx/SQL
- * Maintainer of PDCurses: Public Domain Curses and, Regina Rexx interpreter
- * Use Rexx ? join the Rexx Language Association: http://www.rexxla.org
  */
 
 /*
-$Id: key.h,v 1.1 1999/06/25 06:11:56 mark Exp mark $
+$Id: key.h,v 1.9 2019/09/08 04:08:19 mark Exp $
 */
 
 #if defined(USE_EXTCURSES)
@@ -224,16 +220,17 @@ KEYS key_table[] =
   {(CHARTYPE *)"NUM8"     ,KEY_A2,0},
   {(CHARTYPE *)"NUM9"     ,KEY_A3,0},
 
-#if defined(DOS) || defined(OS2) || defined(XCURSES) || defined(WIN32)
+  {(CHARTYPE *)"BKSP",KEY_BKSP ,0},
+  {(CHARTYPE *)"ENTER",KEY_RETURN ,0},
+  {(CHARTYPE *)"ENTER",KEY_ENTER,0},
+
+#if defined(DOS) || defined(OS2) || defined(WIN32) || defined(USE_XCURSES) || defined(USE_SDLCURSES)
 /* normal characters */
   {(CHARTYPE *)"CURU",KEY_CURU,0},
   {(CHARTYPE *)"CURD",KEY_CURD,0},
   {(CHARTYPE *)"CURL",KEY_CURL,0},
   {(CHARTYPE *)"CURR",KEY_CURR,0},
-  {(CHARTYPE *)"ENTER",KEY_RETURN ,0},
-  {(CHARTYPE *)"ENTER",KEY_ENTER,0},
   {(CHARTYPE *)"TAB",KEY_TAB ,0},
-  {(CHARTYPE *)"BKSP",KEY_BKSP ,0},
   {(CHARTYPE *)"HOME",KEY_HOME,0},
   {(CHARTYPE *)"PGUP",KEY_PGUP,0},
   {(CHARTYPE *)"PGDN",KEY_PGDN,0},
@@ -267,8 +264,13 @@ KEYS key_table[] =
   {(CHARTYPE *)"S-NUM7",KEY_7,SHIFT_SHIFT},
   {(CHARTYPE *)"S-NUM8",KEY_8,SHIFT_SHIFT},
   {(CHARTYPE *)"S-NUM9",KEY_9,SHIFT_SHIFT},
+  {(CHARTYPE *)"S-PLUS",SHF_PADPLUS,SHIFT_SHIFT},
+  {(CHARTYPE *)"S-MINUS",SHF_PADMINUS,SHIFT_SHIFT},
+  {(CHARTYPE *)"S-SLASH",SHF_PADSLASH,SHIFT_SHIFT},
+  {(CHARTYPE *)"S-STAR",SHF_PADSTAR,SHIFT_SHIFT},
+  {(CHARTYPE *)"S-NUMENTER",SHF_PADENTER,SHIFT_SHIFT},
 /* control characters */
-  {(CHARTYPE *)"C-2",KEY_C_2,SHIFT_CTRL},
+/*  {(CHARTYPE *)"C-2",KEY_C_2,SHIFT_CTRL},*/
   {(CHARTYPE *)"C-6",KEY_C_6,SHIFT_CTRL},
   {(CHARTYPE *)"C--",KEY_C_MINUS,SHIFT_CTRL},
   {(CHARTYPE *)"C-[",KEY_C_LBRACKET,SHIFT_CTRL},
@@ -383,7 +385,7 @@ KEYS key_table[] =
   {(CHARTYPE *)"A-NUM7",ALT_PAD7,SHIFT_ALT},
   {(CHARTYPE *)"A-NUM8",ALT_PAD8,SHIFT_ALT},
   {(CHARTYPE *)"A-NUM9",ALT_PAD9,SHIFT_ALT},
-# if defined(XCURSES)
+# if defined(USE_XCURSES)
   {(CHARTYPE *)"S-TAB",KEY_BTAB,SHIFT_SHIFT},
   {(CHARTYPE *)"S-INS",KEY_SIC,SHIFT_SHIFT},
   {(CHARTYPE *)"S-DEL",KEY_SDC,SHIFT_SHIFT},
@@ -409,22 +411,25 @@ KEYS key_table[] =
   {(CHARTYPE *)"S-DEL",KEY_S_DEL,SHIFT_SHIFT},
 # endif
 # ifdef KEY_SHIFT_L
-  {(CHARTYPE *)"SHIFT-L",KEY_SHIFT_L,0},
+  {(CHARTYPE *)"SHIFT-L",KEY_SHIFT_L,SHIFT_MODIFIER_ONLY},
 # endif
 # ifdef KEY_SHIFT_R
-  {(CHARTYPE *)"SHIFT-R",KEY_SHIFT_R,0},
+  {(CHARTYPE *)"SHIFT-R",KEY_SHIFT_R,SHIFT_MODIFIER_ONLY},
 # endif
 # ifdef KEY_CONTROL_L
-  {(CHARTYPE *)"CONTROL-L",KEY_CONTROL_L,0},
+  {(CHARTYPE *)"CONTROL-L",KEY_CONTROL_L,SHIFT_MODIFIER_ONLY},
 # endif
 # ifdef KEY_CONTROL_R
-  {(CHARTYPE *)"CONTROL-R",KEY_CONTROL_R,0},
+  {(CHARTYPE *)"CONTROL-R",KEY_CONTROL_R,SHIFT_MODIFIER_ONLY},
 # endif
 # ifdef KEY_ALT_L
-  {(CHARTYPE *)"ALT-L",KEY_ALT_L,0},
+  {(CHARTYPE *)"ALT-L",KEY_ALT_L,SHIFT_MODIFIER_ONLY},
 # endif
 # ifdef KEY_ALT_R
-  {(CHARTYPE *)"ALT-R",KEY_ALT_R,0},
+  {(CHARTYPE *)"ALT-R",KEY_ALT_R,SHIFT_MODIFIER_ONLY},
+# endif
+# ifdef KEY_EXIT
+  {(CHARTYPE *)"EXIT"     ,KEY_EXIT,0},
 # endif
 #else
   {(CHARTYPE *)"CURD"     ,KEY_DOWN ,0},

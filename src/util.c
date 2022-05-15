@@ -3,7 +3,7 @@
 /***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-1999 Mark Hessling
+ * Copyright (C) 1991-2013 Mark Hessling
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -29,17 +29,12 @@
  * This software is going to be maintained and enhanced as deemed
  * necessary by the community.
  *
- * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
- * PO Box 203, Bellara, QLD 4507, AUSTRALIA
- * Author of THE, a Free XEDIT/KEDIT editor and, Rexx/SQL
- * Maintainer of PDCurses: Public Domain Curses and, Regina Rexx interpreter
- * Use Rexx ? join the Rexx Language Association: http://www.rexxla.org
+ * Mark Hessling, mark@rexx.org  http://www.rexx.org/
  */
 
-static char RCSid[] = "$Id: util.c,v 1.1 1999/06/25 06:11:56 mark Exp mark $";
 
-#include <the.h>
-#include <proto.h>
+#include "the.h"
+#include "proto.h"
 
 #ifdef my_stricmp
 # undef my_stricmp
@@ -52,6 +47,7 @@ static char RCSid[] = "$Id: util.c,v 1.1 1999/06/25 06:11:56 mark Exp mark $";
  static short num_rcvry=0;
 
  static int CompareLen=0;
+ static bool CompareExact;
 
 #ifdef USE_EXTCURSES
  chtype color_pair[COLOR_PAIRS];
@@ -62,7 +58,7 @@ static char RCSid[] = "$Id: util.c,v 1.1 1999/06/25 06:11:56 mark Exp mark $";
 /*
  * ASCII to EBCDIC
  */
-static unsigned char asc2ebc_table[256] = {
+static unsigned char _THE_FAR asc2ebc_table[256] = {
  0x00 ,0x01 ,0x02 ,0x03 ,0x37 ,0x2D ,0x2E ,0x2F,   /* 00 - 07 */
  0x16 ,0x05 ,0x25 ,0x0B ,0x0C ,0x0D ,0x0E ,0x0F,   /* 08 - 0f */
  0x10 ,0x11 ,0x12 ,0x13 ,0x3C ,0x3D ,0x32 ,0x26,   /* 10 - 17 */
@@ -100,7 +96,7 @@ static unsigned char asc2ebc_table[256] = {
 /*
  * EBCDIC to ASCII
  */
-static unsigned char ebc2asc_table[256] = {
+static unsigned char _THE_FAR ebc2asc_table[256] = {
  0x00 ,0x01 ,0x02 ,0x03 ,0xCF ,0x09 ,0xD3 ,0x7F,   /* 00 - 07 */
  0xD4 ,0xD5 ,0xC3 ,0x0B ,0x0C ,0x0D ,0x0E ,0x0F,   /* 08 - 0f */
  0x10 ,0x11 ,0x12 ,0x13 ,0xC7 ,0xB4 ,0x08 ,0xC9,   /* 10 - 17 */
@@ -188,10 +184,10 @@ NAME
      memreveq - search buffer reversed for character
 
 SYNOPSIS
-     short memreveq(buffer,chr,max_length)
+     LENGTHTYPE memreveq(buffer,chr,max_length)
      CHARTYPE *buffer;
      CHARTYPE ch;
-     short max_length;
+     LENGTHTYPE max_length;
 
 DESCRIPTION
      The memreveq function searches the buffer from the right for the
@@ -205,29 +201,28 @@ SEE ALSO
      strzreveq, memrevne
 *******************************************************************************/
 #ifdef HAVE_PROTO
-short memreveq(CHARTYPE *buffer,CHARTYPE ch,short max_len)
+LENGTHTYPE memreveq( CHARTYPE *buffer, CHARTYPE ch, LENGTHTYPE max_len)
 #else
-short memreveq(buffer,ch,max_len)
+LENGTHTYPE memreveq( buffer, ch, max_len )
 CHARTYPE *buffer,ch;
-short max_len;
+LENGTHTYPE max_len;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short len=max_len;
-/*--------------------------- processing ------------------------------*/
- for (--len; len>=0 && buffer[len]!=ch; len--);
- return(len);
+   LENGTHTYPE len=max_len;
+
+   for (--len; len>=0 && buffer[len]!=ch; len--);
+   return(len);
 }
 /*man***************************************************************************
 NAME
      memrevne - search buffer reversed for NOT character
 
 SYNOPSIS
-     short memrevne(buffer,known_char,max_len)
+     LENGTHTYPE memrevne(buffer,known_char,max_len)
      CHARTYPE *buffer;
      CHARTYPE known_char;
-     short max_len;
+     LENGTHTYPE max_len;
 
 DESCRIPTION
      The memrevne function searches the buffer from the right for first
@@ -241,19 +236,18 @@ SEE ALSO
      strzrevne, strzne
 *******************************************************************************/
 #ifdef HAVE_PROTO
-short memrevne(CHARTYPE *buffer,CHARTYPE known_char,short max_len)
+LENGTHTYPE memrevne( CHARTYPE *buffer, CHARTYPE known_char, LENGTHTYPE max_len )
 #else
-short memrevne(buffer,known_char,max_len)
+LENGTHTYPE memrevne( buffer, known_char, max_len )
 CHARTYPE *buffer;
 CHARTYPE known_char;
-short max_len;
+LENGTHTYPE max_len;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short len=max_len;
-/*--------------------------- processing ------------------------------*/
- for (--len; len>=0 && buffer[len]==known_char; len--);
- return(len);
+   LENGTHTYPE len=max_len;
+
+   for (--len; len>=0 && buffer[len]==known_char; len--);
+   return(len);
 }
 /*man***************************************************************************
 NAME
@@ -263,7 +257,7 @@ SYNOPSIS
      CHARTYPE *meminschr(buffer,chr,location,max_length,curr_length)
      CHARTYPE *buffer;
      CHARTYPE chr;
-     short location,max_length,curr_length;
+     LENGTHTYPE location,max_length,curr_length;
 
 DESCRIPTION
      The meminschr inserts the supplied 'chr' into the buffer 'buffer'
@@ -282,24 +276,24 @@ SEE ALSO
 
 *******************************************************************************/
 #ifdef HAVE_PROTO
-CHARTYPE *meminschr(CHARTYPE *buffer,CHARTYPE chr,short location,
-                short max_length,short curr_length)
+CHARTYPE *meminschr( CHARTYPE *buffer, CHARTYPE chr, LENGTHTYPE location, LENGTHTYPE max_length, LENGTHTYPE curr_length )
 #else
-CHARTYPE *meminschr(buffer,chr,location,max_length,curr_length)
+CHARTYPE *meminschr( buffer, chr, location, max_length, curr_length )
 CHARTYPE *buffer;
 CHARTYPE chr;
-short location,max_length,curr_length;
+LENGTHTYPE location,max_length,curr_length;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
-/*--------------------------- processing ------------------------------*/
- for (i=curr_length;i > location;i--)
-     if (i < max_length)
-       buffer[i] = buffer[i-1];
- if (location < max_length)
-    buffer[location] = chr;
- return(buffer);
+   LENGTHTYPE i=0;
+
+   for (i=curr_length;i > location;i--)
+   {
+      if (i < max_length)
+         buffer[i] = buffer[i-1];
+   }
+   if (location < max_length)
+      buffer[location] = chr;
+   return(buffer);
 }
 /*man***************************************************************************
 NAME
@@ -311,7 +305,7 @@ SYNOPSIS
      CHARTYPE *meminsmem(buffer,str,len,location,max_length,curr_length)
      CHARTYPE *buffer;
      CHARTYPE *str;
-     short len,location,max_length,curr_length;
+     LENGTHTYPE len,location,max_length,curr_length;
 
 DESCRIPTION
      The meminsmem function inserts the supplied 'str' into the buffer 'buffer'
@@ -330,24 +324,26 @@ SEE ALSO
 
 *******************************************************************************/
 #ifdef HAVE_PROTO
-CHARTYPE *meminsmem(CHARTYPE *buffer,CHARTYPE *str,short len,short location,
-                short max_length,short curr_length)
+CHARTYPE *meminsmem( CHARTYPE *buffer, CHARTYPE *str, LENGTHTYPE len, LENGTHTYPE location, LENGTHTYPE max_length, LENGTHTYPE curr_length )
 #else
 CHARTYPE *meminsmem(buffer,str,len,location,max_length,curr_length)
 CHARTYPE *buffer,*str;
-short len,location,max_length,curr_length;
+LENGTHTYPE len,location,max_length,curr_length;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
-/*--------------------------- processing ------------------------------*/
- for (i=curr_length;i > location;i--)
-     if (i+len-1 < max_length)
-       buffer[i+len-1] = buffer[i-1];
- for (i=0;i<len;i++)
-     if (location+i < max_length)
-       buffer[location+i] = str[i];
- return(buffer);
+   LENGTHTYPE i=0;
+
+   for (i=curr_length;i > location;i--)
+   {
+      if (i+len-1 < max_length)
+         buffer[i+len-1] = buffer[i-1];
+   }
+   for (i=0;i<len;i++)
+   {
+      if (location+i < max_length)
+         buffer[location+i] = str[i];
+   }
+   return(buffer);
 }
 /*man***************************************************************************
 NAME
@@ -356,7 +352,7 @@ NAME
 SYNOPSIS
      CHARTYPE *memdeln(buffer,location,curr_length,num_chars)
      CHARTYPE *buffer;
-     short location,curr_length,num_chars;
+     LENGTHTYPE location,curr_length,num_chars;
 
 DESCRIPTION
      The memdeln deletes the supplied number of characters from the
@@ -373,22 +369,23 @@ SEE ALSO
 
 *******************************************************************************/
 #ifdef HAVE_PROTO
-CHARTYPE *memdeln(CHARTYPE *buffer,short location,short curr_length,short num_chars)
+CHARTYPE *memdeln( CHARTYPE *buffer, LENGTHTYPE location, LENGTHTYPE curr_length, LENGTHTYPE num_chars )
 #else
-CHARTYPE *memdeln(buffer,location,curr_length,num_chars)
+CHARTYPE *memdeln( buffer, location, curr_length, num_chars )
 CHARTYPE *buffer;
-short location,curr_length,num_chars;
+LENGTHTYPE location,curr_length,num_chars;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
-/*--------------------------- processing ------------------------------*/
- for (i=location;i <curr_length;i++)
-     if (i+num_chars >= curr_length)
-        buffer[i] = ' ';
+   LENGTHTYPE i=0;
+
+   for (i=location;i <curr_length;i++)
+   {
+      if (i+num_chars >= curr_length)
+         buffer[i] = ' ';
       else
-        buffer[i] = buffer[i+num_chars];
- return(buffer);
+         buffer[i] = buffer[i+num_chars];
+   }
+   return(buffer);
 }
 /*man***************************************************************************
 NAME
@@ -417,17 +414,16 @@ CHARTYPE *buffer;
 CHARTYPE chr;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register int i=0,j=0;
- int len=strlen((DEFCHAR *)buffer);
-/*--------------------------- processing ------------------------------*/
- for(i=0;i<len;i++)
+   LENGTHTYPE i=0,j=0;
+   LENGTHTYPE len=strlen( (DEFCHAR *)buffer );
+
+   for( i = 0; i < len; i++ )
    {
-    if (buffer[i] != chr)
-       buffer[j++] = buffer[i];
+      if (buffer[i] != chr)
+         buffer[j++] = buffer[i];
    }
- buffer[j] = (CHARTYPE)'\0';
- return(buffer);
+   buffer[j] = (CHARTYPE)'\0';
+   return(buffer);
 }
 /*man***************************************************************************
 NAME
@@ -436,13 +432,13 @@ NAME
 SYNOPSIS
      CHARTYPE *memrmdup(buf,len,chr)
      CHARTYPE *buf;
-     short *len;
+     LENGTHTYPE *len;
      CHARTYPE ch;
 
 DESCRIPTION
      The memrmdup function removes all duplicate, contiguous characters
      from the supplied buffer.
-     eg. memrmdup("abc$$$def$$ghi$",15,'$')
+     e.g. memrmdup("abc$$$def$$ghi$",15,'$')
      will return pointer to buf equal to "abc$def$ghi$" and new length
      in len.
 
@@ -450,39 +446,38 @@ RETURN VALUE
      Returns the new buf.
 *******************************************************************************/
 #ifdef HAVE_PROTO
-CHARTYPE *memrmdup(CHARTYPE *buf,short *len,CHARTYPE ch)
+CHARTYPE *memrmdup( CHARTYPE *buf, LENGTHTYPE *len, CHARTYPE ch )
 #else
-CHARTYPE *memrmdup(buf,len,ch)
+CHARTYPE *memrmdup( buf, len, ch )
 CHARTYPE *buf;
-short *len;
+LENGTHTYPE *len;
 CHARTYPE ch;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0,num_dups=0,newlen=*len;
- CHARTYPE *src=buf,*dst=buf;
- bool dup=FALSE;
-/*--------------------------- processing ------------------------------*/
- for (; i<newlen; i++,src++)
+   LENGTHTYPE i=0,num_dups=0,newlen=*len;
+   CHARTYPE *src=buf,*dst=buf;
+   bool dup=FALSE;
+
+   for (; i<newlen; i++,src++)
    {
-    if (*src == ch)
+      if (*src == ch)
       {
-       if (dup)
+         if (dup)
          {
-          num_dups++;
-          continue;
+            num_dups++;
+            continue;
          }
-       else
+         else
          {
-          dup = TRUE;
+            dup = TRUE;
          }
       }
-    else
-       dup = FALSE;
-    *dst++ = *src;
+      else
+         dup = FALSE;
+      *dst++ = *src;
    }
- *len = newlen-num_dups;
- return(buf);
+   *len = newlen-num_dups;
+   return(buf);
 }
 /*man***************************************************************************
 NAME
@@ -498,7 +493,7 @@ DESCRIPTION
      The strrmdup function removes all duplicate, contiguous characters
      from the supplied string.  if exclude_leading is TRUE, no removal
      is done of leading characters.
-     eg. strrmdup("abc$$$def$$ghi$",'$')
+     e.g. strrmdup("abc$$$def$$ghi$",'$')
      will return pointer to buf equal to "abc$def$ghi$".
 
 RETURN VALUE
@@ -513,40 +508,39 @@ CHARTYPE ch;
 bool exclude_leading;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- CHARTYPE *src=buf,*dst=buf;
- bool dup=FALSE;
-/*--------------------------- processing ------------------------------*/
- if (exclude_leading)
- {
-    while(*src == ch)
-       *dst++ = *src++;
- }
- while(*src)
- {
-    if (*src == ch)
-    {
-       if (dup)
-       {
-          src++;
-          continue;
-       }
-       else
-          dup = TRUE;
-    }
-    else
-       dup = FALSE;
-    *dst++ = *src++;
- }
- *dst = '\0';
- return(buf);
+   CHARTYPE *src=buf,*dst=buf;
+   bool dup=FALSE;
+
+   if (exclude_leading)
+   {
+      while(*src == ch)
+         *dst++ = *src++;
+   }
+   while(*src)
+   {
+      if (*src == ch)
+      {
+         if (dup)
+         {
+            src++;
+            continue;
+         }
+         else
+            dup = TRUE;
+      }
+      else
+         dup = FALSE;
+      *dst++ = *src++;
+   }
+   *dst = '\0';
+   return(buf);
 }
 /*man***************************************************************************
 NAME
      strzne - search string for NOT character
 
 SYNOPSIS
-     short strzne(str,chr)
+     LENGTHTYPE strzne(str,chr)
      CHARTYPE *str;
      CHARTYPE ch;
 
@@ -562,22 +556,21 @@ SEE ALSO
      strzrevne, memrevne
 *******************************************************************************/
 #ifdef HAVE_PROTO
-short strzne(CHARTYPE *str,CHARTYPE ch)
+LENGTHTYPE strzne(CHARTYPE *str,CHARTYPE ch)
 #else
-short strzne(str,ch)
+LENGTHTYPE strzne(str,ch)
 CHARTYPE *str;
 CHARTYPE ch;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short len=0;
- register short  i = 0;
-/*--------------------------- processing ------------------------------*/
- len = strlen((DEFCHAR *)str);
- for (; i<len && str[i]==ch; i++);
- if (i>=len)
-    i = (-1);
- return(i);
+   LENGTHTYPE len=0;
+   LENGTHTYPE i = 0;
+
+   len = strlen( (DEFCHAR *)str );
+   for (; i<len && str[i]==ch; i++);
+   if (i>=len)
+      i = (-1);
+   return(i);
 }
 /*man***************************************************************************
 NAME
@@ -601,15 +594,14 @@ CHARTYPE *my_strdup(str)
 CHARTYPE *str;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short len=0;
- CHARTYPE *tmp=NULL;
-/*--------------------------- processing ------------------------------*/
- len = strlen((DEFCHAR *)str);
- if ((tmp = (CHARTYPE *)(*the_malloc)((len+1)*sizeof(CHARTYPE))) == (CHARTYPE *)NULL)
-    return((CHARTYPE *)NULL);
- strcpy((DEFCHAR *)tmp,(DEFCHAR *)str);
- return(tmp);
+   LENGTHTYPE len=0;
+   CHARTYPE *tmp=NULL;
+
+   len = strlen( (DEFCHAR *)str );
+   if ((tmp = (CHARTYPE *)(*the_malloc)((len+1)*sizeof(CHARTYPE))) == (CHARTYPE *)NULL)
+      return((CHARTYPE *)NULL);
+   strcpy( (DEFCHAR *)tmp, (DEFCHAR *)str );
+   return(tmp);
 }
 /*man***************************************************************************
 NAME
@@ -618,10 +610,10 @@ NAME
 SYNOPSIS
      #include "the.h"
 
-     short memne(buffer,chr,length)
+     LENGTHTYPE memne(buffer,chr,length)
      CHARTYPE *buffer;
      CHARTYPE chr;
-     short length;
+     LENGTHTYPE length;
 
 DESCRIPTION
      The memne function searches the buffer from the left for the first
@@ -635,21 +627,20 @@ SEE ALSO
      strzrevne, memrevne, strzne
 *******************************************************************************/
 #ifdef HAVE_PROTO
-short memne(CHARTYPE *buffer,CHARTYPE chr,short length)
+LENGTHTYPE memne( CHARTYPE *buffer, CHARTYPE chr, LENGTHTYPE length )
 #else
-short memne(buffer,chr,length)
+LENGTHTYPE memne( buffer, chr, length )
 CHARTYPE *buffer;
 CHARTYPE chr;
-short length;
+LENGTHTYPE length;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short  i = 0;
-/*--------------------------- processing ------------------------------*/
- for (; i<length && buffer[i]==chr; i++);
- if (i>=length)
-    i = (-1);
- return(i);
+   LENGTHTYPE i = 0;
+
+   for (; i<length && buffer[i]==chr; i++);
+   if (i>=length)
+      i = (-1);
+   return(i);
 }
 /*man***************************************************************************
 NAME
@@ -658,7 +649,7 @@ NAME
 SYNOPSIS
      #include "the.h"
 
-     short strzrevne(str,chr)
+     LENGTHTYPE strzrevne(str,chr)
      CHARTYPE *str;
      CHARTYPE ch;
 
@@ -674,26 +665,25 @@ SEE ALSO
      strzne, memrevne
 *******************************************************************************/
 #ifdef HAVE_PROTO
-short strzrevne(CHARTYPE *str,CHARTYPE ch)
+LENGTHTYPE strzrevne( CHARTYPE *str, CHARTYPE ch )
 #else
-short strzrevne(str,ch)
+LENGTHTYPE strzrevne( str, ch)
 CHARTYPE *str;
 CHARTYPE ch;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short len=0;
-/*--------------------------- processing ------------------------------*/
- len = strlen((DEFCHAR *)str);
- for (--len; len>=0 && str[len]==ch; len--);
- return(len);
+   LENGTHTYPE len=0;
+
+   len = strlen( (DEFCHAR *)str );
+   for (--len; len>=0 && str[len]==ch; len--);
+   return(len);
 }
 /*man***************************************************************************
 NAME
      strzreveq - search string reversed for character
 
 SYNOPSIS
-     short strzreveq(str,chr)
+     LENGTHTYPE strzreveq(str,chr)
      CHARTYPE *str;
      CHARTYPE ch;
 
@@ -709,19 +699,18 @@ SEE ALSO
      strzrevne
 *******************************************************************************/
 #ifdef HAVE_PROTO
-short strzreveq(CHARTYPE *str,CHARTYPE ch)
+LENGTHTYPE strzreveq(CHARTYPE *str,CHARTYPE ch)
 #else
-short strzreveq(str,ch)
+LENGTHTYPE strzreveq(str,ch)
 CHARTYPE *str,ch;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short len=0;
-/*--------------------------- processing ------------------------------*/
- len = strlen((DEFCHAR *)str);
- for (--len; len>=0 && str[len]!=ch; len--);
- return(len);
+   LENGTHTYPE len=0;
+
+   len = strlen( (DEFCHAR *)str );
+   for (--len; len>=0 && str[len]!=ch; len--);
+   return(len);
 }
 /*man***************************************************************************
 NAME
@@ -734,7 +723,7 @@ SYNOPSIS
      CHARTYPE *string;
 
 DESCRIPTION
-     The strtrunc function truncates all leading and trailing spaces 
+     The strtrunc function truncates all leading and trailing spaces
      from the supplied string.
 
 RETURN VALUE
@@ -750,9 +739,7 @@ CHARTYPE *strtrunc(string)
 CHARTYPE *string;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
- return(MyStrip(string,STRIP_BOTH,' '));
+   return( MyStrip( string, STRIP_BOTH, ' ' ) );
 }
 /*man***************************************************************************
 NAME
@@ -778,8 +765,9 @@ DESCRIPTION
      These are defined elsewhere with the values:
         STRIP_LEADING    1
         STRIP_TRAILING   2
+        STRIP_INTERNAL   4
         STRIP_BOTH       STRIP_LEADING|STRIP_TRAILING
-        STRIP_ALL        STRIP_LEADING|STRIP_TRAILING|4
+        STRIP_ALL        STRIP_LEADING|STRIP_TRAILING|STRIP_INTERNAL
         STRIP_NONE       0
 
 RETURN VALUE
@@ -796,36 +784,35 @@ CHARTYPE *string;
 char option,ch;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
- short pos=0;
-/*--------------------------- processing ------------------------------*/
- if (strlen((DEFCHAR *)string) == 0)
-    return(string);
- if (option & STRIP_TRAILING)
+   LENGTHTYPE i=0;
+   LENGTHTYPE pos=0;
+
+   if ( strlen( (DEFCHAR *)string ) == 0 )
+      return(string);
+   if (option & STRIP_TRAILING)
    {
-    pos = strzrevne(string,ch);
-    if (pos == (-1))
-       *(string) = '\0';
-    else
-       *(string+pos+1) = '\0';
+      pos = strzrevne( string, ch );
+      if (pos == (-1))
+         *(string) = '\0';
+      else
+         *(string+pos+1) = '\0';
    }
- if (option & STRIP_LEADING)
+   if (option & STRIP_LEADING)
    {
-    pos = strzne(string,ch);
-    if (pos == (-1))
-       *(string) = '\0';
-    else
+      pos = strzne( string, ch );
+      if (pos == (-1))
+         *(string) = '\0';
+      else
       {
 /*       for (i=0;*(string+i)!='\0';i++) */
-       for (i=0;*(string+i+pos)!='\0';i++) /* fixed by FGC */
-          *(string+i) = *(string+i+pos);
-       *(string+i) = '\0';
+         for (i=0;*(string+i+pos)!='\0';i++) /* fixed by FGC */
+            *(string+i) = *(string+i+pos);
+         *(string+i) = '\0';
       }
    }
- if (option == STRIP_ALL)
-    string = strdelchr(string,' ');
- return(string);
+   if (option == STRIP_ALL)
+      string = strdelchr(string,' ');
+   return(string);
 }
 /*man***************************************************************************
 NAME
@@ -833,15 +820,16 @@ NAME
                characters if set.
 
 SYNOPSIS
-     short memfind(haystack,needle,hay_len,nee_len,case_ignore,arbsts,arb)
+     LENGTHTYPE memfind(haystack,needle,hay_len,nee_len,case_ignore,arbsts,arb)
      CHARTYPE *haystack;                            string to be searched
      CHARTYPE *needle;        string to search for - may contain arbchars
-     short hay_len;                                    length of haystack
-     short nee_len;                                      length of needle
+     LENGTHTYPE hay_len;                               length of haystack
+     LENGTHTYPE nee_len;                                 length of needle
      bool case_ignore;                      TRUE if search to ignore case
      bool arbsts;          TRUE if need to check for arbitrary characters
      CHARTYPE single                       the single arbitrary character
      CHARTYPE multiple                   the multiple arbitrary character
+     LENGTHTYPE *target_len       return the length of the matched string
 
 DESCRIPTION
      The memfind function locates a needle in a haystack. Both the needle
@@ -852,127 +840,174 @@ DESCRIPTION
 
 RETURN VALUE
      The first occurrence (0 based) of needle in haystack, or (-1) if
-     the needle does not appear in the haystack.
+     the needle does not appear in the haystack. The length of the matched
+     string is returned in target_len
 *******************************************************************************/
 #ifdef HAVE_PROTO
-short memfind(CHARTYPE *haystack,CHARTYPE *needle,short hay_len,short nee_len,
-            bool case_ignore,bool arbsts,CHARTYPE arb_single,CHARTYPE arb_multiple)
+LENGTHTYPE memfind( CHARTYPE *haystack, CHARTYPE *needle, LENGTHTYPE hay_len, LENGTHTYPE nee_len,
+                    bool case_ignore, bool arbsts, CHARTYPE arb_single, CHARTYPE arb_multiple,
+                    LENGTHTYPE *target_len )
 #else
-short memfind(haystack,needle,hay_len,nee_len,case_ignore,arbsts,arb_single,arb_multiple)
+LENGTHTYPE memfind( haystack, needle, hay_len, nee_len, case_ignore, arbsts, arb_single, arb_multiple, target_len )
 CHARTYPE *haystack;
 CHARTYPE *needle;
-short hay_len;
-short nee_len;
+LENGTHTYPE hay_len;
+LENGTHTYPE nee_len;
 bool case_ignore;
 bool arbsts;
 CHARTYPE arb_single;
 CHARTYPE arb_multiple;
+LENGTHTYPE *target_len;
 #endif
-/*--------------------------- local data ------------------------------*/
 {
- register CHARTYPE c1=0,c2=0;
- register CHARTYPE *buf1=NULL,*buf2=NULL;
- register short i=0,j=0;
- short matches=0;
- CHARTYPE *new_needle=needle;
- bool need_free=FALSE;
-/*--------------------------- processing ------------------------------*/
-/*---------------------------------------------------------------------*/
-/* Strip any duplicate, contiguous occurrences of arb_multiple if      */
-/* we are handling arbchars.                                           */
-/*---------------------------------------------------------------------*/
- if (arbsts
- &&  strzeq(needle,arb_multiple) != (-1))
+   register CHARTYPE c1=0,c2=0;
+   register CHARTYPE *buf1=NULL,*buf2=NULL;
+   LENGTHTYPE i=0,j=0;
+   LENGTHTYPE matches=0;
+   CHARTYPE *new_needle=needle;
+   bool need_free=FALSE;
+
+   /*
+    * Strip any duplicate, contiguous occurrences of arb_multiple if
+    * we are handling arbchars.
+    */
+   if ( arbsts
+   &&   strzeq( needle, arb_multiple ) != (-1) )
    {
-    if ((new_needle = (CHARTYPE *)my_strdup(needle)) == NULL)
+      if ( ( new_needle = (CHARTYPE *)my_strdup( needle ) ) == NULL )
       {
-       display_error(30,(CHARTYPE *)"",FALSE);
-       return(-1);
+         display_error( 30, (CHARTYPE *)"", FALSE );
+         return(-1);
       }
-    need_free = TRUE;
-    memrmdup(new_needle,&nee_len,arb_multiple);
+      need_free = TRUE;
+      memrmdup( new_needle, &nee_len, arb_multiple );
    }
 
- for (i=0;i<(hay_len-nee_len+1);i++)
-    {
-     buf1 = haystack+i;
-     buf2 = new_needle;
-     matches=0;
-     for (j=0;j<nee_len;j++)
-        {
-         if (case_ignore)
-           {
-            if (isupper(*buf1))
-               c1 = tolower(*buf1);
+   for ( i = 0; i < (hay_len-nee_len+1); i++ )
+   {
+      buf1 = haystack+i;
+      buf2 = new_needle;
+      matches=0;
+      for ( j = 0; j < nee_len; j++ )
+      {
+         if ( case_ignore )
+         {
+            if ( isupper( *buf1 ) )
+               c1 = tolower( *buf1 );
             else
                c1 = *buf1;
-            if (isupper(*buf2))
-               c2 = tolower(*buf2);
+            if ( isupper( *buf2 ) )
+               c2 = tolower( *buf2 );
             else
                c2 = *buf2;
-           }
+         }
          else
-           {
+         {
             c1 = *buf1;
             c2 = *buf2;
-           }
-         if (arbsts)
-           {
+         }
+         if ( arbsts )
+         {
 /* Next lines added by R.BOSSUT */
-            if (c2 == arb_multiple)
-              {
-               short new_hay_len = hay_len-(buf1-haystack);
-               short new_nee_len = nee_len-(buf2+1-new_needle);
+            if ( c2 == arb_multiple )
+            {
+               /*
+                *
+                */
+               LENGTHTYPE new_hay_len = hay_len-(buf1-haystack);
+               LENGTHTYPE new_nee_len = nee_len-(buf2+1-new_needle);
+               LENGTHTYPE new_tar=0;
+               LENGTHTYPE new_start;
 
-               if (memfind(buf1,buf2+1,new_hay_len,new_nee_len,
-                                 case_ignore,arbsts,arb_single,arb_multiple) == (-1))
-                  break;
-               else
-                 {
-                  if (need_free) 
-                     (*the_free)(new_needle);
+               *target_len = *target_len + matches;
+
+               new_start = memfind( buf1, buf2+1, new_hay_len, new_nee_len,
+                                    case_ignore, arbsts, arb_single, arb_multiple, &new_tar );
+               if ( new_start != (-1) )
+               {
+                  if ( need_free )
+                     (*the_free)( new_needle );
+                  *target_len = *target_len + new_tar + new_start;
+                  if ( new_needle[nee_len-1] == arb_multiple
+                  && new_start == 0 )
+                  {
+                    *target_len = hay_len - *target_len - 1;
+                  }
                   return(i);
-                 }
-              }
+               }
+            }
             else
-              {
+            {
 /* Up to here... */
-               if (c1 != c2 && c2 != arb_single)
+               if ( c1 != c2 && c2 != arb_single )
                   break;
                else
                   matches++;
-              }
+            }
 /* Next lines added by R.BOSSUT */
-           }
+         }
 /* Up to here... */
          else
-           {
-            if (c1 != c2)
+         {
+            if ( c1 != c2 )
                break;
             else
                matches++;
-           }
+         }
          ++buf1;
          ++buf2;
-        }
-     if (matches == nee_len)
-       {
-        if (need_free) 
-           (*the_free)(new_needle);
-        return(i);
-       }
-    }
- if (need_free) 
-    (*the_free)(new_needle);
- return(-1);
+      }
+      if ( matches == nee_len )
+      {
+         if ( need_free )
+            (*the_free)( new_needle );
+         *target_len = *target_len + matches;
+         return(i);
+      }
+   }
+   if ( need_free )
+      (*the_free)( new_needle );
+   return(-1);
+}
+/*man***************************************************************************
+NAME
+     memrev - reverses a buffer's contents
+
+SYNOPSIS
+     void memrev(dest,source,len)
+     CHARTYPE *dest;
+     CHARTYPE *source;
+     LENGTHTYPE length;
+
+DESCRIPTION
+     The memrev function reverses the contents of the source buffer
+     and places the result in dest.
+
+RETURN VALUE
+     None
+*******************************************************************************/
+#ifdef HAVE_PROTO
+void memrev( CHARTYPE *dest, CHARTYPE *src, LENGTHTYPE length )
+#else
+void memrev( dest, src, length )
+CHARTYPE *dest, *src;
+LENGTHTYPE length;
+#endif
+{
+   LENGTHTYPE i,j;
+
+   for ( i = 0, j = length-1; i < length; i++, j-- )
+   {
+      dest[j] = src[i];
+   }
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
-short memcmpi(CHARTYPE *buf1,CHARTYPE *buf2,short len)
+LENGTHTYPE memcmpi( CHARTYPE *buf1, CHARTYPE *buf2, LENGTHTYPE len )
 #else
-short memcmpi(buf1,buf2,len)
+LENGTHTYPE memcmpi( buf1, buf2, len )
 CHARTYPE *buf1,*buf2;
-short len;
+LENGTHTYPE len;
 #endif
 /***********************************************************************/
 /* Function  : Compares two memory buffers for equality;               */
@@ -985,33 +1020,32 @@ short len;
 /*             >0 if buf1 > buf2,                                      */
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
- CHARTYPE c1,c2;
-/*--------------------------- processing ------------------------------*/
- for(i=0;i<len;i++)
+   LENGTHTYPE i=0;
+   CHARTYPE c1,c2;
+
+   for( i = 0; i < len; i++ )
    {
-    if (isupper(*buf1))
-       c1 = tolower(*buf1);
+      if ( isupper( *buf1 ) )
+         c1 = tolower( *buf1 );
     else
-       c1 = *buf1;
-    if (isupper(*buf2))
-       c2 = tolower(*buf2);
-    else
-       c2 = *buf2;
-    if (c1 != c2)
-       return(c1-c2);
-    ++buf1;
-    ++buf2;
+         c1 = *buf1;
+      if ( isupper( *buf2 ) )
+         c2 = tolower( *buf2 );
+      else
+         c2 = *buf2;
+      if ( c1 != c2 )
+         return( c1 - c2 );
+      ++buf1;
+      ++buf2;
    }
- return(0);
+   return(0);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
-short my_stricmp(char *str1,char *str2)
+LENGTHTYPE my_stricmp( DEFCHAR *str1, DEFCHAR *str2 )
 #else
-short my_stricmp(str1,str2)
-char *str1,*str2;
+LENGTHTYPE my_stricmp( str1, str2 )
+DEFCHAR *str1,*str2;
 #endif
 /***********************************************************************/
 /* Function  : Compares two string buffers for equality;               */
@@ -1023,29 +1057,29 @@ char *str1,*str2;
 /*             >0 if str1 > str2,                                      */
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-   register short i,len,len1=strlen(str1),len2=strlen(str2);
-   CHARTYPE c1,c2;
-/*--------------------------- processing ------------------------------*/
-   len = min(len1,len2);
-   for(i=0;i<len;i++)
+   LENGTHTYPE len1=strlen((DEFCHAR *)str1),len2=strlen((DEFCHAR *)str2);
+   LENGTHTYPE i,len;
+   DEFCHAR c1,c2;
+
+   len = min( len1, len2 );
+   for( i = 0; i < len; i++ )
    {
-      if (isupper(*str1))
-         c1 = tolower(*str1);
+      if ( isupper( *str1 ) )
+         c1 = tolower( *str1 );
       else
          c1 = *str1;
-      if (isupper(*str2))
-         c2 = tolower(*str2);
+      if ( isupper( *str2 ) )
+         c2 = tolower( *str2 );
       else
          c2 = *str2;
-      if (c1 != c2)
-         return(c1-c2);
+      if ( c1 != c2 )
+         return( c1 - c2 );
       ++str1;
       ++str2;
    }
-   if (len1 > len2)
+   if ( len1 > len2 )
       return(1);
-   if (len1 < len2)
+   if ( len1 < len2 )
       return(-1);
    return(0);
 }
@@ -1063,25 +1097,24 @@ CHARTYPE *str;
 /* Return    : str uppercased                                          */
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- CHARTYPE *save_str=str;
-/*--------------------------- processing ------------------------------*/
- while(*str)
+   CHARTYPE *save_str=str;
+
+   while(*str)
    {
-    if (islower(*str))
-       *str = toupper(*str);
-    ++str;
+      if ( islower( *str ) )
+         *str = toupper( *str );
+      ++str;
    }
- return(save_str);
+   return(save_str);
 }
 /*man***************************************************************************
 NAME
      equal - determine if strings are equal up to specified length
 
 SYNOPSIS
-     unsigned short equal(con,str,min_len)
+     bool equal(con,str,min_len)
      CHARTYPE *con,*str;
-     short min_len;
+     LENGTHTYPE min_len;
 
 DESCRIPTION
      The equal function determines if a two strings are equal, irrespective
@@ -1093,84 +1126,51 @@ RETURN VALUE
      If 'equal' TRUE else FALSE.
 *******************************************************************************/
 #ifdef HAVE_PROTO
-unsigned short equal(CHARTYPE *con,CHARTYPE *str,short min_len)
+bool equal( CHARTYPE *con, CHARTYPE *str, LENGTHTYPE min_len )
 #else
-unsigned short equal(con,str,min_len)
+bool equal( con, str, min_len )
 CHARTYPE *con,*str;
-short min_len;
+LENGTHTYPE min_len;
 #endif
 {
-/*--------------------------- local data ------------------------------*/
- register int i=0,lenstr=0;
- CHARTYPE c1,c2;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    equal");
-#endif
- if (min_len == 0)
+   LENGTHTYPE i=0,lenstr=0;
+   CHARTYPE c1,c2;
+
+   if (min_len == 0)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(FALSE);
+      return(FALSE);
    }
-#if 0
- if (memfind(con,str,(short)min(strlen((DEFCHAR *)str),strlen((DEFCHAR *)con)),
-     (short)min(strlen((DEFCHAR *)str),strlen((DEFCHAR *)con)),TRUE,FALSE,'\0','\0') == 0
- &&  strlen((DEFCHAR *)str) >= min_len
- &&  strlen((DEFCHAR *)con) >= strlen((DEFCHAR *)str))
+   if (strlen((DEFCHAR *)str) < min_len
+   ||  strlen((DEFCHAR *)con) < strlen((DEFCHAR *)str))
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(TRUE);
+      return(FALSE);
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(FALSE);
-#else
- if (strlen((DEFCHAR *)str) < min_len
- ||  strlen((DEFCHAR *)con) < strlen((DEFCHAR *)str))
+   lenstr = strlen( (DEFCHAR*)str );
+   for ( i = 0; i < lenstr; i++ )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(FALSE);
-   }
- lenstr = strlen((DEFCHAR*)str);
- for (i=0;i<lenstr;i++)
-   {
-    if (isupper(*con))
-       c1 = tolower(*con);
-    else
-       c1 = *con;
-    if (isupper(*str))
-       c2 = tolower(*str);
-    else
-       c2 = *str;
-    if (c1 != c2)
+      if ( isupper( *con ) )
+         c1 = tolower( *con );
+      else
+         c1 = *con;
+      if ( isupper( *str ) )
+         c2 = tolower( *str );
+      else
+         c2 = *str;
+      if ( c1 != c2 )
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(FALSE);
+         return(FALSE);
       }
-    ++con;
-    ++str;
+      ++con;
+      ++str;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(TRUE);
-#endif
+   return(TRUE);
 
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
-short valid_integer(CHARTYPE *str)
+bool valid_integer( CHARTYPE *str )
 #else
-short valid_integer(str)
+bool valid_integer( str )
 CHARTYPE *str;
 #endif
 /***********************************************************************/
@@ -1179,43 +1179,36 @@ CHARTYPE *str;
 /* Return    : TRUE or FALSE                                           */
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
- short num_signs=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    valid_integer");
-#endif
- for (i=0; i<strlen((DEFCHAR *)str); i++)
-    {
-     if (*(str+i) == '-' || *(str+i) == '+')
-        num_signs++;
-     else
-        if (!isdigit(*(str+i)))
-          {
-#ifdef THE_TRACE
-           trace_return();
-#endif
-           return(FALSE);
-          }
-    }
- if (num_signs > 1)
+   LENGTHTYPE i=0;
+   LENGTHTYPE num_signs=0;
+
+   TRACE_FUNCTION("util.c:    valid_integer");
+   for ( i = 0; i < strlen( (DEFCHAR *)str ); i++ )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(FALSE);
+      if ( *(str+i) == '-' || *(str+i) == '+' )
+         num_signs++;
+      else
+      {
+         if ( !isdigit( *(str+i) ) )
+         {
+            TRACE_RETURN();
+            return(FALSE);
+         }
+      }
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(TRUE);
+   if ( num_signs > 1 )
+   {
+      TRACE_RETURN();
+      return(FALSE);
+   }
+   TRACE_RETURN();
+   return(TRUE);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
-short valid_positive_integer(CHARTYPE *str)
+bool valid_positive_integer( CHARTYPE *str )
 #else
-short valid_positive_integer(str)
+bool valid_positive_integer( str )
 CHARTYPE *str;
 #endif
 /***********************************************************************/
@@ -1224,43 +1217,88 @@ CHARTYPE *str;
 /* Return    : TRUE or FALSE                                           */
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
- short num_signs=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    valid_positive_integer");
-#endif
- for (i=0; i<strlen((DEFCHAR *)str); i++)
-    {
-     if (*(str+i) == '+')
-        num_signs++;
-     else
-        if (!isdigit(*(str+i)))
-          {
-#ifdef THE_TRACE
-           trace_return();
-#endif
-           return(FALSE);
-          }
-    }
- if (num_signs > 1)
+   LENGTHTYPE i=0;
+
+   TRACE_FUNCTION("util.c:    valid_positive_integer");
+   if ( *str == '+' )
+      str++;
+   for ( i = 0; i < strlen( (DEFCHAR *)str ); i++ )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(FALSE);
+      if ( !isdigit( *(str+i) ) )
+      {
+         TRACE_RETURN();
+         return(FALSE);
+      }
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(TRUE);
+   TRACE_RETURN();
+   return(TRUE);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
-short strzeq(CHARTYPE *str,CHARTYPE ch)
+short valid_positive_integer_against_maximum( CHARTYPE *str, LENGTHTYPE maximum )
 #else
-short strzeq(str,ch)
+short valid_positive_integer_against_maximum( str, maximum )
+CHARTYPE *str;
+LENGTHTYPE maximum;
+#endif
+/***********************************************************************/
+/* Function  : Checks that string contains only 0-9, or +              */
+/*             and is less than supplied string maximum                */
+/* Parameters: *str     - string to be checked                         */
+/* Return    : TRUE or FALSE                                           */
+/***********************************************************************/
+{
+   LENGTHTYPE i,len_str,len_max;
+   CHARTYPE _THE_FAR buffer[50];
+   CHARTYPE *buf;
+   short rc=0;
+
+   TRACE_FUNCTION("util.c:    valid_positive_integer_against_maximum");
+   if ( !valid_positive_integer( str ) )
+   {
+      TRACE_RETURN();
+      return(4); /* invlaid number */
+   }
+   /*
+    * Now check against the maximum
+    */
+   buf = buffer;
+   sprintf( (DEFCHAR *)buf, "%ld", maximum );
+   if ( *str == '+' )
+      str++;
+   len_max = strlen( (DEFCHAR *)buf );
+   len_str = strlen( (DEFCHAR *)str );
+   if ( len_str > len_max )
+   {
+      TRACE_RETURN();
+      return(6);
+   }
+   if ( len_str < len_max )
+   {
+      TRACE_RETURN();
+      return(0);
+   }
+   for ( i = 0; i < len_str; i++, str++, buf++ )
+   {
+      if ( *str > *buf )
+      {
+         rc = 6;
+         break;
+      }
+      if ( *str < *buf )
+      {
+         rc = 0;
+         break;
+      }
+   }
+   TRACE_RETURN();
+   return(rc);
+}
+/***********************************************************************/
+#ifdef HAVE_PROTO
+LENGTHTYPE strzeq( CHARTYPE *str, CHARTYPE ch )
+#else
+LENGTHTYPE strzeq( str, ch )
 CHARTYPE *str;
 CHARTYPE ch;
 #endif
@@ -1271,22 +1309,20 @@ CHARTYPE ch;
 /* Return    : position in string of character - (-1) if not found     */
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short len=0;
- register short  i = 0;
-/*--------------------------- processing ------------------------------*/
- len = strlen((DEFCHAR *)str);
- for (; i<len && str[i]!=ch; i++);
- if (i>=len)
-    i = (-1);
- return(i);
-}
+   LENGTHTYPE len=0;
+   LENGTHTYPE i = 0;
 
+   len = strlen( (DEFCHAR *)str );
+   for ( ; i < len && str[i] != ch; i++ );
+   if ( i >= len )
+      i = (-1L);
+   return(i);
+}
 /***********************************************************************/
 #ifdef HAVE_PROTO
-CHARTYPE *strtrans(CHARTYPE *str,CHARTYPE oldch,CHARTYPE newch)
+CHARTYPE *strtrans( CHARTYPE *str, CHARTYPE oldch, CHARTYPE newch )
 #else
-CHARTYPE *strtrans(str,oldch,newch)
+CHARTYPE *strtrans( str, oldch, newch )
 CHARTYPE *str;
 CHARTYPE oldch,newch;
 #endif
@@ -1298,22 +1334,20 @@ CHARTYPE oldch,newch;
 /* Return    : same string but with characters translated              */
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short  i=0;
-/*--------------------------- processing ------------------------------*/
- for (i=0;i<strlen((DEFCHAR *)str); i++)
+   LENGTHTYPE i=0;
+
+   for ( i = 0; i < strlen( (DEFCHAR *)str ); i++ )
    {
-    if (*(str+i) == oldch)
-       *(str+i) = newch;
+      if ( *(str+i) == oldch )
+         *(str+i) = newch;
    }
- return(str);
+   return(str);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
-LINE *add_LINE(LINE *first,LINE *curr,CHARTYPE *line,
-               LENGTHTYPE len,SELECTTYPE select,bool new_flag)
+LINE *add_LINE( LINE *first, LINE *curr, CHARTYPE *line, LENGTHTYPE len, SELECTTYPE select, bool new_flag )
 #else
-LINE *add_LINE(first,curr,line,len,select,new_flag)
+LINE *add_LINE( first, curr, line, len, select, new_flag )
 LINE *first;
 LINE *curr;
 CHARTYPE *line;
@@ -1333,96 +1367,89 @@ bool new_flag;
 /* RETURN:    - pointer to current item in linked list or NULL if error*/
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    add_LINE");
-#endif
- next_line = lll_add(first,curr,sizeof(LINE));
- if (next_line == NULL)
+   TRACE_FUNCTION("util.c:    add_LINE");
+   /*
+    * Validate that the line being added is shorter than the maximum line length
+    */
+   if ( len > max_line_length )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(NULL);
+      display_error( 0, (CHARTYPE*)"Truncated", FALSE );
+      len = max_line_length;
    }
- curr_line = next_line;
+   next_line = lll_add( first, curr, sizeof(LINE) );
+   if ( next_line == NULL )
+   {
+      TRACE_RETURN();
+      return(NULL);
+   }
+   curr_line = next_line;
 
- curr_line->line = (CHARTYPE *)(*the_malloc)((len+1)*sizeof(CHARTYPE));
- if (curr_line->line == NULL)
+   curr_line->line = (CHARTYPE *)(*the_malloc)( (len+1)*sizeof(CHARTYPE) );
+   if ( curr_line->line == NULL )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(NULL);
+      TRACE_RETURN();
+      return(NULL);
    }
- memcpy(curr_line->line,line,len);
- *(curr_line->line+len) = '\0'; /* for functions that expect ASCIIZ string */
- curr_line->length = len;
- curr_line->select = select;
- curr_line->save_select = select;
- curr_line->pre = NULL;
- curr_line->name = NULL;
- curr_line->flags.new_flag = new_flag;
- curr_line->flags.changed_flag = FALSE;
- curr_line->flags.tag_flag = FALSE;
- curr_line->flags.save_tag_flag = FALSE;
-/*
- * If this is the first line of the file, and the current parser for the
- * file is NULL, see if we can't use one of the magic string parsers...
- */
- if (curr_line->prev
- &&  curr_line->prev->prev == NULL
- &&  CURRENT_VIEW
- &&  CURRENT_FILE
- &&  CURRENT_FILE->parser == NULL)
- {
-    find_auto_parser(CURRENT_FILE);
- }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(curr_line);
+   memcpy( curr_line->line, line, len );
+   *(curr_line->line+len) = '\0'; /* for functions that expect ASCIIZ string */
+   curr_line->length = len;
+   curr_line->select = select;
+   curr_line->save_select = select;
+   curr_line->pre = NULL;
+   curr_line->first_name = NULL;
+   curr_line->name = NULL; /* TODO - get rid of this when all uses of this structure for
+                              other purposes are changed */
+   curr_line->flags.new_flag = new_flag;
+   curr_line->flags.changed_flag = FALSE;
+   curr_line->flags.tag_flag = FALSE;
+   curr_line->flags.save_tag_flag = FALSE;
+   /*
+    * If this is the first line of the file, and the current parser for the
+    * file is NULL, see if we can use one of the magic string parsers...
+    */
+   if (curr_line->prev
+   &&  curr_line->prev->prev == NULL
+   &&  CURRENT_VIEW
+   &&  CURRENT_FILE
+   &&  CURRENT_FILE->parser == NULL)
+   {
+      find_auto_parser( CURRENT_FILE );
+   }
+   TRACE_RETURN();
+   return(curr_line);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
-LINE *append_LINE(LINE *curr,CHARTYPE *line,LENGTHTYPE len)
+LINE *append_LINE( LINE *curr, CHARTYPE *line, LENGTHTYPE len )
 #else
-LINE *append_LINE(curr,line,len)
+LINE *append_LINE( curr, line, len )
 LINE *curr;
 CHARTYPE *line;
 LENGTHTYPE len;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    append_LINE");
-#endif
- curr->line = (CHARTYPE *)(*the_realloc)(curr->line,(curr->length+len+1)*sizeof(CHARTYPE));
- if (curr->line == NULL)
+   TRACE_FUNCTION("util.c:    append_LINE");
+   curr->line = (CHARTYPE *)(*the_realloc)( curr->line, (curr->length+len+1)*sizeof(CHARTYPE) );
+   if ( curr->line == NULL )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(NULL);
+      TRACE_RETURN();
+      return(NULL);
    }
- memcpy(curr->line+curr->length,line,len);
- curr->length += len;
- *(curr->line+curr->length) = '\0'; /* for functions that expect ASCIIZ string */
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(curr);
+   memcpy( curr->line+curr->length, line, len );
+   curr->length += len;
+   *(curr->line+curr->length) = '\0'; /* for functions that expect ASCIIZ string */
+   TRACE_RETURN();
+   return(curr);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
-LINE *delete_LINE(LINE *first,LINE *last,LINE *curr,short direction)
+LINE *delete_LINE( LINE **first, LINE **last, LINE *curr, short direction, bool delete_names )
 #else
-LINE *delete_LINE(first,last,curr,direction)
-LINE *first,*last,*curr;
+LINE *delete_LINE( first, last, curr, direction, delete_names )
+LINE **first,**last,*curr;
 short direction;
+bool delete_names;
 #endif
 /***********************************************************************/
 /* Deletes a member of the linked list for the specified file.         */
@@ -1431,51 +1458,57 @@ short direction;
 /* first      - pointer to last  line for the file                     */
 /* curr       - pointer to current line for the file                   */
 /* direction  - direction in which to delete.                          */
+/* delete_names - if 1 delete the names linked list                    */
 /* RETURN:    - pointer to current item in linked list or NULL if error*/
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    delete_LINE");
-#endif
- if (curr->name != (CHARTYPE *)NULL)
-    (*the_free)(curr->name);
- (*the_free)(curr->line);
- curr = lll_del(&first,&last,curr,direction);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(curr);
+   TRACE_FUNCTION("util.c:    delete_LINE");
+   if ( delete_names )
+   {
+      if ( curr->first_name != (THELIST *)NULL )
+      {
+         ll_free( curr->first_name, the_free );
+         curr->first_name = NULL;
+      }
+      if ( curr->name )
+      {
+         (*the_free)( curr->name );
+         curr->name = NULL;
+      }
+   }
+   if ( curr->line )
+   {
+      (*the_free)(curr->line);
+      curr->line = NULL;
+   }
+   curr = lll_del( first, last, curr, direction );
+   TRACE_RETURN();
+   return( curr );
 }
 
 /***********************************************************************/
 #ifdef HAVE_PROTO
-void put_string(WINDOW *win,short row,short col,CHARTYPE *string,short len)
+void put_string( WINDOW *win, ROWTYPE row, COLTYPE col, CHARTYPE *string, LENGTHTYPE len )
 #else
-void put_string(win,row,col,string,len)
+void put_string( win, row, col, string, len )
 WINDOW *win;
-short row,col;
+ROWTYPE row;
+COLTYPE col;
 CHARTYPE *string;
-short len;
+LENGTHTYPE len;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    put_string");
-#endif
- wmove(win,row,col);
- for (i=0;i<len;i++)
+   LENGTHTYPE i=0;
+
+   TRACE_FUNCTION("util.c:    put_string");
+   wmove( win, row, col );
+   for ( i = 0; i < len; i++ )
    {
-    waddch(win,etmode_table[*(string+i)]);
+      waddch( win, etmode_table[*(string+i)] );
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   TRACE_RETURN();
+   return;
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -1488,26 +1521,23 @@ CHARTYPE add_ins;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- chtype chr=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    put_char");
-#endif
- chr = ch & A_CHARTEXT;
- if (etmode_flag[chr])  /* etmode character has attributes, use them */
-    ch = etmode_table[chr];
- else
-    ch = etmode_table[chr] | (ch & A_ATTRIBUTES);
+   chtype chr=0;
 
- if (add_ins == ADDCHAR)
-    waddch(win,ch);
- else
-    winsch(win,ch);
-#ifdef THE_TRACE
- trace_return();
+   TRACE_FUNCTION("util.c:    put_char");
+#ifndef VMS
+   chr = ch & A_CHARTEXT;
+   if (etmode_flag[chr])  /* etmode character has attributes, use them */
+      ch = etmode_table[chr];
+   else
+      ch = etmode_table[chr] | (ch & A_ATTRIBUTES);
 #endif
- return;
+
+   if (add_ins == ADDCHAR)
+      waddch( win, ch );
+   else
+      winsch( win, ch );
+   TRACE_RETURN();
+   return;
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -1518,160 +1548,160 @@ short scrn;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
- short y=0,x=0;
- FILE_DETAILS fp;
- short my_prefix_width=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    set_up_windows");
-#endif
-/*---------------------------------------------------------------------*/
-/* If curses has not started exit gracefully...                        */
-/*---------------------------------------------------------------------*/
- if (!curses_started)
+   register short i=0;
+   short y=0,x=0;
+   FILE_DETAILS fp;
+   short my_prefix_width=0;
+
+   TRACE_FUNCTION("util.c:    set_up_windows");
+   /*
+    * If curses has not started exit gracefully...
+    */
+   if ( !curses_started )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*---------------------------------------------------------------------*/
-/* Allocate space for a file descriptor colour attributes...           */
-/*---------------------------------------------------------------------*/
- if ((fp.attr = (COLOUR_ATTR *)(*the_malloc)(ATTR_MAX*sizeof(COLOUR_ATTR))) == NULL)
+   /*
+    * Allocate space for a file descriptor colour attributes...
+    */
+   if ( ( fp.attr = (COLOUR_ATTR *)(*the_malloc)( ATTR_MAX*sizeof(COLOUR_ATTR) ) ) == NULL )
    {
-    display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OUT_OF_MEMORY);
+      display_error( 30, (CHARTYPE *)"", FALSE );
+      TRACE_RETURN();
+      return(RC_OUT_OF_MEMORY);
    }
- if (screen[scrn].screen_view)
+   if ( screen[scrn].screen_view )
    {
-    memcpy(fp.attr,screen[scrn].screen_view->file_for_view->attr,ATTR_MAX*sizeof(COLOUR_ATTR));
-    memcpy(fp.attr+ATTR_DIVIDER,CURRENT_FILE->attr+ATTR_DIVIDER,sizeof(COLOUR_ATTR));
-    my_prefix_width = screen[scrn].screen_view->prefix_width;
+      memcpy( fp.attr, screen[scrn].screen_view->file_for_view->attr, ATTR_MAX*sizeof(COLOUR_ATTR) );
+      memcpy( fp.attr+ATTR_DIVIDER, CURRENT_FILE->attr+ATTR_DIVIDER, sizeof(COLOUR_ATTR) );
+      my_prefix_width = screen[scrn].screen_view->prefix_width;
    }
- else
+   else
    {
-    set_up_default_colours(&fp,(COLOUR_ATTR *)NULL,ATTR_MAX);
-    my_prefix_width = prefix_width;
+      set_up_default_colours( &fp, (COLOUR_ATTR *)NULL, ATTR_MAX );
+      my_prefix_width = prefix_width;
    }
-/*---------------------------------------------------------------------*/
-/* Save the position of the cursor in each window, and then delete the */
-/* window. Recreate each window, that has a valid size and move the    */
-/* cursor back to the position it had in each window.                  */
-/*---------------------------------------------------------------------*/
- for (i=0;i<VIEW_WINDOWS;i++)
+   /*
+    * Save the position of the cursor in each window, and then delete the
+    * window. Recreate each window, that has a valid size and move the
+    * cursor back to the position it had in each window.
+    */
+   for ( i = 0; i < VIEW_WINDOWS; i++ )
    {
-    y = x = 0;
-    if (screen[scrn].win[i] != (WINDOW *)NULL)
+      y = x = 0;
+      if ( screen[scrn].win[i] != (WINDOW *)NULL )
       {
-       getyx(screen[scrn].win[i],y,x);
-       delwin(screen[scrn].win[i]);
-       screen[scrn].win[i] = (WINDOW *)NULL;
+         getyx( screen[scrn].win[i], y, x );
+         delwin( screen[scrn].win[i] );
+         screen[scrn].win[i] = (WINDOW *)NULL;
       }
-    if (screen[scrn].rows[i] != 0
-    &&  screen[scrn].cols[i] != 0)
+      if ( screen[scrn].rows[i] != 0
+      &&   screen[scrn].cols[i] != 0 )
       {
-       screen[scrn].win[i] = newwin(screen[scrn].rows[i],screen[scrn].cols[i],
-                                 screen[scrn].start_row[i],screen[scrn].start_col[i]);
-       if (screen[scrn].win[i] == (WINDOW *)NULL)
+         screen[scrn].win[i] = newwin( screen[scrn].rows[i], screen[scrn].cols[i],
+                                       screen[scrn].start_row[i], screen[scrn].start_col[i] );
+         if ( screen[scrn].win[i] == (WINDOW *)NULL )
          {
-          display_error(30,(CHARTYPE *)"creating window",FALSE);
-#ifdef THE_TRACE
-          trace_return();
-#endif
-          return(RC_OUT_OF_MEMORY);
+            display_error( 30, (CHARTYPE *)"creating window", FALSE );
+            TRACE_RETURN();
+            return(RC_OUT_OF_MEMORY);
          }
+#ifdef HAVE_KEYPAD
+         keypad( screen[scrn].win[i], TRUE );
+#endif
 #if !defined(PDCURSES)
-       touchwin(screen[scrn].win[i]);
+         touchwin( screen[scrn].win[i] );
 #endif
-       wmove(screen[scrn].win[i],y,x);
+         wmove( screen[scrn].win[i], y, x );
       }
-    }
- wattrset(screen[scrn].win[WINDOW_FILEAREA],set_colour(fp.attr+ATTR_FILEAREA));
+   }
+   wattrset( screen[scrn].win[WINDOW_FILEAREA], set_colour( fp.attr+ATTR_FILEAREA ) );
 
- create_statusline_window();
-
- if (screen[scrn].win[WINDOW_ARROW] != (WINDOW *)NULL)
+   if ( screen[scrn].win[WINDOW_ARROW] != (WINDOW *)NULL )
    {
-    wattrset(screen[scrn].win[WINDOW_ARROW],set_colour(fp.attr+ATTR_ARROW));
-    for (i=0;i<my_prefix_width-2;i++)
-        mvwaddch(screen[scrn].win[WINDOW_ARROW],0,i,'=');
-    mvwaddstr(screen[scrn].win[WINDOW_ARROW],0,my_prefix_width-2,"> ");
-    wnoutrefresh(screen[scrn].win[WINDOW_ARROW]);
+      wattrset( screen[scrn].win[WINDOW_ARROW], set_colour( fp.attr+ATTR_ARROW ) );
+      for ( i = 0; i < my_prefix_width-2; i++ )
+          mvwaddch( screen[scrn].win[WINDOW_ARROW], 0, i, '=' );
+      mvwaddstr( screen[scrn].win[WINDOW_ARROW], 0, my_prefix_width-2, "> " );
+      wnoutrefresh( screen[scrn].win[WINDOW_ARROW] );
    }
 
- if (screen[scrn].win[WINDOW_IDLINE] != (WINDOW *)NULL)
+   if ( screen[scrn].win[WINDOW_IDLINE] != (WINDOW *)NULL )
    {
-    wattrset(screen[scrn].win[WINDOW_IDLINE],set_colour(fp.attr+ATTR_IDLINE));
-    wmove(screen[scrn].win[WINDOW_IDLINE],0,0);
-    my_wclrtoeol(screen[scrn].win[WINDOW_IDLINE]);
+      wattrset( screen[scrn].win[WINDOW_IDLINE], set_colour( fp.attr+ATTR_IDLINE ) );
+      wmove( screen[scrn].win[WINDOW_IDLINE], 0, 0 );
+      my_wclrtoeol( screen[scrn].win[WINDOW_IDLINE] );
    }
 
- if (screen[scrn].win[WINDOW_PREFIX] != (WINDOW *)NULL)
-    wattrset(screen[scrn].win[WINDOW_PREFIX],set_colour(fp.attr+ATTR_PENDING));
+   if ( screen[scrn].win[WINDOW_PREFIX] != (WINDOW *)NULL )
+      wattrset( screen[scrn].win[WINDOW_PREFIX], set_colour( fp.attr+ATTR_PENDING ) );
 
- if (screen[scrn].win[WINDOW_GAP] != (WINDOW *)NULL)
-    wattrset(screen[scrn].win[WINDOW_GAP],set_colour(fp.attr+ATTR_GAP));
+   if ( screen[scrn].win[WINDOW_GAP] != (WINDOW *)NULL )
+      wattrset( screen[scrn].win[WINDOW_GAP], set_colour( fp.attr+ATTR_GAP ) );
 
- if (screen[scrn].win[WINDOW_COMMAND] != (WINDOW *)NULL)
+   if ( screen[scrn].win[WINDOW_COMMAND] != (WINDOW *)NULL )
    {
-    wattrset(screen[scrn].win[WINDOW_COMMAND],set_colour(fp.attr+ATTR_CMDLINE));
-    wmove(screen[scrn].win[WINDOW_COMMAND],0,0);
-    my_wclrtoeol(screen[scrn].win[WINDOW_COMMAND]);
-    wnoutrefresh(screen[scrn].win[WINDOW_COMMAND]);
-    wmove(screen[scrn].win[WINDOW_COMMAND],0,0);
+      wattrset( screen[scrn].win[WINDOW_COMMAND], set_colour( fp.attr+ATTR_CMDLINE ) );
+      getyx( screen[scrn].win[WINDOW_COMMAND], y, x );
+      wmove( screen[scrn].win[WINDOW_COMMAND], 0, 0 );
+      my_wclrtoeol( screen[scrn].win[WINDOW_COMMAND] );
+      wnoutrefresh( screen[scrn].win[WINDOW_COMMAND] );
+      wmove( screen[scrn].win[WINDOW_COMMAND], y, x );
    }
-/*---------------------------------------------------------------------*/
-/* Set up divider window...                                            */
-/*---------------------------------------------------------------------*/
- if (display_screens > 1
- &&  !horizontal)
+   /*
+    * Delete divider window.
+    */
+   if ( divider != (WINDOW *)NULL )
    {
-    if (divider != (WINDOW *)NULL)
-       delwin(divider);
-    divider = newwin(screen[1].screen_rows,2,screen[1].screen_start_row,
-                     screen[1].screen_start_col-2);
-    if (divider == (WINDOW *)NULL)
+      delwin( divider );
+      divider = NULL;
+   }
+   /*
+    * Set up divider window...
+    */
+   if ( display_screens > 1
+   &&   !horizontal)
+   {
+      divider = newwin( screen[1].screen_rows, 2, screen[1].screen_start_row,
+                        screen[1].screen_start_col-2 );
+      if ( divider == (WINDOW *)NULL )
       {
-       display_error(30,(CHARTYPE *)"creating window",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_OUT_OF_MEMORY);
+         display_error( 30, (CHARTYPE *)"creating window", FALSE );
+         TRACE_RETURN();
+         return(RC_OUT_OF_MEMORY);
       }
+#ifdef HAVE_KEYPAD
+      keypad( divider, TRUE );
+#endif
 
 #if 0
 # if defined(A_ALTCHARSET) && !defined(USE_NCURSES)
-    wattrset(divider,A_ALTCHARSET|set_colour(fp.attr+ATTR_DIVIDER));
+      wattrset( divider, A_ALTCHARSET|set_colour( fp.attr+ATTR_DIVIDER ) );
 # else
-    wattrset(divider,set_colour(fp.attr+ATTR_DIVIDER));
+      wattrset( divider, set_colour( fp.attr+ATTR_DIVIDER ) );
 # endif
 #else
-    wattrset(divider,set_colour(fp.attr+ATTR_DIVIDER));
+      wattrset( divider, set_colour( fp.attr+ATTR_DIVIDER ) );
 #endif
 
-    draw_divider();
+      draw_divider();
    }
-if (SLKx)
-{
-#if defined(HAVE_SLK_ATTRSET)
-   slk_attrset( set_colour( fp.attr+ATTR_SLK ) );
+   if ( max_slk_labels )
+   {
+#if defined(HAVE_SLK_INIT)
+# if defined(HAVE_SLK_ATTRSET)
+      slk_attrset( set_colour( fp.attr+ATTR_SLK ) );
+# endif
+      slk_noutrefresh();
 #endif
-   slk_noutrefresh();
-}
-/*---------------------------------------------------------------------*/
-/* Free up  space for a file descriptor colour attributes...           */
-/*---------------------------------------------------------------------*/
- (*the_free)(fp.attr);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   }
+   /*
+    * Free up  space for a file descriptor colour attributes...
+    */
+   (*the_free)( fp.attr );
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -1681,32 +1711,27 @@ short draw_divider()
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
 #ifndef HAVE_WVLINE
- register int i=0;
-#endif
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    draw_divider");
+   register int i=0;
 #endif
 
+   TRACE_FUNCTION("util.c:    draw_divider");
+
 #ifdef HAVE_WVLINE
- wmove(divider,0,0);
- wvline(divider,0,screen[1].screen_rows);
- wmove(divider,0,1);
- wvline(divider,0,screen[1].screen_rows);
+   wmove(divider,0,0);
+   wvline(divider,0,screen[1].screen_rows);
+   wmove(divider,0,1);
+   wvline(divider,0,screen[1].screen_rows);
 #else
- for (i=0;i<screen[1].screen_rows;i++)
+   for (i=0;i<screen[1].screen_rows;i++)
    {
-    wmove(divider,i,0);
-    waddch(divider,'|');
-    waddch(divider,'|');
+      wmove(divider,i,0);
+      waddch(divider,'|');
+      waddch(divider,'|');
    }
 #endif
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(RC_OK);
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -1716,48 +1741,81 @@ short create_statusline_window()
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- COLOUR_ATTR attr;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    create_statusline_window");
-#endif
- if (!curses_started)
+   COLOUR_ATTR attr;
+
+   TRACE_FUNCTION( "util.c:    create_statusline_window" );
+   if ( !curses_started )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      TRACE_RETURN();
+      return(RC_OK);
    }
- if (CURRENT_VIEW == NULL
- ||  CURRENT_FILE == NULL)
-    set_up_default_colours((FILE_DETAILS *)NULL,&attr,ATTR_STATAREA);
- else
-    memcpy(&attr,CURRENT_FILE->attr+ATTR_STATAREA,sizeof(COLOUR_ATTR));
- if (statarea != (WINDOW *)NULL)
+   if ( CURRENT_VIEW == NULL
+   ||   CURRENT_FILE == NULL )
+      set_up_default_colours( (FILE_DETAILS *)NULL, &attr, ATTR_STATAREA );
+   else
+      memcpy( &attr, CURRENT_FILE->attr+ATTR_STATAREA, sizeof(COLOUR_ATTR) );
+   if ( statarea != (WINDOW *)NULL )
    {
-    delwin(statarea);
-    statarea = (WINDOW *)NULL;
+      delwin( statarea );
+      statarea = (WINDOW *)NULL;
    }
- switch(STATUSLINEx)
+   switch( STATUSLINEx )
    {
-    case 'B':
-         statarea = newwin(1,COLS,terminal_lines-1,0);
-         wattrset(statarea,set_colour(&attr));
+      case 'B':
+         statarea = newwin( 1, COLS, terminal_lines-1, 0 );
+#ifdef HAVE_KEYPAD
+         keypad( statarea, TRUE );
+#endif
+         wattrset( statarea, set_colour( &attr ) );
          clear_statarea();
          break;
-    case 'T':
-         statarea = newwin(1,COLS,0,0);
-         wattrset(statarea,set_colour(&attr));
+      case 'T':
+         statarea = newwin( 1, COLS, (FILETABSx) ? 1 : 0, 0 );
+#ifdef HAVE_KEYPAD
+         keypad( statarea, TRUE );
+#endif
+         wattrset( statarea, set_colour( &attr ) );
          clear_statarea();
          break;
-    default:
+      default:
          break;
    }
-#ifdef THE_TRACE
- trace_return();
+   TRACE_RETURN();
+   return(RC_OK);
+}
+/***********************************************************************/
+#ifdef HAVE_PROTO
+short create_filetabs_window(void)
+#else
+short create_filetabs_window()
 #endif
- return(RC_OK);
+/***********************************************************************/
+{
+   TRACE_FUNCTION( "util.c:    create_filetabs_window" );
+   if ( !curses_started )
+   {
+      TRACE_RETURN();
+      return(RC_OK);
+   }
+   if ( filetabs != (WINDOW *)NULL )
+   {
+      delwin( filetabs );
+      filetabs = (WINDOW *)NULL;
+   }
+   if ( FILETABSx )
+   {
+      filetabs = newwin( 1, COLS, 0 , 0 );
+#ifdef HAVE_KEYPAD
+      keypad( filetabs, TRUE );
+#endif
+      display_filetabs( NULL );
+      /*
+       * If STATUSLINE is TOP, then we need to recreate it
+       */
+      create_statusline_window();
+   }
+   TRACE_RETURN();
+   return(RC_OK);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -1770,42 +1828,36 @@ LINE *known_curr;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- LINE *curr=known_curr;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    pre_process_line");
-#endif
-/*---------------------------------------------------------------------*/
-/* If we haven't been passed a valid LINE*, go and get one for the     */
-/* supplied line_number.                                               */
-/*---------------------------------------------------------------------*/
- if (curr == (LINE *)NULL)
-    curr = lll_find(the_view->file_for_view->first_line,the_view->file_for_view->last_line,
-                 line_number,the_view->file_for_view->number_lines);
- memset(rec,' ',max_line_length);
- memcpy(rec,curr->line,curr->length);
- rec_len = curr->length;
-/*---------------------------------------------------------------------*/
-/* Now set up the prefix command from the linked list...               */
-/*---------------------------------------------------------------------*/
- if (curr->pre == NULL)
+   LINE *curr=known_curr;
+
+   TRACE_FUNCTION("util.c:    pre_process_line");
+   /*
+    * If we haven't been passed a valid LINE*, go and get one for the
+    * supplied line_number.
+    */
+   if (curr == (LINE *)NULL)
+      curr = lll_find( the_view->file_for_view->first_line, the_view->file_for_view->last_line, line_number, the_view->file_for_view->number_lines );
+   memset( rec, ' ', max_line_length );
+   memcpy( rec, curr->line, curr->length );
+   rec_len = curr->length;
+   /*
+    * Now set up the prefix command from the linked list...
+    */
+   if (curr->pre == NULL)
    {
-    memset(pre_rec,' ',MAX_PREFIX_WIDTH);
-    pre_rec_len = 0;
+      memset( pre_rec, ' ', MAX_PREFIX_WIDTH );
+      pre_rec_len = 0;
    }
- else
+   else
    {
-    memset(pre_rec,' ',MAX_PREFIX_WIDTH);
-    strcpy((DEFCHAR *)pre_rec,(DEFCHAR *)curr->pre->ppc_command);
-    pre_rec_len = strlen((DEFCHAR *)pre_rec);
-    pre_rec[pre_rec_len] = ' ';
-    pre_rec[MAX_PREFIX_WIDTH] = '\0';
+      memset( pre_rec, ' ', MAX_PREFIX_WIDTH );
+      strcpy( (DEFCHAR *)pre_rec, (DEFCHAR *)curr->pre->ppc_orig_command );
+      pre_rec_len = strlen( (DEFCHAR *)pre_rec );
+      pre_rec[pre_rec_len] = ' ';
+      pre_rec[MAX_PREFIX_WIDTH] = '\0';
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   TRACE_RETURN();
+   return;
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -1819,95 +1871,84 @@ bool set_alt;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- LINE *curr=known_curr;
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    post_process_line");
-#endif
-/*---------------------------------------------------------------------*/
-/* If there are no lines in the file associated with the view, exit... */
-/*---------------------------------------------------------------------*/
- if (the_view->file_for_view->first_line == NULL)
+   LINE *curr=known_curr;
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("util.c:    post_process_line");
+   /*
+    * If there are no lines in the file associated with the view, exit...
+    */
+   if (the_view->file_for_view->first_line == NULL)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_OK);
+      TRACE_RETURN();
+      return(RC_OK);
    }
-/*---------------------------------------------------------------------*/
-/* If we haven't been passed a valid LINE*, go and get one for the     */
-/* supplied line_number.                                               */
-/*---------------------------------------------------------------------*/
- if (curr == (LINE *)NULL)
-    curr = lll_find(the_view->file_for_view->first_line,the_view->file_for_view->last_line,
-                 line_number,the_view->file_for_view->number_lines);
-/*---------------------------------------------------------------------*/
-/* First copy the pending prefix command to the linked list.           */
-/* Only do it if the prefix command has a value or there is already a  */
-/* pending prefix command for that line.                               */
-/*---------------------------------------------------------------------*/
- if (prefix_changed)
-    add_prefix_command(curr,line_number,FALSE);
-/*---------------------------------------------------------------------*/
-/* If the line hasn't changed, return.                                 */
-/*---------------------------------------------------------------------*/
- if (rec_len == curr->length && (memcmp(rec,curr->line,curr->length) == 0))
+   /*
+    * If we haven't been passed a valid LINE*, go and get one for the
+    * supplied line_number.
+    */
+   if (curr == (LINE *)NULL)
+      curr = lll_find( the_view->file_for_view->first_line, the_view->file_for_view->last_line, line_number, the_view->file_for_view->number_lines );
+   /*
+    * First copy the pending prefix command to the linked list.
+    * Only do it if the prefix command has a value or there is already a
+    * pending prefix command for that line.
+    */
+   if ( prefix_changed )
+      add_prefix_command( current_screen, CURRENT_VIEW, curr, line_number, FALSE, FALSE );
+   /*
+    * If the line hasn't changed, return.
+    */
+   if ( rec_len == curr->length
+   && ( memcmp( rec, curr->line, curr->length) == 0 ) )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(RC_NO_LINES_CHANGED);
+      TRACE_RETURN();
+      return(RC_NO_LINES_CHANGED);
    }
-/*---------------------------------------------------------------------*/
-/* If it has set the changed_flag.                                     */
-/*---------------------------------------------------------------------*/
- curr->flags.changed_flag = TRUE;
-/*---------------------------------------------------------------------*/
-/* Increment the alteration counters, if requested to do so...         */
-/*---------------------------------------------------------------------*/
- if (set_alt)
-    increment_alt(the_view->file_for_view);
-/*---------------------------------------------------------------------*/
-/* Add the old line contents to the line recovery list.                */
-/*---------------------------------------------------------------------*/
- if (the_view->file_for_view->undoing)
-    add_to_recovery_list(curr->line,curr->length);
-/*---------------------------------------------------------------------*/
-/* Realloc the dynamic memory for the line if the line is now longer.  */
-/*---------------------------------------------------------------------*/
- if (rec_len > curr->length)
+   /*
+    * If it has set the changed_flag.
+    */
+   curr->flags.changed_flag = TRUE;
+   /*
+    * Increment the alteration counters, if requested to do so...
+    */
+   if (set_alt)
+      increment_alt(the_view->file_for_view);
+   /*
+    * Add the old line contents to the line recovery list.
+    */
+   if (the_view->file_for_view->undoing)
+      add_to_recovery_list(curr->line,curr->length);
+   /*
+    * Realloc the dynamic memory for the line if the line is now longer.
+    */
+   if (rec_len > curr->length)
    {
-    curr->line = (CHARTYPE *)(*the_realloc)((void *)curr->line,(rec_len+1)*sizeof(CHARTYPE));
-    if (curr->line == NULL)
+      curr->line = (CHARTYPE *)(*the_realloc)((void *)curr->line,(rec_len+1)*sizeof(CHARTYPE));
+      if (curr->line == NULL)
       {
-       display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(RC_OUT_OF_MEMORY);
+         display_error(30,(CHARTYPE *)"",FALSE);
+         TRACE_RETURN();
+         return(RC_OUT_OF_MEMORY);
       }
    }
-/*---------------------------------------------------------------------*/
-/* Copy the contents of rec into the line.                             */
-/*---------------------------------------------------------------------*/
- memcpy(curr->line,rec,rec_len);
- curr->length = rec_len;
- *(curr->line+rec_len) = '\0';
-/*
- * If this is the first line of the file, ad the current parser for the
- * file is NULL, see if we can't use one of the magic string parsers...
- */
- if (line_number == 1
- &&  CURRENT_FILE->parser == NULL)
- {
-    find_auto_parser(CURRENT_FILE);
- }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   /*
+    * Copy the contents of rec into the line.
+    */
+   memcpy( curr->line, rec, rec_len );
+   curr->length = rec_len;
+   *(curr->line+rec_len) = '\0';
+   /*
+    * If this is the first line of the file, and the current parser for the
+    * file is NULL, see if we can use one of the magic string parsers...
+    */
+   if (line_number == 1
+   &&  CURRENT_FILE->parser == NULL)
+   {
+      find_auto_parser(CURRENT_FILE);
+   }
+   TRACE_RETURN();
+   return(rc);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -1918,22 +1959,19 @@ CHARTYPE *field;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    blank_field");
-#endif
- if (strzne(field,' ') == (-1))
+   TRACE_FUNCTION("util.c:    blank_field");
+   if ( field == NULL )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(TRUE);                /* field is NULL or just contains spaces */
+      TRACE_RETURN();
+      return(TRUE);                /* field is NULL */
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(FALSE);
+   if ( strzne( field, ' ' ) == (-1) )
+   {
+      TRACE_RETURN();
+      return(TRUE);                /* field just contains spaces */
+   }
+   TRACE_RETURN();
+   return(FALSE);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -1946,79 +1984,70 @@ LINETYPE num_lines;
 #endif
 /***********************************************************************/
 {
-/*---------------------------------------------------------------------*/
-/* When lines are deleted, the base line is the first line in the file */
-/* irrespective of the direction that the delete is done.              */
-/*---------------------------------------------------------------------*/
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    adjust_marked_lines");
-#endif
-/*---------------------------------------------------------------------*/
-/* If there are no marked lines in the current view, return.           */
-/*---------------------------------------------------------------------*/
- if (MARK_VIEW != CURRENT_VIEW)
+   int iinsert_line=binsert_line;
+/*
+ * When lines are deleted, the base line is the first line in the file
+ * irrespective of the direction that the delete is done.
+ */
+   TRACE_FUNCTION("util.c:    adjust_marked_lines");
+   /*
+    * If there are no marked lines in the current view, return.
+    */
+   if (MARK_VIEW != CURRENT_VIEW)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return;
+      TRACE_RETURN();
+      return;
    }
- switch(binsert_line)
+   switch(iinsert_line)
    {
-    case TRUE:/* INSERT */
+      case TRUE:/* INSERT */
          if (base_line < CURRENT_VIEW->mark_start_line)
-           {
+         {
             CURRENT_VIEW->mark_start_line += num_lines;
             CURRENT_VIEW->mark_end_line += num_lines;
             break;
-           }
+         }
          if (base_line >= CURRENT_VIEW->mark_start_line
          &&  base_line < CURRENT_VIEW->mark_end_line)
-           {
+         {
             CURRENT_VIEW->mark_end_line += num_lines;
             break;
-           }
+         }
          break;
-    case FALSE:  /* DELETE */
+      case FALSE:  /* DELETE */
          if (base_line <= CURRENT_VIEW->mark_start_line
          &&  base_line+num_lines-1L >= CURRENT_VIEW->mark_end_line)
-           {
+         {
             CURRENT_VIEW->marked_line = FALSE;
             MARK_VIEW = (VIEW_DETAILS *)NULL;
             break;
-           }
+         }
          if (base_line+num_lines-1L < CURRENT_VIEW->mark_start_line)
-           {
+         {
             CURRENT_VIEW->mark_start_line -= num_lines;
             CURRENT_VIEW->mark_end_line -= num_lines;
             break;
-           }
+         }
          if (base_line > CURRENT_VIEW->mark_end_line)
-           {
+         {
             break;
-           }
+         }
          if (base_line+num_lines-1L > CURRENT_VIEW->mark_end_line)
-           {
+         {
             CURRENT_VIEW->mark_end_line = base_line - 1L;
             break;
-           }
+         }
          if (base_line < CURRENT_VIEW->mark_start_line)
-           {
+         {
             CURRENT_VIEW->mark_start_line = base_line;
-            CURRENT_VIEW->mark_end_line = base_line +
-                                         (CURRENT_VIEW->mark_end_line -
-                                          (base_line + num_lines));
+            CURRENT_VIEW->mark_end_line = base_line + (CURRENT_VIEW->mark_end_line - (base_line + num_lines));
             break;
-           }
+         }
          CURRENT_VIEW->mark_end_line -= num_lines;
          break;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   TRACE_RETURN();
+   return;
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -2032,59 +2061,53 @@ LINETYPE num_lines;
 #endif
 /***********************************************************************/
 {
-/*---------------------------------------------------------------------*/
-/* When lines are deleted, the base line is the first line in the file */
-/* irrespective of the direction that the delete is done.              */
-/*---------------------------------------------------------------------*/
-/*--------------------------- local data ------------------------------*/
- THE_PPC *curr_ppc=NULL;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    adjust_pending_prefix");
-#endif
-/*---------------------------------------------------------------------*/
-/* If there are no pending prefix commands in the view, return.        */
-/*---------------------------------------------------------------------*/
- if (view->file_for_view->first_ppc == NULL)
+   int iinsert_line=binsert_line;
+   /*
+    * When lines are deleted, the base line is the first line in the file
+    * irrespective of the direction that the delete is done.
+    */
+   THE_PPC *curr_ppc=NULL;
+
+   TRACE_FUNCTION("util.c:    adjust_pending_prefix");
+   /*
+    * If there are no pending prefix commands in the view, return.
+    */
+   if (view->file_for_view->first_ppc == NULL)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return;
+      TRACE_RETURN();
+      return;
    }
- curr_ppc = view->file_for_view->first_ppc;
- while (curr_ppc != NULL)
+   curr_ppc = view->file_for_view->first_ppc;
+   while (curr_ppc != NULL)
    {
-    switch(binsert_line)
+      switch( iinsert_line )
       {
-       case TRUE:/* INSERT */
+         case TRUE:/* INSERT */
             if (base_line < curr_ppc->ppc_line_number)
-              {
+            {
                curr_ppc->ppc_line_number += num_lines;
                break;
-              }
+            }
             break;
-       case FALSE:  /* DELETE */
+         case FALSE:  /* DELETE */
             if (base_line+num_lines-1L < curr_ppc->ppc_line_number)
-              {
+            {
                curr_ppc->ppc_line_number -= num_lines;
                break;
-              }
+            }
             if (base_line > curr_ppc->ppc_line_number)
                break;
 #if OLD_CLEAR
             (void)delete_pending_prefix_command(curr_ppc,view->file_for_view,(LINE *)NULL);
 #else
-            clear_pending_prefix_command(curr_ppc,(LINE *)NULL);
+            clear_pending_prefix_command( curr_ppc, view->file_for_view, (LINE *)NULL );
 #endif
             break;
       }
-    curr_ppc = curr_ppc->next;
+      curr_ppc = curr_ppc->next;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   TRACE_RETURN();
+   return;
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -2095,31 +2118,34 @@ CHARTYPE key;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    case_translate");
-#endif
- if (CURRENT_VIEW->case_enter == CASE_UPPER
- && islower(key))
+   CHARTYPE case_type = CURRENT_VIEW->case_enter;
+
+   TRACE_FUNCTION("util.c:    case_translate");
+   switch( CURRENT_VIEW->current_window )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(toupper(key));
+      case WINDOW_COMMAND:
+         case_type = CURRENT_VIEW->case_enter_cmdline;
+         break;
+      case WINDOW_PREFIX:
+         case_type = CURRENT_VIEW->case_enter_prefix;
+         break;
+      default:
+         break;
    }
- if (CURRENT_VIEW->case_enter == CASE_LOWER
- && isupper(key))
+   if ( case_type == CASE_UPPER
+   && islower( key ) )
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(tolower(key));
+      TRACE_RETURN();
+      return( toupper( key ) );
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(key);
+   if ( case_type == CASE_LOWER
+   && isupper( key ) )
+   {
+      TRACE_RETURN();
+      return( tolower( key ) );
+   }
+   TRACE_RETURN();
+   return( key );
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -2131,67 +2157,56 @@ LENGTHTYPE len;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    add_to_recovery_list");
-#endif
-/*---------------------------------------------------------------------*/
-/* Ignore if running in batch.                                         */
-/*---------------------------------------------------------------------*/
- if (batch_only)
-   {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return;
-   }
-/*---------------------------------------------------------------------*/
-/* First time through, set line array to NULL,  to indicated unused.   */
-/* This setup MUST occur before the freeing up code.                   */
-/*---------------------------------------------------------------------*/
- if (add_rcvry == (-1))
-   {
-    for (i=0;i<MAX_RECV;i++)
-       rcvry[i] = NULL;
-    add_rcvry = 0;               /* set to point to next available slot */
-   }
-/*---------------------------------------------------------------------*/
-/* Now we are here, lets add to the array.                             */
-/*---------------------------------------------------------------------*/
- if (rcvry[add_rcvry] == NULL)  /* haven't malloced yet */
-   {
-    if ((rcvry[add_rcvry] = (CHARTYPE *)(*the_malloc)((len+1)*sizeof(CHARTYPE))) == NULL)
-      {
-       display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return;
-      }
-   }
- else
-   {
-    if ((rcvry[add_rcvry] = (CHARTYPE *)(*the_realloc)(rcvry[add_rcvry],(len+1)*sizeof(CHARTYPE))) == NULL)
-      {
-       display_error(30,(CHARTYPE *)"",FALSE);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return;
-      }
-   }
- memcpy(rcvry[add_rcvry],line,len);
- rcvry_len[add_rcvry] = len;
- retr_rcvry = add_rcvry;
- add_rcvry = (++add_rcvry >= MAX_RECV) ? 0 : add_rcvry;
- num_rcvry = (++num_rcvry > MAX_RECV) ? MAX_RECV : num_rcvry;
+   register short i=0;
 
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   TRACE_FUNCTION("util.c:    add_to_recovery_list");
+   /*
+    * Ignore if running in batch.
+    */
+   if (batch_only)
+   {
+      TRACE_RETURN();
+      return;
+   }
+   /*
+    * First time through, set line array to NULL,  to indicated unused.
+    * This setup MUST occur before the freeing up code.
+    */
+   if (add_rcvry == (-1))
+   {
+      for ( i = 0; i < MAX_RECV; i++ )
+         rcvry[i] = NULL;
+      add_rcvry = 0;               /* set to point to next available slot */
+   }
+   /*
+    * Now we are here, lets add to the array.
+    */
+   if (rcvry[add_rcvry] == NULL)  /* haven't malloced yet */
+   {
+      if ((rcvry[add_rcvry] = (CHARTYPE *)(*the_malloc)((len+1)*sizeof(CHARTYPE))) == NULL)
+      {
+         display_error(30,(CHARTYPE *)"",FALSE);
+         TRACE_RETURN();
+         return;
+      }
+   }
+   else
+   {
+      if ((rcvry[add_rcvry] = (CHARTYPE *)(*the_realloc)(rcvry[add_rcvry],(len+1)*sizeof(CHARTYPE))) == NULL)
+      {
+         display_error(30,(CHARTYPE *)"",FALSE);
+         TRACE_RETURN();
+         return;
+      }
+   }
+   memcpy(rcvry[add_rcvry],line,len);
+   rcvry_len[add_rcvry] = len;
+   retr_rcvry = add_rcvry;
+   add_rcvry = (++add_rcvry >= MAX_RECV) ? 0 : add_rcvry;
+   num_rcvry = (++num_rcvry > MAX_RECV) ? MAX_RECV : num_rcvry;
+
+   TRACE_RETURN();
+   return;
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -2202,48 +2217,41 @@ short num;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
- short num_retr = min(num,num_rcvry);
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    get_from_recovery_list");
-#endif
-/*---------------------------------------------------------------------*/
-/* Return error if nothing to recover.                                 */
-/*---------------------------------------------------------------------*/
- if (retr_rcvry == (-1))
+   register short i=0;
+   short num_retr = min(num,num_rcvry);
+
+   TRACE_FUNCTION("util.c:    get_from_recovery_list");
+   /*
+    * Return error if nothing to recover.
+    */
+   if (retr_rcvry == (-1))
    {
-    display_error(0,(CHARTYPE *)"0 line(s) recovered",TRUE);
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return;
+      display_error( 0, (CHARTYPE *)"0 line(s) recovered", TRUE );
+      TRACE_RETURN();
+      return;
    }
-/*---------------------------------------------------------------------*/
-/* Retrieve each allocated recovery line and put back into the body.   */
-/*---------------------------------------------------------------------*/
- post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
- for (i=0;i<num_retr;i++)
+   /*
+    * Retrieve each allocated recovery line and put back into the body.
+    */
+   post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
+   for ( i = 0; i < num_retr; i++ )
    {
-    if (rcvry[retr_rcvry] != NULL)
+      if (rcvry[retr_rcvry] != NULL)
       {
-       insert_new_line(rcvry[retr_rcvry],rcvry_len[retr_rcvry],1L,get_true_line(TRUE),TRUE,FALSE,FALSE,CURRENT_VIEW->display_low,TRUE,FALSE);
-       retr_rcvry = (--retr_rcvry < 0) ? num_rcvry-1 : retr_rcvry;
+         insert_new_line( current_screen, CURRENT_VIEW, rcvry[retr_rcvry], rcvry_len[retr_rcvry], 1L, get_true_line(TRUE), TRUE, FALSE, FALSE, CURRENT_VIEW->display_low, TRUE, FALSE );
+         retr_rcvry = (--retr_rcvry < 0) ? num_rcvry-1 : retr_rcvry;
       }
    }
-/*---------------------------------------------------------------------*/
-/* If one or more lines were retrieved, increment the alteration counts*/
-/*---------------------------------------------------------------------*/
- if (num_retr)
-    increment_alt(CURRENT_FILE);
+   /*
+    * If one or more lines were retrieved, increment the alteration counts
+    */
+   if (num_retr)
+      increment_alt(CURRENT_FILE);
 
- sprintf((DEFCHAR *)temp_cmd,"%d line(s) recovered",num_retr);
- display_error(0,temp_cmd,TRUE);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   sprintf((DEFCHAR *)temp_cmd,"%d line(s) recovered",num_retr);
+   display_error(0,temp_cmd,TRUE);
+   TRACE_RETURN();
+   return;
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -2253,27 +2261,22 @@ void free_recovery_list()
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    free_recovery_list");
-#endif
- for (i=0;i<MAX_RECV;i++)
+   register short i=0;
+
+   TRACE_FUNCTION("util.c:    free_recovery_list");
+   for ( i = 0; i < MAX_RECV; i++ )
    {
-    if (rcvry[i] != NULL)
+      if (rcvry[i] != NULL)
       {
-       (*the_free)(rcvry[i]);
-       rcvry[i] = NULL;
+         (*the_free)(rcvry[i]);
+         rcvry[i] = NULL;
       }
    }
- add_rcvry  = (-1);
- retr_rcvry = (-1);
- num_rcvry  = 0;
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
+   add_rcvry  = (-1);
+   retr_rcvry = (-1);
+   num_rcvry  = 0;
+   TRACE_RETURN();
+   return;
 }
 
 #if THIS_APPEARS_TO_NOT_BE_USED
@@ -2290,109 +2293,48 @@ short cols;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- WINDOW *neww=NULL;
- short begy=0,begx=0,maxy=0,maxx=0,y=0,x=0;
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    adjust_window");
-#endif
-/*---------------------------------------------------------------------*/
-/* Get existing details about the current window.                      */
-/*---------------------------------------------------------------------*/
- getbegyx(win,begy,begx);
- getmaxyx(win,maxy,maxx);
- if (maxy == lines && maxx == cols)  /* same size */
+   WINDOW *neww=NULL;
+   short begy=0,begx=0,maxy=0,maxx=0,y=0,x=0;
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("util.c:    adjust_window");
+   /*
+    * Get existing details about the current window.
+    */
+   getbegyx(win,begy,begx);
+   getmaxyx(win,maxy,maxx);
+   if (maxy == lines && maxx == cols)  /* same size */
    {
-    if (begy == tr && begx == tc)   /* same position */
+      if (begy == tr && begx == tc)   /* same position */
       {
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(win); /* nothing to do, return same window */
+         TRACE_RETURN();
+         return(win); /* nothing to do, return same window */
       }
-    else /* need to move window */
+      else /* need to move window */
       {
-       rc = mvwin(win,tr,tc);
-#ifdef THE_TRACE
-       trace_return();
-#endif
-       return(win);
+         rc = mvwin(win,tr,tc);
+         TRACE_RETURN();
+         return(win);
       }
    }
-/*---------------------------------------------------------------------*/
-/* To get here the window needs to be resized.                         */
-/*---------------------------------------------------------------------*/
- getyx(win,y,x);
- delwin(win);
- neww = newwin(lines,cols,tr,tc);
- if (neww != (WINDOW *)NULL)
-    wmove(neww,y,x);
-#ifdef THE_TRACE
- trace_return();
+   /*
+    * To get here the window needs to be resized.
+    */
+   getyx(win,y,x);
+   delwin(win);
+   neww = newwin(lines,cols,tr,tc);
+   if (neww != (WINDOW *)NULL)
+   {
+      wmove(neww,y,x);
+#ifdef HAVE_KEYPAD
+      keypad( neww, TRUE );
 #endif
- return(neww);
+   }
+   TRACE_RETURN();
+   return(neww);
 }
 #endif
 
-/***********************************************************************/
-#ifdef HAVE_PROTO
-void draw_cursor(bool visible)
-#else
-void draw_cursor(visible)
-bool visible;
-#endif
-/***********************************************************************/
-{
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    draw_cursor");
-#endif
-
-#if 0
-
-#ifdef HAVE_CURS_SET
- if (visible)
-   {
-    if (INSERTMODEx)
-#if defined(USE_NCURSES) || defined(CURSOR_DISAPPEARS)
-       curs_set(1);   /* underline cursor - until ncurses bug fixed */
-#else
-       curs_set(2);   /* block cursor */
-#endif
-    else
-       curs_set(1);   /* underline cursor */
-   }
- else
-    curs_set(0);      /* cursor off */
-#endif
-
-#else
-
-#ifdef HAVE_CURS_SET
- if (visible)
-   {
-    if (INSERTMODEx)
-      {
-       curs_set(1);   /* First set to displayed... */
-       curs_set(2);   /* ...then try to make it more visible */
-      }
-    else
-       curs_set(1);   /* underline cursor */
-   }
- else
-    curs_set(0);      /* cursor off */
-#endif
-
-#endif
-
-#ifdef THE_TRACE
- trace_return();
-#endif
- return;
-}
 /***********************************************************************/
 #ifdef HAVE_PROTO
 short my_wclrtoeol(WINDOW *win)
@@ -2402,41 +2344,36 @@ WINDOW *win;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register short i=0;
- short x=0,y=0,maxx=0,maxy=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    my_wclrtoeol");
-#endif
+   register short i=0;
+   short x=0,y=0,maxx=0,maxy=0;
+
+   TRACE_FUNCTION("util.c:    my_wclrtoeol");
 #if defined(USE_NCURSES_IGNORED)
- /*
-  * This extra code here to get around an ncurses bug that
-  * does not overwrite existing characters displayed when a
-  * clrtoeol() is called.
-  * Try COMPAT X#PREFIX OFF#PREFIX ON
-  */
- if (win != (WINDOW *)NULL)
+   /*
+    * This extra code here to get around an ncurses bug that
+    * does not overwrite existing characters displayed when a
+    * clrtoeol() is called.
+    * Try COMPAT X#PREFIX OFF#PREFIX ON
+    */
+   if (win != (WINDOW *)NULL)
    {
-    getyx(win,y,x);
-    getmaxyx(win,maxy,maxx);
-    for (i=x;i<maxx;i++)
-       waddch(win,'@');
-    wmove(win,y,x);
+      getyx(win,y,x);
+      getmaxyx(win,maxy,maxx);
+      for ( i = x; i < maxx; i++ )
+         waddch(win,'@');
+      wmove(win,y,x);
    }
 #endif
- if (win != (WINDOW *)NULL)
+   if (win != (WINDOW *)NULL)
    {
-    getyx(win,y,x);
-    getmaxyx(win,maxy,maxx);
-    for (i=x;i<maxx;i++)
-       waddch(win,' ');
-    wmove(win,y,x);
+      getyx(win,y,x);
+      getmaxyx(win,maxy,maxx);
+      for ( i = x; i < maxx; i++ )
+         waddch(win,' ');
+      wmove(win,y,x);
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(0);
+   TRACE_RETURN();
+   return(0);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -2447,23 +2384,18 @@ WINDOW *win;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short x=0,y=0,maxx=0,maxy=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    my_wdelch");
-#endif
+   short x=0,y=0,maxx=0,maxy=0;
 
- getyx(win,y,x);
- getmaxyx(win,maxy,maxx);
- wdelch(win);
- mvwaddch(win,y,maxx-1,' ');
- wmove(win,y,x);
+   TRACE_FUNCTION("util.c:    my_wdelch");
 
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(0);
+   getyx(win,y,x);
+   getmaxyx(win,maxy,maxx);
+   wdelch(win);
+   mvwaddch(win,y,maxx-1,' ');
+   wmove(win,y,x);
+
+   TRACE_RETURN();
+   return(0);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -2476,157 +2408,343 @@ LENGTHTYPE length,curr_pos;
 LENGTHTYPE *first_col,*last_col;
 #endif
 /***********************************************************************/
+/*
+ * A "word" is based on the SET WORD settings
+ * Returns the portion of the string containing a "word" to the right
+ * of the current position. Used in SOS DELWORD and MARK WORD
+ * If the current position is a blank, the the "word" is all blanks
+ * the left or right of the current position.
+ * If in a "word", all characters in the word and any following
+ * blanks (to the next "word") are included
+ */
 {
-#define FIRST_BLANK      0
-#define SECOND_BLANK     1
-#define FIRST_WORD       2
-#define SECOND_WORD      3
-#define THE_ALPHANUM     4
-#define THE_NOT_ALPHANUM 5
-/*--------------------------- local data ------------------------------*/
- short state=0;
- register short i=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    get_word");
-#endif
-/*---------------------------------------------------------------------*/
-/* If we are after the last column of the line, then just ignore the   */
-/* command and leave the cursor where it is.                           */
-/*---------------------------------------------------------------------*/
- if (curr_pos >= length)
+   short state=0;
+   LENGTHTYPE i=0;
+
+   TRACE_FUNCTION("util.c:    get_word");
+   /*
+    * If we are after the last column of the line, then just ignore the
+    * command and leave the cursor where it is.
+    */
+   if (curr_pos >= length)
    {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(0);
+      TRACE_RETURN();
+      return(0);
    }
-/*---------------------------------------------------------------------*/
-/* Determine the end   of the next word, or go to the end of the line  */
-/* if already at or past beginning of last word.                       */
-/*---------------------------------------------------------------------*/
-/*---------------------------------------------------------------------*/
-/* If the current character is a space, mark all spaces as the word.   */
-/* The beahiour is the same for this situation regardless of WORD      */
-/* setting.                                                            */
-/*---------------------------------------------------------------------*/
- if (*(string+curr_pos) == ' ')
+   /*
+    * Determine the end of the next word, or go to the end of the line
+    * if already at or past beginning of last word.
+    */
+   /*
+    * If the current character is a space, mark all spaces as the word.
+    * The beahiour is the same for this situation regardless of WORD
+    * setting.
+    */
+   if (*(string+curr_pos) == ' ')
    {
-    for (i=curr_pos;i<length;i++)
+      for (i=curr_pos;i<length;i++)
       {
-       if (*(string+i) != ' ')
+         if (*(string+i) != ' ')
          {
-          *last_col = i-1;
-          break;
+            *last_col = i-1;
+            break;
          }
       }
-    if (i == length)
-       *last_col = length - 1;
-    for (i=curr_pos;i>(-1);i--)
+      if (i == length)
+         *last_col = length - 1;
+      for (i=curr_pos;i>(-1);i--)
       {
-       if (*(string+i) != ' ')
+         if (*(string+i) != ' ')
          {
-          *first_col = i+1;
-          break;
+            *first_col = i+1;
+            break;
          }
       }
-    if (i < 0)
-       *first_col = 0;
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(1);
+      if (i < 0)
+         *first_col = 0;
+      TRACE_RETURN();
+      return(1);
    }
-/*---------------------------------------------------------------------*/
-/* To get here the current character is non-blank.                     */
-/*---------------------------------------------------------------------*/
- state = my_isalphanum(*(string+curr_pos));
- if (CURRENT_VIEW->word == 'N')
+   /*
+    * To get here the current character is non-blank.
+    */
+   state = my_isalphanum(*(string+curr_pos));
+   if (CURRENT_VIEW->word == 'N')
    {
-    /*
-     * Get first column
-     */
-    for (i=curr_pos;i>(-1);i--)
+      /*
+       * Get first column
+       */
+      for (i=curr_pos;i>(-1);i--)
       {
-       if (*(string+i) == ' ')
+         if (*(string+i) == ' ')
          {
-          *first_col = i+1;
-          break;
+            *first_col = i+1;
+            break;
          }
       }
-    if (i < 0)
-       *first_col = 0;
-    /*
-     * Get last column
-     */
-    for (i=curr_pos;i<length;i++)
+      if (i < 0)
+         *first_col = 0;
+      /*
+       * Get last column
+       */
+      for (i=curr_pos;i<length;i++)
       {
-       if (*(string+i) == ' ')
+         if (*(string+i) == ' ')
          {
-          *last_col = i-1;
-          break;
+            *last_col = i-1;
+            break;
          }
       }
-    if (i < length)
+      if (i < length)
       {
-       for (;i<length;i++)
+         for (;i<length;i++)
          {
-          if (*(string+i) != ' ')
+            if (*(string+i) != ' ')
             {
-             *last_col = i-1;
-             break;
+               *last_col = i-1;
+               break;
             }
          }
       }
-    if (i == length)
-       *last_col = length - 1;
+      if (i == length)
+         *last_col = length - 1;
    }
- else
+   else
    {
-    /*
-     * Get first column
-     */
-    for (i=curr_pos;i>(-1);i--)
+      /*
+       * Get first column
+       */
+      for (i=curr_pos;i>(-1);i--)
       {
-       if (my_isalphanum(*(string+i)) != state)
+         if (my_isalphanum(*(string+i)) != state)
          {
-          *first_col = i+1;
-          break;
+            *first_col = i+1;
+            break;
          }
       }
-    if (i < 0)
-       *first_col = 0;
-    /*
-     * Get last column
-     */
-    for (i=curr_pos;i<length;i++)
+      if (i < 0)
+         *first_col = 0;
+      /*
+       * Get last column
+       */
+      for (i=curr_pos;i<length;i++)
       {
-       if (my_isalphanum(*(string+i)) != state)
+         if (my_isalphanum(*(string+i)) != state)
          {
-          *last_col = i-1;
-          break;
+            *last_col = i-1;
+            break;
          }
       }
-    if (i < length
-    && *(string+i) == ' ')
+      if (i < length
+      && *(string+i) == ' ')
       {
-       for (;i<length;i++)
+         for (;i<length;i++)
          {
-          if (*(string+i) != ' ')
+            if (*(string+i) != ' ')
             {
-             *last_col = i-1;
-             break;
+               *last_col = i-1;
+               break;
             }
          }
       }
-    if (i == length)
-       *last_col = length - 1;
+      if (i == length)
+         *last_col = length - 1;
    }
 
-#ifdef THE_TRACE
- trace_return();
+   TRACE_RETURN();
+   return(1);
+}
+/***********************************************************************/
+#ifdef HAVE_PROTO
+short get_fieldword( CHARTYPE *string, LENGTHTYPE length, LENGTHTYPE curr_pos,
+                     LENGTHTYPE *first_col, LENGTHTYPE *last_col )
+#else
+short get_fieldword( string, length, curr_pos, first_col, last_col )
+CHARTYPE *string;
+LENGTHTYPE length,curr_pos;
+LENGTHTYPE *first_col,*last_col;
 #endif
- return(1);
+/***********************************************************************/
+/*
+ * A "word" is based on the SET WORD settings
+ * Returns the portion of the string containing a "word" nearest
+ * the current position. Used in EXTRACT FIELDWORD
+ * If the current position is a blank, the the "word" is looked for starting
+ * at the left of the current position, and then to the right.
+ *
+ * eg:
+ *    abc def
+ *       ^      cursor location
+ *   "abc"      "word" obtained
+ *
+ *    abc   def
+ *        ^     cursor location
+ *   "abc"      "word" obtained
+ *
+ *    abc   def
+ *         ^    cursor location
+ *   "def"      "word" obtained
+ *
+ *    abc def
+ *        ^     cursor location
+ *   "def"      "word" obtained
+ *
+ *    abc def
+ *           ^  cursor location
+ *   "def"      "word" obtained
+ */
+{
+#define LOOK_LEFT 0
+#define LOOK_BOTH 1
+   short look;
+   short state=0;
+   LENGTHTYPE i=0,j=0;
+
+   TRACE_FUNCTION("util.c:    get_fieldword");
+   /*
+    * If we are after the last column of the line, then just look left.
+    */
+   if (curr_pos >= length)
+   {
+      look = LOOK_LEFT;
+      curr_pos = length-1;
+   }
+   else
+      look = LOOK_BOTH;
+   /*
+    * If the current character is a space, then look for the closest word
+    * starting at the left, and possibly to the right.
+    */
+   if ( *(string+curr_pos) == ' ' )
+   {
+      if ( curr_pos != 0 )
+         i = curr_pos - 1;
+      if ( curr_pos < length )
+         j = curr_pos + 1;
+      for ( ; ; i--,j++ )
+/*      for ( ; i >= 0, j < length; i--,j++ )*/
+      {
+         /*
+          * Look left
+          */
+         if ( *(string+i) != ' ' )
+         {
+            curr_pos = i;
+            break;
+         }
+         /*
+          * Look right if allowed
+          */
+         if ( look == LOOK_BOTH )
+         {
+            if ( *(string+j) != ' ' )
+            {
+               curr_pos = j;
+               break;
+            }
+         }
+         if ( i > 0 )
+            i--;
+         if ( j < length )
+            j++;
+      }
+   }
+   /*
+    * To get here the current character (curr_pos) is non-blank.
+    */
+   state = my_isalphanum(*(string+curr_pos));
+   if (CURRENT_VIEW->word == 'N')
+   {
+      /*
+       * Get first column
+       * Character to the right of the first blank found
+       */
+      for (i=curr_pos;i>(-1);i--)
+      {
+         if (*(string+i) == ' ')
+         {
+            *first_col = i+1;
+            break;
+         }
+      }
+      if (i < 0)
+         *first_col = 0;
+      /*
+       * Get last column
+       * Character to the left of the first blank found
+       */
+      for (i=curr_pos;i<length;i++)
+      {
+         if (*(string+i) == ' ')
+         {
+            *last_col = i-1;
+            break;
+         }
+      }
+#if 0
+      if (i < length)
+      {
+         for (;i<length;i++)
+         {
+            if (*(string+i) != ' ')
+            {
+               *last_col = i-1;
+               break;
+            }
+         }
+      }
+#endif
+      if (i == length)
+         *last_col = length - 1;
+   }
+   else
+   {
+      /*
+       * Get first column
+       * Character to the right of the first blank found
+       */
+      for (i=curr_pos;i>(-1);i--)
+      {
+         if (my_isalphanum(*(string+i)) != state)
+         {
+            *first_col = i+1;
+            break;
+         }
+      }
+      if (i < 0)
+         *first_col = 0;
+      /*
+       * Get last column
+       * Character to the left of the first blank found
+       */
+      for (i=curr_pos;i<length;i++)
+      {
+         if (my_isalphanum(*(string+i)) != state)
+         {
+            *last_col = i-1;
+            break;
+         }
+      }
+#if 0
+      if (i < length
+      && *(string+i) == ' ')
+      {
+         for (;i<length;i++)
+         {
+            if (*(string+i) != ' ')
+            {
+               *last_col = i-1;
+               break;
+            }
+         }
+      }
+#endif
+      if (i == length)
+         *last_col = length - 1;
+   }
+
+   TRACE_RETURN();
+   return(1);
 }
 
 /***********************************************************************/
@@ -2638,27 +2756,22 @@ CHARTYPE chr;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short char_type=CHAR_OTHER;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    my_isalphanum");
-#endif
+   short char_type=CHAR_OTHER;
 
- if (chr == ' ')
-    char_type = CHAR_SPACE;
- else
+   TRACE_FUNCTION("util.c:    my_isalphanum");
+
+   if (chr == ' ')
+      char_type = CHAR_SPACE;
+   else
    {
-    if (isalpha(chr)
-    ||  isdigit(chr)
-    ||  chr == '_'
-    ||  chr > 128)
-       char_type = CHAR_ALPHANUM;
+      if (isalpha(chr)
+      ||  isdigit(chr)
+      ||  chr == '_'
+      ||  chr > 128)
+         char_type = CHAR_ALPHANUM;
    }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(char_type);
+   TRACE_RETURN();
+   return(char_type);
 }
 
 /***********************************************************************/
@@ -2671,27 +2784,22 @@ short scridx,winidx,y,x;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- short rc=RC_OK;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    my_wmove");
-#endif
-/*---------------------------------------------------------------------*/
-/* If the scridx or winidx are -1, do not try to save the x/y position.*/
-/*---------------------------------------------------------------------*/
- if (scridx != (-1)
- &&  winidx != (-1))
+   short rc=RC_OK;
+
+   TRACE_FUNCTION("util.c:    my_wmove");
+   /*
+    * If the scridx or winidx are -1, do not try to save the x/y position.
+    */
+   if (scridx != (-1)
+   &&  winidx != (-1))
    {
-    screen[scridx].screen_view->x[winidx] = x;
-    screen[scridx].screen_view->y[winidx] = y;
+      screen[scridx].screen_view->x[winidx] = x;
+      screen[scridx].screen_view->y[winidx] = y;
    }
- if (curses_started)
-    wmove(win,y,x);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(rc);
+   if (curses_started)
+      wmove(win,y,x);
+   TRACE_RETURN();
+   return(rc);
 }
 
 /***********************************************************************/
@@ -2704,27 +2812,33 @@ CHARTYPE scridx;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    get_row_for_tof_eof");
-#endif
- if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_ABOVE)
+   TRACE_FUNCTION("util.c:    get_row_for_tof_eof");
+   if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_ABOVE)
    {
-    for(;screen[scridx].sl[row].line_type != LINE_TOF;row++)
+      for(;screen[scridx].sl[row].line_type != LINE_TOF;row++)
 /*    for(;screen[scridx].sl[row].line_type != LINE_TOF_EOF;row++) MH12 */
        ;
    }
- if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_BELOW)
+   if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_BELOW)
    {
 /*    for(;screen[scridx].sl[row].line_type != LINE_TOF_EOF;row--) MH12 */
-    for(;screen[scridx].sl[row].line_type != LINE_EOF;row--)
+      for(;screen[scridx].sl[row].line_type != LINE_EOF;row--)
        ;
    }
-#ifdef THE_TRACE
- trace_return();
+   TRACE_RETURN();
+   return(row);
+}
+
+/***********************************************************************/
+#ifdef HAVE_PROTO
+void set_compare_exact( bool exact )
+#else
+void set_compare_exact( exact )
+bool exact;
 #endif
- return(row);
+/***********************************************************************/
+{
+   CompareExact = exact;
 }
 
 /***********************************************************************/
@@ -2737,21 +2851,32 @@ const void *intpl;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- const char *key = (char *)inkey;
- const QUERY_ITEM *tpl = (QUERY_ITEM *)intpl;
- int rc=0,m=CompareLen;
-/*--------------------------- processing ------------------------------*/
- if (m > tpl->name_length)
-    m = tpl->name_length;
- rc = memcmp(key, (DEFCHAR*)tpl->name, m);
- if (rc != 0)
-    return(rc);
- if (CompareLen > tpl->name_length)
-    return(1);
- if (CompareLen < tpl->name_length)
-    return(-1);
- return(0);
+   const char *key = (char *)inkey;
+   const QUERY_ITEM *tpl = (QUERY_ITEM *)intpl;
+   int rc=0,m=CompareLen;
+
+   if (m > tpl->name_length)
+      m = tpl->name_length;
+   rc = memcmp(key, (DEFCHAR*)tpl->name, m);
+   if (rc != 0)
+      return(rc);
+     if ( CompareExact )
+     {
+        if (CompareLen > tpl->name_length)
+           return(1);
+        if (CompareLen < tpl->name_length)
+           return(-1);
+     }
+     else
+     {
+        if ( equal( tpl->name, (CHARTYPE *)key, tpl->min_len ) )
+           return 0;
+        if ( CompareLen > tpl->name_length )
+           return(1);
+        if ( CompareLen < tpl->name_length )
+           return(-1);
+     }
+   return(0);
 }
 
 /***********************************************************************/
@@ -2767,51 +2892,43 @@ int len;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- char *buf=NULL, *result=NULL;
- int i=0;
+   char *buf=NULL, *result=NULL;
+   int i=0;
 #ifdef __CHECKER__
- /* checker has a buggy bsearch stub */
- size_t alloclen = width;
-#endif
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    search_query_item_array");
+   /* checker has a buggy bsearch stub */
+   size_t alloclen = width;
 #endif
 
+   TRACE_FUNCTION("util.c:    search_query_item_array");
+
 #ifdef __CHECKER__
- if (len > alloclen)
-    alloclen = len;
- if ((buf = (char*)(*the_malloc)(alloclen)) == NULL)
+   if (len > alloclen)
+      alloclen = len;
+   if ((buf = (char*)(*the_malloc)(alloclen+1)) == NULL)
 #else
- if ((buf = (char*)(*the_malloc)(len)) == NULL)
+   if ((buf = (char*)(*the_malloc)(len+1)) == NULL)
 #endif
- {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(-1);
- }
+   {
+      TRACE_RETURN();
+      return(-1);
+   }
 
- for (i=0; i<len; i++)
- {
-    buf[i] = (char)tolower(needle[i]);
- }
- CompareLen = len;
- result = bsearch(buf, base, num, width, query_item_compare);
- (*the_free)(buf);
+   for (i=0; i<len; i++)
+   {
+      buf[i] = (char)tolower(needle[i]);
+   }
+   buf[i] = '\0';
+   CompareLen = len;
+   result = (char *)bsearch(buf, base, num, width, query_item_compare);
+   (*the_free)(buf);
 
- if (result == NULL)
- {
-#ifdef THE_TRACE
-    trace_return();
-#endif
-    return(-1);
- }
-#ifdef THE_TRACE
- trace_return();
-#endif
- return((int) (((long) result - (long) base) / width ));
+   if (result == NULL)
+   {
+      TRACE_RETURN();
+      return(-1);
+   }
+   TRACE_RETURN();
+   return((int) (((long) result - (long) base) / width ));
 }
 
 /***********************************************************************/
@@ -2824,40 +2941,39 @@ int *funcname_length;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- int functionname_length = strlen((DEFCHAR*)funcname);
- int itemno=0,pos=0;
-/*--------------------------- processing ------------------------------*/
- pos = memreveq((CHARTYPE *)funcname,(CHARTYPE)'.',functionname_length);
- if (pos == (-1)
- ||  functionname_length == pos-1)
+   int functionname_length = strlen((DEFCHAR*)funcname);
+   int itemno=0,pos=0;
+
+   pos = memreveq((CHARTYPE *)funcname,(CHARTYPE)'.',functionname_length);
+   if (pos == (-1)
+   ||  functionname_length == pos-1)
    {
-    /*
-     * Not a valid implied extract function; could be a boolean
-     */
-    itemno = -1;
+      /*
+       * Not a valid implied extract function; could be a boolean
+       */
+      itemno = -1;
    }
- else
+   else
    {
-    if (!valid_positive_integer((CHARTYPE *)funcname+pos+1))
+      if (!valid_positive_integer((CHARTYPE *)funcname+pos+1))
       {
-       /*
-        * Not a valid implied extract function; could be a boolean
-        */
-       itemno = -1;
+         /*
+          * Not a valid implied extract function; could be a boolean
+          */
+         itemno = -1;
       }
-    else
+      else
       {
-       itemno = atoi((DEFCHAR *)funcname+pos+1);
-       /*
-        * If the tail is > maximum number of variables that we can
-        * handle, exit with error.
-        */
-       functionname_length = pos;
+         itemno = atoi((DEFCHAR *)funcname+pos+1);
+         /*
+          * If the tail is > maximum number of variables that we can
+          * handle, exit with error.
+          */
+         functionname_length = pos;
       }
    }
- *funcname_length = functionname_length;
- return itemno;
+   *funcname_length = functionname_length;
+   return itemno;
 }
 
 /***********************************************************************/
@@ -2869,14 +2985,11 @@ char *prefix;
 #endif
 /***********************************************************************/
 {
-/*
- * This function is not thread safe.
- */
+  /*
+   * This function is not thread safe.
+   */
 #define PATH_DELIMS ":\\/"
-/*--------------------------- local data ------------------------------*/
-#if !defined HAVE_BROKEN_TMPNAM
-   return tmpnam( NULL );
-#else
+#if defined HAVE_BROKEN_TMPNAM
    char *path=NULL,*filename=NULL;
    static char *buffer = NULL;
    static size_t buffersize = 0;
@@ -2886,13 +2999,16 @@ char *prefix;
    char tmpbuf[4]="C:?";
 
    if ((path = getenv("TMP")) == NULL)
+   {
       if ((path = getenv("TEMP")) == NULL)
+      {
          if ((path = getenv("TMPDIR")) == NULL)
          {
             tmpbuf[2] = ISLASH;
             path = tmpbuf; /* works in most cases */
          }
-
+      }
+   }
    needed = strlen(path) + 1 /* ISTR_SLASH */ + sizeof("TMP12345.TMP");
    if (needed > buffersize)
    {
@@ -2921,7 +3037,159 @@ char *prefix;
    }
 
    return(NULL);
+#elif defined WIN32
+   return _tempnam( NULL, "THE" );
+#else
+   return tmpnam( NULL );
 #endif
+}
+
+/***********************************************************************/
+#ifdef HAVE_PROTO
+VIEW_DETAILS *find_filetab(int x)
+#else
+VIEW_DETAILS *find_filetab(x)
+int x;
+#endif
+/***********************************************************************/
+{
+   /*
+    * Now we know where the mouse was clicked, determine which tab
+    * or scroll arrow was clicked.
+    */
+   VIEW_DETAILS *curr;
+   FILE_DETAILS *first_view_file=NULL;
+   bool process_view=FALSE;
+   register int j=0;
+   int fname_len, fname_start = 0;
+   bool first = TRUE;
+
+   TRACE_FUNCTION("util.c:    find_filetab");
+   /*
+    * If filetabs is not displayed, don't do anything.
+    */
+   if ( FILETABSx )
+   {
+      wmove( filetabs, 0, COLS-1 );
+#ifdef VMS
+      if ( ( winch( filetabs ) ) == '>'
+#else
+      if ( ( winch( filetabs ) & A_CHARTEXT ) == '>'
+#endif
+      &&  x == COLS-1 )
+      {
+         Tabfile( (CHARTYPE *)"+" );
+         TRACE_RETURN();
+         return NULL;
+      }
+      wmove( filetabs, 0, COLS-2 );
+#ifdef VMS
+      if ( ( winch( filetabs ) ) == '<'
+#else
+      if ( ( winch( filetabs ) & A_CHARTEXT ) == '<'
+#endif
+      &&  x == COLS-2 )
+      {
+         Tabfile( (CHARTYPE *)"-" );
+         TRACE_RETURN();
+         return NULL;
+      }
+      if ( filetabs_start_view == NULL )
+         curr = vd_current;
+      else
+         curr = filetabs_start_view;
+      for ( j = 0; j < number_of_files; )
+      {
+         process_view = TRUE;
+         if ( curr->file_for_view->file_views > 1 )
+         {
+            if ( first_view_file == curr->file_for_view )
+               process_view = FALSE;
+            else
+               first_view_file = curr->file_for_view;
+         }
+         if ( process_view )
+         {
+            j++;
+            if ( curr != CURRENT_VIEW )
+            {
+               fname_len = strlen( (DEFCHAR *)curr->file_for_view->fname );
+               if ( first )
+               {
+                  /*
+                   * If run from command line, return the VIEW_DETAILS
+                   * pointer to the first view.
+                   */
+                  if ( x == -1 )
+                  {
+                     TRACE_RETURN();
+                     return curr;
+                  }
+                  first = FALSE;
+               }
+               else
+               {
+                  fname_start += DEFAULT_FILETABS_GAP_WIDTH;
+               }
+               if ( fname_start + fname_len > COLS-2 )
+                  break;
+               if ( x >= fname_start
+               &&   x <= fname_start + fname_len )
+               {
+                  TRACE_RETURN();
+                  return curr;
+               }
+               fname_start += fname_len;
+            }
+         }
+         curr = curr->next;
+         if (curr == NULL)
+            curr = vd_first;
+      }
+   }
+   TRACE_RETURN();
+   return NULL;
+}
+/***********************************************************************/
+#ifdef HAVE_PROTO
+VIEW_DETAILS *find_next_file( VIEW_DETAILS *curr, short direction )
+#else
+VIEW_DETAILS *find_next_file( curr, direction )
+VIEW_DETAILS *curr;
+short direction;
+#endif
+/***********************************************************************/
+{
+   /*
+    * Starts in the ring at the specified location and finds the next
+    * file that isn't the file in the current view or the starting view
+    */
+   VIEW_DETAILS *save_current_view=curr;
+   int i;
+
+   TRACE_FUNCTION("util.c:    find_next_file");
+
+   for ( i = 0; i < number_of_files; i++ )
+   {
+      if ( direction == DIRECTION_FORWARD )
+      {
+         if ( curr->next == (VIEW_DETAILS *)NULL )
+            curr = vd_first;
+         else
+            curr = curr->next;
+      }
+      else
+      {
+         if ( curr->prev == (VIEW_DETAILS *)NULL )
+            curr = vd_last;
+         else
+            curr = curr->prev;
+      }
+      if ( curr != save_current_view
+      &&   curr != vd_current )
+         break;
+   }
+   return curr;
 }
 
 #ifndef HAVE_DOUPDATE
@@ -2933,20 +3201,15 @@ int doupdate()
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- unsigned short y=0,x=0;
-/*--------------------------- processing ------------------------------*/
-#ifdef THE_TRACE
- trace_function("util.c:    doupdate");
-#endif
- getyx(CURRENT_WINDOW,y,x);
- refresh();
- wmove(CURRENT_WINDOW,y,x);
- wrefresh(CURRENT_WINDOW);
-#ifdef THE_TRACE
- trace_return();
-#endif
- return(0);
+   unsigned short y=0,x=0;
+
+   TRACE_FUNCTION("util.c:    doupdate");
+   getyx(CURRENT_WINDOW,y,x);
+   refresh();
+   wmove(CURRENT_WINDOW,y,x);
+   wrefresh(CURRENT_WINDOW);
+   TRACE_RETURN();
+   return(0);
 }
 #endif
 
@@ -2959,9 +3222,7 @@ int has_colors()
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
-/*--------------------------- processing ------------------------------*/
- return(TRUE);
+   return(TRUE);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -2971,28 +3232,27 @@ int start_color()
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register int i=0;
-/*--------------------------- processing ------------------------------*/
- for (i=0;i<COLOR_PAIRS;i++)
-   color_pair[i] = NORMAL;
- fore_color[COLOR_BLACK  ] = F_BLACK  ;
- fore_color[COLOR_BLUE   ] = F_BLUE   ;
- fore_color[COLOR_GREEN  ] = F_GREEN  ;
- fore_color[COLOR_CYAN   ] = F_CYAN   ;
- fore_color[COLOR_RED    ] = F_RED    ;
- fore_color[COLOR_MAGENTA] = F_MAGENTA;
- fore_color[COLOR_YELLOW ] = F_BROWN  ;
- fore_color[COLOR_WHITE  ] = F_WHITE  ;
- back_color[COLOR_BLACK  ] = B_BLACK  ;
- back_color[COLOR_BLUE   ] = B_BLUE   ;
- back_color[COLOR_GREEN  ] = B_GREEN  ;
- back_color[COLOR_CYAN   ] = B_CYAN   ;
- back_color[COLOR_RED    ] = B_RED    ;
- back_color[COLOR_MAGENTA] = B_MAGENTA;
- back_color[COLOR_YELLOW ] = B_BROWN  ;
- back_color[COLOR_WHITE  ] = B_WHITE  ;
- return(0);
+   register int i=0;
+
+   for (i=0;i<COLOR_PAIRS;i++)
+     color_pair[i] = NORMAL;
+   fore_color[COLOR_BLACK  ] = F_BLACK  ;
+   fore_color[COLOR_BLUE   ] = F_BLUE   ;
+   fore_color[COLOR_GREEN  ] = F_GREEN  ;
+   fore_color[COLOR_CYAN   ] = F_CYAN   ;
+   fore_color[COLOR_RED    ] = F_RED    ;
+   fore_color[COLOR_MAGENTA] = F_MAGENTA;
+   fore_color[COLOR_YELLOW ] = F_BROWN  ;
+   fore_color[COLOR_WHITE  ] = F_WHITE  ;
+   back_color[COLOR_BLACK  ] = B_BLACK  ;
+   back_color[COLOR_BLUE   ] = B_BLUE   ;
+   back_color[COLOR_GREEN  ] = B_GREEN  ;
+   back_color[COLOR_CYAN   ] = B_CYAN   ;
+   back_color[COLOR_RED    ] = B_RED    ;
+   back_color[COLOR_MAGENTA] = B_MAGENTA;
+   back_color[COLOR_YELLOW ] = B_BROWN  ;
+   back_color[COLOR_WHITE  ] = B_WHITE  ;
+   return(0);
 }
 /***********************************************************************/
 #ifdef HAVE_PROTO
@@ -3004,10 +3264,9 @@ chtype fore,back;
 #endif
 /***********************************************************************/
 {
-/*--------------------------- local data ------------------------------*/
- register int i=0;
-/*--------------------------- processing ------------------------------*/
- color_pair[pairnum] = fore_color[fore] | back_color[back];
- return(0);
+  register int i=0;
+
+  color_pair[pairnum] = fore_color[fore] | back_color[back];
+  return(0);
 }
 #endif

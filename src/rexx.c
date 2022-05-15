@@ -1109,13 +1109,13 @@ short get_rexx_variable
 /***********************************************************************/
 short set_rexx_variable
 #if defined(HAVE_PROTO)
-      (CHARTYPE *name,CHARTYPE *value,short value_length,short suffix)
+      (CHARTYPE *name,CHARTYPE *value, LENGTHTYPE value_length, int suffix)
 #else
       (name,value,value_length,suffix)
        CHARTYPE *name;
        CHARTYPE *value;
-       short value_length;
-       short suffix;
+       LENGTHTYPE value_length;
+       int suffix;
 #endif
 /***********************************************************************/
 {
