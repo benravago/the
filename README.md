@@ -7,6 +7,10 @@ Current status:
 - just a basic make'able set based on THE-3.0 and rexx-imc-1.76
 
 TODO:
-- remove unused #ifdef's
+- remove (more) unused #if's
 - clean up warnings from -Wall
-- drop RXQUE related functions
+
+BUILD:
+- cd src
+- make the
+- ./the -p imc/THE.rc 
