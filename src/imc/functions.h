@@ -47,15 +47,6 @@ int mtest_debug Args((char **memptr,unsigned *alloc,unsigned length,unsigned ext
 #define rexxsymboldot(c) (whattype(c)>0)
 #define rexxsymbol(c)    (symbs[(unsigned char)(c)])
 
-#ifdef NO_LDL                                                                   /* Declare the dynamic load functions */
-void *dlopen Args((char*,int));                                                 /* either in situ or from the system header file */
-void *dlsym Args((void *,char*));
-char *dlerror Args((void));
-int dlclose Args((void*));
-#else
-#include<dlfcn.h>
-#endif /* NO_LDL */
-
 /* In ANSI C, you can take the address of any object and the result is of type pointer to that object.  In K&R C, this
    fails when the object is an array.  The following kludge takes the address of a jmp_buf, which is likely to be an
    array.  On systems where it isn't, this macro has to be changed... */

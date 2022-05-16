@@ -959,49 +959,8 @@ int argc;
    return 1;
 }
 
-unsigned long RexxRegisterFunctionDll(name,dllname,entryname)
-char *name;
-char *dllname;
-char *entryname;
-{
-   funcinfo *info;
-   int l,exist;
-   void **slot;
-   void *handle;
-   void *address;
-   static char path[MAXPATHLEN];
-#ifdef NO_LDL
+unsigned long RexxRegisterFunctionDll(char *name, char *dllname, char *entryname) {
    return RXFUNC_NOTREG;
-#else
-   if(!hashlen[2]){
-      for(l=0;l<3;l++)hashptr[l]=allocm(hashlen[l]=256),ehashptr[l]=0;
-      if(!hashlen[2])return RXFUNC_NOMEM;
-   }
-   exist=which(dllname,3,path);
-   if (!exist) return RXFUNC_NOTREG;
-   handle=dlopen(path,1);
-   if (!handle) return RXFUNC_NOTREG;
-#ifdef _REQUIRED
-   if (strlen(entryname)+2>sizeof path) return RXFUNC_NOMEM;
-   strcpy(path+1,entryname);
-   path[0]='_';
-   entryname=path;
-#endif
-   address=dlsym(handle,entryname);
-   if (!address) return RXFUNC_NOTREG;
-   slot=hashfind(2,name,&exist);
-   if(exist&&*slot){
-      if(((funcinfo *)*slot)->dlfunc)return RXFUNC_DEFINED;
-      free((char*)*slot); /* it was only a hashed file name */
-   }
-   info=(funcinfo *)malloc(sizeof(funcinfo));
-   if(!info)return RXFUNC_NOMEM;
-   *slot=(void *)info;
-   info->dlhandle=handle;
-   info->dlfunc=(int(*)())address;
-   info->saa=1;
-   return RXFUNC_OK;
-#endif
 }
 
 unsigned long RexxRegisterFunctionExe(name,address)

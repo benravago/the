@@ -2090,20 +2090,3 @@ char *name;          /* return the code from close */
    return ans;
 }
 
-#ifdef NO_LDL /* Define dummy versions of the dynamic load functions */
-void *dlopen(path, mode)
-char *path; int mode;
-{die(Eexist);/*NOTREACHED*/}
-
-void *dlsym(handle,sym)
-void *handle; char *sym;
-{die(Eexist);/*NOTREACHED*/}
-
-char *dlerror()
-{die(Eexist);/*NOTREACHED*/}
-
-int dlclose(handle)
-void *handle;
-{die(Eexist);/*NOTREACHED*/}
-                        
-#endif
