@@ -210,8 +210,6 @@ ULONG RexxQuerySubcom Args((PSZ Envname, PSZ ModuleName,
 typedef ULONG (RexxFunctionHandler) Args((PSZ name, ULONG argc,
         RXSTRING argv[], PSZ QueueName, PRXSTRING Retstr));
 
-ULONG RexxRegisterFunctionDll Args((PSZ name, PSZ dllname, PSZ entryname));
-
 ULONG RexxRegisterFunctionExe Args((PSZ name,
       RexxFunctionHandler *EntryPoint));
 

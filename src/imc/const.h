@@ -20,9 +20,6 @@
 #define toalign(x) (((~(x))+1)&3)
 #endif
 
-#define rxmathname "rxmathfn"   /* The basenames of the two REXX auxiliary */
-#define rxquename  "rxque"      /* files  */
-
 #ifndef filetype
 #define filetype   ".rexx"      /* Default file extension */
 #endif

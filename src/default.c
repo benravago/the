@@ -141,7 +141,8 @@ DEFAULT_PARSERS _THE_FAR default_parsers[] =
          "abs\nformat\nmax\nmin\nsign\ntrunc\naddress\narg\ncondition\ndigits\nerrortext\nform\n"                        \
          "fuzz\nsourceline\ntrace\nb2x\nbitand\nbitor\nbitxor\nc2d\nc2x\nd2c\nd2x\nx2b\nx2c\nx2d\n"                      \
          "charin\ncharout\nchars\nlinein\nlineout\nlines\nqualify\nstream\ndate\nqueued\nrandom\n"                       \
-         "symbol\ntime\nupper\nvalue\nrxfuncdrop\nrxfuncerrmsg\nrxfuncadd\nrxfuncquery\nrxqueue\n"                              \
+         "symbol\ntime\nupper\nvalue\n"                                                                                  \
+
          ":postcompare\nclass [-\\/\\+\\=\\*\\<\\>|%&,] alt w\n"
    },
    { (CHARTYPE *)"*C.TLD",

@@ -98,7 +98,6 @@ void rxfuzz();
 void rxtrace();
 void rxform();
 void rxformat();
-void rxqueued();
 void rxlinesize();
 void rxbitand();
 void rxbitor();
@@ -125,9 +124,6 @@ void rxftell();
 void rxstream();
 void rxaddress();
 void rxcondition();
-void rxfuncadd();
-void rxfuncdrop();
-void rxfuncquery();
 
 int compar();
 
@@ -197,13 +193,9 @@ int argc;             /* Number of arguments passed to it */
       "POPEN",      rxpopen,
       "POS",        rxpos,
       "PUTENV",     rxputenv,
-      "QUEUED",     rxqueued,
       "RANDOM",     rxrandom,
       "REVERSE",    rxreverse,
       "RIGHT",      rxright,
-      "RXFUNCADD",  rxfuncadd,
-      "RXFUNCDROP", rxfuncdrop,
-      "RXFUNCQUERY",rxfuncquery,
       "SIGN",       rxsign,
       "SOURCELINE", rxsource,
       "SPACE",      rxspace,
@@ -2252,18 +2244,6 @@ int argc;
    ecstackptr+=align(len1)+four;
 }
 
-void rxqueued(argc)
-int argc;
-{
-   int l;
-   static char buff[8];
-   if(argc)die(Ecall);
-   if(write(rxstacksock,"N",1)<1)die(Esys);
-   if(read(rxstacksock,buff,7)<7)die(Esys);
-   sscanf(buff,"%x",&l);
-   stackint(l);
-}
-
 void rxlinesize(argc)
 int argc;
 {
@@ -3607,74 +3587,3 @@ static char *getstring() { /* unstack a string, check and nul-terminate it */
    return ans;
 }
 
-#define INCL_RXFUNC
-#include "rexxsaa.h"
-void rxfuncadd(argc)
-int argc;
-{
-   char *entry;
-   char *dll;
-   char *func;
-   int ans;
-   int i;
-   char C,c;
-   if (argc!=3) die(Ecall);
-   entry=getstring();
-   dll=getstring();
-   func=getstring();
-   ans=RexxRegisterFunctionDll(func,dll,entry);
-   if (ans) {
-      stackint(ans);
-      return;
-   }
-   /* Also register the uppercase of the function */
-   for(i=0;(c=func[i]);i++) {
-      C=uc(c);
-      if (c!=C) {ans=1; func[i]=C;}
-   }
-   if (ans) ans=RexxRegisterFunctionDll(func,dll,entry);
-   stackint(ans);
-}
-      
-void rxfuncdrop(argc)
-int argc;
-{
-   char *func;
-   int i;
-   int ans=0;
-   char c,C;
-   int doupper=0;
-   if (argc!=1) die(Ecall);
-   func=getstring();
-   ans=RexxDeregisterFunction(func);
-   /* also drop the uppercase of the function */
-   for(i=0;(c=func[i]);i++) {
-      C=uc(c);
-      if (c!=C) {doupper=1; func[i]=C;}
-   }
-   if (doupper) ans=ans && RexxDeregisterFunction(func);
-   if (ans) stack("1",1);
-   else stack("0",1);
-}
-
-void rxfuncquery(argc)
-int argc;
-{
-   char *func;
-   int i;
-   int ans=0;
-   char c,C;
-   if (argc!=1) die(Ecall);
-   func=getstring();
-   if (RexxQueryFunction(func)) {
-      /* Also query the uppercase of the function */
-      for(i=0;(c=func[i]);i++) {
-         C=uc(c);
-         if (c!=C) {ans=1; func[i]=C;}
-      }
-      if (ans) ans=RexxQueryFunction(func);
-      else ans=1;
-   }
-   if (ans) stack("1",1);
-   else stack("0",1);
-}

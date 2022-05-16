@@ -959,10 +959,6 @@ int argc;
    return 1;
 }
 
-unsigned long RexxRegisterFunctionDll(char *name, char *dllname, char *entryname) {
-   return RXFUNC_NOTREG;
-}
-
 unsigned long RexxRegisterFunctionExe(name,address)
 char *name;
 RexxFunctionHandler *address;
