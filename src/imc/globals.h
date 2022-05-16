@@ -88,7 +88,6 @@ extern unsigned pulllen;           /* space allocated for pull */
 extern char *returnval;            /* value returned by EXIT */
 extern int returnlen;              /* length of that value */
 extern char *returnfree;           /* what to free after returnval is used */
-extern int rxstacksock;            /* fd number of stack socket */
 extern char *varnamebuf;           /* workspace for evaluating variable names*/
 extern int varnamelen;             /* amount of memory allocated for this */
 extern FILE *traceout;             /* Where to send trace output */

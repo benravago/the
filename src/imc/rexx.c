@@ -806,34 +806,6 @@ int delay;        /* Whether to delay any signals */
                      parselen[0]=strlen(psource);
                      break;
                   case PULL: /* first try the REXX data stack */
-                     if(write(rxstacksock,"G",1)<1)die(Esys);
-                     if(read(rxstacksock,pull,7)<7)die(Esys);
-                     if(memcmp(pull,"FFFFFF",6)){
-                        sscanf(pull,"%x",&l);
-                        mtest(pull,pulllen,l,l-pulllen);
-                        sllen=0;
-                        while(sllen<l)
-                           if((s=read(rxstacksock,pull,l))<1)die(Esys);
-                           else sllen+=s;
-                     }
-                     else if(exitlist[RXSIO]){ /* then try RXSIOTRD */
-                        RXSIOTRD_PARM inp;
-                        MAKERXSTRING(inp.rxsiotrd_retc,exitbuff,RXRESULTLEN);
-                        if(exitcall(RXSIO,RXSIOTRD,&inp)==RXEXIT_NOT_HANDLED)
-                           goto case_LINEIN; /* ugh! */
-                        parselist[0]=inp.rxsiotrd_retc.strptr;
-                        parselen[0]=inp.rxsiotrd_retc.strlength;
-                        if(parselist[0]!=exitbuff){
-                           /* string was user allocated.  Move it and free the
-                              storage. */
-                           stack(parselist[0],parselen[0]);
-                           free(parselist[0]);
-                           parselist[0]=delete(&parselen[0]);
-                        }
-                        break;
-                     }
-                     else{  /* then try an input line */
-                  case_LINEIN:
                   case LINEIN: /* mirrors the linein() function */
                         if(!(info=(struct fileinfo *)hashget(1,"stdin",&l))){
                            /* If it was closed by the user, signal on notready
@@ -866,7 +838,7 @@ int delay;        /* Whether to delay any signals */
                            if((info->rdpos=ftell(info->fp))<0)info->rdpos=0;
                            if(info->errnum || setrcflag)rcset(info->errnum-Eerrno,Enotready,"stdin");
                         }
-                     }
+                     // }
                      parselist[0]=pull,
                      parselen[0]=l;
                      break;
@@ -1350,21 +1322,8 @@ signal:        while(pstacklev&&((stype=unpstack())<11||stype>13))
                doaddress(&lineptr,env);    /* Do the following command
                                               in given environment */
                break;
-            case PUSH: /* PUSH and QUEUE communicate with the stack.  The */
-                       /* only difference between them is the command     */
-                       /* letter: Q for QUEUE and S for PUSH.  We just    */
-                       /* get the data to be stacked and write the        */
-                       /* command, length and data down the socket.       */
-               c='S';goto stack;
-            case QUEUE:c='Q';
-            stack: if(!*lineptr)len=0;
-               else
-                  tmpchr=0,
-                  exp=scanning(lineptr,&tmpchr,&len),
-                  lineptr+=tmpchr;
-               sprintf(pull,"%c%06X\n",c,len);
-               if(write(rxstacksock,pull,8)<8||
-                  (len>0&&write(rxstacksock,exp,len)<len)) die(Esys);
+            case PUSH:
+            case QUEUE:
                break;
             /* Anything else is a syntax error.  However, under normal
             circumstances we should never get here. */

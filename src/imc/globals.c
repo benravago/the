@@ -73,7 +73,6 @@ unsigned pulllen=0;            /* space allocated for pull */
 char *returnval;               /* value returned by EXIT */
 int returnlen;                 /* length of that value */
 char *returnfree;              /* what to free after returnval has been used */
-int rxstacksock;               /* fd number of stack socket */
 char *varnamebuf;              /* workspace for evaluating variable names */
 int varnamelen;                /* amount of memory allocated for varnamebuff */
 FILE *traceout=0;              /* Where to send trace output */
