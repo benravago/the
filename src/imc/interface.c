@@ -16,12 +16,6 @@
 #define INCL_REXXSAA
 #include "rexxsaa.h"
 #include <sys/socket.h>
-#ifdef Solaris
-#include <sys/uio.h>
-#endif
-#ifdef STUFF_STACK
-#include<sys/termios.h>
-#endif
 
 struct status{        /* Saved things from a previous incarnation of REXX */
       int stmt;

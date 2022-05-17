@@ -1,28 +1,14 @@
 /* The constants and data types of REXX/imc      (C) Ian Collier 1992 */
 
-#ifndef _const_h
-#define _const_h
-
-#define VER "beta-1.75"
+#define VER "1.76"
 #define LEVEL "4.00"  /* Language level supported */
 
-/* A paranoid Solaris detector. */
-#if (defined(__svr4__)||defined(__SVR4)||defined(__SVR4)) && (defined(sun)||defined(__sun)||defined(__sun__))
-#define Solaris
-#endif
-
 #define four       (sizeof(int))
-#ifdef POINTER64
-#define align(x)   (((x)+7)&~7)
-#define toalign(x) (((~(x))+1)&7)
-#else
+
 #define align(x)   (((x)+3)&~3)
 #define toalign(x) (((~(x))+1)&3)
-#endif
 
-#ifndef filetype
 #define filetype   ".rexx"      /* Default file extension */
-#endif
 
 #define maxopstack 30    /* Maximum number of pending operations in an expr */
 #define maxvarname 250   /* Maximum length of a variable name or label */
@@ -280,9 +266,6 @@ struct procstack {  /* A program stack entry for an external procedure call */
    int lines;       /* Old number of program lines */
    char **src;      /* Old source */
    char *lab;       /* Old labels */
-#ifdef POINTER64
-   int dummy;       /* Artificial padding */
-#endif
    int lev;         /* Old pstack level */
    int len;         /* Length of this stack entry */
    int type;        /* Type = 13 for external procedure call */
@@ -304,9 +287,6 @@ struct procstack2 { /* A program stack entry for a procedure call */
    int address1;    /* Old current environment */
    int address2;    /* Old alternate environment */
    program *prg;    /* The current interpreted string or the current program */
-#ifdef POINTER64
-   int dummy;       /* Artificial padding */
-#endif
    int stmts;       /* Number of statements in the above */
    int len;         /* Length of this stack entry */
    int type;        /* Type = 11 for internal procedure call;  */
@@ -314,9 +294,6 @@ struct procstack2 { /* A program stack entry for a procedure call */
 
 struct minstack {   /* A minimum program stack entry */
    int stmt;        /* Statement where block started */
-#ifdef POINTER64
-   int dummy;       /* Artificial padding */
-#endif
    char *pos;       /* Pointer to statement (used to find the WHILE or UNTIL)*/
    int len;         /* Length of this stack entry */
    int type;        /* Type =  0 for DO;  */
@@ -326,13 +303,7 @@ struct minstack {   /* A minimum program stack entry */
 
 struct forstack {   /* A program stack entry for the "DO count" instruction */
    int stmt;        /* Statement number of DO instruction */
-#ifdef POINTER64
-   int dummy1;      /* Artificial padding */
-#endif
    char *pos;       /* Pointer to statement (used to find the WHILE or UNTIL)*/
-#ifdef POINTER64
-   int dummy;       /* More artificial padding */
-#endif
    int fornum;      /* Loop counter */
    int len;         /* Length of this stack entry */
    int type;        /* Type = 15 for a "DO count" instruction */
@@ -341,9 +312,6 @@ struct forstack {   /* A program stack entry for the "DO count" instruction */
 struct interpstack {/* A program stack entry for the INTERPRET instruction */
    int stmt;        /* Statement number of INTERPRET instruction */
    program *prg;    /* Old tokenised program */
-#ifdef POINTER64
-   int dummy;       /* Artificial padding */
-#endif
    int stmts;       /* Old number of statements */
    int len;         /* Length of this stack entry */
    int type;        /* Type = 14 for an INTERPRET instruction */
@@ -362,9 +330,6 @@ struct interactstack {/* A program stack entry for interactive instructions */
 struct errorstack { /* A program stack entry for saving a traceback line */
    int stmt;        /* Statement number of the error */
    program *prg;    /* Program where the error occurred */
-#ifdef POINTER64
-   int dummy;       /* Artificial padding */
-#endif
    int stmts;       /* Number of statements in this program */
    int len;         /* Length of this stack entry */
    int type;        /* Type = 20 for saved traceback line */
@@ -412,4 +377,3 @@ typedef struct _dictionary {/* Structure containing a list of REXX functions */
    int (*function)();       /* Address of function */
 } dictionary;
 
-#endif /* !_const_h */

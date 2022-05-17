@@ -45,10 +45,6 @@ char *allocm(size)
 unsigned size;
 {  char *pointer;
    if((pointer=malloc(size))==cnull)die(Emem);
-#ifdef DEBUG
-   /* tell what has been alloced */
-   printf("allocm: allocated (%lX,%d)\n",(long)pointer,size);
-#endif
    return pointer;
 }
 
@@ -59,48 +55,6 @@ unsigned size;
    evaluated exactly once. extend is an expression which is evaluated
    zero or one times. In all other ways, mtest acts like a function.
 */
-#ifdef DEBUG
-int mtest_debug(memptr,alloc,length,extend,diff)
-unsigned *alloc,length,extend;
-char **memptr;
-long *diff;
-{
-   static int elabptr=0;
-   static char **areas[]={&cstackptr,&pstackptr,&workptr,&vartab,&labelptr};
-   static char *aname[]={"cstack","pstack","worksp","variables","labels"};
-   static int  *lens[]={&cstacklen,&pstacklen,&worklen,&vartablen,&elabptr};
-   static int  num=5;
-   char *oldmemptr=*memptr;
-   int oldlen= *alloc;
-   int newlen= *alloc+extend;
-   int i,j;
-   char *a,*b,*c,*d;
-   static int doneit=0;
-   if((*alloc)>=length)return 0;
-    /* used to be if(doneit==2) */
-      doneit=1;
-      printf("Areas:\n");
-      for(j=0;j<num;j++)
-         printf(" %s (%lX,%d)\n",aname[j],(long)*areas[j],*lens[j]);
-   for(i=0;i<num&&*areas[i] !=oldmemptr;i++);
-   if((*memptr=realloc(*memptr,(*alloc)+=extend))==cnull)
-      *memptr=oldmemptr,(*alloc)-=extend,die(Emem);
-   printf("mtest: %s changed from (%lX,%d) to (%lX,%d)\n",i<num?aname[i]:"area",(long)oldmemptr,oldlen,(long)*memptr,newlen);
-   if(diff)*diff=*memptr-oldmemptr;
-   a=*memptr;
-   b=a+newlen;
-   if(!doneit)doneit=2;
-   for(j=0;j<num;j++){
-      if(j==i)continue;
-      c= *areas[j];
-      d=c+*lens[j];
-      if(!c)doneit=0;
-      if((c>=a&&c<=b)||(d>=a&&d<=b)||(a>=c&&a<=d))
-         printf("   overlaps with %s (%lX,%d)\n",aname[j],(long)*areas[j],*lens[j]);
-   }
-   return 1;
-}
-#endif
 
 void die(rc) /* Error (exception) handler: cleans up, prints message, and */
 int rc;      /* does all the usual things that happen at error time */
@@ -1674,7 +1628,6 @@ int lit;       /* whether or not the name was a quoted literal (if it was,  */
    int delay=0;
    int sigl=0;             /* line to come from */
    int registerit=0;       /* whether this function should be hashed */
-   static int donelibs=0;  /* whether the .rxlib files have been searched */
    int callflags=0;        /* flags for RexxStartProgram */
 
    while(argc&&isnull())argc--,delete(&w);/* The last arg should not be null */
@@ -1699,7 +1652,6 @@ int lit;       /* whether or not the name was a quoted literal (if it was,  */
          if(callname=strrchr(name,'/')) /* Get base name for "callname" */
             callname++;
          else callname=name;
-         if(!donelibs)libsearch(),donelibs=1;
          if(data=(funcinfo *)hashget(2,callname,&w)){ /* function is hashed */
             if(data->dlfunc){   /* function has already been loaded */
                if(data->saa)                        /* saa calling sequence */
@@ -1745,36 +1697,6 @@ int lit;       /* whether or not the name was a quoted literal (if it was,  */
          }
          else if(w==3){ /* The file is a Unix program */
             return unixcall(file,callname,argc);
-         }
-         else { /* executable function must be linked.  All functions from the
-                   dictionary will be loaded and hashed.  Exactly one of these
-                   will have a non-null dlhandle entry. */
-            if(!(dlhandle=dlopen(file,1)))
-               fputs(dlerror(),stderr),fputc('\n',stderr),die(Esys);
-#ifdef _REQUIRED
-            dlfunc=(int(*)())dlsym(dlhandle,"_rxfunction");
-            dldict=(dictionary *)dlsym(dlhandle,"_rxdictionary");
-#else
-            dlfunc=(int(*)())dlsym(dlhandle,"rxfunction");
-            dldict=(dictionary *)dlsym(dlhandle,"rxdictionary");
-#endif
-            if(dlfunc)funcinit(callname,dlhandle,dlfunc,saa),dlhandle=0;
-            if(dldict)
-               while(dldict->name){
-                  funcinit(dldict->name,dlhandle,dldict->function,saa);
-                  dlhandle=0;
-                  if(!dlfunc&&!strcasecmp(dldict->name,callname))
-                     dlfunc=dldict->function;  /* ...this is the required fn */
-                  dldict++;
-               }
-            if(!dlfunc) /* Function wasn't found in the file */
-               sprintf(workptr,": \'%s\' in file %s",name,file),
-               errordata=workptr,
-               die(Eundef);
-            if (saa) l=funccall((unsigned long(*)())dlfunc,callname,argc);
-            else l=dlfunc(callname,argc);  /* Call the required function. */
-            if(l<0)die(-l);
-            return l;
          }
       }
    }

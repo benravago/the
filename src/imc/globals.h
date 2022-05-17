@@ -1,15 +1,5 @@
 /* The external variables of REXX/imc          (C) Ian Collier 1992 */
 
-#ifndef _globals_h
-#define _globals_h
-
-/* Protection against things not having been included... */
-#ifndef putchar
-#include<stdio.h>
-#endif
-#ifndef Einit
-#include "const.h"
-#endif
 #include<setjmp.h>
 
 extern int types[];                /* Three character type tables */
@@ -109,4 +99,3 @@ extern struct environ {            /* the list of environments */
 
 extern long (*exitlist[])(); /* list of exit addresses */
 
-#endif /* !_globals_h */

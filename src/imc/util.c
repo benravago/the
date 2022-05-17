@@ -18,11 +18,6 @@
 #include"functions.h"
 #define INCL_REXXSAA
 #include "rexxsaa.h"
-#ifdef Solaris
-# include<sys/uio.h>
-# include<sys/filio.h>
-# include<sys/fcntl.h>
-#endif
 
 char *words[]= /* Keywords in order of their values */
        {"SAY", "SAYN", "DO", "END", "IF", "ELSE", "SELECT", "WHEN",
@@ -932,83 +927,6 @@ char *s1,*s2;       /* return 1 if s2 is an initial substring of s2 */
    for(i=0;s2[i]&&!((s1[i]^s2[i])&0xDF);i++);
    return !s2[i];
 }
-#if 0
-void printstmt(line,st,error)   /* print the source statement indicated */
-int line,st,error;              /* if error=1 then precede with +++     */
-{
-   int i=line; /* temporary */
-   char c;
-   int spc=0;
-   char quote=0;
-   char *st1=stmts(&line,st);   /* Find the start and end of the statemtent */
-   char *st2=stmts(&i,st+1);    /* in the source code */
-   char *st3;
-   static char *symwords[]=     /* the symbolic tokens */
-      {"||","&&","==","<=",">=","<>","\\==","//","<<",">>","<<=",">>=","**"};
-   char *what=error?"+++":"*-*"; /* The trace prefix */
-   if(!st)st++;
-   if(!line){ /* interpreted ... un-parse the line */
-      printf("  --- %s ",what);
-      for(i=0;i<traceindent*pstacklev;i++)putchar(' '); /* indent */
-      for(st1=interp;--st;){                            /* find statement */
-         while((c=st1[0])&&c!=THEN&&c!=-1)st1++;        /* (easy!) */
-         if(c&&st1[1]==THEN)st1++;
-         if(c)st1++;
-      }
-      if(!st1[0]){puts("<EOL>");return;}  /* statement doesn't exist */
-      while((c=st1[0])&&c!=-1&&c!=THEN){  /* Print up to next terminator */
-         if(c<SYMBOL){                    /* Print a word */
-            if(spc)putchar(' ');
-            for(st2=words[c+128];st2[0];st2++)putchar(st2[0]|0x20);
-            putchar(' ');
-            spc=0;
-         }
-         else if(c<0){  /* Print a symbolic token */
-            if(spc)putchar(' ');
-            printf("%s",symwords[c-(SYMBOL+1)]);
-            putchar(' ');
-            spc=0;
-         }
-         else {  /* Print a character; lowercase it if outside quotes */
-            if(quote&&c==quote)quote=0;
-            else if((c=='\''||c=='\"')&&!quote)quote=c;
-            if((c>='A'&&c<='Z')&&!quote)c|=0x20;
-            putchar(c);
-            spc=(c!=' ');
-         }
-         st1++;
-      }
-      if(c==THEN){  /* Print a terminating THEN */
-         if(spc)putchar(' ');
-         puts("then");
-      }
-      else putchar('\n');
-      return;
-   } /* Print a regular source line (or lines) */
-   if(st2)if(st2[-1]==';')st2--;      /* Remove a final semicolon */
-   if(st1&&st2) /* calculate column at which the stmt starts */
-      for(spc=0,st3=(*source)[line];
-            st3<st2&&(c=st3[0],st3<st1||c==' '||c=='\t');st3++)
-         if(c=='\t')spc=8+(spc&~7);
-         else spc++;
-   do{
-      printf("%5d %s ",line,what);
-      for(i=0;i<traceindent*pstacklev;i++)putchar(' '); /* indent */
-      if(st1&&st2){           /* Both ends of the statement found, so print */
-         for(i=0;i<spc&&st1<st2&&((c=st1[0])==' '||c=='\t');st1++)
-            if(c=='\t')i=8+(i&~7);     /* Remove leading spaces */
-            else i++;
-         while(i>spc)putchar(' '),i--; /* Print part of a tab if necessary */
-         for(;st1<st2&&st1[0];st1++)
-            printf("%c",st1[0]);  /* Print the statement, up to EOL */
-         if(st1<st2&&line<lines)st1=(*source)[++line]; /* Go to next line */
-      }
-      else if(line>lines)fputs("<EOF>",stdout);  /* Line wasn't found */
-      else fputs("<EOL>",stdout);                /* statement wasn't found */
-      putchar('\n');
-   } while(st1&&st2&&st1<st2&&line<=lines);
-}
-#endif
 
 void freestack(ptr,i)    /* free areas indicated by program stack type i */
 void *ptr;               /* stack entry starts at ptr */
@@ -1660,36 +1578,6 @@ int stmt,after,error;
       if(!error)what="*,*";           /* new ANSI prefix for continuations */
    } while(start<end&&line<=lines);
 }
-#if 0
-void expand(c)   /* this is an old test routine. */
-char c;
-{
-   static char *symwords[]={"||","&&","==","<=",">=","<>","\\==","//","<<",">>","<<=",">>=","**"};
-   static char invvideo[]={27,'[','1','m',0};
-   static char truevideo[]={27,'[','m',0};
-   if(c==-1){printf("%s;%s",invvideo,truevideo);return;}
-   printf("%s ",invvideo);
-   if(c>SYMBOL)printf("%s",symwords[c-(SYMBOL+1)]);
-   if(c<numwords-128)printf(words[c+128]);
-   printf(" %s",truevideo);
-}
-
-void display(line,ptr) /* so is this */
-int line,ptr;
-{
-   char *s=((*prog)[line]);
-   char c;
-   int i=0;
-   printf("      +++ %d +++ ",ppc);
-   if(s==cnull)puts("(null)");
-   while(c=s[i++]){
-      if(c<0)expand(c);
-      else putchar(c);
-      if(i==ptr)printf("[*]");
-   }
-   putchar('\n');
-}
-#endif /* end of the old tokenisation routines which are commented out */
 
 /* Return the default file extension (e.g., ".rexx") by checking the
    environment and then returning the system default. */
@@ -2006,70 +1894,6 @@ int saa;         /* calling sequence of the function */
       info->dlhandle=0;
       info->name=allocm(1+strlen((char*)handle));
       strcpy(info->name,(char*)handle);
-   }
-}
-
-void libsearch(){    /* search for *.rxlib files */
-   char *getenv();   /* and hash the functions they contain. */
-   char *path=getenv("REXXLIB");
-   char *pathend;
-   char *file;
-   int l;
-   int namelen;
-   int ch;
-   DIR *dp;
-   FILE *fp;
-   struct dirent *dir;
-   int type;
-   if(!(path&&path[0]))path=rxpath;
-   while(path){
-      if((pathend=strchr(path,':'))) /* temporarily change the next ':' */
-         pathend[0]=0;               /* into a 0 */
-      if((dp=opendir(path))){
-         while((dir=readdir(dp))){   /* for each file in the directory */
-                                     /* matching *.rxlib ... */
-#if defined(sgi) || defined(Solaris) || defined(linux)
-            namelen=strlen(dir->d_name);
-#else
-            namelen=dir->d_namlen;
-#endif
-            if(namelen>6 &&
-            !memcmp(dir->d_name+namelen-6,".rxlib",6)){
-               l=strlen(path);
-               file=allocm(l+namelen+2);
-               strcpy(file,path);
-               file[l++]='/';
-               strcpy(file+l,dir->d_name);
-               l+=namelen;
-               if((fp=fopen(file,"r"))){ /* read the file */
-                  file[l-6]=0;           /* knock off the ".rxlib" */
-                  type=0;
-                  while((ch=getc(fp))!=EOF){
-                     if(ch==' ' || ch=='\t' || ch=='\r' || ch=='\n')
-                        continue;
-                     pull[0]=ch;
-                     l=1;
-                     while((ch=getc(fp))!=EOF &&
-                     !(ch==' ' || ch=='\t' || ch=='\r' || ch=='\n')){
-                        mtest(pull,pulllen,l+2,256);
-                        pull[l++]=ch;
-                     }
-                     pull[l]=0;
-                     if(!strcmp(pull,"rxmathfn:"))
-                        type=RXDIGITS;  /* kludge for math functions */
-                     else if(!strcmp(pull,"rxsaa:"))
-                        type=1;         /* kludge for SAA functions */
-                     else funcinit(pull,(void*)file,(int(*)())0,type);
-                  }
-                  fclose(fp);
-               }
-               free(file);
-            }
-         }
-         closedir(dp);
-      }
-      if(pathend)pathend++[0]=':';
-      path=pathend;
    }
 }
 

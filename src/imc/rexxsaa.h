@@ -1,11 +1,5 @@
 /* Definitions for the SAA REXX API (supplied with REXX/imc) */
 
-#ifdef __STDC__
-#define Args(a) a
-#else
-#define Args(a) ()
-#endif
-
 #ifdef INCL_REXXSAA
 #define INCL_RXSHV
 #define INCL_RXSUBCOM
@@ -123,28 +117,28 @@ typedef struct {
 } RXSYSEXIT;
 typedef RXSYSEXIT *PRXSYSEXIT;
 
-typedef LONG (RexxExitHandler) Args((LONG,LONG,PEXIT));
+typedef LONG (RexxExitHandler) (LONG,LONG,PEXIT);
 
-ULONG RexxRegisterExitExe Args((PSZ EnvName,RexxExitHandler *EntryPoint,
-      PUCHAR UserArea));
+ULONG RexxRegisterExitExe (PSZ EnvName,RexxExitHandler *EntryPoint,
+      PUCHAR UserArea);
 
-ULONG RexxDeregisterExit Args((PSZ EnvName,PSZ ModuleName));
+ULONG RexxDeregisterExit (PSZ EnvName,PSZ ModuleName);
 
-ULONG RexxQueryExit Args((PSZ EnvName,PSZ ModuleName,
-      unsigned short *flag, unsigned char *area));
+ULONG RexxQueryExit (PSZ EnvName,PSZ ModuleName,
+      unsigned short *flag, unsigned char *area);
 
 #else  /* INCL_RXSYSEXIT */
 typedef void *PRXSYSEXIT;
 #endif /* INCL_RXSYSEXIT */
 
 /* Now RXSYSEXIT is defined, we can declare RexxStart... */
-long RexxStart Args((long argc, PRXSTRING argv, char *name,
+long RexxStart (long argc, PRXSTRING argv, char *name,
      PRXSTRING instore, PSZ envname, long calltype, PRXSYSEXIT exits,
-     short *rc, PRXSTRING result));
+     short *rc, PRXSTRING result);
 
-long RexxStartProgram Args((char *argv0, long argc, PRXSTRING argv, char *name,
+long RexxStartProgram (char *argv0, long argc, PRXSTRING argv, char *name,
      char *callname, PRXSTRING instore, PSZ envname, long calltype,
-     int flags, PRXSYSEXIT exits, short *rc, PRXSTRING result));
+     int flags, PRXSYSEXIT exits, short *rc, PRXSTRING result);
 
 #ifdef INCL_RXSHV
 
@@ -177,21 +171,21 @@ typedef struct shvnode
 } SHVBLOCK;
 typedef struct shvnode *PSHVBLOCK;
 
-ULONG RexxVariablePool Args((PSHVBLOCK RequestBlockList));
+ULONG RexxVariablePool (PSHVBLOCK RequestBlockList);
 
 #endif /* INCL_RXSHV */
 
 #ifdef INCL_RXSUBCOM
 
-typedef ULONG RexxSubcomHandler Args((PRXSTRING,PUSHORT,PRXSTRING));
+typedef ULONG RexxSubcomHandler (PRXSTRING,PUSHORT,PRXSTRING);
 
-ULONG RexxRegisterSubcomExe Args((PSZ EnvName,
-      RexxSubcomHandler *EntryPoint, PUCHAR UserArea));
+ULONG RexxRegisterSubcomExe (PSZ EnvName,
+      RexxSubcomHandler *EntryPoint, PUCHAR UserArea);
 
-ULONG RexxDeregisterSubcom Args((PSZ EnvName, PSZ ModuleName));
+ULONG RexxDeregisterSubcom (PSZ EnvName, PSZ ModuleName);
 
-ULONG RexxQuerySubcom Args((PSZ Envname, PSZ ModuleName,
-      PUSHORT flag, PUCHAR UserArea));
+ULONG RexxQuerySubcom (PSZ Envname, PSZ ModuleName,
+      PUSHORT flag, PUCHAR UserArea);
 
 #define RXSUBCOM_OK           0
 #define RXSUBCOM_DUP         10
@@ -207,15 +201,15 @@ ULONG RexxQuerySubcom Args((PSZ Envname, PSZ ModuleName,
 
 #ifdef INCL_RXFUNC
 
-typedef ULONG (RexxFunctionHandler) Args((PSZ name, ULONG argc,
-        RXSTRING argv[], PSZ QueueName, PRXSTRING Retstr));
+typedef ULONG (RexxFunctionHandler) (PSZ name, ULONG argc,
+        RXSTRING argv[], PSZ QueueName, PRXSTRING Retstr);
 
-ULONG RexxRegisterFunctionExe Args((PSZ name,
-      RexxFunctionHandler *EntryPoint));
+ULONG RexxRegisterFunctionExe (PSZ name,
+      RexxFunctionHandler *EntryPoint);
 
-ULONG RexxDeregisterFunction Args((PSZ name));
+ULONG RexxDeregisterFunction (PSZ name);
 
-ULONG RexxQueryFunction Args((PSZ name));
+ULONG RexxQueryFunction (PSZ name);
 
 #define RXFUNC_OK         0
 #define RXFUNC_DEFINED   10

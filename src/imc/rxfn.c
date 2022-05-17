@@ -12,42 +12,17 @@
 #include<setjmp.h>
 #include<sys/types.h>
 #include<sys/time.h>
-#ifndef Solaris
 #include<sys/ioctl.h>
-#endif
 #include<sys/param.h>
-#ifndef FIONREAD
-#include<sys/filio.h>
-#endif
 #include<sys/stat.h>
-#ifdef HAS_TTYCOM
-#include<sys/ttycom.h>
-#else
 #include<termios.h>
-#endif
 #include"const.h"
 #include"globals.h"
 #include"functions.h"
 #define STDIN 0
 
-
 /* How to find the number of buffered bytes in a FILE *. */
-#ifdef NO_CNT
-# undef _CNT
-# define _CNT(x) (0)
-#endif
-
-#ifndef _CNT
-# ifdef linux
-#  define _CNT(fp) ((fp)->_IO_read_end - (fp)->_IO_read_ptr)
-# else
-#  ifdef __FreeBSD__
-#   define _CNT(fp) ((fp)->_r)
-#  else
-#   define _CNT(fp) ((fp)->_cnt)
-#  endif
-# endif
-#endif
+#define _CNT(fp) ((fp)->_IO_read_end - (fp)->_IO_read_ptr)
 
 void rxsource();
 void rxerror();
@@ -377,9 +352,6 @@ int argc;
    long e2;
    int l;
    long usec;
-#ifdef DECLARE_TIMEZONE  /* everything except Sun seems to declare this */
-   extern long int timezone;                               /* in time.h */
-#endif
    if(!(timeflag&2))
       gettimeofday(&timestamp,&tz);/* Make a timestamp if necessary */
    timeflag|=2;
@@ -425,11 +397,7 @@ int argc;
       case 'S':sprintf(ans,"%d",((t2->tm_hour)*60+(t2->tm_min))*60+(t2->tm_sec));
          break;
       case 'O':
-#ifdef HAS_GMTOFF
          sprintf(ans,"%ld",(long)(t2->tm_gmtoff));
-#else
-         sprintf(ans,"%ld",-(long)timezone+3600*(t2->tm_isdst>0));
-#endif
          break;
       case 'E':
       case 'R':if(!(timeflag&1))secs=timestamp.tv_sec,
@@ -1737,9 +1705,6 @@ int argc;
    struct timezone tz;
    int min=0,max=999;
    int dummy;
-#ifdef DECLARE_RANDOM
-   long random();   /* everything except Sun defines this in stdlib.h */
-#endif
    unsigned long r;
    if(argc==3){
       argc--;
@@ -3129,8 +3094,7 @@ int argc,line;
       return;
    }
    if(info){
-#ifdef FSTAT_FOR_CHARS  /* fstat appears to be quicker (and more
-                           correct) than seeking to EOF and back. */
+      /* fstat appears to be quicker (and more correct) than seeking to EOF and back. */
       if(   info->persist &&
             !fstat(fileno(info->fp),&buf) &&
             S_ISREG(buf.st_mode)){
@@ -3139,7 +3103,6 @@ int argc,line;
          chars=buf.st_size-filepos;
          if(chars<0)chars=0;
       } else
-#endif
       {
          if(info->lastwr)fseek(info->fp,info->rdpos,0);
          if(ioctl(fileno(info->fp),FIONREAD,&chars))chars=0;
