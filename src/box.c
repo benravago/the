@@ -1,7 +1,5 @@
-/***********************************************************************/
 /* BOX.C -                                                             */
 /* This file contains all functions relating to box operations.        */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -67,9 +65,7 @@ static short box_move(BOXP *,bool,bool);
 static short box_fill(BOXP *,CHARTYPE);
 
 /*#define DEBUG 1*/
-/***********************************************************************/
 void box_operations(short action,CHARTYPE reset,bool boverlay,CHARTYPE fillchar)
-/***********************************************************************/
 {
    BOXP boxp;
    unsigned short y=0,x=0;
@@ -77,7 +73,6 @@ void box_operations(short action,CHARTYPE reset,bool boverlay,CHARTYPE fillchar)
    short save_mark_type=MARK_VIEW->mark_type;
    bool same_view=FALSE;
 
-   TRACE_FUNCTION("box.c:     box_operations");
    /*
     * This procedure is for copying, deleting, filling, moving and
     * overlaying box blocks. Box blocks consist of BOX, WORD, COLUMN,
@@ -217,17 +212,13 @@ void box_operations(short action,CHARTYPE reset,bool boverlay,CHARTYPE fillchar)
    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
    build_screen(current_screen);
    display_screen(current_screen); /* should only call this is the marked block is in view */
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void box_paste_from_clipboard( LINE *curr_src, LINETYPE numlines, LINETYPE numcols )
-/***********************************************************************/
 {
    BOXP boxp;
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION("box.c:     box_paste_from_clipboard");
    /*
     * This procedure is for copying from clipboard.
     */
@@ -298,12 +289,9 @@ void box_paste_from_clipboard( LINE *curr_src, LINETYPE numlines, LINETYPE numco
    {
       THEcursor_goto( boxp.cursor_y, boxp.cursor_x );
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 static short box_delete(BOXP *prm)
-/***********************************************************************/
 {
    LINETYPE i=0L;
    LENGTHTYPE j=0;
@@ -313,7 +301,6 @@ static short box_delete(BOXP *prm)
    bool advance_line_ptr = TRUE;
    LINE *curr=NULL;
 
-   TRACE_FUNCTION("box.c:     box_delete");
    curr = prm->curr_src;
    for (i=0L;i<prm->num_lines;i++)
    {
@@ -398,7 +385,6 @@ static short box_delete(BOXP *prm)
          if (curr->line == NULL)
          {
             display_error(30,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
          memcpy((DEFCHAR*)curr->line+curr->length,(DEFCHAR*)curr->next->line,curr->next->length);
@@ -413,18 +399,14 @@ static short box_delete(BOXP *prm)
       curr = delete_LINE( &MARK_FILE->first_line, &MARK_FILE->last_line, curr->next, DIRECTION_FORWARD, TRUE );
       MARK_FILE->number_lines--;
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 static short box_move(BOXP *prm,bool boverlay, bool copy_to_temp)
-/***********************************************************************/
 {
    LINE *save_src=NULL,*temp_src=NULL;
    LINETYPE save_src_start_line=0L;
    LENGTHTYPE save_src_start_col=0;
 
-   TRACE_FUNCTION("box.c:     box_move");
    save_src_start_col = prm->src_start_col;
    save_src_start_line = prm->src_start_line;
    save_src = prm->curr_src;
@@ -461,18 +443,14 @@ static short box_move(BOXP *prm,bool boverlay, bool copy_to_temp)
    &&  prm->action == BOX_M)
       box_delete(prm);
 
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 static short box_copy_to_temp(BOXP *prm)
-/***********************************************************************/
 {
  LINE *first_save=NULL,*save_src=NULL,*tmp=NULL;
  LINETYPE i=0L;
  short rc=RC_OK;
 
- TRACE_FUNCTION("box.c:     box_copy_to_temp");
  tmp = prm->curr_src;
  for ( i = 0L; i < prm->num_lines ; i++ )
  {
@@ -500,7 +478,6 @@ static short box_copy_to_temp(BOXP *prm)
            rec_len = mynum;
            if ( ( save_src = add_LINE( first_save, save_src, rec, rec_len, 0, TRUE ) ) == (LINE *)NULL )
            {
-              TRACE_RETURN();
               return(RC_OUT_OF_MEMORY);
            }
        }
@@ -510,7 +487,6 @@ static short box_copy_to_temp(BOXP *prm)
           rec_len = tmp->length;
           if ( ( save_src = add_LINE (first_save, save_src, rec+prm->src_start_col, prm->num_cols, 0, TRUE ) ) == (LINE *)NULL )
           {
-             TRACE_RETURN();
              return(RC_OUT_OF_MEMORY);
           }
        }
@@ -521,7 +497,6 @@ static short box_copy_to_temp(BOXP *prm)
        if ((save_src = add_LINE(first_save,save_src,
             rec+prm->src_start_col,prm->num_cols,0,TRUE)) == (LINE *)NULL)
        {
-          TRACE_RETURN();
           return(RC_OUT_OF_MEMORY);
        }
 #endif
@@ -531,19 +506,15 @@ static short box_copy_to_temp(BOXP *prm)
     tmp = tmp->next;
  }
  prm->curr_src = first_save;
- TRACE_RETURN();
  return(rc);
 }
-/***********************************************************************/
 static short box_copy_from_temp(BOXP *prm,bool boverlay)
-/***********************************************************************/
 {
    LINETYPE dst_lineno=0L;
    LENGTHTYPE j=0;
    CHARTYPE chr=0;
    short line_type=0;
 
-   TRACE_FUNCTION("box.c:     box_copy_from_temp");
    dst_lineno = prm->dst_start_line;
    while( prm->curr_src )
    {
@@ -557,7 +528,6 @@ static short box_copy_from_temp(BOXP *prm,bool boverlay)
          {
             if ( ( prm->curr_dst = add_LINE( prm->dst_view->file_for_view->first_line, prm->curr_dst->prev, (CHARTYPE *)"", 0, 0, TRUE ) ) == (LINE *)NULL )
             {
-               TRACE_RETURN();
                return(RC_OUT_OF_MEMORY);
             }
             CURRENT_FILE->number_lines++;
@@ -594,12 +564,9 @@ static short box_copy_from_temp(BOXP *prm,bool boverlay)
       dst_lineno++;
    }
    prm->num_lines = dst_lineno - prm->dst_start_line;
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 static short box_copy_stream_from_temp(BOXP *prm,bool boverlay)
-/***********************************************************************/
 {
    LINETYPE dst_lineno=0L,i=0L;
    short line_type=0;
@@ -607,7 +574,6 @@ static short box_copy_stream_from_temp(BOXP *prm,bool boverlay)
    bool full_line=TRUE;
    LINE *curr=NULL,*last_line=NULL;
 
-   TRACE_FUNCTION("box.c:     box_copy_stream_from_temp");
    if (boverlay)
    {
       /*
@@ -630,7 +596,6 @@ static short box_copy_stream_from_temp(BOXP *prm,bool boverlay)
                if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line,prm->curr_dst->prev,
                                       (CHARTYPE *)"",0,0,TRUE)) == (LINE *)NULL)
                {
-                  TRACE_RETURN();
                   return(RC_OUT_OF_MEMORY);
                }
                CURRENT_FILE->number_lines++;
@@ -695,7 +660,6 @@ static short box_copy_stream_from_temp(BOXP *prm,bool boverlay)
          {
             if ( ( prm->curr_dst = add_LINE( CURRENT_FILE->first_line, prm->curr_dst->prev, (CHARTYPE *)"", 0, 0, TRUE ) ) == (LINE *)NULL )
             {
-               TRACE_RETURN();
                return(RC_OUT_OF_MEMORY);
             }
             CURRENT_FILE->number_lines++;
@@ -765,7 +729,6 @@ static short box_copy_stream_from_temp(BOXP *prm,bool boverlay)
             if ((curr = add_LINE(CURRENT_FILE->first_line,curr,
                                       prm->curr_src->line,prm->curr_src->length,0,TRUE)) == (LINE *)NULL)
             {
-               TRACE_RETURN();
                return(RC_OUT_OF_MEMORY);
             }
             prm->curr_src = prm->curr_src->next;   /* this should NEVER go past the end */
@@ -774,17 +737,13 @@ static short box_copy_stream_from_temp(BOXP *prm,bool boverlay)
       }
       pre_process_line( prm->dst_view, dst_lineno, prm->curr_dst );
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 static short box_fill(BOXP *prm,CHARTYPE fillchar)
-/***********************************************************************/
 {
    LINETYPE i=0L;
    int mystart,mynum;
 
-   TRACE_FUNCTION("box.c:     box_fill");
    for ( i = 0L ; i < prm->num_lines; i++ )
    {
       if ( processable_line( CURRENT_VIEW, prm->src_start_line+i, prm->curr_src ) == LINE_LINE )
@@ -816,6 +775,5 @@ static short box_fill(BOXP *prm,CHARTYPE fillchar)
    prm->dst_start_col = prm->src_start_col;
    prm->dst_start_line = prm->src_start_line;
 
-   TRACE_RETURN();
    return(RC_OK);
 }

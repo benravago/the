@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* TARGET.C - Functions related to targets.                            */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -54,9 +52,7 @@
 
 static bool is_blank(LINE *);
 
-/***********************************************************************/
 static int target_type_match( CHARTYPE *ptr, CHARTYPE *type, int minlen )
-/***********************************************************************/
 /*
  * Return the length of ptr that matches from the minlen of type.
  * e.g. chan, changed, 3 will result in 4
@@ -65,7 +61,6 @@ static int target_type_match( CHARTYPE *ptr, CHARTYPE *type, int minlen )
 {
    int i, result=0, maxlen;
 
-   TRACE_FUNCTION("target.c:  target_type_match");
    maxlen = strlen( (DEFCHAR *)type );
    for ( i = minlen; i <= maxlen; i++ )
    {
@@ -77,14 +72,11 @@ static int target_type_match( CHARTYPE *ptr, CHARTYPE *type, int minlen )
          result = i;
       }
    }
-   TRACE_RETURN();
    return result;
 }
 
-/***********************************************************************/
 short split_change_params(CHARTYPE *cmd_line,CHARTYPE **old_str,CHARTYPE **new_str,
                           TARGET *target,LINETYPE *num,LINETYPE *occ)
-/***********************************************************************/
 {
 #define SCP_PARAMS  2
    CHARTYPE *word[SCP_PARAMS+1];
@@ -98,7 +90,6 @@ short split_change_params(CHARTYPE *cmd_line,CHARTYPE **old_str,CHARTYPE **new_s
    unsigned short num_params=0;
    CHARTYPE _THE_FAR buffer[100];
 
-   TRACE_FUNCTION("target.c:  split_change_params");
    /*
     * First, determine the delimiter; the first non-blank character in the argument
     * string.
@@ -151,7 +142,6 @@ short split_change_params(CHARTYPE *cmd_line,CHARTYPE **old_str,CHARTYPE **new_s
     */
    if (blank_field(target_start))
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -159,7 +149,6 @@ short split_change_params(CHARTYPE *cmd_line,CHARTYPE **old_str,CHARTYPE **new_s
     */
    if ((rc = validate_target(target_start,target,target_type,get_true_line(TRUE),TRUE,TRUE)) != RC_OK)
    {
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -167,7 +156,6 @@ short split_change_params(CHARTYPE *cmd_line,CHARTYPE **old_str,CHARTYPE **new_s
     */
    if (target->spare == (-1))
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -191,7 +179,6 @@ short split_change_params(CHARTYPE *cmd_line,CHARTYPE **old_str,CHARTYPE **new_s
             else
                sprintf( (DEFCHAR *)buffer, "- MUST be <= %ld", MAX_WIDTH_NUM );
             display_error( rc, buffer, FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          else
@@ -207,22 +194,18 @@ short split_change_params(CHARTYPE *cmd_line,CHARTYPE **old_str,CHARTYPE **new_s
          else
             sprintf( (DEFCHAR *)buffer, "- MUST be <= %ld", MAX_WIDTH_NUM );
          display_error( rc, buffer, FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       else
          *occ = atol((DEFCHAR *)word[1]);
    }
 
-   TRACE_RETURN();
    return(RC_OK);
 }
 
-/***********************************************************************/
 short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                    long target_types,bool display_parse_error,
                    bool allow_error_display,bool column_target)
-/***********************************************************************/
 {
    short num_targets=0;
    CHARTYPE boolean=' ';
@@ -240,7 +223,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
    LINETYPE lineno=0L;
    char regexp[7]="REGEXP";
 
-   TRACE_FUNCTION("target.c:  parse_target");
    /*
     * Copy the incoming target specification...
     */
@@ -248,7 +230,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
    {
       if (allow_error_display)
          display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    ptr = target->string;
@@ -274,7 +255,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
          {
             if (allow_error_display)
                display_error(30,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
          memset( target->rt, 0, sizeof(RTARGET) );
@@ -292,11 +272,9 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
          {
             if (allow_error_display)
                display_error(30,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
          strcpy((DEFCHAR *)target->rt[0].string,(DEFCHAR *)ptr);
-         TRACE_RETURN();
          return(RC_OK);
          break;
       default:
@@ -316,7 +294,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
             {
                if (allow_error_display)
                   display_error(30,(CHARTYPE *)"",FALSE);
-               TRACE_RETURN();
                return(RC_OUT_OF_MEMORY);
             }
             memset( &target->rt[num_targets], 0, sizeof(RTARGET) );
@@ -441,7 +418,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                   {
                      if (allow_error_display)
                         display_error(30,(CHARTYPE *)"",FALSE);
-                     TRACE_RETURN();
                      return(RC_OUT_OF_MEMORY);
                   }
                   if (target->rt[num_targets].negative)
@@ -705,7 +681,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                      {
                         if (allow_error_display)
                            display_error(30,(CHARTYPE *)"",FALSE);
-                        TRACE_RETURN();
                         return(RC_OUT_OF_MEMORY);
                      }
                      memcpy(target->rt[num_targets].string,ptr+str_start,len);
@@ -738,7 +713,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                      {
                         if (allow_error_display)
                            display_error(30,(CHARTYPE *)"",FALSE);
-                        TRACE_RETURN();
                         return(RC_OUT_OF_MEMORY);
                      }
                      memcpy(target->rt[num_targets].string,ptr+str_start,len);
@@ -791,7 +765,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                   {
                      if (allow_error_display)
                         display_error(30,(CHARTYPE *)"",FALSE);
-                     TRACE_RETURN();
                      return(RC_OUT_OF_MEMORY);
                   }
                   memcpy(target->rt[num_targets].string,ptr+str_start,len);
@@ -826,7 +799,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                   {
                      if (allow_error_display)
                         display_error(30,(CHARTYPE *)"",FALSE);
-                     TRACE_RETURN();
                      return(RC_OUT_OF_MEMORY);
                   }
                   if (delim != '\0')
@@ -953,7 +925,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                   {
                      if (allow_error_display)
                         display_error(30,(CHARTYPE *)"",FALSE);
-                     TRACE_RETURN();
                      return(RC_OUT_OF_MEMORY);
                   }
                   memcpy(target->rt[num_targets].string,ptr+str_start,len);
@@ -963,7 +934,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                   {
                      if (allow_error_display)
                         display_error(17,(CHARTYPE *)target->rt[num_targets].string,FALSE);
-                     TRACE_RETURN();
                      return(RC_TARGET_NOT_FOUND);
                   }
                   target->rt[num_targets].numeric_target = lineno;
@@ -1001,7 +971,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
       if (display_parse_error
       && allow_error_display)
          display_error(1,ptr,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -1118,7 +1087,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
                {
                   sprintf( (DEFCHAR *)trec, "%s in %s", ptr, target->rt[i].string );
                   display_error( 216, (CHARTYPE *)trec, FALSE );
-                  TRACE_RETURN();
                   return RC_INVALID_OPERAND;
                }
             }
@@ -1146,31 +1114,22 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
    && display_parse_error
    && allow_error_display)
       display_error( 1, ptr, FALSE );
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 void initialise_target(TARGET *target)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("target.c:  initialise_target");
    memset( target, 0, sizeof(TARGET) );
    target->spare = (-1);
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void free_target(TARGET *target)
-/***********************************************************************/
 {
    register short i=0;
 
-   TRACE_FUNCTION("target.c:  free_target");
    if (target->string == NULL
    &&  target->num_targets == 0
    &&  target->rt == NULL)
    {
-      TRACE_RETURN();
       return;
    }
    for (i=0;i<target->num_targets;i++)
@@ -1187,12 +1146,9 @@ void free_target(TARGET *target)
    target->string = NULL;
    target->num_targets = 0;
    target->rt = NULL;
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short find_target( TARGET *target, LINETYPE true_line, bool display_parse_error, bool allow_error_display )
-/***********************************************************************/
 {
    short rc=RC_OK;
    LINE *curr=NULL;
@@ -1203,7 +1159,6 @@ short find_target( TARGET *target, LINETYPE true_line, bool display_parse_error,
    short status=RC_OK;
    int i;
 
-   TRACE_FUNCTION( "target.c:  find_target" );
    /*
     * Check single targets first (ALL and BLOCK)
     *---------------------------------------------------------------------
@@ -1215,7 +1170,6 @@ short find_target( TARGET *target, LINETYPE true_line, bool display_parse_error,
          target->true_line = 1L;
          target->last_line = CURRENT_FILE->number_lines;
          target->num_lines = CURRENT_FILE->number_lines;
-         TRACE_RETURN();
          return(RC_OK);
          break;
       case TARGET_BLOCK_ANY:
@@ -1231,7 +1185,6 @@ short find_target( TARGET *target, LINETYPE true_line, bool display_parse_error,
             target->true_line = MARK_VIEW->mark_start_line;
             target->last_line = MARK_VIEW->mark_end_line;
          }
-         TRACE_RETURN();
          return rc;
          break;
       case TARGET_BLOCK_CURRENT:
@@ -1269,7 +1222,6 @@ short find_target( TARGET *target, LINETYPE true_line, bool display_parse_error,
                }
             }
          }
-         TRACE_RETURN();
          return rc;
          break;
       default:
@@ -1392,19 +1344,15 @@ short find_target( TARGET *target, LINETYPE true_line, bool display_parse_error,
    }
    else
       rc = status;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short find_column_target(CHARTYPE *line,LENGTHTYPE len,TARGET *target,LENGTHTYPE true_column,bool display_parse_error,bool allow_error_display)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LENGTHTYPE column_number=0L;
    LENGTHTYPE num_columns=0L;
    bool status=FALSE;
 
-   TRACE_FUNCTION("target.c:  find_column_target");
    /*
     * All column targets are potentially repeating targets...
     */
@@ -1453,20 +1401,15 @@ short find_column_target(CHARTYPE *line,LENGTHTYPE len,TARGET *target,LENGTHTYPE
          display_error(17,target->string,FALSE);
       rc = RC_TARGET_NOT_FOUND;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 static bool is_blank(LINE *curr)
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
    bool rc=TRUE;
 
-   TRACE_FUNCTION("target.c:  is_blank");
    if (CURRENT_VIEW->zone_start > curr->length)
    {
-      TRACE_RETURN();
       return(TRUE);
    }
    for (i=CURRENT_VIEW->zone_start-1;i<min(CURRENT_VIEW->zone_end,curr->length);i++)
@@ -1477,12 +1420,9 @@ static bool is_blank(LINE *curr)
          break;
       }
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 THELIST *find_line_name( LINE *curr, CHARTYPE *name )
-/***********************************************************************/
 /*
  * Given a pointer to a LINE, find the passed name and return a pointer to the
  * generic THELIST item if the name is in the list of names.
@@ -1490,11 +1430,9 @@ THELIST *find_line_name( LINE *curr, CHARTYPE *name )
 {
    THELIST *list_curr=NULL;
 
-   TRACE_FUNCTION("target.c:  find_line_name");
    if ( curr == NULL
    ||   curr->first_name == NULL )
    {
-      TRACE_RETURN();
       return( (THELIST *)NULL );
    }
    /*
@@ -1505,22 +1443,17 @@ THELIST *find_line_name( LINE *curr, CHARTYPE *name )
    {
       if ( strcmp( (DEFCHAR *)list_curr->data, (DEFCHAR *)name ) == 0 )
       {
-         TRACE_RETURN();
          return( list_curr );
       }
       list_curr = list_curr->next;
    }
-   TRACE_RETURN();
    return( (THELIST *)NULL );
 }
-/***********************************************************************/
 LINE *find_named_line(CHARTYPE *name,LINETYPE *retline,bool respect_scope)
-/***********************************************************************/
 {
    LINETYPE lineno=0;
    LINE *curr=NULL;
 
-   TRACE_FUNCTION("target.c:  find_named_line");
    /*
     * Find the line number in the current file of the named line specified
     */
@@ -1542,7 +1475,6 @@ LINE *find_named_line(CHARTYPE *name,LINETYPE *retline,bool respect_scope)
             if ( find_line_name( curr, name ) != NULL )
             {
                *retline = lineno;
-               TRACE_RETURN();
                return( curr );
             }
          }
@@ -1550,12 +1482,9 @@ LINE *find_named_line(CHARTYPE *name,LINETYPE *retline,bool respect_scope)
       lineno++;
       curr = curr->next;
    }
-   TRACE_RETURN();
    return( (LINE *)NULL );
 }
-/***********************************************************************/
 short find_string_target( LINE *curr, RTARGET *rt, LENGTHTYPE start_col, int search_semantics )
-/***********************************************************************/
 /*
  * Finds a string (needle: in rt->string) in another string (haystack: in curr->line)
  * If SEARCHing backwards, we need to copy the string and reverse the needle and
@@ -1577,7 +1506,6 @@ short find_string_target( LINE *curr, RTARGET *rt, LENGTHTYPE start_col, int sea
    LENGTHTYPE loc=(-1);
    LENGTHTYPE str_length=0;
 
-   TRACE_FUNCTION("target.c:  find_string_target");
    /*
     * Allocate some termporary space
     */
@@ -1585,7 +1513,6 @@ short find_string_target( LINE *curr, RTARGET *rt, LENGTHTYPE start_col, int sea
    if ( needle == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -1603,12 +1530,10 @@ short find_string_target( LINE *curr, RTARGET *rt, LENGTHTYPE start_col, int sea
       {
          case -1: /* invalid hex value */
             display_error( 32, needle, FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          case -2: /* memory exhausted */
             display_error( 30, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
             break;
          default:
@@ -1711,19 +1636,15 @@ short find_string_target( LINE *curr, RTARGET *rt, LENGTHTYPE start_col, int sea
       rt->found_length = str_length;
       rc = RC_OK;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short find_regexp(LINE *curr,RTARGET *rt)
-/***********************************************************************/
 {
    CHARTYPE *haystack=NULL;
    LENGTHTYPE len,i,haystack_length=0,real_start=0,real_end=0;
    short rc=RC_TARGET_NOT_FOUND;
    long re_len;
 
-   TRACE_FUNCTION("target.c:  find_regexp");
    /*
     * Search for the compiled RE
     */
@@ -1762,12 +1683,9 @@ short find_regexp(LINE *curr,RTARGET *rt)
          i++;
    }
 
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short find_rtarget_target( LINE *curr, TARGET *target, LINETYPE true_line, LINETYPE line_number, LINETYPE *num_lines )
-/***********************************************************************/
 {
    register short i=0;
    bool target_found=FALSE,status=FALSE;
@@ -1775,7 +1693,6 @@ short find_rtarget_target( LINE *curr, TARGET *target, LINETYPE true_line, LINET
    short rc=RC_OK;
    LENGTHTYPE start_col;
 
-   TRACE_FUNCTION(" target.c:  find_rtarget_target" );
    /*
     * If the line is not in scope and scope is respected, return FALSE.
     */
@@ -1786,7 +1703,6 @@ short find_rtarget_target( LINE *curr, TARGET *target, LINETYPE true_line, LINET
       && !TOF(line_number)
       && !BOF(line_number))
       {
-         TRACE_RETURN();
          return(RC_TARGET_NOT_FOUND);
       }
    }
@@ -1966,7 +1882,6 @@ short find_rtarget_target( LINE *curr, TARGET *target, LINETYPE true_line, LINET
                   target->focus_column = -1L;
                   break;
                default:
-                  TRACE_RETURN();
                   return(rc);
                   break;
             }
@@ -2030,7 +1945,6 @@ short find_rtarget_target( LINE *curr, TARGET *target, LINETYPE true_line, LINET
                case RC_TARGET_NOT_FOUND:
                   break;
                default:
-                  TRACE_RETURN();
                   return(rc);
                   break;
             }
@@ -2053,19 +1967,15 @@ short find_rtarget_target( LINE *curr, TARGET *target, LINETYPE true_line, LINET
             break;
       }
    }
-   TRACE_RETURN();
    return((status)?RC_OK:RC_TARGET_NOT_FOUND);
 }
-/***********************************************************************/
 bool find_rtarget_column_target( CHARTYPE *line, LENGTHTYPE len, TARGET *target, LENGTHTYPE true_column, LENGTHTYPE column_number, LINETYPE *num_columns )
-/***********************************************************************/
 {
    register short i=0;
    bool target_found=FALSE,status=FALSE;
    LINETYPE multiplier=0;
    LINE curr;
 
-   TRACE_FUNCTION("target.c:  find_rtarget_column_target");
    if (column_number != true_column)
       *num_columns = *num_columns + 1L;
    for (i=0;i<target->num_targets-((target->spare == (-1)) ? 0 : 1);i++)
@@ -2156,16 +2066,12 @@ __FILE__,__LINE__,column_number,i,true_column,target->rt[i].start,target_found);
             break;
       }
    }
-   TRACE_RETURN();
    return(status);
 }
-/***********************************************************************/
 LINETYPE find_next_in_scope(VIEW_DETAILS *view,LINE *in_curr,LINETYPE line_number,short direction)
-/***********************************************************************/
 {
    LINE *curr=in_curr;
 
-   TRACE_FUNCTION("target.c:  find_next_in_scope");
    if (in_curr == NULL)
       curr = lll_find(CURRENT_FILE->first_line,CURRENT_FILE->last_line,line_number,CURRENT_FILE->number_lines);
    for (;;line_number+=(LINETYPE)direction)
@@ -2179,17 +2085,13 @@ LINETYPE find_next_in_scope(VIEW_DETAILS *view,LINE *in_curr,LINETYPE line_numbe
       if (curr == NULL)
          break;
    }
-   TRACE_RETURN();
    return(line_number);
 }
-/***********************************************************************/
 LINETYPE find_last_not_in_scope(VIEW_DETAILS *view,LINE *in_curr,LINETYPE line_number,short direction)
-/***********************************************************************/
 {
    LINE *curr=in_curr;
    LINETYPE offset=0L;
 
-   TRACE_FUNCTION("target.c:  find_last_not_in_scope");
    if (in_curr == NULL)
       curr = lll_find(CURRENT_FILE->first_line,CURRENT_FILE->last_line,line_number,CURRENT_FILE->number_lines);
    for (;;line_number+=(LINETYPE)direction)
@@ -2209,59 +2111,45 @@ LINETYPE find_last_not_in_scope(VIEW_DETAILS *view,LINE *in_curr,LINETYPE line_n
       if (curr == NULL)
          break;
    }
-   TRACE_RETURN();
    return(line_number+offset);
 }
-/***********************************************************************/
 short validate_target(CHARTYPE *string,TARGET *target,long target_type,LINETYPE true_line,bool display_parse_error,bool allow_error_display)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("target.c:  validate_target");
    rc = parse_target(string,true_line,target,target_type,display_parse_error,allow_error_display,FALSE);
    if (rc != RC_OK)
    {
-      TRACE_RETURN();
       return(rc);
    }
    rc = find_target(target,true_line,display_parse_error,allow_error_display);
    if (rc != RC_OK)
    {
-      TRACE_RETURN();
       return(RC_TARGET_NOT_FOUND);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
 #ifdef NOT_USED_ANYMORE
-/***********************************************************************/
 bool in_scope(VIEW_DETAILS *view,LINE *curr)
-/***********************************************************************/
 {
    bool rc=RC_OK;
 
-   TRACE_FUNCTION("target.c:  in_scope");
    if (curr->select < view->display_low
    ||  curr->select > view->display_high)
       rc = FALSE;
    else
       rc = TRUE;
-   TRACE_RETURN();
    return(rc);
 }
 #endif
-/***********************************************************************/
 void calculate_scroll_values(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short *number_focus_rows,LINETYPE *new_focus_line,
                              LINETYPE *new_current_line,bool *limit_of_screen,
                              bool *limit_of_file,bool *leave_cursor,
                              short direction)
-/***********************************************************************/
 {
    register short i=0;
    unsigned short y=0;
 
-   TRACE_FUNCTION("target.c:  calculate_scroll_values");
 
    *limit_of_screen = *limit_of_file = FALSE;
    *number_focus_rows = 0;
@@ -2444,18 +2332,14 @@ void calculate_scroll_values(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, shor
             *limit_of_file = TRUE;
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short find_last_focus_line( CHARTYPE curr_screen, unsigned short *newrow)
-/***********************************************************************/
 {
    register short i=0;
    short row=(-1);
    short rc=RC_OK;
 
-   TRACE_FUNCTION("target.c:  find_last_focus_line");
    for ( i = screen[curr_screen].rows[WINDOW_FILEAREA]-1; i > -1; i-- )
    {
       if ( screen[curr_screen].sl[i].line_number != (-1L) )
@@ -2466,18 +2350,14 @@ short find_last_focus_line( CHARTYPE curr_screen, unsigned short *newrow)
    }
    if ( row == (-1) )
       rc = RC_INVALID_OPERAND;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short find_first_focus_line( CHARTYPE curr_screen, unsigned short *newrow )
-/***********************************************************************/
 {
    register short i=0;
    short row=(-1);
    short rc=RC_OK;
 
-   TRACE_FUNCTION("target.c:  find_first_focus_line");
    for ( i = 0; i < screen[curr_screen].rows[WINDOW_FILEAREA]; i++ )
    {
       if ( screen[curr_screen].sl[i].line_number != (-1L) )
@@ -2488,24 +2368,18 @@ short find_first_focus_line( CHARTYPE curr_screen, unsigned short *newrow )
    }
    if (row == (-1))
       rc = RC_INVALID_OPERAND;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 CHARTYPE find_unique_char(CHARTYPE *str)
-/***********************************************************************/
 {
    register short i=0;
 
-   TRACE_FUNCTION("target.c:  find_unique_char");
    for (i=254;i>0;i--)
    {
       if (strzeq(str,(CHARTYPE)i) == (-1))
       {
-         TRACE_RETURN();
          return((CHARTYPE)i);
       }
    }
-   TRACE_RETURN();
    return(0);
 }

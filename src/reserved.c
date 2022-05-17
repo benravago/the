@@ -1,7 +1,5 @@
-/***********************************************************************/
 /* RESERVED.C -                                                        */
 /* This file contains funtions related to reserved lines.              */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -37,14 +35,11 @@
 #include <the.h>
 #include <proto.h>
 
-/***********************************************************************/
 RESERVED *add_reserved_line(CHARTYPE *spec,CHARTYPE *line,short base,short off,COLOUR_ATTR *attr, bool autoscroll)
-/***********************************************************************/
 {
    RESERVED *curr=NULL;
    CHARTYPE *templine=line;
 
-   TRACE_FUNCTION( "reserved.c:add_reserved_line" );
    /*
     * First check if the row already has a reserved line on it...
     */
@@ -58,31 +53,26 @@ RESERVED *add_reserved_line(CHARTYPE *spec,CHARTYPE *line,short base,short off,C
    if ( ( curr->line = (CHARTYPE *)(*the_malloc)( ( strlen( (DEFCHAR *)templine ) + 1 ) * sizeof(CHARTYPE) ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(NULL);
    }
    if ( ( curr->disp = (CHARTYPE *)(*the_malloc)( ( strlen( (DEFCHAR *)templine ) + 1 ) * sizeof(CHARTYPE) ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(NULL);
    }
    if ( ( curr->highlighting = (chtype *)(*the_malloc)( ( strlen( (DEFCHAR *)templine ) + 1 ) * sizeof(chtype) ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(NULL);
    }
    if ( ( curr->spec = (CHARTYPE *)(*the_malloc)( ( strlen( (DEFCHAR *)spec ) + 1 ) * sizeof(CHARTYPE) ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(NULL);
    }
    if ( ( curr->attr = (COLOUR_ATTR *)(*the_malloc)( sizeof(COLOUR_ATTR) ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(NULL);
    }
    strcpy( (DEFCHAR *)curr->line, (DEFCHAR *)templine );
@@ -93,16 +83,12 @@ RESERVED *add_reserved_line(CHARTYPE *spec,CHARTYPE *line,short base,short off,C
    curr->autoscroll = autoscroll;
    memcpy( curr->attr, attr, sizeof(COLOUR_ATTR) );
    parse_reserved_line( curr );
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 RESERVED *find_reserved_line(CHARTYPE scrno,bool find_by_row,ROWTYPE row,short base,short off)
-/***********************************************************************/
 {
    RESERVED *curr=SCREEN_FILE(scrno)->first_reserved;
 
-   TRACE_FUNCTION( "reserved.c:find_reserved_line" );
    while( curr != NULL )
    {
       if ( find_by_row )
@@ -125,20 +111,15 @@ RESERVED *find_reserved_line(CHARTYPE scrno,bool find_by_row,ROWTYPE row,short b
       }
       curr = curr->next;
    }
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 short delete_reserved_line(short base,short off)
-/***********************************************************************/
 {
    RESERVED *curr=NULL;
 
-   TRACE_FUNCTION( "reserved.c:delete_reserved_line" );
    if ( ( curr = find_reserved_line( current_screen, FALSE, 0, base, off ) ) == NULL )
    {
       display_error( 64, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_NO_LINES_CHANGED);
    }
    if ( curr->line != NULL )
@@ -152,6 +133,5 @@ short delete_reserved_line(short base,short off)
    if ( curr->attr != NULL )
       (*the_free)(curr->attr);
    rll_del( &CURRENT_FILE->first_reserved, NULL, curr, DIRECTION_FORWARD );
-   TRACE_RETURN();
    return(RC_OK);
 }

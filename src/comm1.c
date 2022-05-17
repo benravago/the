@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* COMM1.C - Commands A-C                                              */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -40,48 +38,8 @@
 
 /*#define DEBUG 1*/
 
-/*man-start*********************************************************************
-
 
-========================================================================
-COMMAND REFERENCE
-========================================================================
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     add - add blank line
-
-SYNTAX
-     Add [n]
-
-DESCRIPTION
-     The ADD command inserts 'n' blank lines after the <current line>,
-     if issued from the <command line> or after the <focus line>,
-     if issued from the <filearea> or <prefix area>.
-
-     If <SET NEWLINES> is set to ALIGNED, the cursor is positioned in
-     the column corresponding to the first column not containing a
-     space in the line above.
-
-     If <SET NEWLINES> is set to LEFT, the cursor is positioned in the
-     first column.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-DEFAULT
-     1
-
-SEE ALSO
-     <SOS ADDLINE>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Add(CHARTYPE *params)
-/***********************************************************************/
 {
 #define ADD_PARAMS  1
    CHARTYPE *word[ADD_PARAMS+1];
@@ -89,7 +47,6 @@ short Add(CHARTYPE *params)
    unsigned short num_params=0;
    LINETYPE num_lines=0L;
 
-   TRACE_FUNCTION("comm1.c:   Add");
    /*
     * Validate the parameters that have been supplied. The one and only
     * parameter should be a positive integer greater than zero.
@@ -105,13 +62,11 @@ short Add(CHARTYPE *params)
    if (num_params != 1)
    {
       display_error(1,word[1],FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (!valid_positive_integer(word[0]))
    {
       display_error(4,word[0],FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    num_lines = atol((DEFCHAR *)word[0]);
@@ -120,94 +75,21 @@ short Add(CHARTYPE *params)
    if (curses_started
    && CURRENT_VIEW->current_window == WINDOW_COMMAND)
       THEcursor_home( current_screen, CURRENT_VIEW, TRUE );
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     alert - display a user configurable dialog box with notification
-
-SYNTAX
-     ALERT /prompt/ [EDITfield [/val/]] [TITLE /title/] [OK|OKCANCEL|YESNO|YESNOCANCEL] [DEFBUTTON n]
-
-DESCRIPTION
-     The ALERT command is identical to the <DIALOG> command except that
-     if <SET BEEP> is on, a beep is played.
-
-     On exit from the ALERT command, the following Rexx variables are set:
-
-          ALERT.0 - 2
-          ALERT.1 - value of 'EDITfield'
-          ALERT.2 - button selected as specified in the call to the command.
-
-     The colours for the alert box are the same as for a dialog box, except
-     the prompt area which uses the colour set by <SET COLOR> ALERT.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible. Does not support bitmap icons or font options.
-
-SEE ALSO
-     <POPUP>, <DIALOG>, <READV>, <SET COLOR>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Alert(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Alert");
    /*
     * If we have a beep() functiond and its ON, ring it..
     */
    if ( BEEPx )
       beep();
    rc = prepare_dialog( params, TRUE, (CHARTYPE *)"ALERT" );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     all - select and display restricted set of lines
-
-SYNTAX
-     ALL [rtarget]
-
-DESCRIPTION
-     The ALL command allows for the selective display, and editing
-     (subject to <SET SCOPE>) of lines that match the specified target.
-     This target consists of any number of individual targets
-     separated by '&' (logical and) or '|' (logical or).
-
-     For example, to display all lines in a file that contain the
-     strings 'ball' and 'cat' on the same line or the named lines
-     .fred or .bill, use the following command
-
-     ALL /ball/ & /cat/ | .fred | .bill
-
-     Logical operators act left to right, with no precedence for &.
-
-     <rtarget> can also be specified as a regular expression. The syntax of
-     this is "Regexp /re/". eg ALL R /[0-9].*$/
-
-     ALL without any arguments, is the equivalent of setting the
-     selection level of all lines in your file to 0 and running
-     <SET DISPLAY> 0 0.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SET SCOPE>, <SET DISPLAY>, <SET SELECT>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short All(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LINE *curr=NULL;
@@ -220,12 +102,10 @@ short All(CHARTYPE *params)
    bool save_scope=FALSE;
    LINETYPE num_lines=0L;
 
-   TRACE_FUNCTION( "comm1.c:   All" );
    if ( strlen( (DEFCHAR *)params ) == 0 )
    {
       if ( CURRENT_FILE->number_lines == 0L )
       {
-         TRACE_RETURN();
          return(rc);
       }
       post_process_line( CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *)NULL, TRUE );
@@ -241,13 +121,11 @@ short All(CHARTYPE *params)
       CURRENT_VIEW->display_high = 0;
       build_screen( current_screen );
       display_screen( current_screen );
-      TRACE_RETURN();
       return(rc);
    }
    if ( CURRENT_FILE->number_lines == 0L )
    {
       display_error( 17, params, FALSE );
-      TRACE_RETURN();
       return(RC_TARGET_NOT_FOUND);
    }
    /*
@@ -258,7 +136,6 @@ short All(CHARTYPE *params)
    if ( rc != RC_OK )
    {
       free_target( &target );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -345,46 +222,9 @@ short All(CHARTYPE *params)
          rc = status;
    }
    free_target( &target );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     backward - scroll backward by number of screens or lines
-
-SYNTAX
-     BAckward [n|*|HALF] [Lines]
-
-DESCRIPTION
-     The BACKWARD command scrolls the file contents backwards 'n' screens
-     or 'n' lines if the optional 'Lines' argument is specified.
-
-     If '*' is specified, the <Top-File line> becomes the <current line>.
-
-     If 'HALF' is specified, the file contents are scrolled one half of a screen.
-
-     If 0 is specified as the number of lines or screens to scroll, the last
-     line of the file becomes the <current line>.
-
-     If the BACKWARD command is issued while the current line is the
-     <Top-of-File line> and <SET PAGEWRAP> is ON, the last line of the file becomes
-     the <current line>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible
-
-DEFAULT
-     1
-
-SEE ALSO
-     <FORWARD>, <TOP>, <SET PAGEWRAP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Backward(CHARTYPE *params)
-/***********************************************************************/
 {
 #define BAC_PARAMS  2
    CHARTYPE *word[BAC_PARAMS+1];
@@ -394,7 +234,6 @@ short Backward(CHARTYPE *params)
    short scroll_by_page = 1; /* by default we scroll pages */
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm1.c:   Backward");
    /*
     * Validate parameters...
     */
@@ -413,7 +252,6 @@ short Backward(CHARTYPE *params)
          if (strcmp((DEFCHAR *)word[0],"*") == 0)
          {
             rc = Top((CHARTYPE *)"");
-            TRACE_RETURN();
             return(rc);
          }
          /*
@@ -430,7 +268,6 @@ short Backward(CHARTYPE *params)
          else if (!valid_positive_integer(word[0]))
          {
             display_error(1,(CHARTYPE *)word[0],FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          else
@@ -448,21 +285,18 @@ short Backward(CHARTYPE *params)
             if (!valid_positive_integer(word[0]))
             {
                display_error(1,(CHARTYPE *)word[0],FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
          }
          else
          {
             display_error(1,(CHARTYPE *)word[1],FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          num_pages = atol((DEFCHAR *)word[0]);
          break;
       default:
          display_error(2,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
          break;
    }
@@ -474,7 +308,6 @@ short Backward(CHARTYPE *params)
    || ( CURRENT_TOF && PAGEWRAPx ) )
    {
       rc = Bottom((CHARTYPE *)"");
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -488,44 +321,19 @@ short Backward(CHARTYPE *params)
    {
       rc = advance_current_line(-num_pages);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     bottom - move to the bottom of the file
-
-SYNTAX
-     Bottom
-
-DESCRIPTION
-     The BOTTOM command moves to the very end of the current file.
-     The last line of the file is set to the <current line>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <FORWARD>, <TOP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Bottom(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("comm1.c:   Bottom");
    /*
     * No arguments are allowed; error if any are present.
     */
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,(CHARTYPE *)params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (CURRENT_VIEW->scope_all)
@@ -551,33 +359,9 @@ short Bottom(CHARTYPE *params)
       else
          wmove(CURRENT_WINDOW,y,x);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     cancel - quit from all files in the ring
-
-SYNTAX
-     CANcel [SAVE]
-
-DESCRIPTION
-     The CANCEL command exits from THE quickly by executing a <QQUIT>
-     command for every file in the ring that does not have any
-     outstanding alterations and saving files with alterations if 'SAVE' is specified.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <CCANCEL>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Cancel(CHARTYPE *params)
-/***********************************************************************/
 {
    VIEW_DETAILS *save_current_view=(VIEW_DETAILS *)NULL;
    LINETYPE save_number_of_files=number_of_files;
@@ -585,7 +369,6 @@ short Cancel(CHARTYPE *params)
    register int i=0;
    short to_save = 0, rc;
 
-   TRACE_FUNCTION( "comm1.c:   Cancel" );
    /*
     * One optional argument allowed
     */
@@ -600,7 +383,6 @@ short Cancel(CHARTYPE *params)
    else
    {
       display_error( 1, (CHARTYPE *)params, FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    post_process_line( CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *)NULL, TRUE );
@@ -608,7 +390,6 @@ short Cancel(CHARTYPE *params)
    if ( ( save_view = (VIEW_DETAILS **)(*the_malloc)( (save_number_of_files) * sizeof(VIEW_DETAILS *) ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -634,7 +415,6 @@ short Cancel(CHARTYPE *params)
       {
          if ( ( rc = save_file( CURRENT_FILE, (CHARTYPE *)"", FALSE, CURRENT_FILE->number_lines, 1L, NULL, FALSE, 0, max_line_length, TRUE, FALSE, FALSE ) ) != RC_OK )
          {
-            TRACE_RETURN();
             return(rc);
          }
          /*
@@ -672,76 +452,23 @@ short Cancel(CHARTYPE *params)
       sprintf( (DEFCHAR *)temp_cmd, "%ld file(s) remain with outstanding changes", number_of_files );
       display_error( 0, (CHARTYPE *)temp_cmd, TRUE );
    }
-   TRACE_RETURN();
    return(QUIT);
 }
-/*man-start*********************************************************************
-COMMAND
-     cappend - append text after column pointer
-
-SYNTAX
-     CAppend [text]
-
-DESCRIPTION
-     The CAPPEND command moves the column pointer to the end of the
-     focus line and appends the specified 'text'.
-
-     If no 'text' is specified, the column pointer moves to the first
-     trailing space.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <CLAST>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Cappend(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm1.c:   Cappend");
    rc = column_command(params,COLUMN_CAPPEND);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     ccancel - qquit from all files in the ring
-
-SYNTAX
-     CCancel
-
-DESCRIPTION
-     The CCANCEL command exits from THE quickly by executing the <QQUIT>
-     command for every file in the ring. Any changes made to any of
-     the files since the last <SAVE> will be lost.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <CANCEL>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Ccancel(CHARTYPE *params)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("comm1.c:   Ccancel");
    /*
     * No arguments are allowed; error if any are present.
     */
    if ( strcmp( (DEFCHAR *)params, "" ) != 0 )
    {
       display_error( 1, (CHARTYPE *)params, FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    CURRENT_VIEW = vd_first;
@@ -749,32 +476,9 @@ short Ccancel(CHARTYPE *params)
    {
       free_view_memory( TRUE, FALSE );
    }
-   TRACE_RETURN();
    return(QUIT);
 }
-/*man-start*********************************************************************
-COMMAND
-     cdelete - delete text starting at column pointer
-
-SYNTAX
-     CDelete [column target]
-
-DESCRIPTION
-     The CDELETE command deletes characters starting from the current
-     column pointer for the specified <'column target'>.
-
-     If no <'column target'> is specified, the character at the column
-     pointer is deleted.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Cdelete(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    short target_type=TARGET_ABSOLUTE|TARGET_RELATIVE|TARGET_STRING|TARGET_BLANK;
@@ -782,7 +486,6 @@ short Cdelete(CHARTYPE *params)
    LENGTHTYPE start_col=0,del_start=0;
    unsigned int y=0,x=0;
 
-   TRACE_FUNCTION("comm1.c:   Cdelete");
    /*
     * Validate the cursor position...
     */
@@ -794,14 +497,12 @@ short Cdelete(CHARTYPE *params)
       {
          case LINE_SHADOW:
             display_error(87,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
 /*       case LINE_TOF_EOF: MH12 */
          case LINE_TOF:
          case LINE_EOF:
             display_error(36,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          default:
@@ -836,7 +537,6 @@ short Cdelete(CHARTYPE *params)
    if (rc != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -888,44 +588,19 @@ short Cdelete(CHARTYPE *params)
       }
    }
    free_target(&target);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     cfirst - move column pointer to beginning of zone
-
-SYNTAX
-     CFirst
-
-DESCRIPTION
-     The CFIRST command moves the column pointer to the beginning of
-     the zone.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SET ZONE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Cfirst(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    bool need_to_redisplay=FALSE;
 
-   TRACE_FUNCTION("comm1.c:   Cfirst");
    /*
     * No arguments are allowed; error if any are present.
     */
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,(CHARTYPE *)params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (column_in_view(current_screen,CURRENT_VIEW->current_column-1))
@@ -935,128 +610,33 @@ short Cfirst(CHARTYPE *params)
       need_to_redisplay = TRUE;
    if (need_to_redisplay)
       display_screen(current_screen);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     change - change one string to another
-
-SYNTAX
-     Change [/string1/string2/ [target] [n] [m]]
-
-DESCRIPTION
-     The CHANGE command changes one string of text to another.
-
-     The first parameter to the change command is the old and new
-     string values, separated by delimiters.
-     The first non alphabetic character after the 'change' command
-     is the delimiter.
-
-     <'target'> specifies how many lines are to be searched for
-     occurrences of 'string1' to be changed.
-
-     'n' determines how many occurrences of 'string1' are to be
-     changed to 'string2' on each line. 'n' may be specified as
-     '*' which will result in all occurrences of 'string1' will
-     be changed.  '*' is equivalent to the current WIDTH of the
-     line.
-
-     'm' determines from which occurrence of 'string1' on the line
-     changes are to commence.
-
-     If no arguments are supplied to the CHANGE command, the last
-     change command, if any, is re-executed.
-
-COMPATIBILITY
-     XEDIT: Compatible. ARBCHAR not supported however.
-     KEDIT: Compatible. ARBCHAR not supported however.
-
-DEFAULT
-     1 1 1
-
-SEE ALSO
-     <SCHANGE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Change(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm1.c:   Change" );
    rc = execute_change_command( params, FALSE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     cinsert - insert text starting at the column pointer
-
-SYNTAX
-     CInsert text
-
-DESCRIPTION
-     The CINSERT command inserts 'text' starting at the column position.
-
-     'text' can include leading or trailing space characters. Thus
-     CINSERT immediately followed by 5 spaces, will insert 4 space
-     characters. The first space character is the command separator.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Cinsert(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm1.c:   Cinsert");
    rc = column_command(params,COLUMN_CINSERT);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     clast - move the column pointer to end of zone
-
-SYNTAX
-     CLAst
-
-DESCRIPTION
-     The CLAST command moves the column pointer to the end of the
-     zone.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SET ZONE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Clast(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    bool need_to_redisplay=FALSE;
 
-   TRACE_FUNCTION("comm1.c:   Clast");
    /*
     * No arguments are allowed; error if any are present.
     */
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,(CHARTYPE *)params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (column_in_view(current_screen,CURRENT_VIEW->current_column-1))
@@ -1066,36 +646,9 @@ short Clast(CHARTYPE *params)
       need_to_redisplay = TRUE;
    if (need_to_redisplay)
       display_screen(current_screen);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     clipboard - manipulate system clipboard
-
-SYNTAX
-     CLIPBOARD COPY|CUT|PASTE|CLEAR
-
-DESCRIPTION
-     The CLIPBOARD COPY command copies the text in the marked block into the
-     system clipboard.
-     The CLIPBOARD CUT command copies the text in the marked block into the
-     system clipboard and then deletes the marked block.
-     The CLIPBOARD PASTE command copies the text in the system clipboard
-     into the current file at the cursor position.
-     The CLIPBOARD CLEAR command clears the contents of the system clipboard.
-
-     Only text objects in the system clipboard can be manipulated.
-
-COMPATIBILITY
-     XEDIT: N/A.
-     KEDIT: Compatible. Does not support APPEND or PUT options.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short THEClipboard(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 #if defined(PDC_CLIP_SUCCESS)
@@ -1103,7 +656,6 @@ short THEClipboard(CHARTYPE *params)
    LINE *curr;
 #endif
 
-   TRACE_FUNCTION("comm1.c:   Clipboard");
    /*
     * Validate the argument
     */
@@ -1116,7 +668,6 @@ short THEClipboard(CHARTYPE *params)
       &&   MARK_VIEW != CURRENT_VIEW )
       {
          display_error( 38, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       rc = execute_put( (CHARTYPE *)"block clip:", FALSE );
@@ -1130,7 +681,6 @@ short THEClipboard(CHARTYPE *params)
       &&   MARK_VIEW != CURRENT_VIEW )
       {
          display_error( 38, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       rc = execute_put( (CHARTYPE *)"block clip:", TRUE );
@@ -1166,38 +716,11 @@ short THEClipboard(CHARTYPE *params)
    else
    {
       display_error( 1, (CHARTYPE *)params, FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     clocate - move the column pointer
-
-SYNTAX
-     CLocate [column target]
-
-DESCRIPTION
-     The CLOCATE command scans the file for the specified <'column target'>
-     beginning with the column following (or preceding) the column pointer.
-
-     Column targets can be specified as absolute targets, relative
-     targets or string targets.
-
-     If no <'column target'> is supplied, the last target used in the last
-     CLOCATE command (if any) is used.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Clocate(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    short target_type=TARGET_ABSOLUTE|TARGET_RELATIVE|TARGET_STRING|TARGET_BLANK;
@@ -1207,7 +730,6 @@ short Clocate(CHARTYPE *params)
    LENGTHTYPE len=0,start_col=0;
    unsigned int y=0,x=0;
 
-   TRACE_FUNCTION("comm1.c:   Clocate");
    /*
     * If no arguments have been supplied, pass the last clocate command
     * to be executed. If no last clocate command, return error 39.
@@ -1218,7 +740,6 @@ short Clocate(CHARTYPE *params)
       if ( blank_field( params ) )
       {
          display_error( 39,(CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
    }
@@ -1265,7 +786,6 @@ short Clocate(CHARTYPE *params)
    if ( save_lastop( LASTOP_CLOCATE, params ) != RC_OK )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -1276,7 +796,6 @@ short Clocate(CHARTYPE *params)
    if (rc != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -1291,32 +810,9 @@ short Clocate(CHARTYPE *params)
       display_screen(current_screen);
    }
    free_target(&target);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     cmatch - find matching bracket character
-
-SYNTAX
-     CMATCH
-
-DESCRIPTION
-     The CMATCH command searches for the matching bracket character to
-     the character under the cursor.
-
-     It handles nested sets of matching pairs.
-     The matching character pairs are []{}<>().
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Cmatch(CHARTYPE *params)
-/***********************************************************************/
 {
    static CHARTYPE *match = (CHARTYPE *)"[]{}<>()";
    unsigned short x=0,y=0,current_y=0;
@@ -1330,7 +826,6 @@ short Cmatch(CHARTYPE *params)
    LINETYPE focus_line=0L;
    bool use_current=TRUE;
 
-   TRACE_FUNCTION("comm1.c:   Cmatch");
    if ( curses_started )
       getyx(CURRENT_WINDOW,y,x);
    /*
@@ -1360,7 +855,6 @@ short Cmatch(CHARTYPE *params)
    ||  BOF(focus_line))
    {
       display_error(66,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_TOF_EOF_REACHED);
    }
    /*
@@ -1369,7 +863,6 @@ short Cmatch(CHARTYPE *params)
    if (CURRENT_SCREEN.sl[y].line_type == LINE_SHADOW)
    {
       display_error(87,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_TARGET_NOT_FOUND);
    }
    /*
@@ -1388,7 +881,6 @@ short Cmatch(CHARTYPE *params)
    if (match_ch == 0)
    {
       display_error(67,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -1459,7 +951,6 @@ short Cmatch(CHARTYPE *params)
    if (match_col == (-1))  /* no match found */
    {
       display_error(68,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_TARGET_NOT_FOUND);
    }
    /*
@@ -1493,7 +984,6 @@ short Cmatch(CHARTYPE *params)
                wmove(CURRENT_WINDOW,y,match_col-(CURRENT_VIEW->verify_col-1));
             }
          }
-         TRACE_RETURN();
          return(RC_OK);
       }
       else
@@ -1506,7 +996,6 @@ short Cmatch(CHARTYPE *params)
             display_screen(current_screen);
             wmove(CURRENT_WINDOW,y,(match_col-(CURRENT_VIEW->verify_col-1)));
          }
-         TRACE_RETURN();
          return(RC_OK);
       }
    }
@@ -1573,7 +1062,6 @@ short Cmatch(CHARTYPE *params)
       else
       {
          display_error(68,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_TARGET_NOT_FOUND);
       }
    }
@@ -1593,132 +1081,36 @@ short Cmatch(CHARTYPE *params)
       display_screen(current_screen);
       wmove(CURRENT_WINDOW,y,x);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     cmsg - display text on command line
-
-SYNTAX
-     CMSG [text]
-
-DESCRIPTION
-     The CMSG command, primarily used in macros, displays 'text' on the
-     command line.
-     The cursor is placed after the last character displayed.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <EMSG>, <MSG>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Cmsg(CHARTYPE *params)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("comm1.c:   Cmsg");
    memset( cmd_rec, ' ', max_line_length );
    cmd_rec_len = strlen( (DEFCHAR *)params );
    memcpy( cmd_rec, params, cmd_rec_len );
    display_cmdline( current_screen, CURRENT_VIEW );
    Sos_endchar( (CHARTYPE *)"" );
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     command - execute a command without translation
-
-SYNTAX
-     COMMAND command [options]
-
-DESCRIPTION
-     The COMMAND command executes the specified 'command' without
-     synonym or macro translation. THE does not attempt to execute
-     the command as a <macro> even if <SET IMPMACRO> is ON. The
-     command will be passed to the operating system if <SET IMPOS>
-     is ON.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short THECommand(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm1.c:   THECommand");
    rc = command_line(params,COMMAND_ONLY_TRUE);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     compress - reduce spaces to tabs
-
-SYNTAX
-     COMPress [target]
-
-DESCRIPTION
-     The COMPRESS command reduces multiple occurrences of spaces and
-     replaces them with tab characters in the <'target'> lines.
-     The current tab columns (set by <SET TABS>) are used in
-     determining where tab characters will replaces spaces.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <EXPAND>, <SET TABS>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Compress(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm1.c:   Compress");
    rc = execute_expand_compress(params,FALSE,TRUE,TRUE,TRUE);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     controlchar - allow control characters to be entered
-
-SYNTAX
-     CONTROLChar
-
-DESCRIPTION
-     The CONTROLCHAR command prompts the user to enter a control
-     character; an ASCII character between 1 and 31 inclusive.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short ControlChar(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short y=0,x=0;
    int key=0;
 
-   TRACE_FUNCTION("comm1.c:   ControlChar");
    getyx(CURRENT_WINDOW,y,x);
    /*
     * If in the MAIN window, this command can only be issued on a real
@@ -1729,7 +1121,6 @@ short ControlChar(CHARTYPE *params)
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE)
       {
          display_error(38,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
       }
    }
@@ -1747,41 +1138,12 @@ short ControlChar(CHARTYPE *params)
    if (key >= (int)'A'    /* was '@' for ASCII 0, but Text() command fails */
    &&  key <= (int)'_')
    {
-      TRACE_RETURN();
       return((RAW_KEY*2)+(short)key-(short)'@');
    }
    display_error(69,(CHARTYPE *)"- must be between 'A' and '_'",FALSE);
-   TRACE_RETURN();
    return(RC_INVALID_OPERAND);
 }
-/*man-start*********************************************************************
-COMMAND
-     copy - copies text from one position to another
-
-SYNTAX
-     COPY target1 target2
-     COPY BLOCK [RESET]
-
-DESCRIPTION
-     With the first form of the COPY command, text is copied from
-     'target1' to the line specified by 'target2'. Text can
-     only be copied within the same view of the file.
-
-     The second form of the COPY command copies text within the
-     currently marked block to the current cursor position.
-     The text can be in the same file or a different file.
-
-COMPATIBILITY
-     XEDIT: COPY BLOCK not available.
-     KEDIT: Adds extra functionality with [RESET] option.
-            With the cursor in the marked block this command in KEDIT
-            acts like <DUPLICATE> BLOCK.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Copy(CHARTYPE *params)
-/***********************************************************************/
 {
    CHARTYPE reset_block=SOURCE_UNKNOWN;
    short rc=RC_OK;
@@ -1792,13 +1154,11 @@ short Copy(CHARTYPE *params)
    long target_type2=TARGET_NORMAL;
    bool lines_based_on_scope=FALSE;
 
-   TRACE_FUNCTION("comm1.c:   Copy");
    initialise_target(&target1);
    initialise_target(&target2);
    if ((rc = validate_target(params,&target1,target_type1,get_true_line(TRUE),TRUE,TRUE)) != RC_OK)
    {
       free_target(&target1);
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -1812,7 +1172,6 @@ short Copy(CHARTYPE *params)
       {
          free_target(&target1);
          display_error(3,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       else
@@ -1839,7 +1198,6 @@ short Copy(CHARTYPE *params)
          {
             free_target(&target1);
             box_operations(BOX_C,reset_block,FALSE,' ');
-            TRACE_RETURN();
             return(RC_OK);
          }
          source_view = MARK_VIEW;
@@ -1853,7 +1211,6 @@ short Copy(CHARTYPE *params)
          if ((rc = validate_target(target1.rt[target1.spare].string,&target2,target_type2,get_true_line(TRUE),TRUE,TRUE)) != RC_OK)
          {
             free_target(&target2);
-            TRACE_RETURN();
             return(rc);
          }
          source_view = CURRENT_VIEW;
@@ -1888,179 +1245,23 @@ short Copy(CHARTYPE *params)
                             end_line,true_line,1L,source_view,dest_view,lines_based_on_scope,
                             &lines_affected);
 
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     coverlay - overlay text starting at the column pointer
-
-SYNTAX
-     COVerlay text
-
-DESCRIPTION
-     The COVERLAY command overlays the supplied 'text' onto the
-     characters following the column position.
-
-     Spaces in the 'text' do not destroy the existing characters.
-
-     An underscore character "_" in the 'text' places a space in the
-     corresponding character position. Therefore you cannot use the
-     COVERLAY command to place underscores in a line.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Coverlay(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm1.c:   Coverlay");
    rc = column_command(params,COLUMN_COVERLAY);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     creplace - replace text starting at the column pointer
-
-SYNTAX
-     CReplace text
-
-DESCRIPTION
-     The CREPLACE command replaces the current characters after the
-     column pointer with the supplied 'text'.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Creplace(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm1.c:   Creplace");
    rc = column_command(params,COLUMN_CREPLACE);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     cursor - move cursor to specified position
-
-SYNTAX
-     CURsor Column [Priority priority]
-     CURsor Screen UP|DOWN|LEFT|RIGHT [Priority priority]
-     CURsor Screen row [col] [Priority priority]
-     CURsor [Escreen] UP|DOWN [Priority priority]
-     CURsor [Escreen|Kedit] LEFT|RIGHT [Priority priority]
-     CURsor [Escreen] row [col] [Priority priority]
-     CURsor CUA UP|DOWN|LEFT|RIGHT [Priority priority]
-     CURsor CMdline [n] [Priority priority]
-     CURsor HOME [SAVE] [Priority priority]
-     CURsor File line [col] [Priority priority]
-     CURsor GOTO line col [Priority priority]
-     CURsor Mouse [Priority priority]
-     CURsor Prefix [Priority priority]
-
-DESCRIPTION
-     The CURSOR command allows the user to specify where the cursor
-     is to be positioned.
-
-     CURSOR 'Column' moves the cursor to the current column of the
-     <focus line>.
-
-     CURSOR 'Screen' 'UP'|'DOWN'|'LEFT'|'RIGHT' moves the cursor in the
-     indicated direction one line or column. If the cursor is
-     positioned on the first or last line of the screen, the cursor
-     wraps to the first or last enterable line. If the cursor is
-     positioned on the left or right edges of the screen, the cursor
-     moves to the left or right edge of the screen on the same line.
-
-     CURSOR 'Screen' 'row' ['col'] is similar to CURSOR 'Escreen'
-     'row' ['col'], but all coordinates are relative the the top left
-     corner of the screen, not the top left corner of the
-     <filearea>. Hence, 1,1 would be an invalid cursor position because
-     it would result in the cursor being moved to the <idline>.
-     Specification of 'row' and/or 'col' outside the boundaries of the
-     logical window is regarded as an error.
-
-     CURSOR ['Escreen'] 'UP'|'DOWN'|'LEFT'|'RIGHT' is similar to CURSOR
-     'Screen' 'UP'|'DOWN'|'LEFT'|'RIGHT', except that where scrolling
-     of the window is possible, then scrolling will take place.
-
-     CURSOR ['Escreen'] 'row' ['col'] moves the cursor to the specified
-     'row'/'col' position within the <filearea>. The top left corner of
-     the <filearea> is 1,1.
-     'row' and 'col' may be specified as '=', which will default to the
-     current row and/or column position.
-     If 'row' or 'col' are greater than the maximum number of rows or
-     columns in the <filearea>, the cursor will move to the last
-     row/column available.
-     If the specified 'row' is a <reserved line>, <scale line> or <tab line>
-     an error will be displayed.
-     If the 'row' specified is above the <Top-of-File line> or below the
-     <Bottom-of-File line> the cursor will be placed on the closest
-     one of these lines.
-
-     CURSOR 'Kedit' 'LEFT'|'RIGHT' mimics the default behaviour of
-     CURL and CURR in KEDIT.
-
-     CURSOR 'CUA' 'UP'|'DOWN'|'LEFT'|'RIGHT' moves the cursor in the
-     indicated direction one line or column. The behaviour of the
-     cursor at the the end of a line and at the start of a line is
-     consistent with the Common User Access (CUA) definition.
-
-     CURSOR 'CMdline' moves the cursor to the indicated column of the
-     <command line>.
-
-     CURSOR 'HOME' moves the cursor to the first column of the <command line>
-     (if not on the command line), or to the last row/column of
-     the <filearea> if on the <command line>. With the ['SAVE'] option,
-     the cursor will move to the last row/column of the <filearea> or
-     <prefix area> (which ever was the last position) if on the
-     <command line>.
-
-     CURSOR 'File' moves the cursor to the line and column of the file.
-     If the line and/or column are not currently displayed, an error
-     message is displayed.
-
-     CURSOR 'GOTO' moves the cursor to the specified line and column
-     of the file, whether the row and column are currently displayed or
-     not.  If the 'line' and 'col' are currently displayed, then this
-     command behaves just like CURSOR 'File'. If not, then the
-     <current line> will be changed to the specified <line>.
-
-     CURSOR 'Mouse' moves the cursor to the position where a mouse button
-     was last activated.  This command is specific to THE.
-
-     CURSOR 'PREFIX' moves the cursor to the first column of the <prefix area>
-     (if not in the prefix area), or to the first column of the <filearea> if
-     in the <prefix area>. This command has no effect if run from the <command line>.
-     This command replaces TABPRE.
-
-     The optional 'Priority' argument is included for compatibility with XEDIT.
-     The value of the 'priority' argument must be between 0 and 256, but otherwise
-     it is ignored.
-
-COMPATIBILITY
-     XEDIT: Compatible. Priority is ignored.
-     KEDIT: Compatible. Added GOTO and PREFIX option.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Cursor(CHARTYPE *params)
-/***********************************************************************/
 {
    register short idx=0;
 #define CUR_PARAMS  6
@@ -2080,7 +1281,6 @@ short Cursor(CHARTYPE *params)
    CHARTYPE _THE_FAR buffer[100];
    /* int priority; */
 
-   TRACE_FUNCTION("comm1.c:   Cursor");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -2091,7 +1291,6 @@ short Cursor(CHARTYPE *params)
    if ( num_params == 0 )
    {
       display_error(3,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    error_message = word[0];
@@ -2111,7 +1310,6 @@ short Cursor(CHARTYPE *params)
                sprintf( (DEFCHAR *)buffer, "- MUST be <= %d", 256 );
             display_error( error_number, buffer, FALSE );
             rc = RC_INVALID_OPERAND;
-            TRACE_RETURN();
             return(rc);
          }
          /* priority = atoi( (DEFCHAR *)word[num_params-1] ); */
@@ -2586,6 +1784,5 @@ short Cursor(CHARTYPE *params)
       if (time_to_leave)
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }

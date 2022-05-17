@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* SORT.C - Functions related to the SORT command.                     */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -60,9 +58,7 @@ short num_fields;
 
 static int cmp(const void *,const void *);
 
-/***********************************************************************/
 static int cmp(const void *first,const void *second)
-/***********************************************************************/
 {
    LENGTHTYPE i=0,j=0;
    short rc=RC_OK;
@@ -139,9 +135,7 @@ static int cmp(const void *first,const void *second)
    return(0);
 }
 
-/***********************************************************************/
 short execute_sort(CHARTYPE *params)
-/***********************************************************************/
 {
 #define STATE_REAL   0
 #define STATE_SHADOW 1
@@ -168,7 +162,6 @@ short execute_sort(CHARTYPE *params)
    short state=STATE_REAL;
    int errornum=1;
 
-   TRACE_FUNCTION("sort.c:    execute_sort");
    /*
     * Validate first argument as a target...
     */
@@ -177,7 +170,6 @@ short execute_sort(CHARTYPE *params)
    if (rc != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    true_line = (target.num_lines < 0L)?target.last_line:target.true_line;
@@ -191,7 +183,6 @@ short execute_sort(CHARTYPE *params)
    {
       display_error(55,(CHARTYPE *)"",FALSE);
       free_target(&target);
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -249,7 +240,6 @@ short execute_sort(CHARTYPE *params)
           */
          display_error(1,(CHARTYPE *)word[0],FALSE);
          free_target(&target);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
          break;
          /*
@@ -339,7 +329,6 @@ short execute_sort(CHARTYPE *params)
                      break;
                }
                free_target(&target);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
             /*
@@ -359,7 +348,6 @@ short execute_sort(CHARTYPE *params)
                {
                   display_error(1,strtrunc(target.rt[target.spare].string),FALSE);
                   free_target(&target);
-                  TRACE_RETURN();
                   return(RC_INVALID_OPERAND);
                }
             }
@@ -381,14 +369,12 @@ short execute_sort(CHARTYPE *params)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
       free_target(&target);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    if ((sort_field_2 = (CHARTYPE *)(*the_malloc)(max_column_width)) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
       free_target(&target);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -404,14 +390,12 @@ short execute_sort(CHARTYPE *params)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
       free_target(&target);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    if ((origfirst = (LINE **)(*the_malloc)(3*abs_num_lines*sizeof(LINE *))) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
       free_target(&target);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    lp = lfirst;
@@ -587,6 +571,5 @@ short execute_sort(CHARTYPE *params)
    (*the_free)(lfirst);
    (*the_free)(origfirst);
    free_target(&target);
-   TRACE_RETURN();
    return(RC_OK);
 }

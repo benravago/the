@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* UTIL.C - Utility routines                                           */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -126,14 +124,11 @@ static unsigned char _THE_FAR ebc2asc_table[256] = {
  0x38 ,0x39 ,0xB3 ,0xF7 ,0xF0 ,0xFA ,0xA7 ,0xFF
 };
 
-/***********************************************************************/
 CHARTYPE *asc2ebc(CHARTYPE *str,int len,int start,int end)
-/***********************************************************************/
 /* Function  : Converts an ASCII string to an EBCDIC string.           */
 /* Parameters: str      - ASCII string                                 */
 /*             len      - length of string to convert                  */
 /* Return    : *str     - the same string converted                    */
-/***********************************************************************/
 {
    register int i = 0;
 
@@ -142,14 +137,11 @@ CHARTYPE *asc2ebc(CHARTYPE *str,int len,int start,int end)
    return(str);
 }
 
-/***********************************************************************/
 CHARTYPE *ebc2asc(CHARTYPE *str,int len,int start,int end)
-/***********************************************************************/
 /* Function  : Converts an EBCDIC string to an ASCII string.           */
 /* Parameters: str      - EBCDIC string                                */
 /*             len      - length of string to convert                  */
 /* Return    : *str     - the same string converted                    */
-/***********************************************************************/
 {
    register int i = 0;
 
@@ -180,7 +172,6 @@ SEE ALSO
      strzreveq, memrevne
 *******************************************************************************/
 LENGTHTYPE memreveq( CHARTYPE *buffer, CHARTYPE ch, LENGTHTYPE max_len)
-/***********************************************************************/
 {
    LENGTHTYPE len=max_len;
 
@@ -602,7 +593,6 @@ SEE ALSO
      strzrevne
 *******************************************************************************/
 LENGTHTYPE strzreveq(CHARTYPE *str,CHARTYPE ch)
-/***********************************************************************/
 {
    LENGTHTYPE len=0;
 
@@ -869,9 +859,7 @@ void memrev( CHARTYPE *dest, CHARTYPE *src, LENGTHTYPE length )
       dest[j] = src[i];
    }
 }
-/***********************************************************************/
 LENGTHTYPE memcmpi( CHARTYPE *buf1, CHARTYPE *buf2, LENGTHTYPE len )
-/***********************************************************************/
 /* Function  : Compares two memory buffers for equality;               */
 /*             case insensitive. Same as memicmp() Microsoft C.        */
 /* Parameters: buf1     - first buffer                                 */
@@ -880,7 +868,6 @@ LENGTHTYPE memcmpi( CHARTYPE *buf1, CHARTYPE *buf2, LENGTHTYPE len )
 /* Return    : <0 if buf1 < buf2,                                      */
 /*             =0 if buf1 = buf2,                                      */
 /*             >0 if buf1 > buf2,                                      */
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
    CHARTYPE c1,c2;
@@ -902,9 +889,7 @@ LENGTHTYPE memcmpi( CHARTYPE *buf1, CHARTYPE *buf2, LENGTHTYPE len )
    }
    return(0);
 }
-/***********************************************************************/
 LENGTHTYPE my_stricmp( DEFCHAR *str1, DEFCHAR *str2 )
-/***********************************************************************/
 /* Function  : Compares two string buffers for equality;               */
 /*             case insensitive. Same as stricmp(), strcasecmp() etc.  */
 /* Parameters: str1     - first string                                 */
@@ -912,7 +897,6 @@ LENGTHTYPE my_stricmp( DEFCHAR *str1, DEFCHAR *str2 )
 /* Return    : <0 if str1 < str2,                                      */
 /*             =0 if str1 = str2,                                      */
 /*             >0 if str1 > str2,                                      */
-/***********************************************************************/
 {
    LENGTHTYPE len1=strlen((DEFCHAR *)str1),len2=strlen((DEFCHAR *)str2);
    LENGTHTYPE i,len;
@@ -940,14 +924,11 @@ LENGTHTYPE my_stricmp( DEFCHAR *str1, DEFCHAR *str2 )
       return(-1);
    return(0);
 }
-/***********************************************************************/
 CHARTYPE *make_upper(CHARTYPE *str)
-/***********************************************************************/
 /* Function  : Makes the supplied string uppercase.                    */
 /*             Equivalent to strupr() on some platforms.               */
 /* Parameters: str      - string to uppercase                          */
 /* Return    : str uppercased                                          */
-/***********************************************************************/
 {
    CHARTYPE *save_str=str;
 
@@ -1012,18 +993,14 @@ bool equal( CHARTYPE *con, CHARTYPE *str, LENGTHTYPE min_len )
    return(TRUE);
 
 }
-/***********************************************************************/
 bool valid_integer( CHARTYPE *str )
-/***********************************************************************/
 /* Function  : Checks that string contains only 0-9,- or +.            */
 /* Parameters: *str     - string to be checked                         */
 /* Return    : TRUE or FALSE                                           */
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
    LENGTHTYPE num_signs=0;
 
-   TRACE_FUNCTION("util.c:    valid_integer");
    for ( i = 0; i < strlen( (DEFCHAR *)str ); i++ )
    {
       if ( *(str+i) == '-' || *(str+i) == '+' )
@@ -1032,61 +1009,47 @@ bool valid_integer( CHARTYPE *str )
       {
          if ( !isdigit( *(str+i) ) )
          {
-            TRACE_RETURN();
             return(FALSE);
          }
       }
    }
    if ( num_signs > 1 )
    {
-      TRACE_RETURN();
       return(FALSE);
    }
-   TRACE_RETURN();
    return(TRUE);
 }
-/***********************************************************************/
 bool valid_positive_integer( CHARTYPE *str )
-/***********************************************************************/
 /* Function  : Checks that string contains only 0-9, or +.             */
 /* Parameters: *str     - string to be checked                         */
 /* Return    : TRUE or FALSE                                           */
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
 
-   TRACE_FUNCTION("util.c:    valid_positive_integer");
    if ( *str == '+' )
       str++;
    for ( i = 0; i < strlen( (DEFCHAR *)str ); i++ )
    {
       if ( !isdigit( *(str+i) ) )
       {
-         TRACE_RETURN();
          return(FALSE);
       }
    }
-   TRACE_RETURN();
    return(TRUE);
 }
-/***********************************************************************/
 short valid_positive_integer_against_maximum( CHARTYPE *str, LENGTHTYPE maximum )
-/***********************************************************************/
 /* Function  : Checks that string contains only 0-9, or +              */
 /*             and is less than supplied string maximum                */
 /* Parameters: *str     - string to be checked                         */
 /* Return    : TRUE or FALSE                                           */
-/***********************************************************************/
 {
    LENGTHTYPE i,len_str,len_max;
    CHARTYPE _THE_FAR buffer[50];
    CHARTYPE *buf;
    short rc=0;
 
-   TRACE_FUNCTION("util.c:    valid_positive_integer_against_maximum");
    if ( !valid_positive_integer( str ) )
    {
-      TRACE_RETURN();
       return(4); /* invlaid number */
    }
    /*
@@ -1100,12 +1063,10 @@ short valid_positive_integer_against_maximum( CHARTYPE *str, LENGTHTYPE maximum 
    len_str = strlen( (DEFCHAR *)str );
    if ( len_str > len_max )
    {
-      TRACE_RETURN();
       return(6);
    }
    if ( len_str < len_max )
    {
-      TRACE_RETURN();
       return(0);
    }
    for ( i = 0; i < len_str; i++, str++, buf++ )
@@ -1121,17 +1082,13 @@ short valid_positive_integer_against_maximum( CHARTYPE *str, LENGTHTYPE maximum 
          break;
       }
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 LENGTHTYPE strzeq( CHARTYPE *str, CHARTYPE ch )
-/***********************************************************************/
 /* Function  : Locate in ASCIIZ string, character                      */
 /* Parameters: *str     - string to be searched                        */
 /*             ch       - character to be searched for                 */
 /* Return    : position in string of character - (-1) if not found     */
-/***********************************************************************/
 {
    LENGTHTYPE len=0;
    LENGTHTYPE i = 0;
@@ -1142,15 +1099,12 @@ LENGTHTYPE strzeq( CHARTYPE *str, CHARTYPE ch )
       i = (-1L);
    return(i);
 }
-/***********************************************************************/
 CHARTYPE *strtrans( CHARTYPE *str, CHARTYPE oldch, CHARTYPE newch )
-/***********************************************************************/
 /* Function  : Translate all occurrences of oldch to newch in str      */
 /* Parameters: *str     - string to be amendedd                        */
 /*             oldch    - character to be replaced                     */
 /*             newch    - character to replace oldch                   */
 /* Return    : same string but with characters translated              */
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
 
@@ -1161,9 +1115,7 @@ CHARTYPE *strtrans( CHARTYPE *str, CHARTYPE oldch, CHARTYPE newch )
    }
    return(str);
 }
-/***********************************************************************/
 LINE *add_LINE( LINE *first, LINE *curr, CHARTYPE *line, LENGTHTYPE len, SELECTTYPE select, bool new_flag )
-/***********************************************************************/
 /* Adds a member of the linked list for the specified file containing  */
 /* the line contents and length.                                       */
 /* PARAMETERS:                                                         */
@@ -1173,9 +1125,7 @@ LINE *add_LINE( LINE *first, LINE *curr, CHARTYPE *line, LENGTHTYPE len, SELECTT
 /* len        - length of line to be added                             */
 /* select     - select level of new line                               */
 /* RETURN:    - pointer to current item in linked list or NULL if error*/
-/***********************************************************************/
 {
-   TRACE_FUNCTION("util.c:    add_LINE");
    /*
     * Validate that the line being added is shorter than the maximum line length
     */
@@ -1187,7 +1137,6 @@ LINE *add_LINE( LINE *first, LINE *curr, CHARTYPE *line, LENGTHTYPE len, SELECTT
    next_line = lll_add( first, curr, sizeof(LINE) );
    if ( next_line == NULL )
    {
-      TRACE_RETURN();
       return(NULL);
    }
    curr_line = next_line;
@@ -1195,7 +1144,6 @@ LINE *add_LINE( LINE *first, LINE *curr, CHARTYPE *line, LENGTHTYPE len, SELECTT
    curr_line->line = (CHARTYPE *)(*the_malloc)( (len+1)*sizeof(CHARTYPE) );
    if ( curr_line->line == NULL )
    {
-      TRACE_RETURN();
       return(NULL);
    }
    memcpy( curr_line->line, line, len );
@@ -1223,29 +1171,21 @@ LINE *add_LINE( LINE *first, LINE *curr, CHARTYPE *line, LENGTHTYPE len, SELECTT
    {
       find_auto_parser( CURRENT_FILE );
    }
-   TRACE_RETURN();
    return(curr_line);
 }
-/***********************************************************************/
 LINE *append_LINE( LINE *curr, CHARTYPE *line, LENGTHTYPE len )
-/***********************************************************************/
 {
-   TRACE_FUNCTION("util.c:    append_LINE");
    curr->line = (CHARTYPE *)(*the_realloc)( curr->line, (curr->length+len+1)*sizeof(CHARTYPE) );
    if ( curr->line == NULL )
    {
-      TRACE_RETURN();
       return(NULL);
    }
    memcpy( curr->line+curr->length, line, len );
    curr->length += len;
    *(curr->line+curr->length) = '\0'; /* for functions that expect ASCIIZ string */
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 LINE *delete_LINE( LINE **first, LINE **last, LINE *curr, short direction, bool delete_names )
-/***********************************************************************/
 /* Deletes a member of the linked list for the specified file.         */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
@@ -1254,9 +1194,7 @@ LINE *delete_LINE( LINE **first, LINE **last, LINE *curr, short direction, bool 
 /* direction  - direction in which to delete.                          */
 /* delete_names - if 1 delete the names linked list                    */
 /* RETURN:    - pointer to current item in linked list or NULL if error*/
-/***********************************************************************/
 {
-   TRACE_FUNCTION("util.c:    delete_LINE");
    if ( delete_names )
    {
       if ( curr->first_name != (THELIST *)NULL )
@@ -1276,32 +1214,24 @@ LINE *delete_LINE( LINE **first, LINE **last, LINE *curr, short direction, bool 
       curr->line = NULL;
    }
    curr = lll_del( first, last, curr, direction );
-   TRACE_RETURN();
    return( curr );
 }
 
-/***********************************************************************/
 void put_string( WINDOW *win, ROWTYPE row, COLTYPE col, CHARTYPE *string, LENGTHTYPE len )
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
 
-   TRACE_FUNCTION("util.c:    put_string");
    wmove( win, row, col );
    for ( i = 0; i < len; i++ )
    {
       waddch( win, etmode_table[*(string+i)] );
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void put_char(WINDOW *win,chtype ch,CHARTYPE add_ins)
-/***********************************************************************/
 {
    chtype chr=0;
 
-   TRACE_FUNCTION("util.c:    put_char");
    chr = ch & A_CHARTEXT;
    if (etmode_flag[chr])  /* etmode character has attributes, use them */
       ch = etmode_table[chr];
@@ -1312,25 +1242,20 @@ void put_char(WINDOW *win,chtype ch,CHARTYPE add_ins)
       waddch( win, ch );
    else
       winsch( win, ch );
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short set_up_windows(short scrn)
-/***********************************************************************/
 {
    register short i=0;
    short y=0,x=0;
    FILE_DETAILS fp;
    short my_prefix_width=0;
 
-   TRACE_FUNCTION("util.c:    set_up_windows");
    /*
     * If curses has not started exit gracefully...
     */
    if ( !curses_started )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -1339,7 +1264,6 @@ short set_up_windows(short scrn)
    if ( ( fp.attr = (COLOUR_ATTR *)(*the_malloc)( ATTR_MAX*sizeof(COLOUR_ATTR) ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    if ( screen[scrn].screen_view )
@@ -1375,7 +1299,6 @@ short set_up_windows(short scrn)
          if ( screen[scrn].win[i] == (WINDOW *)NULL )
          {
             display_error( 30, (CHARTYPE *)"creating window", FALSE );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
          keypad( screen[scrn].win[i], TRUE );
@@ -1437,7 +1360,6 @@ short set_up_windows(short scrn)
       if ( divider == (WINDOW *)NULL )
       {
          display_error( 30, (CHARTYPE *)"creating window", FALSE );
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       keypad( divider, TRUE );
@@ -1459,33 +1381,24 @@ short set_up_windows(short scrn)
     * Free up  space for a file descriptor colour attributes...
     */
    (*the_free)( fp.attr );
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short draw_divider(void)
-/***********************************************************************/
 {
 
-   TRACE_FUNCTION("util.c:    draw_divider");
 
    wmove(divider,0,0);
    wvline(divider,0,screen[1].screen_rows);
    wmove(divider,0,1);
    wvline(divider,0,screen[1].screen_rows);
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short create_statusline_window(void)
-/***********************************************************************/
 {
    COLOUR_ATTR attr;
 
-   TRACE_FUNCTION( "util.c:    create_statusline_window" );
    if ( !curses_started )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    if ( CURRENT_VIEW == NULL
@@ -1515,17 +1428,12 @@ short create_statusline_window(void)
       default:
          break;
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short create_filetabs_window(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION( "util.c:    create_filetabs_window" );
    if ( !curses_started )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    if ( filetabs != (WINDOW *)NULL )
@@ -1543,16 +1451,12 @@ short create_filetabs_window(void)
        */
       create_statusline_window();
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 void pre_process_line(VIEW_DETAILS *the_view,LINETYPE line_number,LINE *known_curr)
-/***********************************************************************/
 {
    LINE *curr=known_curr;
 
-   TRACE_FUNCTION("util.c:    pre_process_line");
    /*
     * If we haven't been passed a valid LINE*, go and get one for the
     * supplied line_number.
@@ -1578,23 +1482,18 @@ void pre_process_line(VIEW_DETAILS *the_view,LINETYPE line_number,LINE *known_cu
       pre_rec[pre_rec_len] = ' ';
       pre_rec[MAX_PREFIX_WIDTH] = '\0';
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short post_process_line(VIEW_DETAILS *the_view,LINETYPE line_number,LINE *known_curr,bool set_alt)
-/***********************************************************************/
 {
    LINE *curr=known_curr;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("util.c:    post_process_line");
    /*
     * If there are no lines in the file associated with the view, exit...
     */
    if (the_view->file_for_view->first_line == NULL)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -1616,7 +1515,6 @@ short post_process_line(VIEW_DETAILS *the_view,LINETYPE line_number,LINE *known_
    if ( rec_len == curr->length
    && ( memcmp( rec, curr->line, curr->length) == 0 ) )
    {
-      TRACE_RETURN();
       return(RC_NO_LINES_CHANGED);
    }
    /*
@@ -1642,7 +1540,6 @@ short post_process_line(VIEW_DETAILS *the_view,LINETYPE line_number,LINE *known_
       if (curr->line == NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
    }
@@ -1661,43 +1558,32 @@ short post_process_line(VIEW_DETAILS *the_view,LINETYPE line_number,LINE *known_
    {
       find_auto_parser(CURRENT_FILE);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 bool blank_field(CHARTYPE *field)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("util.c:    blank_field");
    if ( field == NULL )
    {
-      TRACE_RETURN();
       return(TRUE);                /* field is NULL */
    }
    if ( strzne( field, ' ' ) == (-1) )
    {
-      TRACE_RETURN();
       return(TRUE);                /* field just contains spaces */
    }
-   TRACE_RETURN();
    return(FALSE);
 }
-/***********************************************************************/
 void adjust_marked_lines(bool binsert_line,LINETYPE base_line,LINETYPE num_lines)
-/***********************************************************************/
 {
    int iinsert_line=binsert_line;
 /*
  * When lines are deleted, the base line is the first line in the file
  * irrespective of the direction that the delete is done.
  */
-   TRACE_FUNCTION("util.c:    adjust_marked_lines");
    /*
     * If there are no marked lines in the current view, return.
     */
    if (MARK_VIEW != CURRENT_VIEW)
    {
-      TRACE_RETURN();
       return;
    }
    switch(iinsert_line)
@@ -1748,12 +1634,9 @@ void adjust_marked_lines(bool binsert_line,LINETYPE base_line,LINETYPE num_lines
          CURRENT_VIEW->mark_end_line -= num_lines;
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void adjust_pending_prefix(VIEW_DETAILS *view,bool binsert_line,LINETYPE base_line,LINETYPE num_lines)
-/***********************************************************************/
 {
    int iinsert_line=binsert_line;
    /*
@@ -1762,13 +1645,11 @@ void adjust_pending_prefix(VIEW_DETAILS *view,bool binsert_line,LINETYPE base_li
     */
    THE_PPC *curr_ppc=NULL;
 
-   TRACE_FUNCTION("util.c:    adjust_pending_prefix");
    /*
     * If there are no pending prefix commands in the view, return.
     */
    if (view->file_for_view->first_ppc == NULL)
    {
-      TRACE_RETURN();
       return;
    }
    curr_ppc = view->file_for_view->first_ppc;
@@ -1800,16 +1681,12 @@ void adjust_pending_prefix(VIEW_DETAILS *view,bool binsert_line,LINETYPE base_li
       }
       curr_ppc = curr_ppc->next;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 CHARTYPE case_translate(CHARTYPE key)
-/***********************************************************************/
 {
    CHARTYPE case_type = CURRENT_VIEW->case_enter;
 
-   TRACE_FUNCTION("util.c:    case_translate");
    switch( CURRENT_VIEW->current_window )
    {
       case WINDOW_COMMAND:
@@ -1824,31 +1701,24 @@ CHARTYPE case_translate(CHARTYPE key)
    if ( case_type == CASE_UPPER
    && islower( key ) )
    {
-      TRACE_RETURN();
       return( toupper( key ) );
    }
    if ( case_type == CASE_LOWER
    && isupper( key ) )
    {
-      TRACE_RETURN();
       return( tolower( key ) );
    }
-   TRACE_RETURN();
    return( key );
 }
-/***********************************************************************/
 void add_to_recovery_list(CHARTYPE *line,LENGTHTYPE len)
-/***********************************************************************/
 {
    register short i=0;
 
-   TRACE_FUNCTION("util.c:    add_to_recovery_list");
    /*
     * Ignore if running in batch.
     */
    if (batch_only)
    {
-      TRACE_RETURN();
       return;
    }
    /*
@@ -1869,7 +1739,6 @@ void add_to_recovery_list(CHARTYPE *line,LENGTHTYPE len)
       if ((rcvry[add_rcvry] = (CHARTYPE *)(*the_malloc)((len+1)*sizeof(CHARTYPE))) == NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return;
       }
    }
@@ -1878,7 +1747,6 @@ void add_to_recovery_list(CHARTYPE *line,LENGTHTYPE len)
       if ((rcvry[add_rcvry] = (CHARTYPE *)(*the_realloc)(rcvry[add_rcvry],(len+1)*sizeof(CHARTYPE))) == NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return;
       }
    }
@@ -1888,24 +1756,19 @@ void add_to_recovery_list(CHARTYPE *line,LENGTHTYPE len)
    add_rcvry = (++add_rcvry >= MAX_RECV) ? 0 : add_rcvry;
    num_rcvry = (++num_rcvry > MAX_RECV) ? MAX_RECV : num_rcvry;
 
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void get_from_recovery_list(short num)
-/***********************************************************************/
 {
    register short i=0;
    short num_retr = min(num,num_rcvry);
 
-   TRACE_FUNCTION("util.c:    get_from_recovery_list");
    /*
     * Return error if nothing to recover.
     */
    if (retr_rcvry == (-1))
    {
       display_error( 0, (CHARTYPE *)"0 line(s) recovered", TRUE );
-      TRACE_RETURN();
       return;
    }
    /*
@@ -1928,16 +1791,12 @@ void get_from_recovery_list(short num)
 
    sprintf((DEFCHAR *)temp_cmd,"%d line(s) recovered",num_retr);
    display_error(0,temp_cmd,TRUE);
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void free_recovery_list(void)
-/***********************************************************************/
 {
    register short i=0;
 
-   TRACE_FUNCTION("util.c:    free_recovery_list");
    for ( i = 0; i < MAX_RECV; i++ )
    {
       if (rcvry[i] != NULL)
@@ -1949,20 +1808,16 @@ void free_recovery_list(void)
    add_rcvry  = (-1);
    retr_rcvry = (-1);
    num_rcvry  = 0;
-   TRACE_RETURN();
    return;
 }
 
 #if THIS_APPEARS_TO_NOT_BE_USED
-/***********************************************************************/
 WINDOW *adjust_window(WINDOW *win,short tr,short tc,short lines,short cols)
-/***********************************************************************/
 {
    WINDOW *neww=NULL;
    short begy=0,begx=0,maxy=0,maxx=0,y=0,x=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("util.c:    adjust_window");
    /*
     * Get existing details about the current window.
     */
@@ -1972,13 +1827,11 @@ WINDOW *adjust_window(WINDOW *win,short tr,short tc,short lines,short cols)
    {
       if (begy == tr && begx == tc)   /* same position */
       {
-         TRACE_RETURN();
          return(win); /* nothing to do, return same window */
       }
       else /* need to move window */
       {
          rc = mvwin(win,tr,tc);
-         TRACE_RETURN();
          return(win);
       }
    }
@@ -1993,19 +1846,15 @@ WINDOW *adjust_window(WINDOW *win,short tr,short tc,short lines,short cols)
       wmove(neww,y,x);
       keypad( neww, TRUE );
    }
-   TRACE_RETURN();
    return(neww);
 }
 #endif
 
-/***********************************************************************/
 short my_wclrtoeol(WINDOW *win)
-/***********************************************************************/
 {
    register short i=0;
    short x=0,y=0,maxx=0,maxy=0;
 
-   TRACE_FUNCTION("util.c:    my_wclrtoeol");
 #if defined(USE_NCURSES_IGNORED)
    /*
     * This extra code here to get around an ncurses bug that
@@ -2030,16 +1879,12 @@ short my_wclrtoeol(WINDOW *win)
          waddch(win,' ');
       wmove(win,y,x);
    }
-   TRACE_RETURN();
    return(0);
 }
-/***********************************************************************/
 short my_wdelch(WINDOW *win)
-/***********************************************************************/
 {
    short x=0,y=0,maxx=0,maxy=0;
 
-   TRACE_FUNCTION("util.c:    my_wdelch");
 
    getyx(win,y,x);
    getmaxyx(win,maxy,maxx);
@@ -2047,13 +1892,10 @@ short my_wdelch(WINDOW *win)
    mvwaddch(win,y,maxx-1,' ');
    wmove(win,y,x);
 
-   TRACE_RETURN();
    return(0);
 }
-/***********************************************************************/
 short get_word(CHARTYPE *string,LENGTHTYPE length,LENGTHTYPE curr_pos,
                LENGTHTYPE *first_col,LENGTHTYPE *last_col)
-/***********************************************************************/
 /*
  * A "word" is based on the SET WORD settings
  * Returns the portion of the string containing a "word" to the right
@@ -2067,14 +1909,12 @@ short get_word(CHARTYPE *string,LENGTHTYPE length,LENGTHTYPE curr_pos,
    short state=0;
    LENGTHTYPE i=0;
 
-   TRACE_FUNCTION("util.c:    get_word");
    /*
     * If we are after the last column of the line, then just ignore the
     * command and leave the cursor where it is.
     */
    if (curr_pos >= length)
    {
-      TRACE_RETURN();
       return(0);
    }
    /*
@@ -2108,7 +1948,6 @@ short get_word(CHARTYPE *string,LENGTHTYPE length,LENGTHTYPE curr_pos,
       }
       if (i < 0)
          *first_col = 0;
-      TRACE_RETURN();
       return(1);
    }
    /*
@@ -2197,13 +2036,10 @@ short get_word(CHARTYPE *string,LENGTHTYPE length,LENGTHTYPE curr_pos,
          *last_col = length - 1;
    }
 
-   TRACE_RETURN();
    return(1);
 }
-/***********************************************************************/
 short get_fieldword( CHARTYPE *string, LENGTHTYPE length, LENGTHTYPE curr_pos,
                      LENGTHTYPE *first_col, LENGTHTYPE *last_col )
-/***********************************************************************/
 /*
  * A "word" is based on the SET WORD settings
  * Returns the portion of the string containing a "word" nearest
@@ -2239,7 +2075,6 @@ short get_fieldword( CHARTYPE *string, LENGTHTYPE length, LENGTHTYPE curr_pos,
    short state=0;
    LENGTHTYPE i=0,j=0;
 
-   TRACE_FUNCTION("util.c:    get_fieldword");
    /*
     * If we are after the last column of the line, then just look left.
     */
@@ -2382,17 +2217,13 @@ short get_fieldword( CHARTYPE *string, LENGTHTYPE length, LENGTHTYPE curr_pos,
          *last_col = length - 1;
    }
 
-   TRACE_RETURN();
    return(1);
 }
 
-/***********************************************************************/
 short my_isalphanum(CHARTYPE chr)
-/***********************************************************************/
 {
    short char_type=CHAR_OTHER;
 
-   TRACE_FUNCTION("util.c:    my_isalphanum");
 
    if (chr == ' ')
       char_type = CHAR_SPACE;
@@ -2404,17 +2235,13 @@ short my_isalphanum(CHARTYPE chr)
       ||  chr > 128)
          char_type = CHAR_ALPHANUM;
    }
-   TRACE_RETURN();
    return(char_type);
 }
 
-/***********************************************************************/
 short my_wmove(WINDOW *win,short scridx,short winidx,short y,short x)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("util.c:    my_wmove");
    /*
     * If the scridx or winidx are -1, do not try to save the x/y position.
     */
@@ -2426,15 +2253,11 @@ short my_wmove(WINDOW *win,short scridx,short winidx,short y,short x)
    }
    if (curses_started)
       wmove(win,y,x);
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short get_row_for_tof_eof(short row,CHARTYPE scridx)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("util.c:    get_row_for_tof_eof");
    if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_ABOVE)
    {
       for(;screen[scridx].sl[row].line_type != LINE_TOF;row++)
@@ -2447,20 +2270,15 @@ short get_row_for_tof_eof(short row,CHARTYPE scridx)
       for(;screen[scridx].sl[row].line_type != LINE_EOF;row--)
        ;
    }
-   TRACE_RETURN();
    return(row);
 }
 
-/***********************************************************************/
 void set_compare_exact( bool exact )
-/***********************************************************************/
 {
    CompareExact = exact;
 }
 
-/***********************************************************************/
 static int query_item_compare(const void *inkey, const void *intpl)
-/***********************************************************************/
 {
    const char *key = (char *)inkey;
    const QUERY_ITEM *tpl = (QUERY_ITEM *)intpl;
@@ -2490,9 +2308,7 @@ static int query_item_compare(const void *inkey, const void *intpl)
    return(0);
 }
 
-/***********************************************************************/
 int search_query_item_array(void *base, size_t num, size_t width, const char *needle, int len)
-/***********************************************************************/
 {
    char *buf=NULL, *result=NULL;
    int i=0;
@@ -2501,7 +2317,6 @@ int search_query_item_array(void *base, size_t num, size_t width, const char *ne
    size_t alloclen = width;
 #endif
 
-   TRACE_FUNCTION("util.c:    search_query_item_array");
 
 #ifdef __CHECKER__
    if (len > alloclen)
@@ -2511,7 +2326,6 @@ int search_query_item_array(void *base, size_t num, size_t width, const char *ne
    if ((buf = (char*)(*the_malloc)(len+1)) == NULL)
 #endif
    {
-      TRACE_RETURN();
       return(-1);
    }
 
@@ -2526,16 +2340,12 @@ int search_query_item_array(void *base, size_t num, size_t width, const char *ne
 
    if (result == NULL)
    {
-      TRACE_RETURN();
       return(-1);
    }
-   TRACE_RETURN();
    return((int) (((long) result - (long) base) / width ));
 }
 
-/***********************************************************************/
 int split_function_name(CHARTYPE *funcname, int *funcname_length)
-/***********************************************************************/
 {
    int functionname_length = strlen((DEFCHAR*)funcname);
    int itemno=0,pos=0;
@@ -2572,9 +2382,7 @@ int split_function_name(CHARTYPE *funcname, int *funcname_length)
    return itemno;
 }
 
-/***********************************************************************/
 char *thetmpnam(char *prefix)
-/***********************************************************************/
 {
   /*
    * This function is not thread safe.
@@ -2633,9 +2441,7 @@ char *thetmpnam(char *prefix)
 #endif
 }
 
-/***********************************************************************/
 VIEW_DETAILS *find_filetab(int x)
-/***********************************************************************/
 {
    /*
     * Now we know where the mouse was clicked, determine which tab
@@ -2648,7 +2454,6 @@ VIEW_DETAILS *find_filetab(int x)
    int fname_len, fname_start = 0;
    bool first = TRUE;
 
-   TRACE_FUNCTION("util.c:    find_filetab");
    /*
     * If filetabs is not displayed, don't do anything.
     */
@@ -2659,7 +2464,6 @@ VIEW_DETAILS *find_filetab(int x)
       &&  x == COLS-1 )
       {
          Tabfile( (CHARTYPE *)"+" );
-         TRACE_RETURN();
          return NULL;
       }
       wmove( filetabs, 0, COLS-2 );
@@ -2667,7 +2471,6 @@ VIEW_DETAILS *find_filetab(int x)
       &&  x == COLS-2 )
       {
          Tabfile( (CHARTYPE *)"-" );
-         TRACE_RETURN();
          return NULL;
       }
       if ( filetabs_start_view == NULL )
@@ -2698,7 +2501,6 @@ VIEW_DETAILS *find_filetab(int x)
                    */
                   if ( x == -1 )
                   {
-                     TRACE_RETURN();
                      return curr;
                   }
                   first = FALSE;
@@ -2712,7 +2514,6 @@ VIEW_DETAILS *find_filetab(int x)
                if ( x >= fname_start
                &&   x <= fname_start + fname_len )
                {
-                  TRACE_RETURN();
                   return curr;
                }
                fname_start += fname_len;
@@ -2723,12 +2524,9 @@ VIEW_DETAILS *find_filetab(int x)
             curr = vd_first;
       }
    }
-   TRACE_RETURN();
    return NULL;
 }
-/***********************************************************************/
 VIEW_DETAILS *find_next_file( VIEW_DETAILS *curr, short direction )
-/***********************************************************************/
 {
    /*
     * Starts in the ring at the specified location and finds the next
@@ -2737,7 +2535,6 @@ VIEW_DETAILS *find_next_file( VIEW_DETAILS *curr, short direction )
    VIEW_DETAILS *save_current_view=curr;
    int i;
 
-   TRACE_FUNCTION("util.c:    find_next_file");
 
    for ( i = 0; i < number_of_files; i++ )
    {

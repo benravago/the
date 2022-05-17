@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* EXECUTE.C -                                                         */
 /* This file contains all functions that actually execute one or other */
 /* commands.                                                           */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -38,10 +36,8 @@
 #include <the.h>
 #include <proto.h>
 
-/***********************************************************************/
 static short selective_change(TARGET *target,CHARTYPE *old_str,LENGTHTYPE len_old_str,CHARTYPE *new_str,
                        LENGTHTYPE len_new_str,LINETYPE true_line,LINETYPE last_true_line,LENGTHTYPE start_col)
-/***********************************************************************/
 {
    register short i=0;
    short y=0,x=0,rc=RC_OK;
@@ -50,7 +46,6 @@ static short selective_change(TARGET *target,CHARTYPE *old_str,LENGTHTYPE len_ol
    bool line_displayed=FALSE;
    TARGET save_target;
 
-   TRACE_FUNCTION("execute.c: selective_change");
 
    getyx(CURRENT_WINDOW_FILEAREA,y,x);
                 /* move cursor to old string a la cmatch */
@@ -171,12 +166,9 @@ static short selective_change(TARGET *target,CHARTYPE *old_str,LENGTHTYPE len_ol
       CURRENT_VIEW->thighlight_active = FALSE;
       display_screen(current_screen);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_change_command(CHARTYPE *in_params,bool selective)
-/***********************************************************************/
 {
    LINETYPE num_lines=0L,long_n=0L,long_m=0L;
    LINE *curr=NULL;
@@ -197,7 +189,6 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
    short save_target_type=TARGET_RELATIVE;
    LENGTHTYPE str_length=0;
 
-   TRACE_FUNCTION("execute.c: execute_change_command");
    /*
     * If no arguments have been supplied, pass the last change command
     * to be executed. If no last change command, return error 39.
@@ -208,7 +199,6 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
       if ( blank_field( params ) )
       {
          display_error( 39,(CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
    }
@@ -219,7 +209,6 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
     */
    if ( ( save_params = (CHARTYPE *)my_strdup( params ) ) == NULL )
    {
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -234,7 +223,6 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
    if ( rc != RC_OK )
    {
       free_target( &target );
-      TRACE_RETURN();
       return(rc);
    }
    num_lines = target.num_lines;
@@ -266,14 +254,12 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
             free_target( &target );
             display_error( 32, old_str, FALSE );
             (*the_free)( save_params );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          case -2: /* memory exhausted */
             free_target( &target );
             display_error( 30, (CHARTYPE *)"", FALSE );
             (*the_free)( save_params );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
             break;
          default:
@@ -286,14 +272,12 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
             free_target( &target );
             display_error( 32, new_str, FALSE );
             (*the_free)( save_params );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          case -2: /* memory exhausted */
             free_target( &target );
             display_error( 30, (CHARTYPE *)"", FALSE );
             (*the_free)( save_params );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
             break;
          default:
@@ -317,7 +301,6 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
    {
       free_target( &target );
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return rc;
    }
    /*
@@ -328,7 +311,6 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
    {
       free_target( &target );
       display_error( 36, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_NO_LINES_CHANGED);
    }
    if ( num_lines < 0 )
@@ -517,7 +499,6 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
    {
       display_error( 36, (CHARTYPE *)"", FALSE );
       pre_process_line( CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *)NULL );
-      TRACE_RETURN();
       return(RC_NO_LINES_CHANGED);
    }
    /*
@@ -551,15 +532,12 @@ short execute_change_command(CHARTYPE *in_params,bool selective)
       rc = RC_TOF_EOF_REACHED;
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return rc;
 }
-/***********************************************************************/
 short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE *line, LENGTHTYPE len,LINETYPE num_lines,
                       LINETYPE true_line,bool start_left_col,bool make_current,
                       bool inc_alt,CHARTYPE select,bool move_cursor,
                       bool sos_command)
-/***********************************************************************/
 {
    LINETYPE i;
    LINE *curr=NULL,*save_curr=NULL;
@@ -570,7 +548,6 @@ short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE *l
    bool leave_cursor=FALSE;
    LINETYPE new_focus_line=0L,new_current_line=0L;
 
-   TRACE_FUNCTION("execute.c: insert_new_line");
 
    if ( !curr_view->scope_all )
       true_line = find_last_not_in_scope( curr_view, NULL, true_line, DIRECTION_FORWARD );
@@ -595,7 +572,6 @@ short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE *l
       if ( ( curr = add_LINE( curr_view->file_for_view->first_line, curr, line, len, select, TRUE ) ) == NULL )
       {
          display_error( 30, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
    }
@@ -695,12 +671,9 @@ short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE *l
    build_screen( curr_screen );
    display_screen( curr_screen );
 
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
-/***********************************************************************/
 {
 #if defined(DOS)
 # define SHELL "COMSPEC"
@@ -712,7 +685,6 @@ short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
    bool save_curses_started=curses_started;
 #endif
 
-   TRACE_FUNCTION("execute.c: execute_os_command");
 
 #ifdef MSWIN
    quiet = 1;
@@ -735,7 +707,6 @@ short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
    if (allocate_temp_space(strlen((DEFCHAR *)cmd),TEMP_TEMP_CMD) != RC_OK)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    if (strcmp((DEFCHAR *)cmd,"") == 0)
@@ -792,16 +763,12 @@ short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
 #if defined(USE_WINGUICURSES)
    curses_started = save_curses_started;
 #endif
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_makecurr( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, LINETYPE line)
-/***********************************************************************/
 {
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION( "execute.c: execute_makecurr" );
    post_process_line( CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *)NULL, TRUE );
 
    curr_view->current_line = line;
@@ -816,12 +783,9 @@ short execute_makecurr( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, LINETYPE 
       wmove( SCREEN_WINDOW(curr_screen), y, x );
    else
       wmove( SCREEN_WINDOW_FILEAREA(curr_screen), y, x );
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short execute_shift_command( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool shift_left, LENGTHTYPE num_cols, LINETYPE true_line, LINETYPE num_lines, bool lines_based_on_scope, long target_type, bool sos, bool zone_shift )
-/***********************************************************************/
 {
    LINE *curr=NULL;
    LINETYPE abs_num_lines=(num_lines < 0L ? -num_lines : num_lines);
@@ -834,7 +798,6 @@ short execute_shift_command( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool
    short direction=(num_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
    bool adjust_alt=FALSE;
 
-   TRACE_FUNCTION("execute.c: execute_shift_command");
    /*
     * Always post_process_line() the line in the CURRENT_VIEW
     */
@@ -937,7 +900,6 @@ short execute_shift_command( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool
                   if ( curr->line == NULL )
                   {
                      display_error( 30, (CHARTYPE *)"", FALSE );
-                     TRACE_RETURN();
                      return(RC_OUT_OF_MEMORY);
                   }
                }
@@ -977,12 +939,9 @@ short execute_shift_command( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool
       rc = RC_TOF_EOF_REACHED;
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return rc;
 }
-/***********************************************************************/
 short execute_set_lineflag( unsigned int new_flag, unsigned int changed_flag, unsigned int tag_flag, LINETYPE true_line, LINETYPE num_lines, bool lines_based_on_scope, long target_type )
-/***********************************************************************/
 {
    LINE *curr=NULL;
    LINETYPE abs_num_lines=(num_lines < 0L ? -num_lines : num_lines);
@@ -992,7 +951,6 @@ short execute_set_lineflag( unsigned int new_flag, unsigned int changed_flag, un
    short direction=(num_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
    bool adjust_alt=FALSE;
 
-   TRACE_FUNCTION("execute.c: execute_set_lineflag");
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
    curr = lll_find(CURRENT_FILE->first_line,CURRENT_FILE->last_line,true_line,CURRENT_FILE->number_lines);
    for (i=0L,num_actual_lines=0L;;i++)
@@ -1051,11 +1009,9 @@ short execute_set_lineflag( unsigned int new_flag, unsigned int changed_flag, un
       rc = RC_TOF_EOF_REACHED;
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static bool change_case(CHARTYPE *str,LENGTHTYPE start,LENGTHTYPE end,CHARTYPE which_case)
 /*
  * Returns TRUE if a line was changed, FALSE otherwise.
@@ -1065,7 +1021,6 @@ static bool change_case(CHARTYPE *str,LENGTHTYPE start,LENGTHTYPE end,CHARTYPE w
    LENGTHTYPE i;
    bool altered=FALSE;
 
-   TRACE_FUNCTION("execute.c: change_case");
    for (i=start;i<end+1;i++)
    {
       switch(which_case)
@@ -1086,11 +1041,9 @@ static bool change_case(CHARTYPE *str,LENGTHTYPE start,LENGTHTYPE end,CHARTYPE w
             break;
       }
    }
-   TRACE_RETURN();
    return(altered);
 }
 
-/***********************************************************************/
 short do_actual_change_case( LINETYPE true_line, LINETYPE num_lines, CHARTYPE which_case, bool lines_based_on_scope, short direction, LENGTHTYPE start_col, LENGTHTYPE end_col )
 {
    bool adjust_alt=FALSE;
@@ -1098,7 +1051,6 @@ short do_actual_change_case( LINETYPE true_line, LINETYPE num_lines, CHARTYPE wh
    LINETYPE i,num_actual_lines=0L,num_file_lines=0L;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("execute.c: do_actual_change_case");
    /*
     * Find the current LINE pointer for the true_line.
     * This is the first line to change.
@@ -1168,13 +1120,10 @@ short do_actual_change_case( LINETYPE true_line, LINETYPE num_lines, CHARTYPE wh
       increment_alt(CURRENT_FILE);
    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
    resolve_current_and_focus_lines( current_screen, CURRENT_VIEW, true_line, num_file_lines, direction, TRUE, FALSE );
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 short execute_change_case(CHARTYPE *params,CHARTYPE which_case)
-/***********************************************************************/
 {
    LINETYPE num_lines=0L,true_line=0L;
    short  direction=0;
@@ -1184,7 +1133,6 @@ short execute_change_case(CHARTYPE *params,CHARTYPE which_case)
    long target_type=TARGET_NORMAL|TARGET_BLOCK_CURRENT|TARGET_ALL;
    bool lines_based_on_scope=TRUE;
 
-   TRACE_FUNCTION("execute.c: execute_change_case");
    /*
     * Validate the parameters that have been supplied.
     * Valid values are: a target or "block".
@@ -1196,7 +1144,6 @@ short execute_change_case(CHARTYPE *params,CHARTYPE which_case)
    if ((rc = validate_target(params,&target,target_type,get_true_line(TRUE),TRUE,TRUE)) != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(rc);
    }
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
@@ -1240,15 +1187,12 @@ short execute_change_case(CHARTYPE *params,CHARTYPE which_case)
       rc = RC_TOF_EOF_REACHED;
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short rearrange_line_blocks(CHARTYPE command,CHARTYPE source,
                             LINETYPE start_line,LINETYPE end_line,LINETYPE dest_line,
                             LINETYPE num_occ,VIEW_DETAILS *src_view,VIEW_DETAILS *dst_view,
                             bool lines_based_on_scope,LINETYPE *lines_affected)
-/***********************************************************************/
 /* Parameters:                                                         */
 /*    command: the command being executed; COPY,DELETE,DUPLICATE,MOVE  */
 /*     source: where the command is executed; COMMAND, PREFIX, BLOCK   */
@@ -1258,7 +1202,6 @@ short rearrange_line_blocks(CHARTYPE command,CHARTYPE source,
 /*             delete this is not applicable.                          */
 /*    num_occ: the number of times to execute the command; only for DUP*/
 /* lines_affected: number of "real" lines affected by copy operation   */
-/***********************************************************************/
 {
    LINETYPE j=0,k=0;
    short rc=RC_OK;
@@ -1272,7 +1215,6 @@ short rearrange_line_blocks(CHARTYPE command,CHARTYPE source,
    LINE *save_curr_src=NULL,*save_curr_dst=NULL;
    FILE_DETAILS *src_file=NULL,*dst_file=NULL;
 
-   TRACE_FUNCTION("execute.c: rearrange_line_blocks");
 #if 0
 fprintf(stderr, "command: %d source: %d start_line: %d end_line: %d dest_line: %d",
 command,source,start_line,end_line,dest_line);
@@ -1368,7 +1310,6 @@ command,source,start_line,end_line,dest_line);
 /*                                      curr_src->select)) == NULL)*/
                      {
                         display_error(30,(CHARTYPE *)"",FALSE);
-                        TRACE_RETURN();
                         return(RC_OUT_OF_MEMORY);
                      }
                      /*
@@ -1702,24 +1643,19 @@ command,source,start_line,end_line,dest_line);
       if (curses_started)
          wmove(CURRENT_WINDOW,y,x);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short execute_set_point( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE *name, LINETYPE true_line, bool point_on )
-/***********************************************************************/
 /* Parameters:                                                         */
 /*       name: the name of the line to be processed                    */
 /*  true_line: the line number of the line                             */
 /*   point_on: indicates if the line name is to be turned on or off    */
-/***********************************************************************/
 {
    LINE *curr=NULL;
    LINETYPE dummy=0L;
    CHARTYPE *this_name;
    THELIST *curr_name;
 
-   TRACE_FUNCTION( "execute.c: execute_set_point" );
    /*
     * Find a line that already has the same name. If one exists, remove
     * the name from that line. This is done whether we are adding a name
@@ -1751,7 +1687,6 @@ short execute_set_point( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE
       if ( ( this_name=(CHARTYPE *)(*the_malloc)( strlen( (DEFCHAR *)name ) + 1 ) ) == NULL )
       {
          display_error( 30, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return( RC_OUT_OF_MEMORY );
       }
       strcpy( (DEFCHAR *)this_name, (DEFCHAR *)name );
@@ -1764,18 +1699,13 @@ short execute_set_point( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE
        * Error if the name didn't exist; we are trying to delete it.
        */
       display_error(60,name,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
 
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short execute_wrap_word( LENGTHTYPE col)
-/***********************************************************************/
 /* Parameters: col   - current column position within rec              */
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
    LENGTHTYPE col_break=0,cursor_offset=0;
@@ -1785,7 +1715,6 @@ short execute_wrap_word( LENGTHTYPE col)
    LENGTHTYPE next_line_start=0,length_word=0,last_col=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("execute.c: execute_wrap_word");
    /*
     * This function is called when the length of the focus line exceeds
     * the right margin. If the cursor is positioned in the last word of
@@ -1808,7 +1737,6 @@ short execute_wrap_word( LENGTHTYPE col)
     */
    if (col_break == (-1))
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -1866,7 +1794,6 @@ short execute_wrap_word( LENGTHTYPE col)
    if (buf == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    memcpy(buf,word_to_wrap,length_word);
@@ -1925,17 +1852,13 @@ short execute_wrap_word( LENGTHTYPE col)
    build_screen(current_screen);
    display_screen(current_screen);
 
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_split_join(short action,bool aligned,bool cursorarg)
-/***********************************************************************/
 /* Parameters: action  - split, join or spltjoin                       */
 /*             aligned - whether to align text or not                  */
 /*             cursor  - whether to split focus line at cursor or      */
 /*                       command line at current column                */
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
    LENGTHTYPE num_cols=0,num_blanks_focus=0,num_blanks_next=0;
@@ -1944,7 +1867,6 @@ short execute_split_join(short action,bool aligned,bool cursorarg)
    LINETYPE true_line=0L;
    LENGTHTYPE col=0;
 
-   TRACE_FUNCTION("execute.c: execute_split_join");
    /*
     * Determine line and column to use.
     */
@@ -1974,7 +1896,6 @@ short execute_split_join(short action,bool aligned,bool cursorarg)
    if (VIEW_TOF(CURRENT_VIEW,true_line) || VIEW_BOF(CURRENT_VIEW,true_line))
    {
       display_error(38,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -2044,7 +1965,6 @@ short execute_split_join(short action,bool aligned,bool cursorarg)
             /*
              * Trying to join with the bottom of file line.
              */
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          /*
@@ -2071,7 +1991,6 @@ short execute_split_join(short action,bool aligned,bool cursorarg)
          if (col+curr->next->length-num_cols > max_line_length)
          {
             display_error( 154, (CHARTYPE*)"",FALSE );
-            TRACE_RETURN();
             return(RC_NO_LINES_CHANGED);
          }
          /*
@@ -2138,12 +2057,9 @@ short execute_split_join(short action,bool aligned,bool cursorarg)
    adjust_pending_prefix(CURRENT_VIEW,(bool)((action==SPLTJOIN_SPLIT)?TRUE:FALSE),true_line,1L);
    build_screen(current_screen);
    display_screen(current_screen);
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short execute_put(CHARTYPE *params,bool putdel)
-/***********************************************************************/
 {
    LINETYPE num_lines=0L,true_line=0L,num_file_lines=0L,end_line=0L;
    bool append=FALSE;
@@ -2156,7 +2072,6 @@ short execute_put(CHARTYPE *params,bool putdel)
    short direction=DIRECTION_FORWARD;
    bool clip=FALSE;
 
-   TRACE_FUNCTION( "execute.c: execute_put" );
    /*
     * If there are no arguments, default to "1"...
     */
@@ -2169,7 +2084,6 @@ short execute_put(CHARTYPE *params,bool putdel)
    if ( ( rc = validate_target( params, &target, target_type, get_true_line( TRUE ), TRUE, TRUE ) ) != RC_OK )
    {
       free_target( &target );
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -2197,7 +2111,6 @@ short execute_put(CHARTYPE *params,bool putdel)
          {
             display_error( 10, target.rt[target.spare].string, FALSE );
             free_target( &target );
-            TRACE_RETURN();
             return(rc);
          }
          strcpy( (DEFCHAR *)temp_cmd, (DEFCHAR *)sp_path );
@@ -2247,7 +2160,6 @@ short execute_put(CHARTYPE *params,bool putdel)
                        target.rt[0].target_type ) ) != RC_OK )
       {
          free_target( &target );
-         TRACE_RETURN();
          return(rc);
       }
    }
@@ -2267,7 +2179,6 @@ short execute_put(CHARTYPE *params,bool putdel)
                        FALSE ) ) != RC_OK )
       {
          free_target( &target );
-         TRACE_RETURN();
          return(rc);
       }
    }
@@ -2286,12 +2197,9 @@ short execute_put(CHARTYPE *params,bool putdel)
       resolve_current_and_focus_lines( current_screen, CURRENT_VIEW, true_line, num_file_lines, direction, FALSE, FALSE );
    }
    free_target( &target );
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
-/***********************************************************************/
 {
    short rc=RC_OK;
    short errnum=0;
@@ -2307,7 +2215,6 @@ short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
    CHARTYPE *tmpfilename=NULL;
    CHARTYPE *tmpargs=NULL;
 
-   TRACE_FUNCTION("execute.c: execute_macro");
    /*
     * Validate the parameters. At least 1 must be present, the filename.
     */
@@ -2319,7 +2226,6 @@ short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
    if ( num_params == 0 )
    {
       display_error( 3, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -2337,7 +2243,6 @@ short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
       if ( num_params == 1 )
       {
          display_error( 3, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       tmpfilename = word[1];
@@ -2356,7 +2261,6 @@ short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
    if ( ( macroname = (CHARTYPE *)(*the_malloc)( (MAX_FILE_NAME+1)*sizeof(CHARTYPE) ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -2381,7 +2285,6 @@ short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
          if ( error_on_not_found )
             display_error( errnum, tmpfilename, FALSE );
          (*the_free)( macroname );
-         TRACE_RETURN();
          return(rc);
          break;
       default:
@@ -2390,7 +2293,6 @@ short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
           */
          display_error( errnum, tmpfilename, FALSE );
          (*the_free)( macroname );
-         TRACE_RETURN();
          return(rc);
    }
    /*
@@ -2456,13 +2358,10 @@ short execute_macro(CHARTYPE *params,bool error_on_not_found,short *macrorc)
       build_screen( current_screen );
       display_screen( current_screen );
    }
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short write_macro( CHARTYPE *defn )
-/***********************************************************************/
 {
    int len,i;
    if ( record_fp )
@@ -2484,15 +2383,12 @@ short write_macro( CHARTYPE *defn )
    return 0;
 }
 
-/***********************************************************************/
 short execute_set_on_off(CHARTYPE *inparams,bool *flag, bool error_display)
-/***********************************************************************/
 {
    short rc=RC_OK;
    int len=0;
    CHARTYPE *params=NULL;
 
-   TRACE_FUNCTION("execute.c: execute_set_on_off");
    /*
     * Make a copy of the arguments so we can split them up
     */
@@ -2500,7 +2396,6 @@ short execute_set_on_off(CHARTYPE *inparams,bool *flag, bool error_display)
    {
       if ( error_display )
          display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -2539,23 +2434,18 @@ short execute_set_on_off(CHARTYPE *inparams,bool *flag, bool error_display)
       }
    }
    (*the_free)(params);
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_set_row_position(CHARTYPE *inparams,short *base,short *off)
-/***********************************************************************/
 {
    short rc=RC_OK;
    CHARTYPE *params=NULL,*save_param_ptr=NULL;
 
-   TRACE_FUNCTION("execute.c: execute_set_row_position");
    /*
     * Strip the leading and trailing spaces from parameters...
     */
    if ((params = save_param_ptr = (CHARTYPE *)my_strdup(inparams)) == NULL)
    {
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    params = MyStrip(params,STRIP_BOTH,' ');
@@ -2577,7 +2467,6 @@ short execute_set_row_position(CHARTYPE *inparams,short *base,short *off)
          {
             display_error(1,inparams,FALSE);
             (*the_free)(save_param_ptr);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
       }
@@ -2588,44 +2477,33 @@ short execute_set_row_position(CHARTYPE *inparams,short *base,short *off)
       {
          display_error(1,inparams,FALSE);
             (*the_free)(save_param_ptr);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       *base = (*off > 0) ? POSITION_TOP : POSITION_BOTTOM;
    }
    (*the_free)(save_param_ptr);
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short processable_line(VIEW_DETAILS *view,LINETYPE true_line,LINE *curr)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("execute.c: processable_line");
 
    if ( VIEW_TOF( view, true_line ) )
    {
-      TRACE_RETURN();
       return(LINE_TOF);
    }
    if ( VIEW_BOF( view, true_line ) )
    {
-      TRACE_RETURN();
       return(LINE_EOF);
    }
 
    if ( view->scope_all
    ||   IN_SCOPE( view, curr ) )
    {
-      TRACE_RETURN();
       return(LINE_LINE);
    }
-   TRACE_RETURN();
    return(LINE_SHADOW);
 }
-/***********************************************************************/
 short execute_expand_compress(CHARTYPE *params,bool expand,bool inc_alt,bool use_tabs,bool add_to_recovery)
-/***********************************************************************/
 {
    LINETYPE i=0L,num_actual_lines=0L;
    LINETYPE num_lines=0L,true_line=0L,num_file_lines=0L;
@@ -2636,7 +2514,6 @@ short execute_expand_compress(CHARTYPE *params,bool expand,bool inc_alt,bool use
    bool lines_based_on_scope=FALSE;
    bool adjust_alt=FALSE;
 
-   TRACE_FUNCTION("execute.c: execute_expand_compress");
    /*
     * Validate the parameters that have been supplied.
     * If no parameter is supplied, 1 is assumed.
@@ -2648,7 +2525,6 @@ short execute_expand_compress(CHARTYPE *params,bool expand,bool inc_alt,bool use
    if ((rc = validate_target(params,&target,target_type,true_line,TRUE,TRUE)) != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -2675,7 +2551,6 @@ short execute_expand_compress(CHARTYPE *params,bool expand,bool inc_alt,bool use
       if (MARK_VIEW->mark_type != M_LINE)
       {
          free_target(&target);
-         TRACE_RETURN();
          return(rc);
       }
    }
@@ -2734,7 +2609,6 @@ short execute_expand_compress(CHARTYPE *params,bool expand,bool inc_alt,bool use
             {
                if (rc != RC_OK)
                {
-                  TRACE_RETURN();
                   return(rc);
                }
             }
@@ -2764,12 +2638,9 @@ short execute_expand_compress(CHARTYPE *params,bool expand,bool inc_alt,bool use
       rc = RC_TOF_EOF_REACHED;
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_select(CHARTYPE *params,bool relative,short off)
-/***********************************************************************/
 {
    LINETYPE i=0L,num_actual_lines=0L;
    LINETYPE num_lines=0L,true_line=0L;
@@ -2779,7 +2650,6 @@ short execute_select(CHARTYPE *params,bool relative,short off)
    long target_type=TARGET_NORMAL|TARGET_BLOCK_CURRENT|TARGET_ALL;
    bool lines_based_on_scope=FALSE;
 
-   TRACE_FUNCTION("execute.c: execute_select");
    /*
     * Validate the parameters that have been supplied.
     * If no parameter is supplied, 1 is assumed.
@@ -2789,7 +2659,6 @@ short execute_select(CHARTYPE *params,bool relative,short off)
    if ((rc = validate_target(params,&target,target_type,true_line,TRUE,TRUE)) != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(rc);
    }
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
@@ -2866,18 +2735,14 @@ short execute_select(CHARTYPE *params,bool relative,short off)
       rc = RC_TOF_EOF_REACHED;
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_move_cursor( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, LENGTHTYPE col )
-/***********************************************************************/
 {
    short y=0,x=0;
    COLTYPE new_screen_col=0;
    LENGTHTYPE new_verify_col=0;
 
-   TRACE_FUNCTION("execute.c: execute_move_cursor");
 
    switch( curr_view->current_window )
    {
@@ -2911,12 +2776,9 @@ short execute_move_cursor( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, LENGTH
    /*
     * Don't have any code here, as PREFIX window is supposed to do nothing
     */
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short execute_find_command( CHARTYPE *str, long target_type )
-/***********************************************************************/
 {
    short rc=RC_OK;
    LENGTHTYPE save_zone_start=CURRENT_VIEW->zone_start;
@@ -2930,14 +2792,12 @@ short execute_find_command( CHARTYPE *str, long target_type )
    LINETYPE save_focus_line=CURRENT_VIEW->focus_line;
    LINETYPE save_current_line=CURRENT_VIEW->current_line;
 
-   TRACE_FUNCTION("execute.c: execute_find_command");
    if (strcmp((DEFCHAR *)str,"") == 0) /* no argument supplied */
    {
       if ( lastop[LASTOP_FIND].value == NULL
       ||   strcmp( (DEFCHAR *)lastop[LASTOP_FIND].value, "" ) == 0 )
       {
          display_error( 39, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       else
@@ -2981,7 +2841,6 @@ short execute_find_command( CHARTYPE *str, long target_type )
    if ( save_lastop( LASTOP_FIND, str ) != RC_OK )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return rc;
    }
    /*
@@ -3001,7 +2860,6 @@ short execute_find_command( CHARTYPE *str, long target_type )
       }
       display_error( 34, (CHARTYPE *)"", FALSE );
       free_target( &target );
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -3024,23 +2882,18 @@ short execute_find_command( CHARTYPE *str, long target_type )
    free_target( &target );
    if ( wrapped )
       display_error( 0, (CHARTYPE*)"Wrapped...", FALSE );
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_modify_command(CHARTYPE *str)
-/***********************************************************************/
 {
    register short i=0;
    short itemno=0;
    CHARTYPE item_type=0;
 
-   TRACE_FUNCTION("execute.c: execute_modify_command");
    if ((itemno = find_query_item(str,strlen((DEFCHAR *)str),&item_type)) == (-1)
    || !(item_type & QUERY_MODIFY))
    {
       display_error(1,str,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
 
@@ -3051,21 +2904,16 @@ short execute_modify_command(CHARTYPE *str)
       strcat((DEFCHAR *)temp_cmd," ");
       strcat((DEFCHAR *)temp_cmd,(DEFCHAR *)item_values[i].value);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 LENGTHTYPE calculate_rec_len( short action, CHARTYPE *rec, LENGTHTYPE current_rec_len, LENGTHTYPE start_col, LINETYPE num_cols, short trailing )
-/***********************************************************************/
 /*
  * start_col is 1 based; ie first column is column 1
  */
-/***********************************************************************/
 {
    LENGTHTYPE new_rec_len=0;
    LENGTHTYPE end_col=start_col+num_cols-1;
 
-   TRACE_FUNCTION("execute.c: calcualte_rec_len");
    if ( num_cols <= 0 )
    {
       new_rec_len = current_rec_len;
@@ -3102,13 +2950,10 @@ LENGTHTYPE calculate_rec_len( short action, CHARTYPE *rec, LENGTHTYPE current_re
             break;
       }
    }
-   TRACE_RETURN();
    return(new_rec_len);
 }
 
-/***********************************************************************/
 static short set_editv(CHARTYPE *var,CHARTYPE *val,bool editv_file,bool rexx_var)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LINE *curr=NULL;
@@ -3116,7 +2961,6 @@ static short set_editv(CHARTYPE *var,CHARTYPE *val,bool editv_file,bool rexx_var
    CHARTYPE *value=NULL;
    LINE *first=NULL;
 
-   TRACE_FUNCTION( "execute.c: set_editv" );
    first = (editv_file) ? CURRENT_FILE->editv : editv;
    var = make_upper( var );
    if ( rexx_var )
@@ -3124,7 +2968,6 @@ static short set_editv(CHARTYPE *var,CHARTYPE *val,bool editv_file,bool rexx_var
       rc = get_rexx_variable( var, &value, &len_val );
       if ( rc != RC_OK )
       {
-         TRACE_RETURN();
          return(rc);
       }
    }
@@ -3148,7 +2991,6 @@ static short set_editv(CHARTYPE *var,CHARTYPE *val,bool editv_file,bool rexx_var
             if ( rexx_var && value )
                (*the_free)( value );
             display_error( 30, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
       }
@@ -3170,7 +3012,6 @@ static short set_editv(CHARTYPE *var,CHARTYPE *val,bool editv_file,bool rexx_var
          if ( rexx_var && value )
             (*the_free)( value );
          display_error( 30, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
        return(RC_OUT_OF_MEMORY);
       }
       /*
@@ -3187,7 +3028,6 @@ static short set_editv(CHARTYPE *var,CHARTYPE *val,bool editv_file,bool rexx_var
          if ( rexx_var && value )
             (*the_free)( value );
          display_error( 30, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       strcpy( (DEFCHAR*)curr->line, (DEFCHAR*)value );
@@ -3198,20 +3038,16 @@ static short set_editv(CHARTYPE *var,CHARTYPE *val,bool editv_file,bool rexx_var
          if ( rexx_var && value )
             (*the_free)( value );
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       strcpy( (DEFCHAR*)curr->name, (DEFCHAR*)var );
    }
    if ( rexx_var && value )
       (*the_free)( value );
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short execute_editv(short editv_type,bool editv_file,CHARTYPE *params)
-/***********************************************************************/
 {
 #define EDITV_PARAMS  2
    CHARTYPE *word[EDITV_PARAMS+1];
@@ -3222,7 +3058,6 @@ short execute_editv(short editv_type,bool editv_file,CHARTYPE *params)
    int key=0,lineno=0,i,len_str,len_name,rem,x;
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "execute.c: execute_editv" );
    first = (editv_file) ? CURRENT_FILE->editv : editv;
    switch( editv_type )
    {
@@ -3233,7 +3068,6 @@ short execute_editv(short editv_type,bool editv_file,CHARTYPE *params)
          if ( num_params == 0 )
          {
             display_error( 3, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          rc = set_editv( word[0], word[1], editv_file, FALSE );
@@ -3385,13 +3219,10 @@ short execute_editv(short editv_type,bool editv_file,CHARTYPE *params)
          break;
    }
 
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short prepare_dialog( CHARTYPE *params, bool alert, CHARTYPE *stemname )
-/***********************************************************************/
 {
 #define STATE_START        0
 #define STATE_EDITFIELD    1
@@ -3418,14 +3249,12 @@ short prepare_dialog( CHARTYPE *params, bool alert, CHARTYPE *stemname )
    DEFCHAR num[20];
    short icon;
 
-   TRACE_FUNCTION("execute.c: prepare_dialog");
   /*
    * Can only run from a Rexx macro...
    */
    if ( !in_macro || !rexx_support )
    {
       display_error(53,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -3447,7 +3276,6 @@ short prepare_dialog( CHARTYPE *params, bool alert, CHARTYPE *stemname )
    if (len_params < 2)
    {
       display_error(1,params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -3482,7 +3310,6 @@ short prepare_dialog( CHARTYPE *params, bool alert, CHARTYPE *stemname )
       if (prompt == NULL)
       {
          display_error(30,params,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       strcpy((DEFCHAR *)prompt,(DEFCHAR *)params);
@@ -3494,7 +3321,6 @@ short prepare_dialog( CHARTYPE *params, bool alert, CHARTYPE *stemname )
       if (prompt == NULL)
       {
          display_error(30,params,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       memcpy(prompt,params,len_prompt);
@@ -3811,13 +3637,10 @@ short prepare_dialog( CHARTYPE *params, bool alert, CHARTYPE *stemname )
       (*the_free)(initial);
    if (title)
       (*the_free)(title);
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool editfield,short button, short default_button,CHARTYPE *stemname, short icon, bool alert)
-/***********************************************************************/
 {
    short rc=RC_OK;
    int key,num_buttons=0,i;
@@ -3841,7 +3664,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
    LINETYPE save_max_line_length=0;
    CHARTYPE save_current_window = CURRENT_VIEW->current_window;
 
-   TRACE_FUNCTION("execute.c: execute_dialog");
    /*
     * Split the prompt up into multiple lines if applicable
     */
@@ -3945,7 +3767,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
       THERefresh((CHARTYPE *)"");
       restore_THE();
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    keypad( dialog_win, TRUE );
@@ -3957,7 +3778,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
          CURRENT_VIEW->current_window = save_current_window;
          delwin( dialog_win );
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       if ( initial )
@@ -3975,7 +3795,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
          delwin( dialog_win );
          (*the_free)(editfield_buf);
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       memcpy( (DEFCHAR *)save_cmd_rec, (DEFCHAR *)cmd_rec, cmd_rec_len );
@@ -3994,7 +3813,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
          (*the_free)( save_cmd_rec );
          (*the_free)(editfield_buf);
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       wattrset( CURRENT_WINDOW_COMMAND, set_colour( CURRENT_FILE->attr+ATTR_DIA_EDITFIELD ) );
@@ -4255,13 +4073,10 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
    }
    THERefresh( (CHARTYPE *)"" );
    restore_THE();
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 int get_non_separator_line( int current_line, int num_args, CHARTYPE **args, int direction )
-/***********************************************************************/
 {
    int i;
    int offset_lines = 0;
@@ -4292,9 +4107,7 @@ int get_non_separator_line( int current_line, int num_args, CHARTYPE **args, int
    return offset_lines;
 }
 
-/***********************************************************************/
 short prepare_popup( CHARTYPE *params )
-/***********************************************************************/
 {
 #define STATE_POPUP_START            0
 #define STATE_POPUP_ESCAPE           1
@@ -4323,7 +4136,6 @@ short prepare_popup( CHARTYPE *params )
    char *keyname_start[MAXIMUM_POPUP_KEYS];
    int keyname_index = 0;
 
-   TRACE_FUNCTION("execute.c: prepare_popup");
   /*
    * Must run from a Rexx macro...
    */
@@ -4331,7 +4143,6 @@ short prepare_popup( CHARTYPE *params )
    ||   !rexx_support )
    {
       display_error( 53, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
 
@@ -4777,7 +4588,6 @@ short prepare_popup( CHARTYPE *params )
             if ( height < 3 )
             {
                display_error( 0, (CHARTYPE *)"No room to display POPUP window", FALSE );
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
             break;
@@ -4796,7 +4606,6 @@ short prepare_popup( CHARTYPE *params )
             if ( height < 3 )
             {
                display_error( 0, (CHARTYPE *)"No room to display POPUP window", FALSE );
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
             break;
@@ -4811,7 +4620,6 @@ short prepare_popup( CHARTYPE *params )
       {
          (*the_free)(args);
          display_error(0,(CHARTYPE *)"No mouse support",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
       }
       /*
@@ -4822,7 +4630,6 @@ short prepare_popup( CHARTYPE *params )
       {
          (*the_free)(args);
          display_error(6, (CHARTYPE *)str_initial, FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       /*
@@ -4844,13 +4651,10 @@ short prepare_popup( CHARTYPE *params )
       (*the_free)(args);
    }
 
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short execute_popup(int y, int x, int height, int width, int pad_height, int pad_width, int initial, int num_args, CHARTYPE **args, int keyname_index  )
-/***********************************************************************/
 {
 /*
  * num_args number of lines in popup
@@ -4870,7 +4674,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
    int offset_lines=0,scroll_lines;
    int escape_key_index = 0;
 
-   TRACE_FUNCTION("execute.c: execute_popup");
 
    /*
     * Determine where to display the initial line
@@ -4891,7 +4694,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
       if (args[highlighted_line][0] == '-')
       {
          display_error( 0, (CHARTYPE *)"Specified initial line is a separator", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       /*
@@ -4917,7 +4719,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
    if (dialog_win == NULL)
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    keypad( dialog_win, TRUE );
@@ -4926,7 +4727,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
    {
       delwin(dialog_win);
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
 
@@ -5008,7 +4808,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
          int b,ba,bm,y,x;
          if (get_mouse_info(&b,&ba,&bm) != RC_OK)
          {
-           TRACE_RETURN();
            return(RC_OK);
          }
          if (b != 1
@@ -5300,17 +5099,13 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
    THERefresh( (CHARTYPE *)"" );
    restore_THE();
 
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short execute_preserve(VIEW_DETAILS *src_vd, PRESERVED_VIEW_DETAILS **preserved_view_details, FILE_DETAILS *src_fd, PRESERVED_FILE_DETAILS **preserved_file_details)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("execute.c: execute_preserve");
    /*
     * If we already have preserved settings, don't allocate more
     * memory, just use what's there...
@@ -5323,7 +5118,6 @@ short execute_preserve(VIEW_DETAILS *src_vd, PRESERVED_VIEW_DETAILS **preserved_
       if ( ( *preserved_view_details = (PRESERVED_VIEW_DETAILS *)(*the_malloc)(sizeof(PRESERVED_VIEW_DETAILS))) == NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       if ( ( *preserved_file_details = (PRESERVED_FILE_DETAILS *)(*the_malloc)(sizeof(PRESERVED_FILE_DETAILS))) == NULL)
@@ -5331,7 +5125,6 @@ short execute_preserve(VIEW_DETAILS *src_vd, PRESERVED_VIEW_DETAILS **preserved_
          display_error(30,(CHARTYPE *)"",FALSE);
          (*the_free)( *preserved_view_details );
          *preserved_view_details = NULL;
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       if ( ( (*preserved_file_details)->attr = (COLOUR_ATTR *)(*the_malloc)(ATTR_MAX*sizeof(COLOUR_ATTR))) == NULL)
@@ -5341,7 +5134,6 @@ short execute_preserve(VIEW_DETAILS *src_vd, PRESERVED_VIEW_DETAILS **preserved_
          *preserved_view_details = NULL;
          (*the_free)( *preserved_file_details );
          *preserved_file_details = NULL;
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       if ( ( (*preserved_file_details)->ecolour = (COLOUR_ATTR *)(*the_malloc)(ECOLOUR_MAX*sizeof(COLOUR_ATTR))) == NULL)
@@ -5353,7 +5145,6 @@ short execute_preserve(VIEW_DETAILS *src_vd, PRESERVED_VIEW_DETAILS **preserved_
          *preserved_view_details = NULL;
          (*the_free)( *preserved_file_details );
          *preserved_file_details = NULL;
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
    }
@@ -5445,24 +5236,19 @@ short execute_preserve(VIEW_DETAILS *src_vd, PRESERVED_VIEW_DETAILS **preserved_
    (*preserved_file_details)->autocolour                = src_fd->autocolour;
    (*preserved_file_details)->parser                    = src_fd->parser;
 
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short execute_restore(VIEW_DETAILS *dst_vd, PRESERVED_VIEW_DETAILS **preserved_view_details, FILE_DETAILS *dst_fd, PRESERVED_FILE_DETAILS **preserved_file_details, bool rebuild_screen)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "execute.c: execute_restore" );
    /*
     * If we don't have any preserved settings, return an error.
     */
    if ( *preserved_view_details == NULL )
    {
       display_error( 51, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return( RC_INVALID_OPERAND );
    }
    /*
@@ -5571,7 +5357,6 @@ short execute_restore(VIEW_DETAILS *dst_vd, PRESERVED_VIEW_DETAILS **preserved_v
       set_screen_defaults();
       if ( set_up_windows( current_screen ) != RC_OK )
       {
-         TRACE_RETURN();
          return(RC_OK);
       }
       build_screen( current_screen );
@@ -5579,6 +5364,5 @@ short execute_restore(VIEW_DETAILS *dst_vd, PRESERVED_VIEW_DETAILS **preserved_v
       display_cmdline( current_screen, CURRENT_VIEW );
    }
 
-   TRACE_RETURN();
    return(rc);
 }

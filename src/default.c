@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* DEFAULT.C - Default settings and profile processing                 */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -239,13 +237,10 @@ PARSER_MAPPING _THE_FAR default_parser_mapping[] =
    { NULL,NULL,NULL,              NULL    , NULL              ,0, NULL }
 };
 
-/***********************************************************************/
 void set_global_defaults(void)
-/***********************************************************************/
 {
    int i;
 
-   TRACE_FUNCTION("default.c: set_global_defaults");
    /*
     * Set defaults for all environments first...
     */
@@ -301,15 +296,11 @@ void set_global_defaults(void)
     */
    set_global_look_defaults();
    set_global_feel_defaults();
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void set_global_look_defaults(void)
-/***********************************************************************/
 {
 
-   TRACE_FUNCTION("default.c: set_global_look_defaults");
    switch(compatible_look)
    {
       case COMPAT_THE:
@@ -346,14 +337,10 @@ void set_global_look_defaults(void)
          prefix_gap = 1;
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void set_global_feel_defaults(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("default.c: set_global_feel_defaults");
    switch(compatible_feel)
    {
       case COMPAT_THE:
@@ -374,14 +361,10 @@ void set_global_feel_defaults(void)
          LINEND_STATUSx = TRUE;
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void set_file_defaults(FILE_DETAILS *filep)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("default.c: set_file_defaults");
    /*
     * Set defaults for all environments first...
     */
@@ -424,17 +407,13 @@ void set_file_defaults(FILE_DETAILS *filep)
          filep->backup = BACKUP_OFF;
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void set_view_defaults(VIEW_DETAILS *viewp)
-/***********************************************************************/
 {
    register int i=0;
    short tabinc=0;
 
-   TRACE_FUNCTION("default.c: set_view_defaults");
    /*
     * Set defaults for all environments first...
     */
@@ -612,19 +591,15 @@ void set_view_defaults(VIEW_DETAILS *viewp)
    }
    for (i=0;i<MAX_NUMTABS;i++)
       viewp->tabs[i] = 1 + (i*tabinc);
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short get_profile(CHARTYPE *prf_file,CHARTYPE *prf_arg)
-/***********************************************************************/
 {
    FILE *fp=NULL;
    short rc=RC_OK;
    bool save_in_macro=in_macro;
    short macrorc=0;
 
-   TRACE_FUNCTION("default.c: get_profile");
    in_macro = TRUE;
    /*
     * If REXX is supported, process the macro as a REXX macro...
@@ -661,23 +636,18 @@ short get_profile(CHARTYPE *prf_file,CHARTYPE *prf_arg)
          display_error(52,(CHARTYPE *)"",FALSE);
    }
    in_macro = save_in_macro;
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short defaults_for_first_file(void)
-/***********************************************************************/
 {
    register int i=0;
 
-   TRACE_FUNCTION("default.c: defaults_for_first_file");
    /*
     * Add to view linked list.
     */
    if ((CURRENT_VIEW = vll_add(vd_first,vd_current,sizeof(VIEW_DETAILS)))
                    == (VIEW_DETAILS *)NULL)
    {
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    if (vd_first == (VIEW_DETAILS *)NULL)
@@ -721,20 +691,15 @@ short defaults_for_first_file(void)
       CURRENT_VIEW->previous_window =       WINDOW_FILEAREA;
    }
    CURRENT_VIEW->preserved_view_details = (PRESERVED_VIEW_DETAILS *)NULL;
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short defaults_for_other_files(VIEW_DETAILS *base_view)
-/***********************************************************************/
 {
    register int i=0;
 
-   TRACE_FUNCTION("default.c: defaults_for_other_files");
    if ((CURRENT_VIEW = vll_add(vd_first,vd_current,sizeof(VIEW_DETAILS)))
                    == (VIEW_DETAILS *)NULL)
    {
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    if (CURRENT_VIEW->next == (VIEW_DETAILS *)NULL)
@@ -921,17 +886,13 @@ short defaults_for_other_files(VIEW_DETAILS *base_view)
    }
    CURRENT_VIEW->preserved_view_details = (PRESERVED_VIEW_DETAILS *)NULL;
    initialise_target( &CURRENT_VIEW->thighlight_target );
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short default_file_attributes(FILE_DETAILS *fd)
-/***********************************************************************/
 {
    RESERVED *curr=NULL;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("default.c: default_file_attributes");
    set_file_defaults(CURRENT_FILE);
 
    CURRENT_FILE->fname =           (CHARTYPE *)NULL;
@@ -978,12 +939,9 @@ short default_file_attributes(FILE_DETAILS *fd)
          }
       }
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 void set_screen_defaults(void)
-/***********************************************************************/
 {
    register int i=0;
    register int j=0;
@@ -993,7 +951,6 @@ void set_screen_defaults(void)
    short my_prefix_width=0,my_prefix_gap=0;
    bool my_arrow=TRUE;
 
-   TRACE_FUNCTION( "default.c: set_screen_defaults" );
    /*
     * Before doing any resizing, free up any memory associated with previous
     * screens.
@@ -1242,16 +1199,12 @@ void set_screen_defaults(void)
       }
       memset( screen[1].sl, 0, screen[1].rows[WINDOW_FILEAREA]*sizeof(SHOW_LINE) );
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short set_THE_key_defaults(int prey,int prex)
-/***********************************************************************/
 {
   short rc=RC_OK;
 
-  TRACE_FUNCTION("default.c: set_THE_key_defaults");
   /*
    * This function is for resetting all default values for THE
    * compatibility mode.
@@ -1277,16 +1230,12 @@ short set_THE_key_defaults(int prey,int prex)
   Define((CHARTYPE *)"S-TAB");
 # endif
   Define((CHARTYPE *)"C-I");
-  TRACE_RETURN();
   return(rc);
 }
-/***********************************************************************/
 short set_XEDIT_key_defaults(int prey,int prex)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("default.c: set_XEDIT_key_defaults");
    /*
     * This function is for resetting all default values for XEDIT
     * compatibility mode.
@@ -1311,16 +1260,12 @@ short set_XEDIT_key_defaults(int prey,int prex)
    Define((CHARTYPE *)"KEY_TAB sos tabfieldf");
 # endif
    Define((CHARTYPE *)"C-I sos tabfieldf");
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short set_ISPF_key_defaults(int prey,int prex)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("default.c: set_XEDIT_key_defaults");
    /*
     * This function is for resetting all default values for XEDIT
     * compatibility mode.
@@ -1345,16 +1290,12 @@ short set_ISPF_key_defaults(int prey,int prex)
    Define((CHARTYPE *)"KEY_TAB sos tabfieldf");
 # endif
    Define((CHARTYPE *)"C-I sos tabfieldf");
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short set_KEDIT_key_defaults(int prey,int prex)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("default.c: set_KEDIT_key_defaults");
    /*
     * This function is for resetting all default values for KEDIT
     * compatibility mode.
@@ -1382,19 +1323,15 @@ short set_KEDIT_key_defaults(int prey,int prex)
 # endif
    Define((CHARTYPE *)"C-I");
 
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short construct_default_parsers(void)
-/***********************************************************************/
 {
    short rc=RC_OK;
    PARSER_DETAILS *curr;
    int i;
    CHARTYPE tmp[20];
 
-   TRACE_FUNCTION("default.c: construct_default_parsers");
    for ( i = 0; ; i++ )
    {
       if ( default_parsers[i].contents == NULL )
@@ -1417,36 +1354,28 @@ short construct_default_parsers(void)
       }
    }
 
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short destroy_all_parsers(void)
-/***********************************************************************/
 {
    short rc=RC_OK;
    PARSER_DETAILS *curr=first_parser;
 
-   TRACE_FUNCTION("default.c: destroy_all_parsers");
    while( curr->next != NULL )
    {
       destroy_parser(curr);
       curr = curr->next;
    }
    first_parser = last_parser = parserll_free(first_parser);
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short construct_default_parser_mapping(void)
-/***********************************************************************/
 {
    short rc=RC_OK;
    PARSER_MAPPING *curr;
    PARSER_DETAILS *currp;
    int i;
 
-   TRACE_FUNCTION("default.c: construct_default_parser_mapping");
    for (i=0;;i++)
    {
       if (default_parser_mapping[i].parser_name == NULL)
@@ -1460,7 +1389,6 @@ short construct_default_parser_mapping(void)
          if (curr->filemask == NULL)
          {
             display_error(30,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
          strcpy((DEFCHAR *)curr->filemask,(DEFCHAR *)default_parser_mapping[i].filemask);
@@ -1471,7 +1399,6 @@ short construct_default_parser_mapping(void)
          if (curr->magic_number == NULL)
          {
             display_error(30,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
          }
          strcpy((DEFCHAR *)curr->magic_number,(DEFCHAR *)default_parser_mapping[i].magic_number);
@@ -1499,17 +1426,13 @@ short construct_default_parser_mapping(void)
         MyRexxRegisterFunctionExe(tmp);
      }
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 CHARTYPE *find_default_parser(CHARTYPE *name)
-/***********************************************************************/
 {
    int i;
    CHARTYPE *contents=NULL;
 
-   TRACE_FUNCTION("default.c: find_default_parser");
    for (i=0;;i++)
    {
       if (default_parsers[i].filename == NULL)
@@ -1520,6 +1443,5 @@ CHARTYPE *find_default_parser(CHARTYPE *name)
          break;
       }
    }
-   TRACE_RETURN();
    return(contents);
 }

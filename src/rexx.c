@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* REXX.C - REXX interface routines.                                   */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2001 Mark Hessling
@@ -88,11 +86,9 @@ static CHARTYPE version_buffer[MAX_FILE_NAME+1];
 void *THEAllocateMemory
    (
    ULONG size)
-/***********************************************************************/
 {
    void *ptr;
 
-   TRACE_FUNCTION("rexx.c:    THEAllocateMemory");
 
 #if defined(REXXALLOCATEMEMORY)
    ptr = (RXSTRING_STRPTR_TYPE)RexxAllocateMemory( size );
@@ -101,7 +97,6 @@ void *THEAllocateMemory
 #else
    ptr = (RXSTRING_STRPTR_TYPE)malloc( size );
 #endif
-   TRACE_RETURN();
    return ptr;
 }
 
@@ -111,9 +106,7 @@ void *THEAllocateMemory
 void THEFreeMemory
    (
    void *ptr)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("rexx.c:    THEFreeMemory");
 #if defined(REXXFREEMEMORY)
    RexxFreeMemory( ptr );
 #elif defined(USE_OS2REXX)
@@ -121,7 +114,6 @@ void THEFreeMemory
 #else
    free( ptr );
 #endif
-   TRACE_RETURN();
    return;
 }
 
@@ -132,35 +124,28 @@ void THEFreeMemory
 unsigned long MyRexxDeregisterFunction
    (
    CHARTYPE *Name)       /* Name of function to be deregistered  */
-/***********************************************************************/
 {
    CHARTYPE newname[80];
    ULONG rc;
 
-   TRACE_FUNCTION("rexx.c:    MyRexxDeregisterFunction");
 
    rc = RexxDeregisterFunction((RDF_ARG0_TYPE)Name);
    strcpy((DEFCHAR *)newname, (DEFCHAR *)Name);
    make_upper(newname);
    rc = RexxDeregisterFunction((RDF_ARG0_TYPE)newname);
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 /* This hack is by imc (sorry) - when registering external functions,  */
 /* register both the original name and the name in upper case, so as   */
 /* to satisfy case sensitive interpreters.                             */
-/***********************************************************************/
 unsigned long MyRexxRegisterFunctionExe
    (
    CHARTYPE *Name)         /* Name of function to be registered  */
-/***********************************************************************/
 {
    CHARTYPE _THE_FAR newname[256];
    ULONG rc;
 
-   TRACE_FUNCTION("rexx.c:    MyRexxRegisterFunctionExe");
 
    rc = RexxRegisterFunctionExe( (RRFE_ARG0_TYPE)Name, (RRFE_ARG1_TYPE)THE_Function_Handler) ;
    /*
@@ -169,12 +154,10 @@ unsigned long MyRexxRegisterFunctionExe
     */
    if ( rc != RXFUNC_OK )
    {
-      TRACE_RETURN();
       return rc;
    }
    if ( strlen( (DEFCHAR *)Name) + 1 > (sizeof newname)/(sizeof (CHARTYPE) ) )
    {
-      TRACE_RETURN();
       return rc;
    }
    strcpy( (DEFCHAR *)newname, (DEFCHAR *)Name );
@@ -188,21 +171,17 @@ unsigned long MyRexxRegisterFunctionExe
    if ( rc == RXFUNC_DEFINED
    ||   rc == RXFUNC_NOTREG )
       rc = RXFUNC_OK;
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 RSH_RETURN_TYPE THE_Commands
    (
    RSH_ARG0_TYPE Command,    /* Command string passed from the caller    */
    RSH_ARG1_TYPE Flags,      /* pointer to short for return of flags     */
    RSH_ARG2_TYPE Retstr)     /* pointer to RXSTRING for RC return        */
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("rexx.c:    THE_Commands");
 
    if (allocate_temp_space(Command->strlength,TEMP_TEMP_CMD) != RC_OK)
    {
@@ -211,7 +190,6 @@ RSH_RETURN_TYPE THE_Commands
       sprintf((DEFCHAR *)Retstr->strptr, "%d", rc);   /* format return code string  */
                                            /* and set the correct length */
       Retstr->strlength = strlen((DEFCHAR *)Retstr->strptr);
-      TRACE_RETURN();
       return 0L;                           /* processing completed       */
    }
    memcpy(temp_cmd,Command->strptr,Command->strlength);
@@ -225,18 +203,15 @@ RSH_RETURN_TYPE THE_Commands
    sprintf((DEFCHAR *)Retstr->strptr, "%d", rc); /* format return code string  */
                                            /* and set the correct length */
    Retstr->strlength = strlen((DEFCHAR *)Retstr->strptr);
-   TRACE_RETURN();
    return 0L;                              /* processing completed       */
 }
 
-/***********************************************************************/
 REH_RETURN_TYPE THE_Exit_Handler
    (
    REH_ARG0_TYPE ExitNumber,    /* code defining the exit function    */
    REH_ARG1_TYPE Subfunction,   /* code defining the exit subfunction */
    REH_ARG2_TYPE ParmBlock      /* function dependent control block   */
    )
-/***********************************************************************/
 {
    RXSIOTRC_PARM *trc_parm;
 #ifdef RXFNC
@@ -454,7 +429,6 @@ REH_RETURN_TYPE THE_Exit_Handler
    }
    return(rc);
 }
-/***********************************************************************/
 RFH_RETURN_TYPE THE_Function_Handler
    (
    RFH_ARG0_TYPE FunctionName,  /* name of function */
@@ -464,7 +438,6 @@ RFH_RETURN_TYPE THE_Function_Handler
    RFH_ARG4_TYPE Retstr         /* return string   */
    )
 
-/***********************************************************************/
 {
    int functionname_length=0;
    int itemno=0,item_index=0,num_vars=0,rc=0;
@@ -586,22 +559,18 @@ RFH_RETURN_TYPE THE_Function_Handler
    Retstr->strlength = item_values[item_index].len;
    return(0);
 }
-/***********************************************************************/
 short initialise_rexx
       (void)
-/***********************************************************************/
 {
    ULONG rc;
    register int i=0,j=0;
    int num_values=0;
    char _THE_FAR buf[50];
 
-   TRACE_FUNCTION("rexx.c:    initialise_rexx");
 
 #if defined(MSWIN)
    if (RexxThread(GetCurrentTask(),THREAD_ATTACH) != THREAD_ATTACH_AOK)
    {
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
 #endif
@@ -611,7 +580,6 @@ short initialise_rexx
                               (RRSE_ARG2_TYPE)NULL);
    if (rc != RXSUBCOM_OK)
    {
-      TRACE_RETURN();
       return((short)rc);
    }
 
@@ -620,7 +588,6 @@ short initialise_rexx
                             (RREE_ARG2_TYPE)NULL);
    if (rc != RXEXIT_OK)
    {
-      TRACE_RETURN();
       return((short)rc);
    }
 
@@ -632,7 +599,6 @@ short initialise_rexx
    }
    if (rc != RXFUNC_OK)
    {
-      TRACE_RETURN();
       return((short)rc);
    }
 
@@ -649,13 +615,10 @@ short initialise_rexx
       if (rc != RXFUNC_OK)
          break;
    }
-   TRACE_RETURN();
    return((short)rc);
 }
-/***********************************************************************/
 short finalise_rexx
     (void)
-/***********************************************************************/
 {
    ULONG rc;
 #ifdef NO_NEED_TO_DEREGISTER_FUNCTIONS_ANYMORE
@@ -664,7 +627,6 @@ short finalise_rexx
    char _THE_FAR buf[50];
 #endif
 
-   TRACE_FUNCTION("rexx.c:    finalise_rexx");
 
    rc = RexxDeregisterSubcom((RDS_ARG0_TYPE)"THE",
                            (RDS_ARG1_TYPE)NULL);
@@ -713,13 +675,10 @@ short finalise_rexx
    (void)RexxThread(GetCurrentTask(),THREAD_DETACH);
 #endif
 
-   TRACE_RETURN();
    return((short)rc);
 }
-/***********************************************************************/
 short execute_macro_file
       (CHARTYPE *filename, CHARTYPE *params, short *macrorc, bool interactive )
-/***********************************************************************/
 {
    SHORT rexxrc=0L;
    RXSTRING retstr;
@@ -730,7 +689,6 @@ short execute_macro_file
    CHARTYPE *rexx_args=NULL;
    RXSYSEXIT exit_list[3];                /* system exit list           */
 
-   TRACE_FUNCTION("rexx.c:    execute_macro_file");
    /*
     * Determine how many parameters are to be passed to the interpreter.
     * Only 0 or 1 are valid values.
@@ -748,7 +706,6 @@ short execute_macro_file
       if ((rexx_args = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)params)+1)) == (CHARTYPE *)NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       strcpy((DEFCHAR *)rexx_macro_parameters,(DEFCHAR *)params);
@@ -845,14 +802,11 @@ short execute_macro_file
    if (rexx_args != NULL)
       (*the_free)(rexx_args);
    *macrorc = (short)rexxrc;
-   TRACE_RETURN();
    return((short)rc);
 }
 
-/***********************************************************************/
 short execute_macro_instore
       (CHARTYPE *commands,short *macrorc,CHARTYPE **pcode,int *pcode_len,int *tokenised, int macro_ident)
-/***********************************************************************/
 {
    USHORT rexxrc=0L;
    RXSTRING instore[2];
@@ -864,7 +818,6 @@ short execute_macro_instore
    RXSYSEXIT exit_list[2];                /* system exit list           */
    bool save_in_macro=in_macro;
 
-   TRACE_FUNCTION("rexx.c:    execute_macro_instore");
    in_macro = TRUE;
    sprintf((DEFCHAR *)macro_name,"INSTORE%d",macro_ident);
    /*
@@ -963,18 +916,15 @@ short execute_macro_instore
    }
    in_macro = save_in_macro;
    *macrorc = (short)rexxrc;
-   TRACE_RETURN();
    return((short)rc);
 }
 
-/***********************************************************************/
 REH_RETURN_TYPE rexx_interpreter_version_exit
    (
    REH_ARG0_TYPE ExitNumber,    /* code defining the exit function    */
    REH_ARG1_TYPE Subfunction,   /* code defining the exit subfunction */
    REH_ARG2_TYPE ParmBlock      /* function dependent control block   */
    )
-/***********************************************************************/
 {
    SHVBLOCK shv;
    int rc=0;
@@ -993,10 +943,8 @@ REH_RETURN_TYPE rexx_interpreter_version_exit
    return(RXEXIT_HANDLED);
 }
 
-/***********************************************************************/
 CHARTYPE *get_rexx_interpreter_version
       (CHARTYPE *buf)
-/***********************************************************************/
 {
  RXSYSEXIT Exits[2] ;
  RXSTRING Instore[2] ;
@@ -1039,35 +987,28 @@ CHARTYPE *get_rexx_interpreter_version
  return(buf);
 }
 
-/***********************************************************************/
 short get_rexx_variable
       (CHARTYPE *name,CHARTYPE **value,int *value_length)
-/***********************************************************************/
 {
    RXSTRING retstr;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("rexx.c:    get_rexx_variable");
    MAKERXSTRING(retstr,"",0);
    (void)get_compound_rexx_variable(name,&retstr,(-1));
    if (retstr.strptr == NULL)
       rc = RC_INVALID_ENVIRON;
    *value = (CHARTYPE*)retstr.strptr;
    *value_length = retstr.strlength;
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 short set_rexx_variable
       (CHARTYPE *name,CHARTYPE *value, LENGTHTYPE value_length, int suffix)
-/***********************************************************************/
 {
    SHVBLOCK shv;
    CHAR _THE_FAR variable_name[250];
    short rc=0;
 
-   TRACE_FUNCTION("rexx.c:    set_rexx_variable");
 
    shv.shvnext=NULL;                                   /* only one block */
    shv.shvcode=RXSHV_SET;                              /* use direct set */
@@ -1106,19 +1047,15 @@ short set_rexx_variable
    }
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 static RXSTRING *get_compound_rexx_variable
       (CHARTYPE *name,RXSTRING *value,short suffix)
-/***********************************************************************/
 {
    static SHVBLOCK shv;
    CHAR _THE_FAR variable_name[250];
    short rc=0;
 
-   TRACE_FUNCTION("rexx.c:    get_compound_rexx_variable");
    shv.shvnext=NULL;                                   /* only one block */
    shv.shvcode=RXSHV_FETCH;                            /* use direct set */
    /*
@@ -1181,13 +1118,10 @@ static RXSTRING *get_compound_rexx_variable
          value->strlength = 0;
          break;
    }
-   TRACE_RETURN();
    return(value);
 }
-/***********************************************************************/
 static short valid_target_function
       (ULONG Argc,RXSTRING Argv[])
-/***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
  static TARGET target={NULL,0L,0L,0L,NULL,0,0,FALSE};
@@ -1195,7 +1129,6 @@ static short valid_target_function
  LINETYPE true_line=0L;
  short rc=0;
 /*--------------------------- processing ------------------------------*/
- TRACE_FUNCTION("rexx.c:    valid_target_function");
  switch(1)
    {
     case 1:
@@ -1264,20 +1197,16 @@ static short valid_target_function
    }
  item_values[0].value = (CHARTYPE *)"1";
  item_values[0].len = 1;
- TRACE_RETURN();
  return(rc);
 }
-/***********************************************************************/
 static short run_os_function
       (ULONG Argc,RXSTRING Argv[])
-/***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
  int rc=0;
  static CHARTYPE num0[5];                  /* large enough for 1000+rc */
  CHARTYPE *cmd=NULL,*instem=NULL,*outstem=NULL,*errstem=NULL;
 /*--------------------------- processing ------------------------------*/
- TRACE_FUNCTION("rexx.c:    run_os_function");
  switch(Argc)
    {
     case 0:
@@ -1322,13 +1251,10 @@ static short run_os_function
  if (instem) (*the_free)(instem);
  if (outstem) (*the_free)(outstem);
  if (errstem) (*the_free)(errstem);
- TRACE_RETURN();
  return(RC_OK);
 }
-/***********************************************************************/
 static int run_os_command
       (CHARTYPE *cmd,CHARTYPE *instem,CHARTYPE *outstem,CHARTYPE *errstem)
-/***********************************************************************/
 {
    RXSTRING tmpstr;
    bool in=TRUE,out=TRUE,err=TRUE;
@@ -1342,7 +1268,6 @@ static int run_os_command
    int save_stdin=0,save_stdout=0,save_stderr=0;
    int infd=0,outfd=0,errfd=0;
   
-   TRACE_FUNCTION("rexx.c:    run_os_command");
    /*
     * Determine if we are redirecting stdin, stdout or both and if the
     * values passed as stem variables end in '.'.
@@ -1357,7 +1282,6 @@ static int run_os_command
          *(instem+inlen-1) = '\0';
       else
       {
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND+1000);
       }
    }
@@ -1371,7 +1295,6 @@ static int run_os_command
          *(outstem+outlen-1) = '\0';
       else
       {
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND+1000);
       }
    }
@@ -1385,7 +1308,6 @@ static int run_os_command
          *(errstem+errlen-1) = '\0';
       else
       {
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND+1000);
       }
    }
@@ -1397,13 +1319,11 @@ static int run_os_command
       if (out
       &&  strcmp((DEFCHAR *)instem,(DEFCHAR *)outstem) == 0)
       {
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND+1000);
       }
       if (err
       &&  strcmp((DEFCHAR *)instem,(DEFCHAR *)errstem) == 0)
       {
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND+1000);
       }
    }
@@ -1426,12 +1346,10 @@ static int run_os_command
       (void)get_compound_rexx_variable(instem,&tmpstr,0);
       if (tmpstr.strptr == NULL)
       {
-         TRACE_RETURN();
          return(RC_SYSTEM_ERROR+1000);
       }
       if (!valid_positive_integer((CHARTYPE *)tmpstr.strptr))
       {
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND+1000);
       }
       innum = atol((DEFCHAR *)tmpstr.strptr);
@@ -1442,12 +1360,10 @@ static int run_os_command
       infile = (char *)(*the_malloc)(L_tmpnam);
       if (infile == NULL)
       {
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY+1000);
       }
       if ((infile = tmpnam(infile)) == NULL)
       {
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED+1000);
       }
 #if defined(GO32)
@@ -1459,7 +1375,6 @@ static int run_os_command
 #endif
       if ((infp = fopen(infile,"w")) == NULL)
       {
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED+1000);
       }
       for (i=0;i<innum;i++)
@@ -1468,7 +1383,6 @@ static int run_os_command
          (void)get_compound_rexx_variable(instem,&tmpstr,i+1);
          if (tmpstr.strptr == NULL)
          {
-            TRACE_RETURN();
             return(RC_SYSTEM_ERROR+1000);
          }
          fputs((DEFCHAR *)tmpstr.strptr,infp);
@@ -1477,7 +1391,6 @@ static int run_os_command
       }
       if (fclose(infp))
       {
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED+1000);
       }
    }
@@ -1490,12 +1403,10 @@ static int run_os_command
       outfile = (char *)(*the_malloc)(L_tmpnam);
       if (outfile == NULL)
       {
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY+1000);
       }
       if ((outfile = tmpnam(outfile)) == NULL)
       {
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED+1000);
       }
    }
@@ -1514,12 +1425,10 @@ static int run_os_command
          errfile = (char *)(*the_malloc)(L_tmpnam);
          if (errfile == NULL)
          {
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY+1000);
          }
          if ((errfile = tmpnam(errfile)) == NULL)
          {
-            TRACE_RETURN();
             return(RC_ACCESS_DENIED+1000);
          }
       }
@@ -1535,7 +1444,6 @@ static int run_os_command
    {
       if ((infd = open(infile,O_RDONLY)) == (-1))
       {
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED+1000);
       }
    }
@@ -1547,7 +1455,6 @@ static int run_os_command
       if ((outfd = open(outfile, O_RDWR|O_CREAT|O_TRUNC)) == (-1))
 #endif
       {
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED+1000);
       }
    }
@@ -1559,7 +1466,6 @@ static int run_os_command
       {
          if ((errfd = open(errfile,O_RDWR|O_CREAT|O_TRUNC)) == (-1))
          {
-            TRACE_RETURN();
             return(RC_ACCESS_DENIED+1000);
          }
       }
@@ -1629,21 +1535,17 @@ static int run_os_command
    /*
     * Return with, hopefully, return code from system() command.
     */
-   TRACE_RETURN();
    if (rc)
       return(rc+1000);
    else
       return(rcode);
 }
-/***********************************************************************/
 static CHARTYPE *MakeAscii
       (RXSTRING *rxstring)
-/***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
  CHARTYPE *string=NULL;
 /*--------------------------- processing ------------------------------*/
- TRACE_FUNCTION("rexx.c:    MakeAscii");
 
  string = (CHARTYPE *)(*the_malloc)((sizeof(CHARTYPE)*rxstring->strlength)+1);
  if (string != NULL)
@@ -1651,13 +1553,10 @@ static CHARTYPE *MakeAscii
     memcpy(string,rxstring->strptr,rxstring->strlength);
     *(string+(rxstring->strlength)) = '\0';
    }
- TRACE_RETURN();
  return(string);
 }
-/***********************************************************************/
 static char *get_a_line
       (FILE *fp,char *string,int *length,int *rcode)
-/***********************************************************************/
 {
  int ch;
  static int bufs = 1;
@@ -1718,10 +1617,8 @@ static char *get_a_line
  *rcode = 0;
  return(string);
 }
-/***********************************************************************/
 static short set_rexx_variables_from_file
       (char *filename,CHARTYPE *stem)
-/***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
  FILE *fp=NULL;
@@ -1730,10 +1627,8 @@ static short set_rexx_variables_from_file
  int length=0,rcode=0,rc=0;
  char tmpnum[10];
 /*--------------------------- processing ------------------------------*/
- TRACE_FUNCTION("rexx.c:    set_rexx_variables_from_file");
  if ((fp = fopen(filename,"r")) == NULL)
    {
-    TRACE_RETURN();
     return(RC_ACCESS_DENIED);
    }
  for (i=0;;i++)
@@ -1741,7 +1636,6 @@ static short set_rexx_variables_from_file
     string = get_a_line(fp,string,&length,&rcode);
     if (rcode == RC_OUT_OF_MEMORY)
       {
-       TRACE_RETURN();
        return(rcode);
       }
     if (rcode == RC_TOF_EOF_REACHED
@@ -1759,6 +1653,5 @@ static short set_rexx_variables_from_file
  rc = set_rexx_variable(stem,(CHARTYPE *)tmpnum,strlen(tmpnum),0);
  if (fclose(fp))
     rc = RC_ACCESS_DENIED;
- TRACE_RETURN();
  return(rc);
 }

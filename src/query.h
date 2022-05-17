@@ -1,7 +1,5 @@
-/***********************************************************************/
 /* QUERY.H -                                                           */
 /* This file contains defines   related to QUERY,STATUS and EXTRACT    */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2002 Mark Hessling

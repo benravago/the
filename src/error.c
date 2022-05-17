@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* ERROR.C - Function to display error messages.                       */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -45,9 +43,7 @@ static LINE *first_error=NULL;                   /* first error message */
 static LINE *last_error=NULL;                     /* last error message */
 
 static void open_msgline(ROWTYPE,ROWTYPE,ROWTYPE);
-/***********************************************************************/
 int display_error(unsigned short err_num,CHARTYPE *mess,bool ignore_bell)
-/***********************************************************************/
 {
 static CHARTYPE _THE_FAR *error_message[] =
 {
@@ -275,7 +271,6 @@ static CHARTYPE _THE_FAR *error_message[] =
    int x=0, y=0,ee_len=0;
    int rc=RC_OK;
 
-   TRACE_FUNCTION("error.c:   display_error");
 
    if( curses_started
    &&  CURRENT_VIEW != NULL
@@ -300,7 +295,6 @@ static CHARTYPE _THE_FAR *error_message[] =
       last_message = (CHARTYPE *)(*the_malloc)(last_message_length*sizeof(CHARTYPE));
       if (last_message == NULL)
       {
-         TRACE_RETURN();
          return rc;
       }
    }
@@ -312,7 +306,6 @@ static CHARTYPE _THE_FAR *error_message[] =
          last_message = (CHARTYPE *)(*the_realloc)(last_message,last_message_length*sizeof(CHARTYPE));
          if (last_message == NULL)
          {
-            TRACE_RETURN();
             return rc;
          }
       }
@@ -340,7 +333,6 @@ static CHARTYPE _THE_FAR *error_message[] =
    {
       if (!CURRENT_VIEW->msgmode_status)
       {
-         TRACE_RETURN();
          return rc;
       }
    }
@@ -349,7 +341,6 @@ static CHARTYPE _THE_FAR *error_message[] =
     */
    if (in_nomsg)
    {
-      TRACE_RETURN();
       return rc;
    }
 #ifdef MSWIN
@@ -368,7 +359,6 @@ static CHARTYPE _THE_FAR *error_message[] =
       }
       error_on_screen = TRUE;
       Operator("%s%s",hdr,last_message);
-      TRACE_RETURN();
       return rc;
    }
    }
@@ -385,7 +375,6 @@ static CHARTYPE _THE_FAR *error_message[] =
       }
       error_on_screen = TRUE;
       fprintf(stderr,"%s\n",last_message);
-      TRACE_RETURN();
       return rc;
    }
 #endif
@@ -402,13 +391,11 @@ static CHARTYPE _THE_FAR *error_message[] =
    last_error = lll_add(first_error,last_error,sizeof(LINE));
    if (last_error == NULL)
    {
-      TRACE_RETURN();
       return rc;
    }
    last_error->line = (CHARTYPE *)(*the_malloc)((strlen((DEFCHAR *)last_message)+1)*sizeof(CHARTYPE));
    if (last_error->line == NULL)
    {
-      TRACE_RETURN();
       return rc;
    }
    strcpy((DEFCHAR *)last_error->line,(DEFCHAR *)last_message);
@@ -435,17 +422,13 @@ static CHARTYPE _THE_FAR *error_message[] =
       wmove( CURRENT_WINDOW, y, x );
    if ( first_screen_display )
       wrefresh( error_window );
-   TRACE_RETURN();
    return rc;
 }
-/***********************************************************************/
 static void open_msgline(ROWTYPE base, ROWTYPE off,ROWTYPE rows)
-/***********************************************************************/
 {
    int start_row=0;
    COLOUR_ATTR attr;
 
-   TRACE_FUNCTION( "error.c:   open_msgline" );
    if ( CURRENT_VIEW == NULL
    ||   CURRENT_FILE == NULL )
       set_up_default_colours( (FILE_DETAILS *)NULL, &attr, ATTR_MSGLINE );
@@ -459,14 +442,10 @@ static void open_msgline(ROWTYPE base, ROWTYPE off,ROWTYPE rows)
    error_window = newwin( rows, CURRENT_SCREEN.screen_cols, CURRENT_SCREEN.screen_start_row + start_row, CURRENT_SCREEN.screen_start_col );
    wattrset( error_window, set_colour(&attr) );
    keypad( error_window, TRUE );
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void clear_msgline(int key)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("error.c:   clear_msgline");
    /*
     * Only clear the message line if the supplied key matches that set
     * by SET CLEARERRORKEY.  -1 indicates any key can clear
@@ -487,26 +466,19 @@ void clear_msgline(int key)
       redraw_screen(current_screen);
       doupdate();
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void display_prompt(CHARTYPE *prompt)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("error.c:   display_prompt");
    open_msgline(CURRENT_VIEW->msgline_base,CURRENT_VIEW->msgline_off,1);
    wmove(error_window,0,0);
    my_wclrtoeol(error_window);
    put_string(error_window,0,0,prompt,strlen((DEFCHAR *)prompt));
    wrefresh(error_window);
    error_on_screen = TRUE;
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 int expose_msgline(void)
-/***********************************************************************/
 {
 #define NORMAL_PROMPT "Press any key to continue..."
 #define IN_MACRO_PROMPT "Press SPACE to terminate macro or any other key to continue..."
@@ -519,7 +491,6 @@ int expose_msgline(void)
    int rc=RC_OK;
    CHARTYPE *prompt;
 
-   TRACE_FUNCTION("error.c:   expose_msgline");
    /*
     * If msgmode is off, don't display any errors.
     */
@@ -527,7 +498,6 @@ int expose_msgline(void)
    {
       if (!CURRENT_VIEW->msgmode_status)
       {
-         TRACE_RETURN();
          return rc;
       }
       msgline_rows = CURRENT_VIEW->msgline_rows;
@@ -597,6 +567,5 @@ int expose_msgline(void)
       if ( my_getch( error_window ) == ' ' )
          rc = RC_TERMINATE_MACRO;
    }
-   TRACE_RETURN();
    return rc;
 }

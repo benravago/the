@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* SINGLE.C - Processing for single input mode                         */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -49,15 +47,12 @@ static CHARTYPE tmp_str[2*MAX_FILE_NAME+100];
 
 static int fifo_fd;
 
-/***********************************************************************/
 int initialise_fifo( LINE *first_file_name, LINETYPE startup_line, LENGTHTYPE startup_column, bool ro )
-/***********************************************************************/
 {
    LINE *current_file_name;
    int am_client = 0, rc;
    char *ronly;
 
-   TRACE_FUNCTION("single.c:  initialise_fifo");
 
    if ( file_exists( fifo_name ) == THE_FILE_EXISTS )
    {
@@ -158,13 +153,10 @@ int initialise_fifo( LINE *first_file_name, LINETYPE startup_line, LENGTHTYPE st
        * We are the server, so return with 0 to enable the caller to continue...
        */
    }
-   TRACE_RETURN();
    return am_client;
 }
 
-/***********************************************************************/
 int process_fifo_input( int key )
-/***********************************************************************/
 {
    int s;
    fd_set readfds;
@@ -173,7 +165,6 @@ int process_fifo_input( int key )
    CHARTYPE le_value=CURRENT_VIEW->linend_value;
    VIEW_DETAILS *le_view;
 
-   TRACE_FUNCTION("single.c:  process_fifo_input");
 
    if ( key == -1 )
    {
@@ -187,19 +178,16 @@ int process_fifo_input( int key )
       FD_SET ( fifo_fd, &readfds );
       if ( ( s = select ( FD_SETSIZE, &readfds, NULL, NULL, NULL ) ) < 0 )
       {
-         TRACE_RETURN();
          return key;
       }
       if ( s == 0 ) /* no requests pending - should never happen! */
       {
-         TRACE_RETURN();
          return key;
       }
       if ( FD_ISSET ( fifo_fd, &readfds ) )
       {
          if ( read( fifo_fd, (char *)&tmp_len, sizeof(tmp_len) ) < 0 )
          {
-            TRACE_RETURN();
             return key;
          }
          /*
@@ -209,7 +197,6 @@ int process_fifo_input( int key )
          napms( 100 );
          if ( read( fifo_fd, tmp_str, tmp_len*sizeof(CHARTYPE) ) < 0 )
          {
-            TRACE_RETURN();
             return key;
          }
          /*
@@ -231,18 +218,13 @@ int process_fifo_input( int key )
          key = 0;
       }
    }
-   TRACE_RETURN();
    return key;
 }
 
-/***********************************************************************/
 void close_fifo( void )
-/***********************************************************************/
 {
-   TRACE_FUNCTION("single.c:  close_fifo");
    close( fifo_fd );
    remove_file( fifo_name );
-   TRACE_RETURN();
    return;
 }
 

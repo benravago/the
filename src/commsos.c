@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* COMMSOS.C - sos commands.                                           */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -43,42 +41,11 @@
 static short sosdelback Args(( bool ));
 static short sosdelchar Args(( bool ));
 
-/*man-start*********************************************************************
-
 
-========================================================================
-SOS COMMAND REFERENCE
-========================================================================
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     sos addline - add blank line after focus line
-
-SYNTAX
-     SOS ADDline
-
-DESCRIPTION
-     The SOS ADDLINE command inserts a blank line in the file following
-     the focus line. The cursor is placed in the column under the first
-     non-blank in the focus line.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS LINEADD>, <SOS DELLINE>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_addline(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("commsos.c: Sos_addline");
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
    insert_new_line( current_screen, CURRENT_VIEW, (CHARTYPE *)"", 0, 1, get_true_line(FALSE), FALSE, FALSE, TRUE, CURRENT_VIEW->display_low, TRUE, TRUE );
    if (compatible_feel == COMPAT_XEDIT)
@@ -89,35 +56,9 @@ short Sos_addline(CHARTYPE *params)
       THEcursor_home( current_screen, CURRENT_VIEW, FALSE );
       rc = Sos_firstcol((CHARTYPE *)"");
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos blockend - move cursor to end of marked block
-
-SYNTAX
-     SOS BLOCKEnd
-
-DESCRIPTION
-     The SOS BLOCKEND command moves the cursor to the ending line
-     and column of the marked block.  If the cursor is on the command
-     line, the last line of the marked block becomes the current line.
-
-     If no marked block is in the current file, an error is displayed.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS BLOCKSTART>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_blockend(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    short rc=RC_OK;
@@ -127,11 +68,9 @@ short Sos_blockend(CHARTYPE *params)
    short save_compat=0;
    CHARTYPE cmd[20];
 
-   TRACE_FUNCTION("commsos.c: Sos_blockend");
    if (MARK_VIEW != CURRENT_VIEW)
    {
       display_error(45,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    switch(MARK_VIEW->mark_type)
@@ -153,7 +92,6 @@ short Sos_blockend(CHARTYPE *params)
    if (!IN_SCOPE(CURRENT_VIEW,curr))
    {
       display_error(46,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    if (CURRENT_VIEW->current_window == WINDOW_PREFIX)
@@ -174,35 +112,9 @@ short Sos_blockend(CHARTYPE *params)
    if (MARK_VIEW->mark_type != M_LINE
    &&  CURRENT_VIEW->current_window != WINDOW_COMMAND)
       execute_move_cursor(  current_screen, CURRENT_VIEW, col-1 );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos blockstart - move cursor to start of marked block
-
-SYNTAX
-     SOS BLOCKStart
-
-DESCRIPTION
-     The SOS BLOCKSTART command moves the cursor to the starting line
-     and column of the marked block.  If the cursor is on the command
-     line, the first line of the marked block becomes the current line.
-
-     If no marked block is in the current file, an error is displayed.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS BLOCKEND>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_blockstart(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    short rc=RC_OK;
@@ -212,11 +124,9 @@ short Sos_blockstart(CHARTYPE *params)
    short save_compat=0;
    CHARTYPE cmd[20];
 
-   TRACE_FUNCTION("commsos.c: Sos_blockstart");
    if (MARK_VIEW != CURRENT_VIEW)
    {
       display_error(45,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    switch(MARK_VIEW->mark_type)
@@ -238,7 +148,6 @@ short Sos_blockstart(CHARTYPE *params)
    if (!IN_SCOPE(CURRENT_VIEW,curr))
    {
       display_error(46,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    if (CURRENT_VIEW->current_window == WINDOW_PREFIX)
@@ -259,46 +168,19 @@ short Sos_blockstart(CHARTYPE *params)
    if (MARK_VIEW->mark_type != M_LINE
    &&  CURRENT_VIEW->current_window != WINDOW_COMMAND)
       execute_move_cursor( current_screen, CURRENT_VIEW, col-1 );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos bottomedge - move cursor to bottom edge of FILEAREA
-
-SYNTAX
-     SOS BOTTOMEdge
-
-DESCRIPTION
-     The SOS BOTTOMEDGE command moves the cursor to the last
-     enterable line in the <filearea> or <prefix area>. If the cursor
-     is on the command line, the cursor moves to the first
-     enterable line of the <filearea>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS TOPEDGE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_bottomedge(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short y=0,x=0,row=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_bottomedge");
    getyx(CURRENT_WINDOW,y,x);
    /*
     * Get the last enterable row. If an error, stay where we are...
     */
    if ( find_last_focus_line( current_screen, &row ) != RC_OK )
    {
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -325,109 +207,32 @@ short Sos_bottomedge(CHARTYPE *params)
          }
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos cuadelback - delete the character to the left of the cursor
-
-SYNTAX
-     SOS CUADELBAck
-
-DESCRIPTION
-     The SOS CUADELBACK command deletes the character to the right of the
-     current cursor position.  It differs from <SOS DELBACK> in the case
-     when the cursor is in the first column of the file and in the
-     FILEAREA. Then, the cursor first moves to the last character of the
-     previous line, and deletes this character.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <SOS DELBACK>, <SOS CUADELCHAR>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_cuadelback(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc;
 
-   TRACE_FUNCTION("commsos.c: Sos_cuadelback");
    rc = sosdelback( TRUE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos cuadelchar - delete character under cursor
-
-SYNTAX
-     SOS CUADELChar
-
-DESCRIPTION
-     The SOS CUADELCHAR command deletes the character under the cursor.
-     Text to the right is shifted to the left.
-     It differs from <SOS DELCHAR> in the case when the cursor is after
-     the last character of the line and in the FILEAREA. Then, the
-     next line is joined with the current line.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <SOS CURDELBACK>, <SOS DELCHAR>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_cuadelchar(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("commsos.c: Sos_cuadelchar");
    rc = sosdelchar( TRUE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos current - move cursor to current line
-
-SYNTAX
-     SOS CURRent
-
-DESCRIPTION
-     The SOS CURRENT command moves the cursor to the current column
-     of the cursor line from any window.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_current(CHARTYPE *params)
-/***********************************************************************/
 {
    return do_Sos_current( params, current_screen, CURRENT_VIEW );
 }
-/***********************************************************************/
 short do_Sos_current( CHARTYPE *params, CHARTYPE curr_screen, VIEW_DETAILS *curr_view )
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short x=0,y=0;
    bool same_line=TRUE;
 
-   TRACE_FUNCTION("commsos.c: Sos_current");
    getyx( SCREEN_WINDOW_FILEAREA(curr_screen), y, x );
    switch ( curr_view->current_window )
    {
@@ -454,38 +259,14 @@ short do_Sos_current( CHARTYPE *params, CHARTYPE curr_screen, VIEW_DETAILS *curr
       default:
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos cursoradj - move first non-blank character to cursor
-
-SYNTAX
-     SOS CURSORAdj
-
-DESCRIPTION
-     The SOS CURSORADJ command moves text in the <focus line> so that
-     the first non-blank character appears under the cursor position.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS CURSORSHIFT>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_cursoradj(CHARTYPE *params)
-/***********************************************************************/
 {
    LENGTHTYPE num_cols=0,first_non_blank_col=0,col=0;
    short rc=RC_OK;
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_cursoradj");
    getyx( CURRENT_WINDOW, y, x );
    switch ( CURRENT_VIEW->current_window )
    {
@@ -493,7 +274,6 @@ short Sos_cursoradj(CHARTYPE *params)
          if ( FOCUS_TOF || FOCUS_BOF )
          {
             display_error(38, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          col = x + CURRENT_VIEW->verify_col - 1;
@@ -512,39 +292,14 @@ short Sos_cursoradj(CHARTYPE *params)
       default:
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos cursorshift - move text to right of cursor to cursor
-
-SYNTAX
-     SOS CURSORSHIFT
-
-DESCRIPTION
-     The SOS CURSORSHIFT command moves text in the <focus line> so that
-     the first non-blank character to the right of the cursor is
-     shifted to under the cursor position.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <SOS CURSORADJ>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_cursorshift(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LENGTHTYPE num_cols=0,first_non_blank_col=0,col=0;
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_cursorshift");
    getyx(CURRENT_WINDOW,y,x);
    switch (CURRENT_VIEW->current_window)
    {
@@ -552,7 +307,6 @@ short Sos_cursorshift(CHARTYPE *params)
          if (FOCUS_TOF || FOCUS_BOF)
          {
             display_error(38,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          col = x + CURRENT_VIEW->verify_col - 1;
@@ -575,96 +329,27 @@ short Sos_cursorshift(CHARTYPE *params)
       build_screen(current_screen);
       display_screen(current_screen);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos delback - delete the character to the left of the cursor
-
-SYNTAX
-     SOS DELBAck
-
-DESCRIPTION
-     The SOS DELBACK command moves the cursor one character to the left
-     and deletes the character now under the cursor.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS DELCHAR>, <SOS CUADELCHAR>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_delback(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc;
 
-   TRACE_FUNCTION("commsos.c: Sos_delback");
    rc = sosdelback( FALSE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos delchar - delete character under cursor
-
-SYNTAX
-     SOS DELChar
-
-DESCRIPTION
-     The SOS DELCHAR command deletes the character under the cursor.
-     Text to the right is shifted to the left.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS DELBACK>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_delchar(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("commsos.c: Sos_delchar");
    rc = sosdelchar( FALSE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos delend - delete to end of line
-
-SYNTAX
-     SOS DELEnd
-
-DESCRIPTION
-     The SOS DELEND command deletes all characters from the current
-     column to the end of line.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_delend(CHARTYPE *params)
-/***********************************************************************/
 {
    LENGTHTYPE i,col;
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_delend");
    getyx(CURRENT_WINDOW,y,x);
    switch (CURRENT_VIEW->current_window)
    {
@@ -676,13 +361,11 @@ short Sos_delend(CHARTYPE *params)
          if (ISREADONLY(CURRENT_FILE))
          {
             display_error(56,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE)
          {
             display_error(38,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          col = x + CURRENT_VIEW->verify_col - 1;
@@ -732,37 +415,14 @@ short Sos_delend(CHARTYPE *params)
          display_screen(current_screen);
       }
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos delline - delete focus line
-
-SYNTAX
-     SOS DELLine
-
-DESCRIPTION
-     The SOS DELLINE command deletes the <focus line>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS LINEDEL>, <SOS ADDLINE>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_delline(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short x=0,y=0;
    LINETYPE true_line=0L,lines_affected=0L;
 
-   TRACE_FUNCTION("commsos.c: Sos_delline");
    if (CURRENT_VIEW->current_window == WINDOW_FILEAREA
    ||  CURRENT_VIEW->current_window == WINDOW_PREFIX)
    {
@@ -771,7 +431,6 @@ short Sos_delline(CHARTYPE *params)
       &&  !CURRENT_VIEW->scope_all)
       {
          display_error(38,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
       }
    }
@@ -790,30 +449,9 @@ short Sos_delline(CHARTYPE *params)
          wmove(CURRENT_WINDOW,y,x);
       pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos delword - delete word at or right of cursor
-
-SYNTAX
-     SOS DELWord
-
-DESCRIPTION
-     The SOS DELWORD command deletes the word at or to the right
-     of the current cursor position and any spaces following the
-     word.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_delword(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LENGTHTYPE first_col=0,last_col=0;
@@ -821,7 +459,6 @@ short Sos_delword(CHARTYPE *params)
    LENGTHTYPE num_cols=0,left_col=0,temp_rec_len=0;
    CHARTYPE *temp_rec=NULL;
 
-   TRACE_FUNCTION( "commsos.c: Sos_delword" );
    /*
     * This function is not applicable to the PREFIX window.
     */
@@ -830,7 +467,6 @@ short Sos_delword(CHARTYPE *params)
    {
       case WINDOW_PREFIX:
          display_error( 38, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
          break;
       case WINDOW_FILEAREA:
@@ -841,13 +477,11 @@ short Sos_delword(CHARTYPE *params)
          if ( ISREADONLY( CURRENT_FILE ) )
          {
             display_error( 56, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          if ( CURRENT_SCREEN.sl[y].line_type != LINE_LINE )
          {
             display_error( 38, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          temp_rec = rec;
@@ -862,7 +496,6 @@ short Sos_delword(CHARTYPE *params)
    }
    if ( get_word( temp_rec, temp_rec_len, x + left_col, &first_col, &last_col ) == 0 )
    {
-      TRACE_RETURN();
       return(0);
    }
    /*
@@ -884,56 +517,16 @@ short Sos_delword(CHARTYPE *params)
          display_cmdline( current_screen, CURRENT_VIEW );
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos doprefix - execute any pending prefix commands
-
-SYNTAX
-     SOS DOPREfix
-
-DESCRIPTION
-     The SOS DOPREFIX command executes any pending prefix commands.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_doprefix(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("commsos.c: Sos_doprefix");
    rc = execute_prefix_commands();
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos edit - edit a file from directory list
-
-SYNTAX
-     SOS EDIT
-
-DESCRIPTION
-     The SOS EDIT command allows the user to edit a file, chosen from
-     a directory list (the file DIR.DIR).
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible with default definition for Alt-X key.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_edit(CHARTYPE *params)
-/***********************************************************************/
 {
    LINE *curr=NULL;
    CHARTYPE edit_fname[MAX_FILE_NAME];
@@ -945,13 +538,11 @@ short Sos_edit(CHARTYPE *params)
    PRESERVED_VIEW_DETAILS *preserved_view_details=NULL;
    PRESERVED_FILE_DETAILS *preserved_file_details=NULL;
 
-   TRACE_FUNCTION("commsos.c: Sos_edit");
    /*
     * If the current file is not the special DIR.DIR file exit.
     */
    if (CURRENT_FILE->pseudo_file != PSEUDO_DIR)
    {
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -962,7 +553,6 @@ short Sos_edit(CHARTYPE *params)
    {
       if (CURRENT_TOF || CURRENT_BOF)
       {
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
       }
       true_line = CURRENT_VIEW->current_line;
@@ -972,7 +562,6 @@ short Sos_edit(CHARTYPE *params)
       getyx(CURRENT_WINDOW,y,x);
       if (FOCUS_TOF || FOCUS_BOF)
       {
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
       }
       true_line = CURRENT_VIEW->focus_line;
@@ -986,7 +575,6 @@ short Sos_edit(CHARTYPE *params)
     */
    if (rec_len <= FILE_START)
    {
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
 
@@ -1029,7 +617,6 @@ short Sos_edit(CHARTYPE *params)
    if ((rc = splitpath(edit_fname)) != RC_OK)
    {
       display_error(10,edit_fname,FALSE);
-      TRACE_RETURN();
       return(rc);
    }
    strcpy((DEFCHAR *)edit_fname,(DEFCHAR *)sp_path);
@@ -1066,38 +653,14 @@ short Sos_edit(CHARTYPE *params)
       display_cmdline( current_screen, CURRENT_VIEW );
    }
    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos endchar - move cursor to end of focus line
-
-SYNTAX
-     SOS ENDChar
-
-DESCRIPTION
-     The SOS ENDCHAR command moves the cursor to the position after
-     the last character displayed in the current window.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS STARTENDCHAR>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_endchar(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short x=0,y=0;
    LENGTHTYPE charnum;
 
-   TRACE_FUNCTION( "commsos.c: Sos_endchar" );
    getyx( CURRENT_WINDOW, y, x );
    switch( CURRENT_VIEW->current_window )
    {
@@ -1127,35 +690,14 @@ short Sos_endchar(CHARTYPE *params)
          rc = execute_move_cursor( current_screen, CURRENT_VIEW, charnum );
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos execute - move cursor to command line and execute command
-
-SYNTAX
-     SOS EXecute
-
-DESCRIPTION
-     The SOS EXECUTE command moves the cursor to the <command line>
-     and executes any command that is displayed there.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_execute(CHARTYPE *params)
-/***********************************************************************/
 {
    LENGTHTYPE i;
    short rc=RC_OK;
    bool save_in_macro;
 
-   TRACE_FUNCTION("commsos.c: Sos_execute");
 
    save_for_repeat = 1;
 
@@ -1173,40 +715,15 @@ short Sos_execute(CHARTYPE *params)
       rc = command_line( temp_cmd, COMMAND_ONLY_FALSE );
       in_macro = save_in_macro;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos firstchar - move cursor to first non-blank of field
-
-SYNTAX
-     SOS FIRSTCHar
-
-DESCRIPTION
-     The SOS FIRSTCHAR command moves the cursor to the first
-     non-blank character of the cursor field. For the <prefix area>
-     the cursor moves to the first column.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible
-
-SEE ALSO
-     <SOS FIRSTCOL>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_firstchar(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LENGTHTYPE new_col=0;
    unsigned short y=0,x=0;
    LINE *curr=NULL;
 
-   TRACE_FUNCTION( "commsos.c: Sos_firstchar" );
    /*
     * For the command line and prefix area, just go to the first column...
     */
@@ -1215,7 +732,6 @@ short Sos_firstchar(CHARTYPE *params)
    {
       case WINDOW_PREFIX:
          wmove( CURRENT_WINDOW, y, 0 );
-         TRACE_RETURN();
          return(rc);
       case WINDOW_COMMAND:
          new_col = memne( cmd_rec, ' ', cmd_rec_len );
@@ -1231,37 +747,13 @@ short Sos_firstchar(CHARTYPE *params)
    if ( new_col == (-1) )
       new_col = 0;
    rc = execute_move_cursor( current_screen, CURRENT_VIEW, new_col );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos firstcol - move cursor to first column of field
-
-SYNTAX
-     SOS FIRSTCOl
-
-DESCRIPTION
-     The SOS FIRSTCOL command moves the cursor to the first
-     column of the <cursor field>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible
-
-SEE ALSO
-     <SOS FIRSTCHAR>, <SOS LASTCOL>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_firstcol(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION( "commsos.c: Sos_firstcol" );
    getyx( CURRENT_WINDOW, y, x );
    switch( CURRENT_VIEW->current_window )
    {
@@ -1280,41 +772,16 @@ short Sos_firstcol(CHARTYPE *params)
          break;
    }
    wmove( CURRENT_WINDOW, y, 0 );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos instab - shift text to next tab column
-
-SYNTAX
-     SOS INSTAB
-
-DESCRIPTION
-     The SOS INSTAB command shifts all text from the current cursor
-     position in the <filearea> to the next tab column.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SET TABS>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_instab(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    short rc=RC_OK;
    LENGTHTYPE col=0,tabcol=0,i;
 
-   TRACE_FUNCTION("commsos.c: Sos_instab");
    if ( CURRENT_VIEW->current_window != WINDOW_FILEAREA )
    {
-      TRACE_RETURN();
       return(rc);
    }
    getyx( CURRENT_WINDOW, y, x );
@@ -1329,7 +796,6 @@ short Sos_instab(CHARTYPE *params)
    }
    if ( tabcol == 0 ) /* after last tab column or on a tab column */
    {
-      TRACE_RETURN();
       return(rc);
    }
    for ( i = 0; i < tabcol - col; i++ )
@@ -1341,272 +807,68 @@ short Sos_instab(CHARTYPE *params)
    Sos_tabf( (CHARTYPE *)"nochar" );
    build_screen( current_screen );
    display_screen( current_screen );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos lastcol - move cursor to last column of field
-
-SYNTAX
-     SOS LASTCOl
-
-DESCRIPTION
-     The SOS LASTCOL command moves the cursor to the last column
-     of the <cursor field>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <SOS FIRSTCOL, SOS RIGHTEDGE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_lastcol(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION( "commsos.c: Sos_lastcol" );
    getyx( CURRENT_WINDOW, y, x );
    x = getmaxx( CURRENT_WINDOW ) - 1;
    wmove( CURRENT_WINDOW, y, x );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos leftedge - move cursor to left edge of window
-
-SYNTAX
-     SOS LEFTEdge
-
-DESCRIPTION
-     The SOS LEFTEDGE command moves the cursor to the leftmost edge
-     of the <filearea> if not on the command line or to the leftmost
-     edge of the command line if on the <command line>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible
-
-SEE ALSO
-     <SOS RIGHTEDGE>, <SOS PREFIX>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_leftedge(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION( "commsos.c: Sos_leftedge" );
    getyx( CURRENT_WINDOW, y, x );
    if ( CURRENT_VIEW->current_window == WINDOW_PREFIX )
       CURRENT_VIEW->current_window = WINDOW_FILEAREA;
    wmove( CURRENT_WINDOW, y, 0 );
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos lineadd - add blank line after focus line
 
-SYNTAX
-     SOS LINEAdd
 
-DESCRIPTION
-     The SOS LINEADD command inserts a blank line in the file following
-     the <focus line>. The cursor is placed in the column under the first
-     non-blank in the <focus line>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS ADDLINE>, <SOS LINEDEL>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     sos linedel - delete focus line
-
-SYNTAX
-     SOS LINEDel
-
-DESCRIPTION
-     The SOS LINEDEL command deletes the <focus line>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS DELLINE>, <SOS LINEADD>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     sos makecurr - make focus line the current line
-
-SYNTAX
-     SOS MAKECURR
-
-DESCRIPTION
-     The SOS MAKECURR command set the <current line> to the <focus line>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_makecurr(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "commsos.c: Sos_makecurr" );
    if ( CURRENT_VIEW->current_window != WINDOW_COMMAND )
       rc = execute_makecurr( current_screen, CURRENT_VIEW, CURRENT_VIEW->focus_line );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos marginl - move cursor to the left margin column
-
-SYNTAX
-     SOS MARGINL
-
-DESCRIPTION
-     The SOS MARGINL command moves the cursor to the left margin
-     column.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS MARGINR>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_marginl(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "commsos.c: Sos_marginl" );
    if ( Sos_leftedge( (CHARTYPE *)"" ) == RC_OK )
       rc = execute_move_cursor( current_screen, CURRENT_VIEW, CURRENT_VIEW->margin_left - 1 );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos marginr - move cursor to the right margin column
-
-SYNTAX
-     SOS MARGINR
-
-DESCRIPTION
-     The SOS MARGINR command moves the cursor to the right margin
-     column.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS MARGINL>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_marginr(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "commsos.c: Sos_marginr" );
    if ( Sos_leftedge( (CHARTYPE *)"" ) == RC_OK )
       rc = execute_move_cursor( current_screen, CURRENT_VIEW, CURRENT_VIEW->margin_right - 1 );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos parindent - move cursor to the paragraph indent column
-
-SYNTAX
-     SOS PARINDent
-
-DESCRIPTION
-     The SOS PARINDENT command moves the cursor to the paragraph
-     indent column.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-            Although, when issued from the command line, nothing
-            happens.
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_parindent(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LENGTHTYPE parindent=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_parindent");
    if (CURRENT_VIEW->margin_indent_offset_status)
       parindent = CURRENT_VIEW->margin_left + CURRENT_VIEW->margin_indent - 1;
    else
       parindent = CURRENT_VIEW->margin_indent - 1;
    if (Sos_leftedge((CHARTYPE *)"") == RC_OK)
       rc = execute_move_cursor( current_screen, CURRENT_VIEW, parindent );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos pastecmdline - copy contents of marked block to command line
-
-SYNTAX
-     SOS PASTECMDline
-
-DESCRIPTION
-     The SOS PASTECMDLINE command copies the contents of the marked
-     block to the command line at the current cursor location.
-
-     Marked blocks that span one line only are allowed to be pasted.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Sos_pastecmdline(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short x=0,y=0;
@@ -1617,23 +879,19 @@ short Sos_pastecmdline(CHARTYPE *params)
    COLTYPE new_screen_col=0;
    LENGTHTYPE verify_col=0;
 
-   TRACE_FUNCTION( "commsos.c: Sos_pastecmdline" );
    if ( CURRENT_VIEW->current_window != WINDOW_COMMAND )
    {
       display_error( 38, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    if ( MARK_VIEW == NULL )
    {
       display_error( 44, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    if ( MARK_VIEW->mark_start_line != MARK_VIEW->mark_end_line )
    {
       display_error( 81, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    curr = lll_find( MARK_FILE->first_line, MARK_FILE->last_line, MARK_VIEW->mark_start_line, MARK_FILE->number_lines );
@@ -1671,52 +929,23 @@ short Sos_pastecmdline(CHARTYPE *params)
       display_cmdline( current_screen, CURRENT_VIEW );
       wmove( CURRENT_WINDOW, y, new_screen_col );
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos prefix - move cursor to leftmost edge of prefix area
-
-SYNTAX
-     SOS PREfix
-
-DESCRIPTION
-     The SOS PREFIX command moves the cursor to the leftmost edge
-     of the <prefix area> if the cursor is in the <filearea> or the
-     <prefix area>. The command has no effect when executed from the
-     <command line>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible
-
-SEE ALSO
-     <SOS LEFTEDGE>, <SOS RIGHTEDGE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_prefix(CHARTYPE *params)
-/***********************************************************************/
 {
    return do_Sos_prefix( params, current_screen, CURRENT_VIEW );
 }
-/***********************************************************************/
 short do_Sos_prefix( CHARTYPE *params, CHARTYPE curr_screen, VIEW_DETAILS *curr_view )
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_prefix");
    /*
     * If the cursor is in the command line or there is no prefix on, exit.
     */
    if ( curr_view->current_window == WINDOW_COMMAND
    ||   !curr_view->prefix )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    post_process_line( curr_view, curr_view->focus_line, (LINE *)NULL, TRUE );
@@ -1725,36 +954,12 @@ short do_Sos_prefix( CHARTYPE *params, CHARTYPE curr_screen, VIEW_DETAILS *curr_
       curr_view->current_window = WINDOW_PREFIX;
    x = 0;
    wmove( SCREEN_WINDOW(curr_screen), y, x );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos qcmnd - move cursor to command line and clear
-
-SYNTAX
-     SOS QCmnd
-
-DESCRIPTION
-     The SOS QCMND command moves the cursor to the first column of
-     the <command line> and clears it.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible
-
-SEE ALSO
-     <SOS EXECUTE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_qcmnd(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("commsos.c: Sos_qcmnd");
    if ( ( rc = THEcursor_cmdline( current_screen, CURRENT_VIEW, 1 ) ) == RC_OK )
    {
       if ( CURRENT_WINDOW_COMMAND != (WINDOW *)NULL )
@@ -1765,72 +970,21 @@ short Sos_qcmnd(CHARTYPE *params)
       memset( cmd_rec, ' ', max_line_length );
       cmd_rec_len = 0;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos rightedge - move cursor to right edge of window
-
-SYNTAX
-     SOS RIGHTEdge
-
-DESCRIPTION
-     The SOS RIGHTEDGE command moves the cursor to the rightmost edge
-     of the <filearea> if not on the command line or to the rightmost
-     edge of the command line if on the <command line>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible
-
-SEE ALSO
-     <SOS LEFTEDGE>, <SOS PREFIX>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_rightedge(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_rightedge");
    getyx(CURRENT_WINDOW,y,x);
    if (CURRENT_VIEW->current_window == WINDOW_PREFIX)
       CURRENT_VIEW->current_window = WINDOW_FILEAREA;
    x = getmaxx(CURRENT_WINDOW)-1;
    wmove(CURRENT_WINDOW,y,x);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos settab - set a tab column at the cursor position
-
-SYNTAX
-     SOS SETTAB
-
-DESCRIPTION
-     The SOS SETTAB command sets a tab column at the position of the
-     cursor in the <filearea>.  This command is ignored if issued
-     elsewhere.
-     If a tab column is already set at the cursor position, the tab
-     column is cleared.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Kedit does not toggle the tab column, but only sets it.
-
-SEE ALSO
-     <SET TABS>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_settab(CHARTYPE *params)
-/***********************************************************************/
 {
 #define SETTAB_INSERT 0
 #define SETTAB_APPEND 1
@@ -1842,10 +996,8 @@ short Sos_settab(CHARTYPE *params)
    int action=SETTAB_INSERT;
    int i=0,j=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_settab");
    if (CURRENT_VIEW->current_window != WINDOW_FILEAREA)
    {
-      TRACE_RETURN();
       return(rc);
    }
    getyx(CURRENT_WINDOW,y,x);
@@ -1915,41 +1067,14 @@ short Sos_settab(CHARTYPE *params)
    }
    build_screen(current_screen);
    display_screen(current_screen);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos startendchar - move cursor to end/start of focus line
-
-SYNTAX
-     SOS STARTENDChar
-
-DESCRIPTION
-     The SOS STARTENDCHAR command moves the cursor to the first character
-     displayed in the <cursor field>, if the cursor is after the last
-     character displayed in the <cursor field>, or to the position after
-     the last character displayed in the <cursor field>, if the cursor is
-     anywhere else.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <SOS ENDCHAR>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_startendchar(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    short rc=RC_OK;
    LENGTHTYPE charnum;
 
-   TRACE_FUNCTION( "commsos.c: Sos_startendchar" );
    getyx( CURRENT_WINDOW, y, x );
    switch( CURRENT_VIEW->current_window )
    {
@@ -1987,35 +1112,9 @@ short Sos_startendchar(CHARTYPE *params)
             rc = Sos_endchar( (CHARTYPE *)"" );
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos tabb - move cursor to previous tab stop
-
-SYNTAX
-     SOS TABB
-
-DESCRIPTION
-     The SOS TABB command causes the cursor to move to the previous tab
-     column as set by the <SET TABS> command.
-     If the resulting column is beyond the left hand edge of the main
-     window, the window will scroll half a window.
-
-COMPATIBILITY
-     XEDIT: Does not allow arguments.
-     KEDIT: Compatible. See below.
-     Does not line tab to next line if before the left hand tab column.
-
-SEE ALSO
-     <SET TABS>, <SOS TABF>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_tabb(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    LENGTHTYPE prev_tab_col=0,current_col=0;
@@ -2024,7 +1123,6 @@ short Sos_tabb(CHARTYPE *params)
    LENGTHTYPE verify_col=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "commsos.c: Sos_tabb" );
    getyx( CURRENT_WINDOW, y, x );
    /*
     * Determine action depending on current window...
@@ -2032,7 +1130,6 @@ short Sos_tabb(CHARTYPE *params)
    switch( CURRENT_VIEW->current_window )
    {
       case WINDOW_PREFIX:
-         TRACE_RETURN();
          return(RC_OK);
          break;
       case WINDOW_FILEAREA:
@@ -2053,7 +1150,6 @@ short Sos_tabb(CHARTYPE *params)
     */
    if ( prev_tab_col == 0 )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -2084,35 +1180,9 @@ short Sos_tabb(CHARTYPE *params)
    wmove( CURRENT_WINDOW, y, new_screen_col );
 #endif
 
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos tabf - move cursor to next tab stop
-
-SYNTAX
-     SOS TABf
-
-DESCRIPTION
-     The SOS TABF command causes the cursor to move to the next tab column
-     as set by the <SET TABS> command.
-     If the resulting column is beyond the right hand edge of the main
-     window, the window will scroll half a window.
-
-COMPATIBILITY
-     XEDIT: Does not allow arguments.
-     KEDIT: Compatible. See below.
-     Does not line tab to next line if after the right hand tab column.
-
-SEE ALSO
-     <SET TABS>, <SOS TABB>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_tabf(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    LENGTHTYPE next_tab_col=0,current_col=0;
@@ -2121,7 +1191,6 @@ short Sos_tabf(CHARTYPE *params)
    LENGTHTYPE verify_col=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "commsos.c: Sos_tabf" );
    /*
     * If the actual tab character is to be display then exit so that
     * editor() can process it as a raw key.
@@ -2133,12 +1202,10 @@ short Sos_tabf(CHARTYPE *params)
    {
       if ( INSERTMODEx && tabkey_insert == 'C' )
       {
-         TRACE_RETURN();
          return(RAW_KEY);
       }
       if ( !INSERTMODEx && tabkey_overwrite == 'C' )
       {
-         TRACE_RETURN();
          return(RAW_KEY);
       }
    }
@@ -2149,7 +1216,6 @@ short Sos_tabf(CHARTYPE *params)
    switch( CURRENT_VIEW->current_window )
    {
       case WINDOW_PREFIX:
-         TRACE_RETURN();
          return(RC_OK);
          break;
       case WINDOW_FILEAREA:
@@ -2170,7 +1236,6 @@ short Sos_tabf(CHARTYPE *params)
     */
    if ( next_tab_col == 0 )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -2178,7 +1243,6 @@ short Sos_tabf(CHARTYPE *params)
     */
    if ( next_tab_col > max_line_length )
    {
-      TRACE_RETURN();
       return(RC_TRUNCATED);
    }
    /*
@@ -2209,42 +1273,14 @@ short Sos_tabf(CHARTYPE *params)
    wmove( CURRENT_WINDOW, y, new_screen_col );
 #endif
 
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos tabfieldb - move cursor to previous enterable field
-
-SYNTAX
-     SOS TABFIELDB
-
-DESCRIPTION
-     The SOS TABFIELDB command causes the cursor to move to the first
-     column of the current enterable field. If the cursor is already
-     in the first column of the current field the cursor moves to the
-     first column of the previous enterable field on the screen.
-     This command is intended to mimic the behaviour of the SHIFT-TAB
-     key on a 3270 terminal.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS TABFIELDF>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_tabfieldb(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    long save_where=0L,where=0L,what_current=0L,what_other=0L;
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_tabfieldb");
    /*
     * Determine if the cursor is in the left-most column of the current
     * field (col 0)...
@@ -2253,7 +1289,6 @@ short Sos_tabfieldb(CHARTYPE *params)
    if (x != 0)
    {
       wmove(CURRENT_WINDOW,y,0);
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -2276,44 +1311,18 @@ short Sos_tabfieldb(CHARTYPE *params)
     */
    if (where == save_where)
    {
-      TRACE_RETURN();
       return(rc);
    }
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
    rc = go_to_new_field(save_where,where);
    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos tabfieldf - move cursor to next enterable field
-
-SYNTAX
-     SOS TABFIELDf
-
-DESCRIPTION
-     The SOS TABFIELDF command causes the cursor to move to the next
-     enterable field on the screen. This command is intended to
-     mimic the behaviour of the TAB key on a 3270 terminal.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS TABFIELDB>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_tabfieldf(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    long save_where=0L,where=0L,what_current=0L,what_other=0L;
 
-   TRACE_FUNCTION("commsos.c: Sos_tabfieldf");
    save_where = where = where_now();
    what_current = what_current_now();
    what_other = what_other_now();
@@ -2330,41 +1339,14 @@ short Sos_tabfieldf(CHARTYPE *params)
     */
    if (where == save_where)
    {
-      TRACE_RETURN();
       return(rc);
    }
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
    rc = go_to_new_field(save_where,where);
    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos tabwordb - move cursor to beginning of previous word
-
-SYNTAX
-     SOS TABWORDB
-
-DESCRIPTION
-     The SOS TABWORDB command causes the cursor to move to the first
-     character of the word to the left or to the start of the line if
-     no more words precede.
-     If the resulting column is beyond the left hand edge of the
-     <filearea>, the window will scroll half a window.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS TABWORDF>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_tabwordb(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    LENGTHTYPE start_word_col=0;
@@ -2380,7 +1362,6 @@ short Sos_tabwordb(CHARTYPE *params)
    CHARTYPE this_char=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("commsos.c: Sos_tabwordb");
    /*
     * This function is not applicable to the PREFIX window.
     */
@@ -2389,7 +1370,6 @@ short Sos_tabwordb(CHARTYPE *params)
    {
       case WINDOW_PREFIX:
          display_error( 38, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
          break;
       case WINDOW_FILEAREA:
@@ -2536,35 +1516,9 @@ short Sos_tabwordb(CHARTYPE *params)
    wmove( CURRENT_WINDOW, y, new_screen_col );
 #endif
 
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos tabwordf - move cursor to start of next word
-
-SYNTAX
-     SOS TABWORDf
-
-DESCRIPTION
-     The SOS TABWORDF command causes the cursor to move to the first
-     character of the next word to the right or to the end of the line
-     if no more words follow.
-     If the resulting column is beyond the right hand edge of the
-     <filearea>, the window will scroll half a window.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS TABWORDB>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_tabwordf(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    LENGTHTYPE temp_rec_len=0;
@@ -2579,7 +1533,6 @@ short Sos_tabwordf(CHARTYPE *params)
    LENGTHTYPE new_verify_col=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("commsos.c: Sos_tabwordf");
    /*
     * This function is not applicable to the PREFIX window.
     */
@@ -2588,7 +1541,6 @@ short Sos_tabwordf(CHARTYPE *params)
    {
       case WINDOW_PREFIX:
          display_error(38,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
          break;
       case WINDOW_FILEAREA:
@@ -2609,7 +1561,6 @@ short Sos_tabwordf(CHARTYPE *params)
     */
    if ((x + left_col) > temp_rec_len)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -2702,46 +1653,19 @@ short Sos_tabwordf(CHARTYPE *params)
    wmove( CURRENT_WINDOW, y, new_screen_col );
 #endif
 
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos topedge - move cursor to top edge of filearea
-
-SYNTAX
-     SOS TOPEdge
-
-DESCRIPTION
-     The SOS TOPEDGE command moves the cursor to the first enterable
-     line in the <filearea> or <prefix area>. If the cursor is on the
-     <command line>, the cursor moves to the first enterable line of
-     the <filearea>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SOS BOTTOMEDGE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_topedge(CHARTYPE *params)
-/***********************************************************************/
 {
   short rc=RC_OK;
   unsigned short y=0,x=0,row=0;
 
-  TRACE_FUNCTION("commsos.c: Sos_topedge");
   getyx(CURRENT_WINDOW,y,x);
   /*
    * Get the last enterable row. If an error, stay where we are...
    */
   if ( find_first_focus_line( current_screen, &row ) != RC_OK )
   {
-     TRACE_RETURN();
      return(rc);
   }
   /*
@@ -2768,41 +1692,18 @@ short Sos_topedge(CHARTYPE *params)
         }
         break;
   }
-  TRACE_RETURN();
   return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     sos undo - undo changes to the current line
-
-SYNTAX
-     SOS UNDO
-
-DESCRIPTION
-     The SOS UNDO command causes the contents of the <focus line> (or the
-     <command line>) to be reset to the contents before the cursor was
-     positioned there.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Sos_undo(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("commsos.c: Sos_undo");
    /*
     * No arguments are allowed; error if any are present.
     */
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,(CHARTYPE *)params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    switch (CURRENT_VIEW->current_window)
@@ -2829,7 +1730,6 @@ short Sos_undo(CHARTYPE *params)
       default:
          break;
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
 
@@ -2852,13 +1752,11 @@ static short sosdelback( bool cua )
          if ( ISREADONLY(CURRENT_FILE) )
          {
             display_error( 56, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          if ( CURRENT_SCREEN.sl[y].line_type != LINE_LINE )
          {
             display_error( 38, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          break;
@@ -2869,7 +1767,6 @@ static short sosdelback( bool cua )
             /*
              * We are at the first position of the cmdline
              */
-            TRACE_RETURN();
             return(RC_OK);
          }
          if ( x == 0 )
@@ -2904,13 +1801,11 @@ static short sosdelback( bool cua )
             }
             display_cmdline( current_screen, CURRENT_VIEW );
          }
-         TRACE_RETURN();
          return(RC_OK);
          break;
       case WINDOW_PREFIX:
          if ( x == 0 )
          {
-            TRACE_RETURN();
             return(RC_OK);
          }
          wmove( CURRENT_WINDOW, y, x - 1 );
@@ -2921,7 +1816,6 @@ static short sosdelback( bool cua )
             memdeln( pre_rec, x - 1, pre_rec_len, 1 );
             pre_rec_len --;
          }
-         TRACE_RETURN();
          return(RC_OK);
          break;
       default:
@@ -2942,7 +1836,6 @@ static short sosdelback( bool cua )
    &&   MARK_VIEW->mark_type == M_CUA )
    {
       ResetOrDeleteCUABlock( CUA_DELETE_BLOCK );
-      TRACE_RETURN();
       return(RC_OK);
    }
 
@@ -2971,12 +1864,10 @@ static short sosdelback( bool cua )
             advance_focus_line( -1 );
             Sos_endchar( (CHARTYPE *)"");
             rc = execute_split_join( SPLTJOIN_JOIN, TRUE, TRUE );
-            TRACE_RETURN();
             return(rc);
          }
          else
          {
-            TRACE_RETURN();
             return(RC_OK);
          }
       }
@@ -2985,7 +1876,6 @@ static short sosdelback( bool cua )
          /*
           * NOT CUA, or on first line, exit.
           */
-         TRACE_RETURN();
          return(RC_OK);
       }
    }
@@ -2995,7 +1885,6 @@ static short sosdelback( bool cua )
     */
    if ( x + CURRENT_VIEW->verify_col - 1 > rec_len )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
 
@@ -3029,7 +1918,6 @@ static short sosdelback( bool cua )
    return rc;
 }
 
-/***********************************************************************/
 static short sosdelchar( bool cua )
 {
    unsigned short x=0,y=0;
@@ -3047,7 +1935,6 @@ static short sosdelchar( bool cua )
             display_cmdline( current_screen, CURRENT_VIEW );
             wmove( CURRENT_WINDOW, y, x );
          }
-         TRACE_RETURN();
          return(RC_OK);
          break;
       case WINDOW_PREFIX:
@@ -3058,7 +1945,6 @@ static short sosdelchar( bool cua )
             memdeln( pre_rec, x, pre_rec_len, 1 );
             pre_rec_len--;
          }
-         TRACE_RETURN();
          return(RC_OK);
          break;
       case WINDOW_FILEAREA:
@@ -3069,7 +1955,6 @@ static short sosdelchar( bool cua )
          if ( ISREADONLY(CURRENT_FILE) )
          {
             display_error( 56, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          /*
@@ -3079,7 +1964,6 @@ static short sosdelchar( bool cua )
          if ( CURRENT_SCREEN.sl[y].line_type != LINE_LINE )
          {
             display_error( 38, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          break;
@@ -3101,7 +1985,6 @@ static short sosdelchar( bool cua )
    &&   MARK_VIEW->mark_type == M_CUA )
    {
       ResetOrDeleteCUABlock( CUA_DELETE_BLOCK );
-      TRACE_RETURN();
       return(RC_OK);
    }
 
@@ -3134,7 +2017,6 @@ static short sosdelchar( bool cua )
       if ( cua )
       {
          rc = execute_split_join( SPLTJOIN_JOIN, TRUE, TRUE );
-         TRACE_RETURN();
          return(rc);
       }
    }
@@ -3151,6 +2033,5 @@ static short sosdelchar( bool cua )
       display_screen( current_screen );
    }
 
-   TRACE_RETURN();
    return(RC_OK);
 }

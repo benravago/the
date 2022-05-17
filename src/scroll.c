@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* SCROLL.C - SCROLL commands                                          */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -38,14 +36,11 @@
 #include <the.h>
 #include <proto.h>
 
-/***********************************************************************/
 short scroll_page(short direction,LINETYPE num_pages,bool scrollbar)
-/***********************************************************************/
 {
    short y=0,x=0,save_y=0,rc;
    bool save_scroll_cursor_stay=scroll_cursor_stay;
 
-   TRACE_FUNCTION("scroll.c:  scroll_page");
    /*
     * If scrolling backward and already on TOF, return.
     * If scrolling forward and already on EOF, return.
@@ -55,7 +50,6 @@ short scroll_page(short direction,LINETYPE num_pages,bool scrollbar)
    ||  (direction == DIRECTION_FORWARD
       && CURRENT_BOF))
    {
-      TRACE_RETURN();
       return(RC_TOF_EOF_REACHED);
    }
    /*
@@ -106,12 +100,9 @@ short scroll_page(short direction,LINETYPE num_pages,bool scrollbar)
       rc = RC_TOF_EOF_REACHED;
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return rc;
 }
-/***********************************************************************/
 short scroll_line( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short direction,LINETYPE num_lines,bool scrollbar,short escreen)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short x=0,y=0,iscrollbar=scrollbar;
@@ -124,7 +115,6 @@ short scroll_line( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short directio
    chtype color_filearea = set_colour( curr_view->file_for_view->attr+ATTR_FILEAREA );
    chtype color_cursorline = set_colour( curr_view->file_for_view->attr+ATTR_CURSORLINE );
 
-   TRACE_FUNCTION("scroll.c:  scroll_line");
    /*
     * If this function is called via scrollbar...
     * If scrolling backward and already on TOF, return.
@@ -135,7 +125,6 @@ short scroll_line( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short directio
       if ( ( direction == DIRECTION_BACKWARD && CURRENT_TOF )
       ||   ( direction == DIRECTION_FORWARD && CURRENT_BOF ) )
       {
-         TRACE_RETURN();
          return(RC_TOF_EOF_REACHED);
       }
    }
@@ -251,6 +240,5 @@ short scroll_line( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short directio
       rc = RC_TOF_EOF_REACHED;
    else
       rc = RC_OK;
-   TRACE_RETURN();
    return rc;
 }

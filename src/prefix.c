@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* PREFIX.C - Prefix commands.                                         */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -190,9 +188,7 @@ static CHARTYPE pending_screen;
 LINETYPE prefix_current_line;
 bool in_prefix_macro=FALSE;     /* indicate if processing prefix macro */
 
-/***********************************************************************/
 short execute_prefix_commands(void)
-/***********************************************************************/
 {
    short ispf_idx,cmd_idx=0,rc=RC_OK;
    CHARTYPE *mult;
@@ -205,7 +201,6 @@ short execute_prefix_commands(void)
    int top_priority_idx=0;
    int save_number_of_files;
 
-   TRACE_FUNCTION( "prefix.c:  execute_prefix_commands" );
    /*
     * Setup pending values for the view, file and screen to be used by all
     * pending prefix commands.
@@ -303,13 +298,11 @@ short execute_prefix_commands(void)
           */
          if ( number_of_files == 0 )
          {
-            TRACE_RETURN();
             return( RC_COMMAND_NO_FILES );
          }
          if ( number_of_files != save_number_of_files
          &&   PENDING_VIEW != CURRENT_VIEW )
          {
-            TRACE_RETURN();
             return( RC_OK );
          }
          /*
@@ -546,20 +539,16 @@ short execute_prefix_commands(void)
          pre_process_line( CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *)NULL );
       }
    }
-   TRACE_RETURN();
    return( RC_OK );
 }
 
-/***********************************************************************/
 static short parse_prefix_command( THE_PPC *curr_ppc )
-/***********************************************************************/
 {
    register short i=0;
    short rc=RC_OK;
    LINE *curr=NULL;
    int ispf_idx = (compatible_feel==COMPAT_ISPF) ? 1 : 0;
 
-   TRACE_FUNCTION( "prefix.c:  parse_prefix_command" );
    /*
     * For each pending prefix command for the current view, execute the
     * appropriate command.
@@ -567,7 +556,6 @@ static short parse_prefix_command( THE_PPC *curr_ppc )
    rc = THE_PPC_NO_TARGET;
    if ( blank_field( curr_ppc->ppc_command ) )          /* if prefix command is blank, return */
    {
-      TRACE_RETURN();
       return( THE_PPC_NO_COMMAND );
    }
    /*
@@ -593,7 +581,6 @@ static short parse_prefix_command( THE_PPC *curr_ppc )
          if ( strcmp( (DEFCHAR *)pc[ispf_idx][i].cmd, (DEFCHAR *)curr->line ) == 0 )
          {
             curr_ppc->ppc_cmd_idx = i;
-            TRACE_RETURN();
             return( i );
          }
       }
@@ -602,7 +589,6 @@ static short parse_prefix_command( THE_PPC *curr_ppc )
        * command, so return an error.
        */
       curr_ppc->ppc_cmd_idx = (-1);
-      TRACE_RETURN();
       return( rc );
    }
    /*
@@ -630,12 +616,9 @@ static short parse_prefix_command( THE_PPC *curr_ppc )
     */
    if ( rc == THE_PPC_NO_TARGET )
       curr_ppc->ppc_cmd_idx = (-1);
-   TRACE_RETURN();
    return( rc );
 }
-/***********************************************************************/
 static short prefix_makecurr(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LINETYPE top_line = curr_ppc->ppc_line_number;
 
@@ -645,9 +628,7 @@ static short prefix_makecurr(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lin
       PENDING_VIEW->current_column = (LENGTHTYPE)number_lines;
    return(0);
 }
-/***********************************************************************/
 static short prefix_tabline(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LINETYPE top_line = curr_ppc->ppc_line_number;
    short tab_row = 0;
@@ -661,9 +642,7 @@ static short prefix_tabline(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_line
    clear_pending_prefix_command( curr_ppc, PENDING_FILE, (LINE *)NULL );
    return(0);
 }
-/***********************************************************************/
 static short prefix_scale(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LINETYPE top_line = curr_ppc->ppc_line_number;
    short scale_row = 0;
@@ -677,9 +656,7 @@ static short prefix_scale(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
    clear_pending_prefix_command( curr_ppc, PENDING_FILE, (LINE *)NULL );
    return(0);
 }
-/***********************************************************************/
 static short prefix_show(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LINETYPE i=0;
    short rc=RC_OK;
@@ -738,9 +715,7 @@ static short prefix_show(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
    }
    return(rc);
 }
-/***********************************************************************/
 static short prefix_exclude(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LINETYPE top_line = curr_ppc->ppc_line_number;
@@ -787,9 +762,7 @@ static short prefix_exclude(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_line
       PENDING_VIEW->current_line = find_next_in_scope(PENDING_VIEW,curr,PENDING_VIEW->current_line,DIRECTION_FORWARD);
    return(rc);
 }
-/***********************************************************************/
 static short prefix_add(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=(-1);
    LINETYPE top_line = curr_ppc->ppc_line_number;
@@ -800,9 +773,7 @@ static short prefix_add(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
    rc = insert_new_line( pending_screen, PENDING_VIEW, (CHARTYPE *)"", 0, number_lines, top_line, FALSE, FALSE, TRUE, PENDING_VIEW->display_low, FALSE, FALSE );
    return(rc);
 }
-/***********************************************************************/
 static short prefix_duplicate(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_occ)
-/***********************************************************************/
 {
    short rc=(-1);
    LINETYPE top_line = curr_ppc->ppc_line_number;
@@ -816,9 +787,7 @@ static short prefix_duplicate(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_oc
    }
    return(rc);
 }
-/***********************************************************************/
 static short prefix_copy(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LINETYPE bottom_line=0L,target_line=0L,lines_affected=0L;
    LINETYPE top_line = curr_ppc->ppc_line_number;
@@ -838,9 +807,7 @@ static short prefix_copy(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
    clear_pending_prefix_command( target_ppc, PENDING_FILE, (LINE *)NULL );
    return(rc);
 }
-/***********************************************************************/
 static short prefix_move(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LINETYPE bottom_line=0L,target_line=0L,lines_affected=0L;
    LINETYPE top_line = curr_ppc->ppc_line_number;
@@ -869,9 +836,7 @@ static short prefix_move(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
    clear_pending_prefix_command( target_ppc, PENDING_FILE, (LINE *)NULL );
    return(rc);
 }
-/***********************************************************************/
 static short prefix_point(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    int rc=RC_OK;
    CHARTYPE _THE_FAR buf[MAX_PREFIX_WIDTH+2];
@@ -885,9 +850,7 @@ static short prefix_point(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
    }
    return(rc);
 }
-/***********************************************************************/
 static short prefix_delete(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=(-1);
    LINETYPE top_line = curr_ppc->ppc_line_number;
@@ -903,9 +866,7 @@ static short prefix_delete(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines
    }
    return(rc);
 }
-/***********************************************************************/
 static short prefix_shift_left(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number_cols)
-/***********************************************************************/
 {
    LINETYPE top_line = curr_ppc->ppc_line_number;
 
@@ -917,9 +878,7 @@ static short prefix_shift_left(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number
    }
    return(0);
 }
-/***********************************************************************/
 static short prefix_shift_right(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number_cols)
-/***********************************************************************/
 {
    LINETYPE start_line = curr_ppc->ppc_line_number;
 
@@ -931,9 +890,7 @@ static short prefix_shift_right(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE numbe
    }
    return(0);
 }
-/***********************************************************************/
 static short prefix_bounds_shift_left(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number_cols)
-/***********************************************************************/
 {
    LINETYPE top_line = curr_ppc->ppc_line_number;
 
@@ -945,9 +902,7 @@ static short prefix_bounds_shift_left(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE
    }
    return(0);
 }
-/***********************************************************************/
 static short prefix_bounds_shift_right(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number_cols)
-/***********************************************************************/
 {
    LINETYPE start_line = curr_ppc->ppc_line_number;
 
@@ -959,9 +914,7 @@ static short prefix_bounds_shift_right(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYP
    }
    return(0);
 }
-/***********************************************************************/
 static short prefix_lowercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LINETYPE start_line = curr_ppc->ppc_line_number;
    LENGTHTYPE start_col=PENDING_VIEW->zone_start-1;
@@ -975,9 +928,7 @@ static short prefix_lowercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_li
    }
    return(0);
 }
-/***********************************************************************/
 static short prefix_uppercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LINETYPE start_line = curr_ppc->ppc_line_number;
    LENGTHTYPE start_col=PENDING_VIEW->zone_start-1;
@@ -991,9 +942,7 @@ static short prefix_uppercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_li
    }
    return(0);
 }
-/***********************************************************************/
 static short prefix_overlay(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=(-1);
 #if 0
@@ -1048,9 +997,7 @@ static short prefix_overlay(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_line
 #endif
    return(rc);
 }
-/***********************************************************************/
 static short prefix_block_duplicate(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_occ)
-/***********************************************************************/
 {
    short rc=(-1);
    LINETYPE top_line=0L,bottom_line=0L,lines_affected=0L;
@@ -1069,9 +1016,7 @@ static short prefix_block_duplicate(THE_PPC *curr_ppc,short cmd_idx,LINETYPE num
    rc = rearrange_line_blocks( COMMAND_DUPLICATE, SOURCE_PREFIX, top_line, bottom_line, bottom_line, number_occ, PENDING_VIEW, PENDING_VIEW, FALSE, &lines_affected );
    return(rc);
 }
-/***********************************************************************/
 static short prefix_block_copy(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=(-1);
    LINETYPE top_line=0L,bottom_line=0L,target_line=0L,lines_affected=0L;
@@ -1095,9 +1040,7 @@ static short prefix_block_copy(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_l
    clear_pending_prefix_command( target_ppc, PENDING_FILE, (LINE *)NULL );
    return(rc);
 }
-/***********************************************************************/
 static short prefix_block_move(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=(-1);
    LINETYPE top_line=0L,bottom_line=0L,target_line=0L,num_lines=0L,lines_affected=0L;
@@ -1138,9 +1081,7 @@ static short prefix_block_move(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_l
    clear_pending_prefix_command( target_ppc, PENDING_FILE, (LINE *)NULL );
    return(rc);
 }
-/***********************************************************************/
 static short prefix_block_delete(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=(-1);
    LINETYPE top_line=0L,bottom_line=0L,lines_affected=0L;
@@ -1159,9 +1100,7 @@ static short prefix_block_delete(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number
    rc = rearrange_line_blocks( COMMAND_DELETE, SOURCE_PREFIX, top_line, bottom_line, bottom_line, 1L, PENDING_VIEW, PENDING_VIEW, FALSE, &lines_affected );
    return(rc);
 }
-/***********************************************************************/
 static short prefix_block_shift_left(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number_cols)
-/***********************************************************************/
 {
    LINETYPE top_line=0L,bottom_line=0L;
    THE_PPC *top_ppc=NULL;
@@ -1179,9 +1118,7 @@ static short prefix_block_shift_left(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE 
    execute_shift_command( pending_screen, PENDING_VIEW, TRUE, number_cols, top_line, bottom_line-top_line+1L, FALSE, TARGET_UNFOUND, FALSE, FALSE );
    return(0);
 }
-/***********************************************************************/
 static short prefix_block_shift_right(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number_cols)
-/***********************************************************************/
 {
    LINETYPE top_line=0L,bottom_line=0L;
    THE_PPC *top_ppc=NULL;
@@ -1199,9 +1136,7 @@ static short prefix_block_shift_right(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE
    execute_shift_command( pending_screen, PENDING_VIEW, FALSE, number_cols, top_line, bottom_line-top_line+1L, FALSE, TARGET_UNFOUND, FALSE, FALSE );
    return(0);
 }
-/***********************************************************************/
 static short prefix_block_exclude(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LINETYPE top_line=0L,bottom_line=0L,num_lines=0L,i=0L;
@@ -1247,9 +1182,7 @@ static short prefix_block_exclude(THE_PPC *curr_ppc,short cmd_idx,LINETYPE numbe
       PENDING_VIEW->current_line = find_next_in_scope( PENDING_VIEW, curr, PENDING_VIEW->current_line, DIRECTION_FORWARD );
    return(rc);
 }
-/***********************************************************************/
 static short prefix_block_bounds_shift_left(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number_cols)
-/***********************************************************************/
 {
    LINETYPE top_line=0L,bottom_line=0L;
    THE_PPC *top_ppc=NULL;
@@ -1267,9 +1200,7 @@ static short prefix_block_bounds_shift_left(THE_PPC *curr_ppc,short cmd_idx,LENG
    execute_shift_command( pending_screen, PENDING_VIEW, TRUE, number_cols, top_line, bottom_line-top_line+1L, FALSE, TARGET_UNFOUND, FALSE, TRUE );
    return(0);
 }
-/***********************************************************************/
 static short prefix_block_bounds_shift_right(THE_PPC *curr_ppc,short cmd_idx,LENGTHTYPE number_cols)
-/***********************************************************************/
 {
    LINETYPE top_line=0L,bottom_line=0L;
    THE_PPC *top_ppc=NULL;
@@ -1287,9 +1218,7 @@ static short prefix_block_bounds_shift_right(THE_PPC *curr_ppc,short cmd_idx,LEN
    execute_shift_command( pending_screen, PENDING_VIEW, FALSE, number_cols, top_line, bottom_line-top_line+1L, FALSE, TARGET_UNFOUND, FALSE, TRUE );
    return(0);
 }
-/***********************************************************************/
 static short prefix_block_lowercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LENGTHTYPE start_col=PENDING_VIEW->zone_start-1;
    LENGTHTYPE end_col=PENDING_VIEW->zone_end-1;
@@ -1309,9 +1238,7 @@ static short prefix_block_lowercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE num
    do_actual_change_case( top_line, bottom_line-top_line+1L, CASE_LOWER, FALSE, DIRECTION_FORWARD, start_col, end_col );
    return(0);
 }
-/***********************************************************************/
 static short prefix_block_uppercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    LENGTHTYPE start_col=PENDING_VIEW->zone_start-1;
    LENGTHTYPE end_col=PENDING_VIEW->zone_end-1;
@@ -1331,17 +1258,13 @@ static short prefix_block_uppercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE num
    do_actual_change_case( top_line, bottom_line-top_line+1L, CASE_UPPER, FALSE, DIRECTION_FORWARD, start_col, end_col );
    return(0);
 }
-/***********************************************************************/
 static short prefix_block_overlay(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=(-1);
 
    return(rc);
 }
-/***********************************************************************/
 static short invalidate_prefix(THE_PPC *curr_ppc, char *template)
-/***********************************************************************/
 {
    short len=0;
    CHARTYPE _THE_FAR buf[MAX_PREFIX_WIDTH+150];
@@ -1371,9 +1294,7 @@ static short invalidate_prefix(THE_PPC *curr_ppc, char *template)
    display_error( 0, (CHARTYPE *)buf, FALSE );
    return(RC_OK);
 }
-/***********************************************************************/
 void clear_pending_prefix_command( THE_PPC *curr_ppc, FILE_DETAILS *curr_file, LINE *curr_line )
-/***********************************************************************/
 {
    LINE *curr=curr_line;
 
@@ -1394,9 +1315,7 @@ void clear_pending_prefix_command( THE_PPC *curr_ppc, FILE_DETAILS *curr_file, L
    curr_ppc->ppc_processed = TRUE;
    return;
 }
-/***********************************************************************/
 THE_PPC *delete_pending_prefix_command(THE_PPC *curr_ppc,FILE_DETAILS *curr_file,LINE *curr_line)
-/***********************************************************************/
 {
    LINE *curr=curr_line;
    THE_PPC *return_ppc=NULL;
@@ -1412,9 +1331,7 @@ THE_PPC *delete_pending_prefix_command(THE_PPC *curr_ppc,FILE_DETAILS *curr_file
    return_ppc = pll_del(&(curr_file->first_ppc),&(curr_file->last_ppc),curr_ppc,DIRECTION_FORWARD);
    return(return_ppc);
 }
-/***********************************************************************/
 static THE_PPC *find_top_ppc(THE_PPC *curr_ppc,short top_cmd_idx)
-/***********************************************************************/
 {
    THE_PPC *top_ppc=PENDING_FILE->first_ppc;
 
@@ -1429,9 +1346,7 @@ static THE_PPC *find_top_ppc(THE_PPC *curr_ppc,short top_cmd_idx)
    }
    return(NULL);
 }
-/***********************************************************************/
 static THE_PPC *find_target_ppc(void)
-/***********************************************************************/
 {
    THE_PPC *target_ppc=NULL;
 
@@ -1448,9 +1363,7 @@ static THE_PPC *find_target_ppc(void)
    }
    return(NULL);
 }
-/***********************************************************************/
 static THE_PPC *calculate_target_line(void)
-/***********************************************************************/
 {
    THE_PPC *target_ppc=NULL;
 
@@ -1495,9 +1408,7 @@ static THE_PPC *calculate_target_line(void)
    }
    return(target_ppc);
 }
-/***********************************************************************/
 static short try_rexx_prefix_macro( THE_PPC *curr_ppc )
-/***********************************************************************/
 {
    short pmacro_rc=0, errnum = 0 ;
    LINETYPE line_number=0L;
@@ -1505,13 +1416,11 @@ static short try_rexx_prefix_macro( THE_PPC *curr_ppc )
    short macrorc=0;
    int i;
 
-   TRACE_FUNCTION("prefix.c:  try_rexx_prefix_macro");
    /*
     * If the parsed command is blank, ignore it.
     */
    if ( blank_field( curr_ppc->ppc_command ) )
    {
-      TRACE_RETURN();
       return( RC_NOT_COMMAND );
    }
    get_valid_macro_file_name( find_prefix_synonym( curr_ppc->ppc_command ), temp_cmd, macro_suffix, &errnum );
@@ -1545,13 +1454,10 @@ static short try_rexx_prefix_macro( THE_PPC *curr_ppc )
    }
    else
       pmacro_rc = RC_NOT_COMMAND;
-   TRACE_RETURN();
    return(pmacro_rc);
 }
 
-/***********************************************************************/
 static void split_prefix_command( CHARTYPE *str, THE_PPC *curr_ppc )
-/***********************************************************************/
 {
 #define STATE_BEFORE_CMD 0
 #define STATE_ALPHA_CMD 1
@@ -1729,16 +1635,13 @@ static void split_prefix_command( CHARTYPE *str, THE_PPC *curr_ppc )
    }
 }
 
-/***********************************************************************/
 void add_prefix_command(CHARTYPE curr_screen,VIEW_DETAILS *curr_view,LINE *curr,LINETYPE line_number,bool block_command, bool set_by_pending)
-/***********************************************************************/
 {
    register short i=0;
    CHARTYPE temp_prefix_array[MAX_PREFIX_WIDTH+1];
    THE_PPC *curr_ppc=NULL;
    bool redisplay_screen=FALSE;
 
-   TRACE_FUNCTION( "prefix.c:  add_prefix_command" );
    prefix_changed = FALSE;
    /*
     * Copy the contexts of the prefix record area into a temporary area.
@@ -1768,7 +1671,6 @@ void add_prefix_command(CHARTYPE curr_screen,VIEW_DETAILS *curr_view,LINE *curr,
          if ( curr_ppc == NULL )
          {
             display_error( 30, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return;
          }
       }
@@ -1797,20 +1699,15 @@ void add_prefix_command(CHARTYPE curr_screen,VIEW_DETAILS *curr_view,LINE *curr,
       build_screen( curr_screen );
       display_screen( curr_screen );
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short add_prefix_synonym(CHARTYPE *synonym,CHARTYPE *macroname)
-/***********************************************************************/
 /* Parameters:                                                         */
 /*    synonym: synonym for prefix macro                                */
 /*  macroname: name of REXX macro file                                 */
-/***********************************************************************/
 {
    LINE *curr=NULL;
 
-   TRACE_FUNCTION("prefix.c:  add_prefix_synonym");
    /*
     * First thing is to delete any definitions that may exist for the
     * supplied synonym.
@@ -1842,14 +1739,12 @@ short add_prefix_synonym(CHARTYPE *synonym,CHARTYPE *macroname)
       if (curr == NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       curr->line = (CHARTYPE *)(*the_malloc)((strlen((DEFCHAR *)macroname)+1)*sizeof(CHARTYPE));
       if (curr->line == NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       strcpy((DEFCHAR *)curr->line,(DEFCHAR *)macroname);
@@ -1857,7 +1752,6 @@ short add_prefix_synonym(CHARTYPE *synonym,CHARTYPE *macroname)
       if (curr->name == NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       strcpy((DEFCHAR *)curr->name,(DEFCHAR *)synonym);
@@ -1865,7 +1759,6 @@ short add_prefix_synonym(CHARTYPE *synonym,CHARTYPE *macroname)
       if (first_prefix_synonym == NULL)
          first_prefix_synonym = last_prefix_synonym;
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
 /*man***************************************************************************
@@ -1887,22 +1780,18 @@ RETURN VALUE
      Either the macroname associated with 'synonym' or 'synonym'.
 *******************************************************************************/
 CHARTYPE *find_prefix_synonym(CHARTYPE *synonym)
-/***********************************************************************/
 {
    LINE *curr=NULL;
 
-   TRACE_FUNCTION("prefix.c:  find_prefix_synonym");
    curr = first_prefix_synonym;
    while(curr != NULL)
    {
       if (strcmp((DEFCHAR *)synonym,(DEFCHAR *)curr->name) == 0)
       {
-         TRACE_RETURN();
          return((CHARTYPE *)curr->line);
       }
       curr = curr->next;
    }
-   TRACE_RETURN();
    return(synonym);
 }
 /*man***************************************************************************
@@ -1924,41 +1813,31 @@ RETURN VALUE
      Either the synonym associated with 'oldname' or 'oldname'.
 *******************************************************************************/
 CHARTYPE *find_prefix_oldname(CHARTYPE *oldname)
-/***********************************************************************/
 {
    LINE *curr=NULL;
 
-   TRACE_FUNCTION("prefix.c:  find_prefix_oldname");
    curr = first_prefix_synonym;
    while(curr != NULL)
    {
       if (strcmp((DEFCHAR *)oldname,(DEFCHAR *)curr->line) == 0)
       {
-         TRACE_RETURN();
          return(curr->name);
       }
       curr = curr->next;
    }
-   TRACE_RETURN();
    return(oldname);
 }
-/***********************************************************************/
 CHARTYPE *get_prefix_command(LINETYPE prefix_index)
-/***********************************************************************/
 {
    int ispf_idx = (compatible_feel==COMPAT_ISPF) ? 1 : 0;
 
-   TRACE_FUNCTION("prefix.c:  get_prefix_command");
    /*
     * Just return a pointer to the prefix command associated with the
     * supplied index.
     */
-   TRACE_RETURN();
    return(pc[ispf_idx][prefix_index].cmd);
 }
-/***********************************************************************/
 static short post_prefix_add(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short y=0,x=0;

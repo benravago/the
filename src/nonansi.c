@@ -1,7 +1,5 @@
-/***********************************************************************/
 /* NONANSI.C -                                                         */
 /* This file contains all calls to non-ansi conforming routines.       */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -59,43 +57,29 @@
 # endif
 #endif
 
-/***********************************************************************/
 short file_readable(CHARTYPE *filename)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("nonansi.c: file_readable");
    if (access((DEFCHAR *)filename,R_OK) == (-1))
    {
-      TRACE_RETURN();
       return(FALSE);
    }
-   TRACE_RETURN();
    return(TRUE);
 }
-/***********************************************************************/
 short file_writable(CHARTYPE *filename)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("nonansi.c: file_writable");
    if ( file_exists( filename ) != THE_FILE_EXISTS )
    {
-      TRACE_RETURN();
       return(TRUE);
    }
    if (access((DEFCHAR *)filename,W_OK) == (-1))
    {
-      TRACE_RETURN();
       return(FALSE);
    }
-   TRACE_RETURN();
    return(TRUE);
 }
-/***********************************************************************/
 short file_exists(CHARTYPE *filename)
-/***********************************************************************/
 {
    int rc;
-   TRACE_FUNCTION("nonansi.c: file_exists");
    if ( access( (DEFCHAR *)filename, F_OK ) == (-1) )
    {
       rc = errno;
@@ -110,36 +94,26 @@ short file_exists(CHARTYPE *filename)
             rc = THE_FILE_UNKNOWN;
             break;
       }
-      TRACE_RETURN();
       return((short)rc);
    }
    else
    {
-      TRACE_RETURN();
       return(THE_FILE_EXISTS);
    }
 }
-/***********************************************************************/
 short remove_file(CHARTYPE *filename)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("nonansi.c: remove_file");
    if (filename == NULL)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    if (unlink((DEFCHAR *)filename) == (-1))
    {
-      TRACE_RETURN();
       return(RC_ACCESS_DENIED);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
-/***********************************************************************/
 {
   /*
    * Support an = in the following circumstances:
@@ -165,7 +139,6 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
    CHARTYPE *current_fmode;
 #endif
 /*--------------------------- processing ------------------------------*/
-   TRACE_FUNCTION("nonansi.c: convert_equals_in_filename");
    /*
     * If we don't have a current file, or there are no equivalence chars
     * just copy the incoming filename to the outgoing filename...
@@ -175,7 +148,6 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
    ||   strzreveq( infilename, (CHARTYPE)EQUIVCHARx ) == (-1) )
    {
       strcpy( (DEFCHAR *)outfilename, (DEFCHAR *)infilename );
-      TRACE_RETURN();
       return;
    }
   /*
@@ -292,14 +264,11 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
          strcat( (DEFCHAR *)outfilename, (DEFCHAR *)current_ftype );
       }
    }
-   TRACE_RETURN();
    return;
 }
 
 #if defined(DOS)
-/***********************************************************************/
 short splitpath(CHARTYPE *filename)
-/***********************************************************************/
 {
    LENGTHTYPE len=0;
    CHARTYPE _THE_FAR work_filename[MAX_FILE_NAME+1] ;
@@ -315,11 +284,9 @@ short splitpath(CHARTYPE *filename)
 # endif
 #endif
 
-   TRACE_FUNCTION("nonansi.c: splitpath");
 
    if ( strlen( (DEFCHAR *)filename ) > MAX_FILE_NAME )
    {
-      TRACE_RETURN();
       return(RC_BAD_FILEID);
    }
    /*
@@ -331,7 +298,6 @@ short splitpath(CHARTYPE *filename)
    if ( getcwd( (DEFCHAR *)curr_path, MAX_FILE_NAME ) == NULL )
 #endif
    {
-      TRACE_RETURN();
       return(RC_BAD_FILEID);
    }
    strcpy(sp_path,"");
@@ -395,7 +361,6 @@ short splitpath(CHARTYPE *filename)
 #endif
       if (temp_disk != new_dos_disk)  /* invalid drive */
       {
-         TRACE_RETURN();
          return (RC_BAD_DRIVE);
       }
    }
@@ -488,7 +453,6 @@ short splitpath(CHARTYPE *filename)
 #endif
       }
       chdir(curr_path);
-      TRACE_RETURN();
       return(RC_FILE_NOT_FOUND);
    }
    /*
@@ -504,7 +468,6 @@ short splitpath(CHARTYPE *filename)
    {
       if (chdir(current_dir) != 0)
       {
-         TRACE_RETURN();
          return(RC_FILE_NOT_FOUND);
       }
 #if defined(DOS)
@@ -531,26 +494,20 @@ short splitpath(CHARTYPE *filename)
    {
       if (sp_path[len-1] != ISLASH)
          strcat(sp_path,(CHARTYPE *)ISTR_SLASH);
-      TRACE_RETURN();
       return(RC_OK);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
 #elif defined(__QNX__) && !defined(__QNXNTO__)
-/***********************************************************************/
 short splitpath(CHARTYPE *filename)
-/***********************************************************************/
 {
    short len=0;
    CHARTYPE _THE_FAR work_filename[MAX_FILE_NAME+1] ;
    CHARTYPE _THE_FAR conv_filename[MAX_FILE_NAME+1] ;
 
-   TRACE_FUNCTION("nonansi.c: splitpath");
 
    if ( strlen( (DEFCHAR *)filename ) > MAX_FILE_NAME )
    {
-      TRACE_RETURN();
       return(RC_BAD_FILEID);
    }
    /*
@@ -558,7 +515,6 @@ short splitpath(CHARTYPE *filename)
     */
    if ( getcwd( (DEFCHAR *)curr_path, MAX_FILE_NAME ) == NULL )
    {
-      TRACE_RETURN();
       return(RC_BAD_FILEID);
    }
    strcpy((DEFCHAR *)sp_path,"");
@@ -595,7 +551,6 @@ short splitpath(CHARTYPE *filename)
             sp_path[len] = '\0';
          if ((pwd = getpwnam((DEFCHAR *)sp_path)) == NULL)
          {
-            TRACE_RETURN();
             return(RC_BAD_FILEID);
          }
          strcpy((DEFCHAR *)work_filename,pwd->pw_dir);
@@ -641,7 +596,6 @@ short splitpath(CHARTYPE *filename)
    if (qnx_fullpath((DEFCHAR *)work_filename,(DEFCHAR *)sp_path) == NULL)
    {
       chdir((DEFCHAR *)curr_path);
-      TRACE_RETURN();
       return(RC_FILE_NOT_FOUND);
    }
    strcpy(sp_path,work_filename);
@@ -656,23 +610,18 @@ short splitpath(CHARTYPE *filename)
       if (sp_path[len-1] != ISLASH)
          strcat((DEFCHAR *)sp_path,(DEFCHAR *)ISTR_SLASH);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
 #else
-/***********************************************************************/
 short splitpath(CHARTYPE *filename)
-/***********************************************************************/
 {
    short len=0;
    CHARTYPE _THE_FAR work_filename[MAX_FILE_NAME+1] ;
    CHARTYPE _THE_FAR conv_filename[MAX_FILE_NAME+1] ;
 
-   TRACE_FUNCTION("nonansi.c: splitpath");
 
    if ( strlen( (DEFCHAR *)filename ) > MAX_FILE_NAME )
    {
-      TRACE_RETURN();
       return(RC_BAD_FILEID);
    }
    /*
@@ -684,7 +633,6 @@ short splitpath(CHARTYPE *filename)
    if ( getcwd( (DEFCHAR *)curr_path, MAX_FILE_NAME ) == NULL )
 #endif
    {
-      TRACE_RETURN();
       return(RC_BAD_FILEID);
    }
    strcpy( (DEFCHAR *)sp_path, "" );
@@ -692,7 +640,6 @@ short splitpath(CHARTYPE *filename)
    convert_equals_in_filename( conv_filename, filename );
    if ( strlen( (DEFCHAR *)conv_filename ) > MAX_FILE_NAME )
    {
-      TRACE_RETURN();
       return(RC_BAD_FILEID);
    }
    strcpy( (DEFCHAR *)work_filename, (DEFCHAR *)conv_filename );
@@ -704,7 +651,6 @@ short splitpath(CHARTYPE *filename)
    {
       if ( getcwd( (DEFCHAR *)sp_path, MAX_FILE_NAME ) == NULL )
       {
-         TRACE_RETURN();
          return(RC_BAD_FILEID);
       }
       strcpy((DEFCHAR *)sp_fname,"");
@@ -721,7 +667,6 @@ short splitpath(CHARTYPE *filename)
          CHARTYPE *home = (CHARTYPE *)getenv("HOME");
          if ( ((home==NULL) ? 0 : strlen( (DEFCHAR *)home )) + strlen( (DEFCHAR *)conv_filename ) > MAX_FILE_NAME )
          {
-            TRACE_RETURN();
             return(RC_BAD_FILEID);
          }
          strcpy( (DEFCHAR *)work_filename, (DEFCHAR *)home );
@@ -736,7 +681,6 @@ short splitpath(CHARTYPE *filename)
             sp_path[len] = '\0';
          if ((pwd = getpwnam((DEFCHAR *)sp_path)) == NULL)
          {
-            TRACE_RETURN();
             return(RC_BAD_FILEID);
          }
          strcpy((DEFCHAR *)work_filename,pwd->pw_dir);
@@ -761,7 +705,6 @@ short splitpath(CHARTYPE *filename)
          case (-1):
             if ( getcwd( (DEFCHAR *)sp_path, MAX_FILE_NAME ) == NULL )
             {
-               TRACE_RETURN();
                return(RC_BAD_FILEID);
             }
             strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)work_filename);
@@ -786,12 +729,10 @@ short splitpath(CHARTYPE *filename)
    if (chdir((DEFCHAR *)sp_path) != 0)
    {
       chdir((DEFCHAR *)curr_path);
-      TRACE_RETURN();
       return(RC_FILE_NOT_FOUND);
    }
    if ( getcwd( (DEFCHAR *)sp_path, MAX_FILE_NAME ) == NULL )
    {
-      TRACE_RETURN();
       return(RC_BAD_FILEID);
    }
    chdir((DEFCHAR *)curr_path);
@@ -803,7 +744,6 @@ short splitpath(CHARTYPE *filename)
    if ( len > 0
    &&   sp_path[len-1] != ISLASH )
       strcat((DEFCHAR *)sp_path,(DEFCHAR *)ISTR_SLASH);
-   TRACE_RETURN();
    return(RC_OK);
 }
 #endif
@@ -813,14 +753,11 @@ short splitpath(CHARTYPE *filename)
 #ifdef USE_OLD_LONGFILENAMES /* FGC: previous ifdef OS2     */
 #  if defined(__32BIT__) || defined(__386__)
 #  define FSQBUFFERSIZE 64
-/***********************************************************************/
 bool LongFileNames(CHARTYPE *path)
-/***********************************************************************/
 /* Function  : Determine if file system allows long file names. (HPFS) */
 /*             This is the 32-bit version.                             */
 /* Parameters: path     - directory path                               */
 /* Return    : 1 if file system is HPFS                                */
-/***********************************************************************/
 {
    ULONG nDrive=0L;
    ULONG lMap=0L;
@@ -829,7 +766,6 @@ bool LongFileNames(CHARTYPE *path)
    char bName[3];
    ULONG bDataLen=0L;
 
-   TRACE_FUNCTION("nonansi.c: LongFileNames");
    if ((strlen (path) > 0) && path [1] == ':')
       bName[0] = path[0];
    else
@@ -841,19 +777,15 @@ bool LongFileNames(CHARTYPE *path)
    bName[2] = 0;
    bDataLen = FSQBUFFERSIZE;
    DosQueryFSAttach(bName, 0, FSAIL_QUERYNAME, bData, &bDataLen);
-   TRACE_RETURN();
    return(strcmp(bData->szFSDName + bData->cbName, "HPFS") == 0);
 }
 #  else
 
-/***********************************************************************/
 bool LongFileNames(CHARTYPE *path)
-/***********************************************************************/
 /* Function  : Determine if file system allows long filenames. (HPFS)  */
 /*             This is the 16-bit version.                             */
 /* Parameters: path     - directory path                               */
 /* Return    : 1 if file system is HPFS                                */
-/***********************************************************************/
 {
 typedef struct _FSNAME {
         USHORT cbName;
@@ -872,7 +804,6 @@ typedef FSQINFO FAR *PFSQINFO;
    BYTE bName[3];
    FSNAME *pFSName=NULL;
 
-   TRACE_FUNCTION("nonansi.c: LongFileNames");
    if ((strlen(path) > 0) && path[1] == ':')
       bName[0] = path[0];
    else
@@ -886,13 +817,11 @@ typedef FSQINFO FAR *PFSQINFO;
    DosQFSAttach((PSZ)bName,0,1,(PBYTE)&bData,&cbData,0L);
    pFSName = &bData.Name;
    (CHARTYPE *)pFSName += pFSName->cbName + sizeof(pFSName->cbName)+1;
-   TRACE_RETURN();
    return(strcmp((CHARTYPE *)&(pFSName->szName[0]),"HPFS") == 0);
 }
 #  endif
 #endif
 
-/***********************************************************************/
 LINE *getclipboard(LINE *now, int from_get)
 /*
  * Function  : Reads the contents of the clipboard into the file.
@@ -914,7 +843,6 @@ LINE *getclipboard(LINE *now, int from_get)
 #endif
 
 #if defined(PDC_CLIP_SUCCESS)
-   TRACE_FUNCTION("nonansi.c: getclipboard");
    rc = PDC_getclipboard( (DEFCHAR **)&ptr, &length );
 
    switch( rc )
@@ -937,7 +865,6 @@ LINE *getclipboard(LINE *now, int from_get)
    }
    if (rc != RC_OK)
    {
-      TRACE_RETURN();
       return NULL;
    }
 
@@ -1015,13 +942,10 @@ LINE *getclipboard(LINE *now, int from_get)
    display_error( 82, (CHARTYPE *)"CLIP:", FALSE );
    curr = NULL;
 #endif
-   TRACE_RETURN();
    return curr;
 }
-/***********************************************************************/
 short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_lines,
                 LINETYPE start_line_in,LINETYPE end_line_in,LINETYPE *num_file_lines,bool append,LENGTHTYPE start_col_in, LENGTHTYPE end_col_in,bool ignore_scope,bool lines_based_on_scope,int target_type)
-/***********************************************************************/
 {
 #define CLIP_TYPE_LINE   1
 #define CLIP_TYPE_BOX    2
@@ -1044,7 +968,6 @@ short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_l
    LENGTHTYPE start_col=start_col_in,end_col=end_col_in;
    LINETYPE start_line=start_line_in,end_line=end_line_in;
 
-   TRACE_FUNCTION("file.c:    setclipboard");
    /*
     * CUA block can have start position after end position, so fix this up so
     * start position is less than end position
@@ -1088,7 +1011,6 @@ short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_l
    if (!ptr)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
 
@@ -1215,7 +1137,6 @@ short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_l
                  if ( !ptr )
                  {
                     display_error( 30, (CHARTYPE *)"", FALSE );
-                    TRACE_RETURN();
                     return( RC_OUT_OF_MEMORY );
                  }
                  clip_size *= 2;
@@ -1257,7 +1178,6 @@ short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_l
       {
          case PDC_CLIP_MEMORY_ERROR:
             display_error(30,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
             break;
          case PDC_CLIP_ACCESS_ERROR:
@@ -1275,7 +1195,6 @@ short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_l
 #endif
 
    (*the_free)( (void *)ptr);
-   TRACE_RETURN();
    return(rc);
 }
 
@@ -1329,11 +1248,8 @@ static void PDC_curs_set(int visibility)
 }
 #endif
 
-/***********************************************************************/
 void draw_cursor(bool visible)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("nonansi,c: draw_cursor");
    if (visible)
    {
       if (INSERTMODEx)
@@ -1350,15 +1266,12 @@ void draw_cursor(bool visible)
    {
       curs_set(0);      /* cursor off */
    }
-   TRACE_RETURN();
    return;
 }
 /*
  * is_a_dir_stat() used when the attributes are obtained from stat()
  */
-/*********************************************************************/
 int is_a_dir_stat(ATTR_TYPE attrs)
-/*********************************************************************/
 {
 #if defined(S_IFDIR)
    ATTR_TYPE ftype=(attrs & S_IFMT);
@@ -1375,9 +1288,7 @@ int is_a_dir_stat(ATTR_TYPE attrs)
 /*
  * is_a_dir_dir() used when the attributes are obtained from _findfirst() on Windows
  */
-/*********************************************************************/
 int is_a_dir_dir(ATTR_TYPE attrs)
-/*********************************************************************/
 {
 #if defined(_A_SUBDIR)
    if ( ( attrs & _A_SUBDIR) == _A_SUBDIR )

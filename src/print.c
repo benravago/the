@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* PRINT.C - Printing related functions                                */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -40,10 +38,8 @@ static void print_shadow_line(FILE *,CHARTYPE *,LINETYPE);
 
 
 #ifndef MSWIN
-/***********************************************************************/
 void print_line(bool close_spooler,LINETYPE true_line,LINETYPE num_lines,
                 short pagesize,CHARTYPE *text,CHARTYPE *line_term,short target_type)
-/***********************************************************************/
 {
 /*--------------------------- local data ------------------------------*/
  static bool spooler_open=FALSE;
@@ -61,7 +57,6 @@ void print_line(bool close_spooler,LINETYPE true_line,LINETYPE num_lines,
  LINETYPE start=0L,end=0L,len=0L;
  CHARTYPE *ptr=NULL;
 /*--------------------------- processing ------------------------------*/
- TRACE_FUNCTION("print.c:   print_line");
 
  if (close_spooler)
    {
@@ -69,7 +64,6 @@ void print_line(bool close_spooler,LINETYPE true_line,LINETYPE num_lines,
       {
        spooler_open = FALSE;
        pclose(pp);
-       TRACE_RETURN();
        return;
       }
    }
@@ -79,7 +73,6 @@ void print_line(bool close_spooler,LINETYPE true_line,LINETYPE num_lines,
     pp = popen((DEFCHAR *)spooler_name,"w");
     if (pp == NULL)
      {
-      TRACE_RETURN();
       return;
      }
     spooler_open = TRUE;
@@ -88,7 +81,6 @@ void print_line(bool close_spooler,LINETYPE true_line,LINETYPE num_lines,
  if (num_lines == 0L)
    {
     fprintf(pp,"%s%s",text,line_term);
-    TRACE_RETURN();
     return;
    }
 /*---------------------------------------------------------------------*/
@@ -231,19 +223,15 @@ void print_line(bool close_spooler,LINETYPE true_line,LINETYPE num_lines,
     else
        wmove(CURRENT_WINDOW,y,x);
    }
- TRACE_RETURN();
  return;
 }
 
-/***********************************************************************/
 static void make_shadow_line(char *buf,LINETYPE num_excluded, int width)
-/***********************************************************************/
 {
 #define LINES_NOT_DISPLAYED " line(s) not displayed "
    int numlen=0,first=0;
    char numbuf[33]; /* 10 + length of LINES_NOT_DISPLAYED */
 
-   TRACE_FUNCTION("print.c:   make_shadow_line");
    numlen = sprintf(numbuf," %ld%s",num_excluded,LINES_NOT_DISPLAYED);
    if (numlen > width)
       numlen = width;
@@ -257,18 +245,14 @@ static void make_shadow_line(char *buf,LINETYPE num_excluded, int width)
    memset(buf,'-',width - first - numlen);
    /* terminate string */
    buf[width - first - numlen] = '\0';
-   TRACE_RETURN();
    return;
 }
 
-/***********************************************************************/
 static void print_shadow_line(FILE *pp,CHARTYPE *line_term,LINETYPE num_excluded)
-/***********************************************************************/
 {
    register int width=0;
    char buf[512];
 
-   TRACE_FUNCTION("print.c:   print_shadow_line");
    if (CURRENT_VIEW->shadow)
    {
       width = min(sizeof(buf)-1,CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
@@ -276,64 +260,39 @@ static void print_shadow_line(FILE *pp,CHARTYPE *line_term,LINETYPE num_excluded
       fwrite(buf,width,1,pp);
       fputs((DEFCHAR *)line_term,pp);
    }
-   TRACE_RETURN();
    return;
 }
 
-/***********************************************************************/
 short setprintername(char *pn)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("print.c:   setprintername");
 
-   TRACE_RETURN();
    return (rc);
 }
 
-/***********************************************************************/
 short setfontcpi(int cpi)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("print.c:   setfontcpi");
-   TRACE_RETURN();
    return (RC_OK);
 }
 
-/***********************************************************************/
 short setfontlpi(int lpi)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("print.c:   setfontlpi");
-   TRACE_RETURN();
    return (RC_OK);
 }
 
-/***********************************************************************/
 short setpagesize(int fs)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("print.c:   setpagesize");
-   TRACE_RETURN();
    return (RC_OK);
 }
 
-/***********************************************************************/
 short setfontname(char *font)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("print.c:   setfontname");
-   TRACE_RETURN();
    return (RC_OK);
 }
 
-/***********************************************************************/
 short setorient(char ori)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("print.c:   setorient");
-   TRACE_RETURN();
    return (RC_OK);
 }
 #endif

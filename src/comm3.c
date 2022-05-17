@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* COMM3.C - Commands K-O                                              */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -38,73 +36,13 @@
 #include <the.h>
 #include <proto.h>
 
-/*man-start*********************************************************************
-COMMAND
-     kedit - edit another file or switch to next file
 
-SYNTAX
-     Kedit [file]
-
-DESCRIPTION
-     The KEDIT command allows the user to edit another 'file'. The new file
-     is placed in the file <ring>. The previous file being edited remains
-     in memory and can be returned to by issuing a KEDIT command without
-     any parameters. Several files can be edited at once, and all files
-     are arranged in a ring, with subsequent KEDIT commands moving through
-     the ring, one file at a time.
-
-COMPATIBILITY
-     XEDIT: Does not provide options switches.
-     KEDIT: Does not provide options switches.
-
-SEE ALSO
-     <EDIT>, <THE>, <XEDIT>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     left - scroll the screen to the left
-
-SYNTAX
-     LEft [n|HALF|FULL]
-
-DESCRIPTION
-     The LEFT command scrolls the screen to the left.
-
-     If 'n' is supplied, the screen scrolls by that many columns.
-
-     LEFT 0 is equivalent to <SET VERIFY> 1
-
-     If 'HALF' is specified the screen is scrolled by half the number
-     of columns in the <filearea>.
-
-     If 'FULL' is specified the screen is scrolled by the number
-     of columns in the <filearea>.
-
-     If no parameter is supplied, the screen is scrolled by one
-     column.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <RIGHT>, <RGTLEFT>, <SET VERIFY>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Left(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LINETYPE shift_val;
    CHARTYPE _THE_FAR buffer[100];
 
-   TRACE_FUNCTION("comm3.c:   Left");
    /*
     * Validate only parameter, HALF or positive integer. 1 if no argument.
     */
@@ -123,7 +61,6 @@ short Left(CHARTYPE *params)
          else
             sprintf( (DEFCHAR *)buffer, "- MUST be <= %ld", MAX_WIDTH_NUM );
          display_error( rc, buffer, FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       shift_val = atol( (DEFCHAR *)params );
@@ -144,41 +81,12 @@ short Left(CHARTYPE *params)
 #endif
    build_screen( current_screen );
    display_screen( current_screen );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     locate - search for a target
-
-SYNTAX
-     [Locate] target [command]
-
-DESCRIPTION
-     The LOCATE command searches for the next or previous occurrence
-     of the specified <'target'>.  If no parameter is supplied, LOCATE
-     uses the the last target specified. If no prior target has been
-     specified, an error message is displayed.
-
-     <target> can also be specified as a regular expression. The syntax of
-     this is "Regexp /re/". eg LOCATE RE /[0-9].*$/
-
-     With an optional 'command', this command is executed after finding
-     the <'target'>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Locate(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm3.c:   Locate");
    /*
     * If no parameter is specified, use the last_target. If that doesn't
     * exist, error.
@@ -188,156 +96,34 @@ short Locate(CHARTYPE *params)
       if (blank_field(lastop[LASTOP_LOCATE].value))
       {
          display_error(39,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       rc = execute_locate( lastop[LASTOP_LOCATE].value, TRUE, THE_NOT_SEARCH_SEMANTICS, NULL );
-      TRACE_RETURN();
       return(rc);
    }
    /*
     * Here we have some parameters.
     */
    rc = execute_locate( params, TRUE, THE_NOT_SEARCH_SEMANTICS, NULL );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     lowercase - change uppercase characters to lowercase
-
-SYNTAX
-     LOWercase [target]
-
-DESCRIPTION
-     The LOWERCASE command changes all uppercase characters in all
-     lines up to the <'target'> line to lowercase. All other characters
-     remain untouched.
-
-COMPATIBILITY
-     XEDIT: Equivalent of LOWERCAS command.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <UPPERCASE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Lowercase(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm3.c:   Lowercase");
    rc = execute_change_case(params,CASE_LOWER);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     ls - list the specified directory as an editable file
 
-SYNTAX
-     LS [file specification]
-
-DESCRIPTION
-     The LS command displays all files matching the specified
-     'file specification'.
-
-     When no parameter is supplied, all files in the current directory
-     are displayed subject to any <SET DIRINCLUDE> restrictions.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <DIRECTORY>, <SET DIRINCLUDE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     macro - execute a macro command file
-
-SYNTAX
-     MACRO [?] filename [arguments ...]
-
-DESCRIPTION
-     The MACRO command executes the contents of the specified 'filename'
-     as command line commands. The 'filename' can contain either a series
-     of THE commands, or can be a Rexx program. The 'filename' is considered
-     a <macro>.
-
-     Rexx macros can be passed optional 'arguments'.
-
-     With the optional '?' parameter, interactive tracing of the Rexx
-     macro is possible, but this does not set interactive tracing on;
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Macro(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    short macrorc=0;
 
-   TRACE_FUNCTION( "comm3.c:   Macro" );
    rc = execute_macro( params, TRUE, &macrorc );
-   TRACE_RETURN();
    return( (rc == RC_SYSTEM_ERROR) ? rc : macrorc );
 }
-/*man-start*********************************************************************
-COMMAND
-     mark - mark a portion of text
-
-SYNTAX
-     MARK Box [line1 col1 line2 col2]
-     MARK Line [line1 line2]
-     MARK Stream [line1 col1 line2 col2]
-     MARK Column [col1 col2]
-     MARK Word [line1 col1]
-     MARK CUA [LEFT|RIGHT|UP|DOWN|START|END|FOrward|BAckward|TOP|Bottom|MOUSE]
-
-DESCRIPTION
-     The MARK command marks a portion of text for later processing
-     by a <COPY>, <MOVE> or <DELETE> command. This marked area is
-     known as a <block>.
-
-     When the MARK command is executed with the optional line/column
-     arguments, these values are used to specify the position of the
-     marked <block>.  Without the optional arguments, the position of
-     the cursor is used to determine which portion of text is marked.
-
-     'line1' and 'line2' specify the first or last line of the
-     marked block.
-
-     'col1' and 'col2' specify the first or last column of the
-     marked block.
-
-     Any currently marked block will be unmarked or extended depending on
-     the arguments supplied.
-
-     When marking a <word block>, 'line1' and 'col1' refer to any position
-     within the word.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Adds CUA, WORD, and COLUMN options and position specifiers.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Mark(CHARTYPE *params)
-/***********************************************************************/
 {
 #define MAR_PARAMS    5
 #define CUA_NONE      0
@@ -373,7 +159,6 @@ short Mark(CHARTYPE *params)
    int num[5]; /* must be at least as big as maximum number of args */
    CHARTYPE _THE_FAR buffer[100];
 
-   TRACE_FUNCTION("comm3.c:   Mark");
    /*
     * Do this rather than define numparams[6] = {0,3,5,5,3,3} so that
     * non-ansi compilers won't barf.
@@ -442,7 +227,6 @@ short Mark(CHARTYPE *params)
    else
    {
       display_error(1,(CHARTYPE *)word[0],FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -476,7 +260,6 @@ short Mark(CHARTYPE *params)
       else
       {
          display_error(1,(CHARTYPE *)word[1],FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       /*
@@ -555,7 +338,6 @@ short Mark(CHARTYPE *params)
       if (TOF(true_line) || BOF(true_line))
       {
          display_error(38,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
       }
       /*
@@ -569,7 +351,6 @@ short Mark(CHARTYPE *params)
          if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE)
          {
             display_error(38,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
       }
@@ -594,7 +375,6 @@ short Mark(CHARTYPE *params)
       if (TOF(true_line) || BOF(true_line))
       {
          display_error(38,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
       }
       /*
@@ -608,7 +388,6 @@ short Mark(CHARTYPE *params)
          if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE)
          {
             display_error(38,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
       }
@@ -763,13 +542,11 @@ short Mark(CHARTYPE *params)
       if (num_params < numparms[mark_type])
       {
          display_error(3,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       if (num_params > numparms[mark_type])
       {
          display_error(2,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       /*
@@ -788,7 +565,6 @@ short Mark(CHARTYPE *params)
             else
                sprintf( (DEFCHAR *)buffer, "- MUST be <= %ld", nummax[mark_type][i] );
             display_error( rc, buffer, FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
       }
@@ -897,74 +673,19 @@ short Mark(CHARTYPE *params)
       build_screen( current_screen );
       display_screen(current_screen);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     modify - display current SET command for alteration
-
-SYNTAX
-     MODify set-command
-
-DESCRIPTION
-     The MODIFY command displays the current setting of a <SET> command
-     on the command line enabling the user to change that setting.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SET>, <QUERY>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Modify(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm3.c:   Modify" );
    if ( ( rc = execute_modify_command( params ) ) == RC_OK )
    {
       Cmsg( temp_cmd );
    }
-   TRACE_RETURN();
    return( rc );
 }
-/*man-start*********************************************************************
-COMMAND
-     move - move a portion of text
-
-SYNTAX
-     MOVE target1 target2
-     MOVE BLOCK [RESET]
-
-DESCRIPTION
-     The MOVE command copies the contents of a portion of the file to
-     the same or a different file, and deletes the marked portion from
-     the original file.
-
-     The first form of the MOVE command, moves the portion of the file
-     specified by 'target1' to the line specified by 'target2' in the
-     same file.
-
-     The second form of the MOVE command moves the contents of the marked
-     <block> to the current cursor position. If the optional ['RESET']
-     argument is supplied, the marked block is reset as though a
-     <RESET> BLOCK command had been issued.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Adds extra functionality with [RESET] option.
-
-STATUS
-     Incomplete. First form is not supported.
-**man-end**********************************************************************/
 short THEMove(CHARTYPE *params)
-/***********************************************************************/
 {
 #define MOV_PARAMS 2
    CHARTYPE *word[MOV_PARAMS+1];
@@ -978,20 +699,17 @@ short THEMove(CHARTYPE *params)
    LINETYPE start_line=0L,end_line=0L,num_lines=0L,dest_line=0L,lines_affected=0L;
    VIEW_DETAILS *old_mark_view=NULL;
 
-   TRACE_FUNCTION("comm3.c:   THEMove");
    /*
     * This command invalid if source file is readonly...
     */
    if (!MARK_VIEW)
    {
       display_error(44,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    if (ISREADONLY(MARK_FILE))
    {
       display_error(56,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    strip[0]=STRIP_BOTH;
@@ -1000,13 +718,11 @@ short THEMove(CHARTYPE *params)
    if (num_params == 0)
    {
       display_error(3,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (num_params > 2)
    {
       display_error(2,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -1022,7 +738,6 @@ short THEMove(CHARTYPE *params)
    if (reset_block == SOURCE_UNKNOWN)
    {
       display_error(1,params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -1030,7 +745,6 @@ short THEMove(CHARTYPE *params)
     */
    if (marked_block(FALSE) != RC_OK)
    {
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -1052,7 +766,6 @@ short THEMove(CHARTYPE *params)
             &&  (x + CURRENT_VIEW->verify_col <= MARK_VIEW->mark_end_col))
             {
                display_error(50,(CHARTYPE *)"",FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_ENVIRON);
             }
             break;
@@ -1069,7 +782,6 @@ short THEMove(CHARTYPE *params)
    ||  MARK_VIEW->mark_type == M_COLUMN)
    {
       box_operations(BOX_M,reset_block,FALSE,' ');/* don't reset and don't overlay */
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -1119,80 +831,19 @@ short THEMove(CHARTYPE *params)
                               end_line,start_line,1L,old_mark_view,old_mark_view,FALSE,
                               &lines_affected);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     msg - display message on error line
-
-SYNTAX
-     MSG [message]
-
-DESCRIPTION
-     The MSG command displays a 'message' on the <message line>.
-     This command is usually issued from a macro file.
-     This is similar to <EMSG>, but MSG does not sound the bell if
-     <SET BEEP> is on.
-
-     If the number of messages displayed on the <message line> exceeds
-     the number of lines defined in the <message line> as set by
-     <SET MSGLINE>, a prompt will be displayed. If a macro is being
-     executed, the prompt will indicate that the user may terminate the macro
-     by pressing the SPACE bar or any other key to continue execution of
-     the macro.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <CMSG>, <EMSG>, <SET MSGLINE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Msg(CHARTYPE *params)
-/***********************************************************************/
 {
    int rc;
-   TRACE_FUNCTION("comm3.c:   Msg");
    rc = display_error(0,params,TRUE);
-   TRACE_RETURN();
    return rc;
 }
-/*man-start*********************************************************************
-COMMAND
-     next - move forward in the file a number of lines
-
-SYNTAX
-     Next [relative target]
-
-DESCRIPTION
-     The NEXT command moves the <current line> forwards the number of
-     lines specified by the <relative target>. This <relative target> can
-     only be a positive integer or the character "*".
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-DEFAULT
-     1
-
-SEE ALSO
-     <DOWN>, <UP>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short THENext(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LINETYPE num_lines=0L,true_line=0L;
 
-   TRACE_FUNCTION("comm3.c:   THENext");
    params = MyStrip(params,STRIP_BOTH,' ');
    if (strcmp("",(DEFCHAR *)params) == 0)
       params = (CHARTYPE *)"1";
@@ -1204,59 +855,30 @@ short THENext(CHARTYPE *params)
       if (!valid_integer(params))
       {
          display_error(4,params,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       num_lines = atol((DEFCHAR *)params);
       if (num_lines < 0L)
       {
          display_error(5,params,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
    }
    rc = advance_current_or_focus_line(num_lines);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     nextwindow - switch focus of editing session to another file
-
-SYNTAX
-     NEXTWindow
-
-DESCRIPTION
-     The NEXTWINDOW command moves the focus of the editing session to
-     the other screen (if <SET SCREEN> 2 is in effect) or to the next
-     file in the <ring>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <PREVWINDOW>, <EDIT>, <SET SCREEN>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Nextwindow(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm3.c:   Nextwindow");
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (display_screens == 1)
    {
       rc = Xedit((CHARTYPE *)"");
-      TRACE_RETURN();
       return(rc);
    }
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
@@ -1305,239 +927,59 @@ short Nextwindow(CHARTYPE *params)
    build_screen( current_screen );                                         /* GFUC2 added */
    display_screen(current_screen);
 
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     nfind - locate forwards the line which does NOT begin with the supplied string
-
-SYNTAX
-     NFind [string]
-
-DESCRIPTION
-     The NFIND command attempts to locate a line towards the end of
-     the file that does NOT begin with 'string'.
-     If the optional 'string' is not supplied the last 'string' used
-     in any of the family of find commands is used.
-
-     'string' can contain two special characters:
-
-          space - this will match any single character in the target line
-          underscore - this will match any single space in the target line
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <FIND>, <FINDUP>, <NFINDUP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Nfind(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Nfind");
    rc = execute_find_command(params,TARGET_NFIND);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     nfindup - locate backwards the line which does NOT begin with the supplied string
-
-SYNTAX
-     NFINDUp [string]
-
-DESCRIPTION
-     The NFINDUP command attempts to locate a line towards the start of
-     the file that does NOT begin with 'string'.
-     If the optional 'string' is not supplied the last 'string' used
-     in any of the family of find commands is used.
-
-     'string' can contain two special characters:
-
-          space - this will match any single character in the target line
-          underscore - this will match any single space in the target line
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <FIND>, <FINDUP>, <NFIND>, <NFUP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Nfindup(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Nfindup");
    rc = execute_find_command(params,TARGET_NFINDUP);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     nfup - locate backwards the line which does NOT begin with the supplied string
 
-SYNTAX
-     NFUp [string]
-
-DESCRIPTION
-     The NFUP command is a synonym for the <NFINDUP> command.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <FIND>, <FINDUP>, <NFIND>, <NFINDUP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     nomsg - execute a command suppressing any messages
-
-SYNTAX
-     NOMSG command [arguments]
-
-DESCRIPTION
-     The NOMSG command executes the supplied 'command' but suppresses
-     messages that would normally be displayed as a result of the
-     command.
-
-     Optional 'arguments' may be passed to the 'command'.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Nomsg(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm3.c:   Nomsg" );
    in_nomsg = TRUE;
    rc = command_line( params, COMMAND_ONLY_FALSE );
    in_nomsg = FALSE;
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     nop - no operation command
-
-SYNTAX
-     NOP
-
-DESCRIPTION
-     The NOP command does nothing. It is used as a means of turning
-     off an assignment to a key.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <DEFINE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Nop(CHARTYPE *params)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("comm3.c:   Nop");
    /*
     * No arguments are allowed; error if any are present.
     */
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,(CHARTYPE *)params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     os - execute an operating system command
-
-SYNTAX
-     OS [command]
-
-DESCRIPTION
-     The OS command executes the supplied operating system 'command'
-     or runs an interactive shell if no 'command' is supplied.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Equivalent to DOS command.
-
-SEE ALSO
-     <DOS>, <!>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Os(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm3.c:   Os" );
    /*
     * Execute the supplied parameters as OS commands. Run with output
     * displayed and pause before redrawing the windows.
     */
    rc = execute_os_command( params, FALSE, TRUE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     osnowait - execute an operating system command - no prompt
-
-SYNTAX
-     OSNowait command
-
-DESCRIPTION
-     The OSNOWAIT command executes the supplied operating system
-     'command' not waiting for the user to be prompted once the
-     command has completed.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Equivalent of <DOSNOWAIT> command.
-
-SEE ALSO
-     <DOSNOWAIT>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Osnowait(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm3.c:   Osnowait" );
    /*
     * Execute the supplied parameters as OS commands. Run with output
     * displayed but no pause before redrawing the windows.
@@ -1545,40 +987,15 @@ short Osnowait(CHARTYPE *params)
    if ( strcmp( (DEFCHAR *)params, "" ) == 0 )          /* no params....error */
    {
       display_error( 3, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    rc = execute_os_command( params, FALSE, FALSE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     osquiet - execute an operating system command quietly
-
-SYNTAX
-     OSQuiet command
-
-DESCRIPTION
-     The OSQUIET command executes the supplied operating system 'command'
-     as quietly as possible.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Equivalent of <DOSQUIET> command.
-
-SEE ALSO
-     <DOSQUIET>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Osquiet(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm3.c:   Osquiet" );
    /*
     * Execute the supplied parameters as OS commands. Run with no output
     * displayed and no pause before redrawing the windows.
@@ -1586,39 +1003,12 @@ short Osquiet(CHARTYPE *params)
    if ( strcmp( (DEFCHAR *)params, "" ) == 0 )          /* no params....error */
    {
       display_error( 3, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    rc = execute_os_command( params, TRUE, FALSE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     osredir - execute an operating system command and capture output
-
-SYNTAX
-     OSRedir filename command [arguments ...]
-
-DESCRIPTION
-     The OSREDIR command executes the supplied operating system 'command'
-     and redirects output destined for STDOUT and STDERR to the specified
-     'filename'.
-
-     Optional 'arguments' may be supplied to the 'command'.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <OS>, <OSQUIET>, <OSNOWAIT>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Osredir(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK,rrc=0;
 #define OSR_PARAMS 2
@@ -1633,7 +1023,6 @@ short Osredir(CHARTYPE *params)
 #endif
    int fd=0;
 
-   TRACE_FUNCTION( "comm3.c:   Osredir" );
    /*
     * Execute the supplied parameters as OS commands. Run with no output
     * displayed and no pause before redrawing the windows.
@@ -1647,13 +1036,11 @@ short Osredir(CHARTYPE *params)
    if ( num_params == 0 )
    {
       display_error( 3, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if ( num_params > 2 )
    {
       display_error( 2, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -1677,7 +1064,6 @@ short Osredir(CHARTYPE *params)
    if ( fd == (-1) )
    {
       display_error( 8, word[0], FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    chmod( (DEFCHAR *)word[0], S_IRUSR|S_IWUSR );
@@ -1760,7 +1146,6 @@ short Osredir(CHARTYPE *params)
    }
 #endif
 
-   TRACE_RETURN();
    if ( rc == RC_OK )
       return(rrc);
    else
@@ -1769,33 +1154,7 @@ short Osredir(CHARTYPE *params)
       return(rc);
    }
 }
-/*man-start*********************************************************************
-COMMAND
-     overlaybox - overlay marked block on current cursor position
-
-SYNTAX
-     OVERLAYBox
-
-DESCRIPTION
-     The OVERLAYBOX command overlays the contents of the marked <block>;
-     <box block> or <line block>, over the characters or lines at the
-     <focus line> and <focus column>.
-
-     This command implies that only <box block>s are handled.  This used
-     to be the case, and for compatibility reasons the name remains.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <MOVE>, <COPY>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Overlaybox(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short y=0,x=0;
    LINETYPE true_line=0L,start_line=0L,end_line=0L,dest_line=0L,lines_affected=0L;
@@ -1804,14 +1163,12 @@ short Overlaybox(CHARTYPE *params)
    LINE *curr=NULL;
    LINETYPE save_current_line=CURRENT_VIEW->current_line;
 
-   TRACE_FUNCTION("comm3.c:   Overlaybox");
    /*
     * Ensure there are no parameters.
     */
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,params,FALSE);
-      TRACE_RETURN();
     return(RC_INVALID_OPERAND);
    }
    /*
@@ -1819,7 +1176,6 @@ short Overlaybox(CHARTYPE *params)
     */
    if (marked_block(FALSE) != RC_OK)
    {
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -1829,7 +1185,6 @@ short Overlaybox(CHARTYPE *params)
    &&  MARK_VIEW->mark_start_line != MARK_VIEW->mark_end_line)
    {
       display_error(62,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -1845,7 +1200,6 @@ short Overlaybox(CHARTYPE *params)
          && !CURRENT_VIEW->scope_all)
          {
             display_error(87,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
       }
@@ -1856,7 +1210,6 @@ short Overlaybox(CHARTYPE *params)
    if (MARK_VIEW->mark_type != M_LINE)
    {
       box_operations(BOX_C,SOURCE_BLOCK,TRUE,' ');  /* no reset, overlay */
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -1906,6 +1259,5 @@ short Overlaybox(CHARTYPE *params)
    && CURRENT_VIEW->current_window != WINDOW_COMMAND)
       wmove(CURRENT_WINDOW,y,x);
 
-   TRACE_RETURN();
    return(rc);
 }

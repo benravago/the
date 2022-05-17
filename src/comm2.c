@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* COMM2.C - Commands D-J                                              */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -40,50 +38,7 @@
 
 /*#define DEBUG 1*/
 
-/*man-start*********************************************************************
-COMMAND
-     define - assign one or many commands to a key or mouse event
-
-SYNTAX
-     DEFine key-name [REXX] [command [args] [[#command [args]...]]]
-     DEFine mouse-key-definition IN window [REXX] [command [args] [[#command [args]...]]]
-
-DESCRIPTION
-     The DEFINE command allows the user to assign one or many
-     commands and optional parameter(s) to a key or a mouse button
-     specification.
-
-     Commands may be abbreviated.
-
-     If multiple commands are assigned, then the LINEND setting
-     must be ON and the LINEND character must match the character
-     that delimits the commands at the time that the DEFINE command
-     is executed. LINEND can be OFF at the time the key is pressed.
-
-     With no arguments, any existing definition for that key is
-     removed and the key reverts back to its default assignation (if
-     it had any).
-
-     'key-name' corresponds to the key name shown with the <SHOWKEY> command.
-
-     If the optional keyword; 'REXX', is supplied, the remainder of the
-     command line is treated as a Rexx macro and is passed onto the
-     Rexx interpreter (if you have one) for execution.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-            KEDIT does not allow multiple commands except as KEXX
-            macros.
-
-SEE ALSO
-     <SHOWKEY>, <SET LINEND>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Define(CHARTYPE *params)
-/***********************************************************************/
 {
 #define DEF_PARAMS  2
 #define DEF_MOUSE_PARAMS  4
@@ -94,14 +49,12 @@ short Define(CHARTYPE *params)
    int key_value=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Define");
    strip[0] = STRIP_BOTH;
    strip[1] = STRIP_LEADING;
    num_params = param_split(params,word,DEF_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
    if (num_params == 0)
    {
       display_error(3,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -114,7 +67,6 @@ short Define(CHARTYPE *params)
        if ((key_value = atoi((DEFCHAR *)word[0]+1)) == 0)
        {
           display_error(1,word[0],FALSE);
-          TRACE_RETURN();
           return(RC_INVALID_OPERAND);
        }
    }
@@ -124,7 +76,6 @@ short Define(CHARTYPE *params)
        {
           if ( ( key_value = find_mouse_key_value( word[0] ) ) == (-1) )
           {
-             TRACE_RETURN();
              return(RC_INVALID_OPERAND);
           }
           /*
@@ -150,7 +101,6 @@ short Define(CHARTYPE *params)
       /*
        * Return after processing a KEY definition...
        */
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -164,18 +114,15 @@ short Define(CHARTYPE *params)
    if (num_params < 3)
    {
       display_error(3,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (!equal((CHARTYPE *)"in",word[1],2))
    {
       display_error(1,word[1],FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if ((key_value = find_mouse_key_value_in_window(word[0],word[2])) == (-1))
    {
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -190,36 +137,9 @@ short Define(CHARTYPE *params)
    }
    else
       rc = add_define(&first_mouse_define,&last_mouse_define,key_value,word[3],FALSE,FALSE,0);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     delete - delete lines from a file
-
-SYNTAX
-     DELete [target]
-
-DESCRIPTION
-     The DELETE command removes lines from the current file.
-     The number of lines removed depends on the <'target'> specified.
-     Lines are removed starting with the <focus line>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-DEFAULT
-     1
-
-SEE ALSO
-     <SOS DELLINE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short DeleteLine(CHARTYPE *params)
-/***********************************************************************/
 {
    LINETYPE start_line=0L,end_line=0L,dest_line=0L,lines_affected=0L;
    short rc=RC_OK;
@@ -228,7 +148,6 @@ short DeleteLine(CHARTYPE *params)
    long target_type=TARGET_NORMAL|TARGET_ALL|TARGET_BLOCK_CURRENT;
    bool lines_based_on_scope=FALSE;
 
-   TRACE_FUNCTION("comm2.c:   DeleteLine");
    /*
     * If no parameter is supplied, 1 is assumed.
     */
@@ -242,7 +161,6 @@ short DeleteLine(CHARTYPE *params)
    if ((rc = validate_target(args,&target,target_type,get_true_line(TRUE),TRUE,TRUE)) != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -258,7 +176,6 @@ short DeleteLine(CHARTYPE *params)
       {
          free_target(&target);
          box_operations(BOX_D,SOURCE_BLOCK_RESET,FALSE,' ');
-         TRACE_RETURN();
          return(RC_OK);
       }
       start_line = MARK_VIEW->mark_start_line;
@@ -301,113 +218,17 @@ short DeleteLine(CHARTYPE *params)
       if (CURRENT_BOF || CURRENT_TOF)
          rc = RC_TOF_EOF_REACHED;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     dialog - display a user configurable dialog box
-
-SYNTAX
-     DIALOG /prompt/ [EDITfield [/val/]] [TITLE /title/] [OK|OKCANCEL|YESNO|YESNOCANCEL] [DEFBUTTON n]
-
-DESCRIPTION
-     The DIALOG command displays a dialog box in the middle of the screen
-     with user-configurable settings.
-
-     The mandatory 'prompt' parameter is the text of a prompt displayed
-     near the top of the dialog window. Up to 100 lines can be displayed
-     by separating lines with a character (decimal 10).
-
-     'EDITfield' creates a user enterable field, with a default value
-     of 'val', if supplied. While the cursor is in the editfield, "normal"
-     edit keys are in effect. See <READV> for more details on keys that are
-     useable in the editfield.  The same keys that exit from the <READV>
-     command also exit the editfield. On exit from the editfield, the
-     first button becomes active.
-
-     'title' specifies optional text to be displayed on the border of
-     the dialog box.
-
-     The type of button combination can be specifed as one of the following:
-
-          OK - just an OK button is displayed
-          OKCANCEL - an OK and a CANCEL button are displayed
-          YESNO - a YES and a NO button are displayed
-          YESNOCANCEL - a YES, a NO and a CANCEL button are displayed
-
-     If no button combination is selected, an OK button is displayed.
-
-     If 'DEFBUTTON' is specified, it indicates which of the buttons is to
-     be set as the active button. This is a number between 1 and the
-     number of buttons displayed. By default, button 1 is active. If
-     'EDITfield' is specified, no active button is set.
-
-     The active button can be selected by pressing the TAB key; to exit
-     from the DIALOG, press the RETURN or ENTER key, or click the first
-     mouse button on the required button.
-
-     On exit from the DIALOG command, the following Rexx variables are set:
-
-          DIALOG.0 - 2
-          DIALOG.1 - value of 'EDITfield'
-          DIALOG.2 - button selected as specified in the call to the command.
-
-     The colours used for the dialog box are:
-
-          Border          -  <SET COLOR> DIALOGBORDER
-          Prompt area     -  <SET COLOR> DIALOG
-          Editfield       -  <SET COLOR> DIALOGEDITFIELD
-          Inactive button -  <SET COLOR> DIALOGBUTTON
-          Active button   -  <SET COLOR> DIALOGABUTTON
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible. Does not support bitmap icons or font options.
-
-SEE ALSO
-     <POPUP>, <ALERT>, <READV>, <SET COLOR>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Dialog(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm2.c:   Dialog" );
    rc = prepare_dialog( params, FALSE, (CHARTYPE *)"DIALOG" );
-   TRACE_RETURN();
    return(rc);
 }
 
-/*man-start*********************************************************************
-COMMAND
-     directory - list the specified directory as an editable file
-
-SYNTAX
-     DIRectory [file specification]
-
-DESCRIPTION
-     The DIRECTORY command displays all files matching the specified
-     'file specification'.
-
-     When no parameter is supplied, all files in the current directory
-     are displayed subject to any <SET DIRINCLUDE> restrictions.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <LS>, <SET DIRINCLUDE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Directory(CHARTYPE *params)
-/***********************************************************************/
 {
 #if !defined(MULTIPLE_PSEUDO_FILES)
 #endif
@@ -421,7 +242,6 @@ short Directory(CHARTYPE *params)
    unsigned short num_params=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm2.c:   Directory" );
    /*
     * Validate the parameters that have been supplied. The one and only
     * parameter should be the directory to display.
@@ -432,7 +252,6 @@ short Directory(CHARTYPE *params)
    if ( num_params > 1 )
    {
       display_error( 1, (CHARTYPE *)word[1], FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -441,7 +260,6 @@ short Directory(CHARTYPE *params)
    if ( ( rc = splitpath( strrmdup( strtrans( word[0], OSLASH, ISLASH), ISLASH, TRUE ) ) ) != RC_OK )
    {
       display_error( 10, (CHARTYPE *)word[0], FALSE );
-      TRACE_RETURN();
       return(rc);
    }
    if ( ( rc = read_directory() ) != RC_OK )
@@ -450,7 +268,6 @@ short Directory(CHARTYPE *params)
          display_error( 10, (CHARTYPE *)word[0], FALSE );
       else
          display_error( 9, (CHARTYPE *)word[0], FALSE );
-      TRACE_RETURN();
       return(rc);
    }
 #if 0
@@ -493,122 +310,13 @@ short Directory(CHARTYPE *params)
       display_cmdline( current_screen, CURRENT_VIEW );
    }
 
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     dos - execute an operating system command
 
-SYNTAX
-     DOS [command]
 
-DESCRIPTION
-     The DOS command executes the supplied operating system 'command'
-     or runs an interactive shell if no 'command' is supplied.
 
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
 
-SEE ALSO
-     <OS>, <!>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     dosnowait - execute an operating system command - no prompt
-
-SYNTAX
-     DOSNowait command
-
-DESCRIPTION
-     The DOSNOWAIT command executes the supplied operating system
-     command not waiting for the user to be prompted once the
-     command has completed.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <OSNOWAIT>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     dosquiet - execute an operating system command quietly
-
-SYNTAX
-     DOSQuiet command
-
-DESCRIPTION
-     The DOSQUIET command executes the supplied operating system 'command'
-     as quietly as possible.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-SEE ALSO
-     <OSQUIET>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     down - move forward in the file a number of lines
-
-SYNTAX
-     Down [relative target]
-
-DESCRIPTION
-     The DOWN command moves the <current line> forwards the number of
-     lines specified by the <'relative target'>. This <'relative target'>
-     can only be a positive integer or the character "*".
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-DEFAULT
-     1
-
-SEE ALSO
-     <NEXT>, <UP>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     duplicate - duplicate lines
-
-SYNTAX
-     DUPlicate [n [target|BLOCK]]
-
-DESCRIPTION
-     The DUPLICATE command copies the number of lines extrapolated from
-     <'target'> or the marked 'BLOCK', 'n' times.
-
-COMPATIBILITY
-     XEDIT: Equivalent of DUPLICAT command.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Duplicate(CHARTYPE *params)
-/***********************************************************************/
 {
 #define DUP_PARAMS  2
    CHARTYPE *word[DUP_PARAMS+1];
@@ -622,7 +330,6 @@ short Duplicate(CHARTYPE *params)
    long target_type=TARGET_NORMAL|TARGET_BLOCK_CURRENT|TARGET_ALL;
    bool lines_based_on_scope=FALSE;
 
-   TRACE_FUNCTION("comm2.c:   Duplicate");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_LEADING;
    num_params = param_split(params,word,DUP_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
@@ -645,14 +352,12 @@ short Duplicate(CHARTYPE *params)
    if (!valid_integer(word[0]))
    {
       display_error(4,word[0],FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    num_occ = atol((DEFCHAR *)word[0]);
    if ( num_occ == 0L )
    {
       display_error( 6, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -662,7 +367,6 @@ short Duplicate(CHARTYPE *params)
    if ((rc = validate_target(word[1],&target,target_type,get_true_line(TRUE),TRUE,TRUE)) != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -677,7 +381,6 @@ short Duplicate(CHARTYPE *params)
          if (MARK_VIEW->mark_type == M_BOX)
          {
             display_error(48,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          command_source = SOURCE_BLOCK;
@@ -718,86 +421,11 @@ short Duplicate(CHARTYPE *params)
                                  &lines_affected);
    }
    free_target(&target);
-   TRACE_RETURN();
    return(rc);
 }
 
-/*man-start*********************************************************************
-COMMAND
-     edit - edit another file or switch to next file
 
-SYNTAX
-     Edit [file]
-
-DESCRIPTION
-     The EDIT command allows the user to edit another 'file'. The new file
-     is placed in the file <ring>. The previous file being edited remains
-     in memory. Several files can be edited at once, and all files
-     are arranged in a ring, with subsequent EDIT commands moving through
-     the ring, one file at a time.
-
-COMPATIBILITY
-     XEDIT: Does not provide options switches.
-     KEDIT: Does not provide options switches.
-
-SEE ALSO
-     <THE>, <XEDIT>, <KEDIT>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     editv - set and retrieve persistent macro variables
-
-SYNTAX
-     EDITV GET|PUT|GETF|PUTF var1 [var2 ...]
-     EDITV SET|SETF var1 value1 [var2 value2 ...]
-     EDITV SETL|SETLF|SETFL var1 value1
-     EDITV LIST|LISTF [var1 ...]
-
-DESCRIPTION
-     The EDITV command manipulates variables for the lifetime of the
-     edit session or the file, depending on the subcommand used.
-
-     Edit variables are useful for maintaining variable values from
-     one execution of a macro to another.
-
-     EDITV GET, PUT, GETF and PUTF are only valid from within a macro
-     as they reference Rexx variables.  All other subcommands are valid
-     from within a macro or from the command line.
-
-     EDITV GET sets a Rexx macro variable, with the same name as the
-     edit variable, to the value of the edit variable.
-
-     EDITV PUT stores the value of a Rexx macro variable as an edit
-     variable.
-
-     EDITV SET stores an edit variable with a value.
-
-     EDITV SET can only work with variable values comprising a single
-     space-separated word.  To specify a variable value that contains
-     spaces, use EDITV SETL.
-
-     EDITV LIST displays the values of the specified edit variables, or
-     all variables if no edit variables are specified.
-
-     EDITV GETF, PUTF, SETF, SETLF, SETFL, and LISTF all work the same
-     way as their counterparts without the F, but the variables are
-     only available while the particular file is the current file.  This
-     enables you to use the same edit variable name but with different
-     values for different files.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short THEEditv(CHARTYPE *params)
-/***********************************************************************/
 {
 #define EDITV_PARAMS  2
    CHARTYPE *word[EDITV_PARAMS+1];
@@ -807,14 +435,12 @@ short THEEditv(CHARTYPE *params)
    short rc=RC_OK;
    bool editv_file = FALSE;
 
-   TRACE_FUNCTION( "comm2.c:   THEEditv" );
    strip[0] = STRIP_BOTH;
    strip[1] = STRIP_LEADING;
    num_params = param_split( params, word, EDITV_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE );
    if ( num_params == 0 )
    {
       display_error( 3, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -873,7 +499,6 @@ short THEEditv(CHARTYPE *params)
    else
    {
       display_error( 1, word[0], FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -883,7 +508,6 @@ short THEEditv(CHARTYPE *params)
    &&   num_params == 1 )
    {
       display_error( 3, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -895,84 +519,23 @@ short THEEditv(CHARTYPE *params)
       if ( !in_macro )
       {
          display_error( 53, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_ENVIRON);
       }
    }
    rc = execute_editv( editv_type, editv_file, word[1] );
-   TRACE_RETURN();
    return(rc);
 }
 
-/*man-start*********************************************************************
-COMMAND
-     emsg - display message
-
-SYNTAX
-     EMSG [message]
-
-DESCRIPTION
-     The EMSG command displays an 'message' on the <message line>.
-     This command is usually issued from a macro file.
-
-COMPATIBILITY
-     XEDIT: Does not support [mmmnnns text] option
-     KEDIT: Compatible
-
-SEE ALSO
-     <CMSG>, <MSG>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Emsg(CHARTYPE *params)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("comm2.c:   Emsg");
    display_error(0,params,FALSE);
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     ENTER - execute a command
-
-SYNTAX
-     ENTER [CUA]
-
-DESCRIPTION
-     If the cursor is currently on the <command line>, the ENTER command
-     executes the command currently displayed.
-
-     If the cursor is in the <filearea>, the ENTER command results in
-     a new line being added after the <focus line>, and the cursor
-     placed on the next line depending on the value of <SET NEWLINES>.
-     If <SET READONLY> is ON, then no new lines is added and the cursor
-     is moved to the first column of the next line.
-
-     If the cursor is in the <prefix area>, any pending prefix commands
-     will be executed.
-
-     With the optional 'CUA' argument, when in the <filearea>, the enter
-     command acts like the <SPLIT>.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <SOS EXECUTE>, <SET NEWLINES>, <SET READONLY>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Enter(CHARTYPE *params)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Enter");
    switch(CURRENT_VIEW->current_window)
    {
       case WINDOW_COMMAND:
@@ -1011,7 +574,6 @@ short Enter(CHARTYPE *params)
                   rc = Sos_firstcol((CHARTYPE *)"");
                }
                THEcursor_down( current_screen, CURRENT_VIEW, TRUE );
-               TRACE_RETURN();
                return(rc);
             }
             else
@@ -1029,67 +591,16 @@ short Enter(CHARTYPE *params)
          wmove(CURRENT_WINDOW,y,0);
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     expand - expand tab characters to spaces
-
-SYNTAX
-     EXPand [target]
-
-DESCRIPTION
-     The EXPAND command converts all tab characters to spaces in the
-     <'target'> depending on the size of a tab determined by the
-     <SET TABS> command.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <COMPRESS>, <SET TABS>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Expand(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Expand");
    rc = execute_expand_compress(params,TRUE,TRUE,TRUE,TRUE);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     extract - obtain various internal information about THE
-
-SYNTAX
-     EXTract /item/[...]
-
-DESCRIPTION
-     The EXTRACT command is used to relay information about settings
-     within THE from within a Rexx macro. EXTRACT is only valid within
-     a Rexx macro.
-
-     The '/' in the syntax clause represents any delimiter character.
-
-     For a complete list of 'item's that can be extracted, see the section;
-     <QUERY, EXTRACT and STATUS>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Extract(CHARTYPE *params)
-/***********************************************************************/
 {
    register short i=0;
    short rc=RC_OK,itemno=0,num_items=0,len=0,num_values=0;
@@ -1099,12 +610,10 @@ short Extract(CHARTYPE *params)
    bool invalid_item=FALSE;
    CHARTYPE item_type=0;
 
-   TRACE_FUNCTION("comm2.c:   Extract");
    if (!in_macro
    ||  !rexx_support)
    {
       display_error(53,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -1127,7 +636,6 @@ short Extract(CHARTYPE *params)
    if (invalid_item)
    {
       display_error(1,params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -1172,7 +680,6 @@ short Extract(CHARTYPE *params)
       ||  !(item_type & QUERY_EXTRACT))
       {
          display_error(1,params,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       /*
@@ -1184,7 +691,6 @@ short Extract(CHARTYPE *params)
        */
       if (num_values == EXTRACT_ARG_ERROR)
       {
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       /*
@@ -1199,42 +705,13 @@ short Extract(CHARTYPE *params)
       params += arglen+1;
    }
 
-   TRACE_RETURN();
    return(rc);
 }
 
-/*man-start*********************************************************************
-COMMAND
-     ffile - force a FILE of the current file to disk
-
-SYNTAX
-     FFile  [filename]
-
-DESCRIPTION
-     The FFILE command writes the current file to disk to the current
-     file name or to the supplied 'filename'.
-     Unlike the <FILE> command, if the optional 'filename' exists, this
-     command will overwrite the file.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-DEFAULT
-     With no parameters, the current file is written.
-
-SEE ALSO
-     <FILE>, <SAVE>, <SSAVE>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Ffile(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm2.c:   Ffile" );
    /*
     * The filename can be quoted; so strip leading and trailing
     * double quotes
@@ -1243,7 +720,6 @@ short Ffile(CHARTYPE *params)
    post_process_line( CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *)NULL, TRUE );
    if ( ( rc = save_file( CURRENT_FILE, params, TRUE, CURRENT_FILE->number_lines, 1L, NULL, FALSE, 0, max_line_length, TRUE, FALSE, FALSE ) ) != RC_OK )
    {
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -1252,41 +728,12 @@ short Ffile(CHARTYPE *params)
    if ( CURRENT_FILE->autosave > 0 )
       rc = remove_aus_file( CURRENT_FILE );
    free_view_memory( TRUE, TRUE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     file - write the current file to disk and remove from ring
-
-SYNTAX
-     FILE  [filename]
-
-DESCRIPTION
-     The FILE command writes the current file to disk to the current
-     file name or to the supplied 'filename'.
-     Unlike the <FFILE> command, if the optional 'filename' exists, this
-     command will not overwrite the file.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-DEFAULT
-     With no parameters, the current file is written.
-
-SEE ALSO
-     <FFILE>, <SAVE>, <SSAVE>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short File(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm2.c:   File" );
    post_process_line( CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *)NULL, TRUE );
    /*
     * The filename can be quoted; so strip leading and trailing
@@ -1295,7 +742,6 @@ short File(CHARTYPE *params)
    params = MyStrip( params, STRIP_BOTH, '"' );
    if ( ( rc = save_file( CURRENT_FILE, params, FALSE, CURRENT_FILE->number_lines, 1L, NULL, FALSE, 0, max_line_length, TRUE, FALSE, FALSE ) ) != RC_OK )
    {
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -1304,45 +750,20 @@ short File(CHARTYPE *params)
    if ( CURRENT_FILE->autosave > 0 )
       rc = remove_aus_file( CURRENT_FILE );
    free_view_memory( TRUE, TRUE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     fillbox - fill the marked block with a character
-
-SYNTAX
-     FILLbox [c]
-
-DESCRIPTION
-     The FILLBOX command fills the marked block with the specified
-     character, 'c'. If no parameters are supplied and the command is run
-     from the command line, then the block will be filled with spaces.
-     If the command is not run from the command line, the user is
-     prompted for a character to fill the box.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Fillbox(CHARTYPE *params)
-/***********************************************************************/
 {
    int key=0;
    short len_params=0;
    short y=0,x=0;
 
-   TRACE_FUNCTION("comm2.c:   Fillbox");
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
    /*
     * Validate the marked block.
     */
    if (marked_block(TRUE) != RC_OK)
    {
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -1355,12 +776,10 @@ short Fillbox(CHARTYPE *params)
       {
          case -1: /* invalid hex value */
             display_error( 32, params, FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          case -2: /* memory exhausted */
             display_error( 30, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
             break;
          default:
@@ -1375,7 +794,6 @@ short Fillbox(CHARTYPE *params)
    if (len_params > 1)
    {
       display_error(1,params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if (len_params == 0)
@@ -1398,122 +816,23 @@ short Fillbox(CHARTYPE *params)
       clear_msgline(-1);
    }
    box_operations(BOX_F,SOURCE_BLOCK,TRUE,(CHARTYPE)key);
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     find - locate forwards the line which begins with the supplied string
-
-SYNTAX
-     Find [string]
-
-DESCRIPTION
-     The FIND command attempts to locate a line towards the end of
-     the file that begins with 'string'.
-     If the optional 'string' is not supplied the last 'string' used
-     in any of the family of find commands is used.
-
-     'string' can contain two special characters:
-
-          space - this will match any single character in the target line
-          underscore - this will match any single space in the target line
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <FINDUP>, <NFIND>, <NFINDUP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Find(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Find");
    rc = execute_find_command(params,TARGET_FIND);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     findup - locate backwards the line which begins with the supplied string
-
-SYNTAX
-     FINDUp [string]
-
-DESCRIPTION
-     The FINDUP command attempts to locate a line towards the start of
-     the file that begins with 'string'.
-     If the optional 'string' is not supplied the last 'string' used
-     in any of the family of find commands is used.
-
-     'string' can contain two special characters:
-
-          space - this will match any single character in the target line
-          underscore - this will match any single space in the target line
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <FIND>, <NFIND>, <NFINDUP>, <FUP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Findup(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Findup");
    rc = execute_find_command(params,TARGET_FINDUP);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     forward - scroll forward by number of screens or lines
-
-SYNTAX
-     FOrward [n|*|HALF] [Lines]
-
-DESCRIPTION
-     The FORWARD command scrolls the file contents forwards 'n' screens
-     or 'n' lines if the optional 'Lines' argument is specified.
-
-     If '*' is specified, the <Bottom-of-File line> becomes the <current line>.
-
-     If 'HALF' is specified, the file contents are scrolled one half of a screen.
-
-     If 0 is specified as the number of lines or screens to scroll, the
-     <Top-of-File line> becomes the <current line>.
-
-     If the FORWARD command is issued while the <current line> is the
-     <Bottom-of-File line> and <SET PAGEWRAP> is ON, the <Top-of-File line> becomes
-     the <current line>.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-DEFAULT
-     1
-
-SEE ALSO
-     <BACKWARD>, <TOP>, <SET PAGEWRAP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Forward(CHARTYPE *params)
-/***********************************************************************/
 {
 #define FOR_PARAMS  2
    CHARTYPE *word[FOR_PARAMS+1];
@@ -1523,7 +842,6 @@ short Forward(CHARTYPE *params)
    LINETYPE num_pages=0L;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Forward");
    /*
     * Validate parameters...
     */
@@ -1542,7 +860,6 @@ short Forward(CHARTYPE *params)
          if (strcmp((DEFCHAR *)word[0],"*") == 0)
          {
             rc = Bottom((CHARTYPE *)"");
-            TRACE_RETURN();
             return(rc);
          }
          /*
@@ -1559,7 +876,6 @@ short Forward(CHARTYPE *params)
          else if (!valid_positive_integer(word[0]))
          {
             display_error(1,(CHARTYPE *)word[0],FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          else
@@ -1577,21 +893,18 @@ short Forward(CHARTYPE *params)
             if (!valid_positive_integer(word[0]))
             {
                display_error(1,(CHARTYPE *)word[0],FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
          }
          else
          {
             display_error(1,(CHARTYPE *)word[1],FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          num_pages = atol((DEFCHAR *)word[0]);
          break;
       default:
          display_error(2,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
          break;
    }
@@ -1603,7 +916,6 @@ short Forward(CHARTYPE *params)
    || ( CURRENT_BOF && PAGEWRAPx ) )
    {
       rc = Top((CHARTYPE *)"");
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -1617,75 +929,10 @@ short Forward(CHARTYPE *params)
    {
       rc = advance_current_line(num_pages);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     fup - locate backwards the line which begins with the supplied string
 
-SYNTAX
-     FUp [string]
-
-DESCRIPTION
-     The FUP command is a synonym for the <FINDUP> command.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <FIND>, <NFIND>, <NFINDUP>, <FINDUP>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     get - insert into file the contents of specified file
-
-SYNTAX
-     GET [filename] [fromline] [numlines]
-     GET CLIP: [STREAM|BOX|LINE]
-
-DESCRIPTION
-     The GET command reads a file into the current file, inserting
-     lines after the current line.
-
-     When no 'filename' is supplied the temporary file generated by the
-     last <PUT> or <PUTD> command is used.
-
-     When 'fromline' is specified, reading of the file begins at the
-     line number specified.
-     If 'fromline' is not specifed, reading begins at line 1.
-
-     When 'numlines' is specified, reading of the file ends when the
-     specified number of lines has been read.
-     If 'numlines' is not specified, or 'numlines' is specified as '*',
-     all files from the 'fromline' to the end of file are read.
-
-     The second form implements interaction with the system clipboard.
-     The optional parameter indicates how the contents of the
-     clipboard is to be inserted into the file. If not supplied the
-     contents of the clipboard is treated as a LINE block.
-     This option only available for X11, OS/2 and Win32 ports of THE.
-     (Incomplete)
-
-COMPATIBILITY
-     XEDIT: Compatible.
-       CLIP: option extra.
-     KEDIT: Compatible.
-       CLIP: option extra.
-
-SEE ALSO
-     <PUT>, <PUTD>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Get(CHARTYPE *params)
-/***********************************************************************/
 {
 #define GET_PARAMS  3
    CHARTYPE *word[GET_PARAMS+1];
@@ -1704,7 +951,6 @@ short Get(CHARTYPE *params)
    int clip_type;
    CHARTYPE _THE_FAR buffer[100];
 
-   TRACE_FUNCTION("comm2.c:   Get");
    /*
     * Validate the parameters that have been supplied.
     */
@@ -1718,7 +964,6 @@ short Get(CHARTYPE *params)
    if (num_params > 3)
    {
       display_error(2,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    if (num_params == 0)
@@ -1731,7 +976,6 @@ short Get(CHARTYPE *params)
          if ( num_params > 2 )
          {
             display_error(2,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_ENVIRON);
          }
          else if ( num_params == 1 )
@@ -1749,7 +993,6 @@ short Get(CHARTYPE *params)
             else
             {
                display_error(1,word[1],FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_ENVIRON);
             }
          }
@@ -1759,7 +1002,6 @@ short Get(CHARTYPE *params)
          if ((rc = splitpath(strrmdup(strtrans(word[0],OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
          {
             display_error(10,word[0],FALSE);
-            TRACE_RETURN();
             return(rc);
          }
          strcpy((DEFCHAR *)temp_cmd,(DEFCHAR *)sp_path);
@@ -1775,14 +1017,12 @@ short Get(CHARTYPE *params)
                else
                   sprintf( (DEFCHAR *)buffer, "- MUST be <= %ld", MAX_WIDTH_NUM );
                display_error( rc, buffer, FALSE );
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
             fromline = atol((DEFCHAR *)word[1]);
             if (fromline == 0L)
             {
                display_error(4,word[1],FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
          }
@@ -1799,7 +1039,6 @@ short Get(CHARTYPE *params)
                   else
                      sprintf( (DEFCHAR *)buffer, "- MUST be <= %ld", MAX_WIDTH_NUM );
                   display_error( rc, buffer, FALSE );
-                  TRACE_RETURN();
                   return(RC_INVALID_OPERAND);
                }
                else
@@ -1816,14 +1055,12 @@ short Get(CHARTYPE *params)
       if (!file_readable(filename))
       {
          display_error(8,filename,FALSE);
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED);
       }
 
       if ((fp = fopen((DEFCHAR *)filename,"r")) == NULL)
       {
          display_error(9,params,FALSE);
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED);
       }
    }
@@ -1850,7 +1087,6 @@ short Get(CHARTYPE *params)
       pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
       if (!clip)
          fclose(fp);
-      TRACE_RETURN();
       return(RC_ACCESS_DENIED);
    }
 
@@ -1871,42 +1107,19 @@ short Get(CHARTYPE *params)
 
    build_screen(current_screen);
    display_screen(current_screen);
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     help - edit help file for THE
-
-SYNTAX
-     HELP
-
-DESCRIPTION
-     The HELP command displays help for the editor.
-     Uses THE_HELP_FILE environment variable to point to the help file.
-     See Appendix 1 for details on this and other environment variables.
-
-COMPATIBILITY
-     XEDIT: Similar in concept.
-     KEDIT: Similar in concept.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Help(CHARTYPE *params)
-/***********************************************************************/
 {
    static bool first=TRUE;
    char *envptr=NULL;
 
-   TRACE_FUNCTION("comm2.c:   Help");
    /*
     * No arguments are allowed; error if any are present.
     */
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,(CHARTYPE *)params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -1927,38 +1140,12 @@ short Help(CHARTYPE *params)
    if ( file_exists( the_help_file ) != THE_FILE_EXISTS )
    {
       display_error(23,(CHARTYPE *)the_help_file,FALSE);
-      TRACE_RETURN();
       return(RC_FILE_NOT_FOUND);
    }
    Xedit(the_help_file);
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     hit - simulate hitting of the named key
-
-SYNTAX
-     HIT key
-
-DESCRIPTION
-     The HIT command enables the simulation of hitting the named 'key'.
-     This is most useful from within a macro.
-
-     Be very careful when using the HIT command with the <DEFINE> command.
-     If you assign the HIT command to a key, DO NOT use the same key
-     name. e.g. DEFINE F1 HIT F1
-     This will result in an infinite processing loop.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Similar, but more like the <MACRO> command.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Hit(CHARTYPE *params)
-/***********************************************************************/
 {
 #define HIT_MOUSE_PARAMS  4
    CHARTYPE *word[HIT_MOUSE_PARAMS+1];
@@ -1969,7 +1156,6 @@ short Hit(CHARTYPE *params)
    bool save_in_macro=in_macro;
    bool mouse_details_present=FALSE;
 
-   TRACE_FUNCTION("comm2.c:   Hit");
    /*
     * Parse the parameters into multiple words. If only one word then it
     * must be a key.  If 3 words its a mouse key, otherwise asn error.
@@ -1986,7 +1172,6 @@ short Hit(CHARTYPE *params)
          if (key == (-1))
          {
             display_error(13,params,FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          break;
@@ -1994,12 +1179,10 @@ short Hit(CHARTYPE *params)
          if (!equal((CHARTYPE *)"in",word[1],2))
          {
             display_error(1,word[1],FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          if ((key = find_mouse_key_value_in_window(word[0],word[2])) == (-1))
          {
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
          mouse_details_present = TRUE;
@@ -2016,43 +1199,13 @@ short Hit(CHARTYPE *params)
    if (number_of_files == 0)
       rc = RC_INVALID_ENVIRON;
    /* how to exit ???? */
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     input - insert the command line contents into the file
-
-SYNTAX
-     Input [string]
-
-DESCRIPTION
-     The INPUT command inserts the 'string' specified on the <command line>
-     into the current file after the <current line>.
-
-     If <SET INPUTMODE> FULL is in effect, and the INPUT command is
-     entered on the command line with no arguments, THE is put into
-     full input mode.  If the <prefix area> is on, it is turned off,
-     the cursor moved to the <filearea> and blank lines inserted
-     into the file from the <current line> to the end of the screen.
-
-     To get out of full input mode, press the key assigned to the
-     <CURSOR> HOME [SAVE] command.
-
-COMPATIBILITY
-     XEDIT: Does not provide full input mode option.
-     KEDIT: Does not provide full input mode option.
-
-STATUS
-     Complete. Except for full input mode capability.
-**man-end**********************************************************************/
 short Input(CHARTYPE *params)
-/***********************************************************************/
 {
    LENGTHTYPE len_params=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm2.c:   Input");
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
    if (CURRENT_VIEW->hex)
    {
@@ -2061,12 +1214,10 @@ short Input(CHARTYPE *params)
       {
          case -1: /* invalid hex value */
             display_error( 32, params, FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          case -2: /* memory exhausted */
             display_error( 30, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
             break;
          default:
@@ -2094,43 +1245,9 @@ short Input(CHARTYPE *params)
    {
       insert_new_line( current_screen, CURRENT_VIEW, params, len_params, 1L, get_true_line(TRUE),TRUE,TRUE,TRUE,CURRENT_VIEW->display_low,TRUE,FALSE);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     join - join a line with the line following
-
-SYNTAX
-     Join [ALigned] [Column|CURSOR]
-
-DESCRIPTION
-     The JOIN command makes one line out of the focus line and the
-     line following.
-
-     If 'Aligned' is specified, any leading spaces in the following line
-     are ignored. If 'Aligned' is not specified, all characters, including
-     spaces are added.
-
-     If 'Column' (the default) is specified, the current line is joined
-     at the current column location.
-
-     If 'CURSOR' is specified, the focus line is joined at the cursor
-     position.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-            Does not support Colno option
-     KEDIT: Compatible.
-
-SEE ALSO
-     <SPLIT>, <SPLTJOIN>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Join(CHARTYPE *params)
-/***********************************************************************/
 {
 #define JOI_PARAMS  2
    CHARTYPE *word[JOI_PARAMS+1];
@@ -2140,7 +1257,6 @@ short Join(CHARTYPE *params)
    bool aligned=FALSE;
    bool cursorarg=FALSE;
 
-   TRACE_FUNCTION("comm2.c:   Join");
    /*
     * Split parameters up...
     */
@@ -2170,7 +1286,6 @@ short Join(CHARTYPE *params)
             else
             {
                display_error(1,(CHARTYPE *)word[1],FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_ENVIRON);
             }
          }
@@ -2192,13 +1307,11 @@ short Join(CHARTYPE *params)
             else
             {
                display_error(1,(CHARTYPE *)word[0],FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_ENVIRON);
             }
          }
       }
    }
    rc = execute_split_join(SPLTJOIN_JOIN,aligned,cursorarg);
-   TRACE_RETURN();
    return(rc);
 }

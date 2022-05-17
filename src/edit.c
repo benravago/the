@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* EDIT.C - The body of the program.                                   */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -38,13 +36,10 @@
 
 bool prefix_changed=FALSE;
 
-/***********************************************************************/
 void editor(void)
-/***********************************************************************/
 {
    short y=0,x=0;
 
-   TRACE_FUNCTION("edit.c:    editor");
    /*
     * Reset any command line positioning parameters so only those files
     * edited from the command line take on the line/col, command line
@@ -77,19 +72,15 @@ void editor(void)
       if ( process_key( -1, FALSE ) != RC_OK )
          break;
    }
-   TRACE_RETURN();
    return;
 }
 
-/***********************************************************************/
 int process_key(int key, bool mouse_details_present)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    short rc=RC_OK;
    CHARTYPE string_key[2];
 
-   TRACE_FUNCTION("edit.c:    process_key");
    string_key[1] = '\0';
 
 #ifdef CAN_RESIZE
@@ -118,13 +109,11 @@ int process_key(int key, bool mouse_details_present)
 #ifdef CAN_RESIZE
    if (is_termresized())
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
 #endif
    if ( key == -1 )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
 
@@ -176,7 +165,6 @@ int process_key(int key, bool mouse_details_present)
          getyx(CURRENT_WINDOW,y,x);
          wmove(CURRENT_WINDOW,y,x);
          wrefresh(CURRENT_WINDOW);
-         TRACE_RETURN();
          return(RC_OK);
       }
       /*
@@ -190,7 +178,6 @@ int process_key(int key, bool mouse_details_present)
    save_for_repeat = 1;
    if ( number_of_files == 0 )
    {
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
 
@@ -239,13 +226,10 @@ int process_key(int key, bool mouse_details_present)
    }
 
    doupdate();
-   TRACE_RETURN();
    return(RC_OK);
 }
 
-/***********************************************************************/
 short EditFile(CHARTYPE *fn, bool external_command_line)
-/***********************************************************************/
 {
    short rc=RC_OK,y=0,x=0;
    VIEW_DETAILS *save_current_view=NULL;
@@ -255,14 +239,12 @@ short EditFile(CHARTYPE *fn, bool external_command_line)
    ROWTYPE save_cmd_line=0;
    bool save_id_line=0;
 
-   TRACE_FUNCTION("edit.c:    EditFile");
    /*
     * With no arguments, edit the next file in the ring...
     */
    if (strcmp((DEFCHAR *)fn,"") == 0)
    {
       rc = advance_view(NULL,DIRECTION_FORWARD);
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -271,7 +253,6 @@ short EditFile(CHARTYPE *fn, bool external_command_line)
    if (strcmp((DEFCHAR *)fn,"-") == 0)
    {
       rc = advance_view(NULL,DIRECTION_BACKWARD);
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -313,7 +294,6 @@ short EditFile(CHARTYPE *fn, bool external_command_line)
     */
    if ((rc = get_file(strrmdup(strtrans(fn,OSLASH,ISLASH),ISLASH,TRUE))) != RC_OK)
    {
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -344,7 +324,6 @@ short EditFile(CHARTYPE *fn, bool external_command_line)
             {
                if (set_up_windows(current_screen) != RC_OK)
                {
-                  TRACE_RETURN();
                   return(RC_OK);
                }
             }
@@ -400,7 +379,6 @@ short EditFile(CHARTYPE *fn, bool external_command_line)
     */
    if (number_of_files == 0)
    {
-      TRACE_RETURN();
       return(rc);
    }
 /* pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);*/
@@ -444,6 +422,5 @@ short EditFile(CHARTYPE *fn, bool external_command_line)
       sprintf( (DEFCHAR *)tmp, "ring.%ld", number_of_files + ( (compatible_feel==COMPAT_XEDIT) ? 1 : 0 ) );
       MyRexxRegisterFunctionExe( tmp );
    }
-   TRACE_RETURN();
    return(rc);
 }

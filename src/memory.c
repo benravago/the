@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* MEMORY.C - Memory management functions.                             */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -312,9 +310,7 @@ static int show_a_free_list(int bin, char *str)
  * that are allocated with malloc(). This is so that they can all be
  * free()ed by the_free_flists().
  */
-/******************************************************************************/
 int register_mem( void *chunk )
-/******************************************************************************/
 {
    meminfo *mem=NULL;
 
@@ -343,9 +339,7 @@ int register_mem( void *chunk )
  *
  * The values put into the array has been described above.
  */
-/******************************************************************************/
 void init_memory_table( void )
-/******************************************************************************/
 {
    int indeks ;   /* index into current element to be initiated */
    int j ;
@@ -461,9 +455,7 @@ void init_memory_table( void )
  * never release memory, since we can really not be sure that all
  * memory has been released.
  */
-/******************************************************************************/
 static int add_entry( char *start, char *addr, int bin_no )
-/******************************************************************************/
 {
    meminfo *ptr ;              /* work ptr */
    int tmp ;                   /* tmp storage for mem_hash_func() */
@@ -504,9 +496,7 @@ static int add_entry( char *start, char *addr, int bin_no )
  * after possibly filling the freelist with more memory if is was
  * empty in the first place.
  */
-/******************************************************************************/
 void *get_a_block( size_t size )
-/******************************************************************************/
 {
    register int bin ;     /* bin no in array of freelists */
    register char *vptr ;  /* holds the result */
@@ -609,9 +599,7 @@ void *get_a_block( size_t size )
  * something to do with *void != *char on Crays ... The main consumer
  * of CPU in this routine is the for(;;) loop, it should be rewritten.
  */
-/******************************************************************************/
 void give_a_block( void *ptr )
-/******************************************************************************/
 {
    char *cptr ;      /* pseudonym for 'ptr' */
    meminfo *mptr ;   /* caches the right element in hashtable */
@@ -670,9 +658,7 @@ void give_a_block( void *ptr )
  * is within the size of the existing block, just return it. Otherwise
  * the block is put back on the free lists and a new block allocated.
  */
-/******************************************************************************/
 void *resize_a_block( void *ptr, size_t size )
-/******************************************************************************/
 {
    char *cptr ;      /* pseudonym for 'ptr' */
    meminfo *mptr ;   /* caches the right element in hashtable */
@@ -737,9 +723,7 @@ void *resize_a_block( void *ptr, size_t size )
    return result;
 }
 
-/******************************************************************************/
 void the_free_flists( void )
-/******************************************************************************/
 {
    meminfo *ptr = first_chunk;
    meminfo *next = NULL;

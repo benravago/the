@@ -46,13 +46,11 @@
 #define FKEY   300
 #define BRACK  400
 
-/***********************************************************************/
 #  ifdef MSWIN
 int my_getch (WINDOW far *winptr)
 #  else
 int my_getch (WINDOW *winptr)
 #  endif
-/***********************************************************************/
 {
    int c=0,tmp_c=(-1);
    short state = NORMAL;
@@ -336,9 +334,7 @@ int my_getch (WINDOW *winptr)
 #ifdef VMS1
 #include iodef
 #include descrip
-/***********************************************************************/
 short keypress()
-/***********************************************************************/
 {
    struct { long length; char *address; } logical_name;
    struct { short status; short length; short remainder; } iosb;

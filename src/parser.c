@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* PARSER.C - Functions that involve syntax highlighting               */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -91,9 +89,7 @@ typedef struct
    int type;
 } comment_loc;
 
-/***********************************************************************/
 static int get_alternate( CHARTYPE *alt, CHARTYPE *alternate )
-/***********************************************************************/
 {
    int rc = 0;
    if (  alt[0] >= '1' &&  alt[0] <= '9' )
@@ -112,15 +108,12 @@ static int get_alternate( CHARTYPE *alt, CHARTYPE *alternate )
  * Only look for delimiters if there is no syntax highlighting already
  * or the syntax highlighting is for an incomplete string
  */
-/***********************************************************************/
 static long find_comment( CHARTYPE scrno, SHOW_LINE *scurr,FILE_DETAILS *fd, LENGTHTYPE start, LENGTHTYPE length, CHARTYPE *ptr, CHARTYPE *start_delim, CHARTYPE *end_delim, int *type )
-/***********************************************************************/
 {
    int i,j;
    CHARTYPE *ptr_start=start_delim,*ptr_end=end_delim;
    CHARTYPE ch1,ch2,ch3;
 
-   TRACE_FUNCTION( "parser.c:  find_comment" );
    for ( i = start; i < length; i++ )
    {
       if ( scurr->highlight_type[i] == THE_SYNTAX_NONE
@@ -159,7 +152,6 @@ static long find_comment( CHARTYPE scrno, SHOW_LINE *scurr,FILE_DETAILS *fd, LEN
                   if (ch2 == '\0')
                   {
                      *type = STATE_START_TAG;
-                     TRACE_RETURN();
                      return i;
                   }
                   if ( ch3 != ch2 )
@@ -197,7 +189,6 @@ static long find_comment( CHARTYPE scrno, SHOW_LINE *scurr,FILE_DETAILS *fd, LEN
                   if ( ch2 == '\0')
                   {
                      *type = STATE_END_TAG;
-                     TRACE_RETURN();
                      return i;
                   }
                   if ( ch3 != ch2 )
@@ -208,13 +199,10 @@ static long find_comment( CHARTYPE scrno, SHOW_LINE *scurr,FILE_DETAILS *fd, LEN
          }
       }
    }
-   TRACE_RETURN();
    return -1;
 }
 
-/***********************************************************************/
 static long find_line_comments( CHARTYPE scrno, FILE_DETAILS *fd, SHOW_LINE *scurr )
-/***********************************************************************/
 {
    PARSE_COMMENTS *curr=fd->parser->first_comments;
    LENGTHTYPE i,pos=0,len=scurr->length;
@@ -222,7 +210,6 @@ static long find_line_comments( CHARTYPE scrno, FILE_DETAILS *fd, SHOW_LINE *scu
    int state;
    CHARTYPE ch1,ch2;
 
-   TRACE_FUNCTION( "parser.c:  find_line_comments" );
    for (; curr != NULL; curr = curr->next)
    {
       /* this loop is executed for each defined single line comment */
@@ -281,7 +268,6 @@ static long find_line_comments( CHARTYPE scrno, FILE_DETAILS *fd, SHOW_LINE *scu
             if ( state == STATE_MATCH
             || ( state == STATE_COMMENT && *ptr == '\0'))
             {
-               TRACE_RETURN();
                return (long)pos;
             }
             break;
@@ -338,7 +324,6 @@ static long find_line_comments( CHARTYPE scrno, FILE_DETAILS *fd, SHOW_LINE *scu
             if ( state == STATE_MATCH
             || ( state == STATE_COMMENT && *ptr == '\0'))
             {
-               TRACE_RETURN();
                return (long)pos;
             }
             break;
@@ -360,7 +345,6 @@ static long find_line_comments( CHARTYPE scrno, FILE_DETAILS *fd, SHOW_LINE *scu
                   }
                   if ( ch2 == '\0' )
                   {
-                     TRACE_RETURN();
                      return (long)curr->column;
                   }
                   if ( ch2 != ch1 )
@@ -371,20 +355,16 @@ static long find_line_comments( CHARTYPE scrno, FILE_DETAILS *fd, SHOW_LINE *scu
             break;
       }
    }
-   TRACE_RETURN();
    return -1L;
 }
 
-/***********************************************************************/
 static short parse_line_comments(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    LENGTHTYPE i,len=scurr->length;
    LENGTHTYPE vcol = SCREEN_VIEW(scrno)->verify_col-1;
    long start_line_comment=-1;
    chtype comment_colour;
 
-   TRACE_FUNCTION( "parser.c:  parse_line_comments" );
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       comment_colour = merge_curline_colour( fd->attr+ATTR_CURSORLINE, fd->ecolour+ECOLOUR_COMMENTS );
@@ -410,7 +390,6 @@ static short parse_line_comments(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scur
          }
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
 
@@ -553,7 +532,6 @@ static int find_paired_comment_delim( CHARTYPE scrno, FILE_DETAILS *fd, int stat
     * When found, set ??? and return STATE_END_TAG or STATE_START_TAG (depending on what was found)
     * Otherwise return STATE_IGNORE
     */
-   TRACE_FUNCTION( "parser.c:  find_paired_comment_delim" );
    if ( state == STATE_START_TAG )
       starter = start_delim;
    else if ( state == STATE_END_TAG )
@@ -594,24 +572,19 @@ static int find_paired_comment_delim( CHARTYPE scrno, FILE_DETAILS *fd, int stat
                locations->end_row = i;
                locations->end_column = pos + strlen((DEFCHAR *)end_delim) - 1;
             }
-            TRACE_RETURN();
             return type;
          }
       }
    }
-   TRACE_RETURN();
    return STATE_IGNORE;
 }
 
-/***********************************************************************/
 short parse_paired_comments(CHARTYPE scrno,FILE_DETAILS *fd)
-/***********************************************************************/
 {
    PARSE_COMMENTS *curr_comments=fd->parser->first_comments;
    int type=0;
    comment_loc locations;
 
-   TRACE_FUNCTION("parser.c:  parse_paired_comments");
 
    /*
     * Starting with the first displayed line of the file, search until the end of the displayed
@@ -701,13 +674,10 @@ short parse_paired_comments(CHARTYPE scrno,FILE_DETAILS *fd)
       }
    }
 
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 static short parse_strings(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    int i;
    LENGTHTYPE first_quote,len=scurr->length;
@@ -723,7 +693,6 @@ static short parse_strings(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
    bool backslash_single_quote=FALSE;
    bool backslash_double_quote=FALSE;
 
-   TRACE_FUNCTION("parser.c:  parse_strings");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
    {
@@ -879,20 +848,16 @@ static short parse_strings(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
          }
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 static short parse_delimiters(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,CHARTYPE *start,CHARTYPE *end,chtype colour,CHARTYPE highlight_type)
-/***********************************************************************/
 {
    int i,j,state;
    LENGTHTYPE len=scurr->length,pos=0,len_plus_one;
    LENGTHTYPE vcol;
    CHARTYPE *ptr_start=start,*ptr_end=end;
 
-   TRACE_FUNCTION("parser.c:  parse_delimiters");
    vcol = SCREEN_VIEW(scrno)->verify_col-1;
    state = STATE_START;
    len_plus_one = len+1;
@@ -972,18 +937,14 @@ static short parse_delimiters(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,C
             break;
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 static short parse_markup_tag(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    chtype colour;
    short rc;
 
-   TRACE_FUNCTION("parser.c:  parse_markup_tag");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       colour = merge_curline_colour(fd->attr+ATTR_CURSORLINE,fd->ecolour+ECOLOUR_HTML_TAG);
@@ -992,18 +953,14 @@ static short parse_markup_tag(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
    else
       colour = set_colour(fd->ecolour+ECOLOUR_HTML_TAG);
    rc = parse_delimiters(scrno,fd,scurr,fd->parser->markup_tag_start_delim,fd->parser->markup_tag_end_delim,colour,THE_SYNTAX_MARKUP);
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short parse_markup_reference(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    chtype colour;
    short rc;
 
-   TRACE_FUNCTION("parser.c:  parse_markup_reference");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       colour = merge_curline_colour(fd->attr+ATTR_CURSORLINE,fd->ecolour+ECOLOUR_HTML_CHAR);
@@ -1012,12 +969,9 @@ static short parse_markup_reference(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *s
    else
       colour = set_colour(fd->ecolour+ECOLOUR_HTML_CHAR);
    rc = parse_delimiters(scrno,fd,scurr,fd->parser->markup_reference_start_delim,fd->parser->markup_reference_end_delim,colour,THE_SYNTAX_MARKUP);
-   TRACE_RETURN();
    return rc;
 }
-/***********************************************************************/
 static short parse_headers(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    PARSE_HEADERS *curr=fd->parser->first_header;
    LENGTHTYPE i,j,k,vcol,pos=0,len=scurr->length;
@@ -1026,7 +980,6 @@ static short parse_headers(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
    bool found=FALSE;
    chtype header_colour, original_header_colour;
 
-   TRACE_FUNCTION("parser.c:  parse_headers");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       original_header_colour = merge_curline_colour( fd->attr+ATTR_CURSORLINE, fd->ecolour+ECOLOUR_HEADER );
@@ -1198,12 +1151,9 @@ static short parse_headers(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
       if (found)
          break;
    }
-   TRACE_RETURN();
    return RC_OK;
 }
-/***********************************************************************/
 static short parse_labels(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    LENGTHTYPE vcol,pos=0,end=0,len=scurr->length,len_label;
    long i,j,k;
@@ -1211,7 +1161,6 @@ static short parse_labels(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
    int state;
    chtype label_colour;
 
-   TRACE_FUNCTION("parser.c:  parse_labels");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       label_colour = merge_curline_colour( fd->attr+ATTR_CURSORLINE, fd->ecolour+ECOLOUR_LABEL );
@@ -1413,20 +1362,16 @@ static short parse_labels(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
             break;
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 static short parse_match(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    int i;
    LENGTHTYPE len=scurr->length;
    LENGTHTYPE vcol,off=0;
    chtype paren_colour;
 
-   TRACE_FUNCTION("parser.c:  parse_match");
    /*
     * This is incomplete. It needs to determine the level of bracket
     * matching and to check multiple lines.
@@ -1460,12 +1405,9 @@ static short parse_match(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
          number_blanks++;
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
-/***********************************************************************/
 static short parse_directory(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    PARSE_EXTENSION *curr;
    LENGTHTYPE i,vcol,len=scurr->length, start;
@@ -1476,7 +1418,6 @@ static short parse_directory(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
 #endif
    CHARTYPE alternate, type;
 
-   TRACE_FUNCTION("parser.c:  parse_directory");
 #if 0
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
@@ -1625,12 +1566,9 @@ static short parse_directory(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
          }
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
-/***********************************************************************/
 static short parse_postcompare(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    PARSE_POSTCOMPARE *curr;
    LENGTHTYPE i,j,vcol,len=scurr->length;
@@ -1638,7 +1576,6 @@ static short parse_postcompare(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
    chtype postcompare_colour, original_postcompare_colour;
    long re_len;
 
-   TRACE_FUNCTION("parser.c:  parse_postcompare");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       original_postcompare_colour = merge_curline_colour(fd->attr+ATTR_CURSORLINE,fd->ecolour+ECOLOUR_KEYWORDS);
@@ -1717,18 +1654,14 @@ static short parse_postcompare(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
          i++;
    }
 
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 static short parse_columns(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    LENGTHTYPE i,j,vcol,len=scurr->length;
    chtype column_colour, original_column_colour;
 
-   TRACE_FUNCTION("parser.c:  parse_columns");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       original_column_colour = set_colour( fd->attr + ATTR_CURSORLINE );
@@ -1766,19 +1699,15 @@ static short parse_columns(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
        }
    }
 
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 short find_preprocessor(FILE_DETAILS *fd, CHARTYPE *word, int len, int *alternate_colour)
-/***********************************************************************/
 {
    PARSE_KEYWORDS *curr=fd->parser->first_keyword;
    CHARTYPE preprocessor_char=fd->parser->preprocessor_char;
    bool found;
 
-   TRACE_FUNCTION("parser.c:  find_preprocessor");
    for (; curr != NULL; curr = curr->next)
    {
       if (len == curr->keyword_length-1)
@@ -1800,22 +1729,17 @@ short find_preprocessor(FILE_DETAILS *fd, CHARTYPE *word, int len, int *alternat
          if (found)
          {
             *alternate_colour = curr->alternate;
-            TRACE_RETURN();
             return len;
          }
       }
    }
-   TRACE_RETURN();
    return 0;
 }
-/***********************************************************************/
 bool find_keyword(FILE_DETAILS *fd, CHARTYPE *word, int len,int *alternate_colour)
-/***********************************************************************/
 {
    PARSE_KEYWORDS *curr=fd->parser->first_keyword;
    bool found=FALSE;
 
-   TRACE_FUNCTION("parser.c:  find_keyword");
    for (; curr != NULL; curr = curr->next)
    {
       if (len == curr->keyword_length)
@@ -1837,12 +1761,9 @@ bool find_keyword(FILE_DETAILS *fd, CHARTYPE *word, int len,int *alternate_colou
          }
       }
    }
-   TRACE_RETURN();
    return found;
 }
-/***********************************************************************/
 static short parse_keywords(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    int i,j,alt=0;
    LENGTHTYPE len=scurr->length;
@@ -1851,7 +1772,6 @@ static short parse_keywords(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
    chtype keyword_colour, original_keyword_colour;
    chtype number_colour;
 
-   TRACE_FUNCTION("parser.c:  parse_keywords");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
    {
@@ -2012,18 +1932,14 @@ static short parse_keywords(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
          }
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 bool find_function(FILE_DETAILS *fd, CHARTYPE *word, int len,int *alternate_colour)
-/***********************************************************************/
 {
    PARSE_FUNCTIONS *curr=fd->parser->first_function;
    bool found=FALSE;
 
-   TRACE_FUNCTION("parser.c:  find_function");
    for (; curr != NULL; curr = curr->next)
    {
       if (len == curr->function_length)
@@ -2045,13 +1961,10 @@ bool find_function(FILE_DETAILS *fd, CHARTYPE *word, int len,int *alternate_colo
          }
       }
    }
-   TRACE_RETURN();
    return found;
 }
 
-/***********************************************************************/
 static short parse_functions(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    int i,j,alt=0;
    LENGTHTYPE len=scurr->length;
@@ -2061,7 +1974,6 @@ static short parse_functions(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
    CHARTYPE *word=NULL;
    int k,word_start,word_end,state;
 
-   TRACE_FUNCTION( "parser.c:  parse_functions" );
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       original_function_colour = merge_curline_colour( fd->attr+ATTR_CURSORLINE, fd->ecolour+ECOLOUR_FUNCTIONS );
@@ -2289,13 +2201,10 @@ static short parse_functions(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
          }
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 static short parse_preprocessor(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
-/***********************************************************************/
 {
    int i,j,k,len_plus_one,state,alt=0;
    LENGTHTYPE len=scurr->length,preprocessor_char_start_pos=0;
@@ -2303,7 +2212,6 @@ static short parse_preprocessor(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr
    chtype keyword_colour,original_keyword_colour;
    CHARTYPE *word=NULL;
 
-   TRACE_FUNCTION("parser.c:  parse_preprocessor");
    if ( scurr->is_cursor_line
    &&   scurr->is_cursor_line_filearea_different )
       original_keyword_colour = merge_curline_colour(fd->attr+ATTR_CURSORLINE,fd->ecolour+ECOLOUR_PREDIR);
@@ -2394,19 +2302,15 @@ static short parse_preprocessor(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr
          break;
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_row)
-/***********************************************************************/
 {
    int i;
    LENGTHTYPE len=scurr->length;
    chtype normal_colour;
 
-   TRACE_FUNCTION("parser.c:  parse_line");
    /*
     * Set all columns to default colour.
     */
@@ -2426,7 +2330,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
     */
    if ( len == 0 )
    {
-      TRACE_RETURN();
       return RC_OK;
    }
    /*
@@ -2434,7 +2337,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
     */
    if ( scurr->highlight_type == NULL )
    {
-      TRACE_RETURN();
       return RC_OK;
    }
    memcpy( (DEFCHAR *)brec, scurr->contents, len );
@@ -2450,7 +2352,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_columns(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2464,7 +2365,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_strings(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2477,7 +2377,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_headers(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2490,7 +2389,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_line_comments(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2503,7 +2401,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_labels(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2516,7 +2413,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_functions(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2529,7 +2425,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_markup_reference(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2542,7 +2437,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_markup_tag(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2555,7 +2449,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_match( scrno, fd, scurr );
       if ( number_blanks == len )
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2567,7 +2460,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_preprocessor(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2580,7 +2472,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_keywords(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2593,7 +2484,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_labels(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2606,7 +2496,6 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_directory(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
@@ -2619,21 +2508,16 @@ short parse_line(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr,short start_ro
       parse_postcompare(scrno,fd,scurr);
       if (number_blanks == len)
       {
-         TRACE_RETURN();
          return RC_OK;
       }
    }
-   TRACE_RETURN();
    return RC_OK;
 }
 
-/***********************************************************************/
 static short construct_case(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("parser.c:  construct_case");
    if ( memcmpi( line, (CHARTYPE *)"ignore", line_length ) == 0 )
       parser->case_sensitive = FALSE;
    else if ( memcmpi( line, (CHARTYPE *)"respect", line_length ) == 0 )
@@ -2644,14 +2528,11 @@ static short construct_case(CHARTYPE *line, int line_length, PARSER_DETAILS *par
       display_error(216,(CHARTYPE *)tmp,FALSE);
       rc = RC_INVALID_OPERAND;
    }
-   TRACE_RETURN();
    return rc;
 }
 
 
-/***********************************************************************/
 static short construct_markup(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
 #define CONMAR_PARAMS  3
    short rc=RC_OK;
@@ -2660,7 +2541,6 @@ static short construct_markup(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    unsigned short num_params=0;
    short option=0;
 
-   TRACE_FUNCTION("parser.c:  construct_markup");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -2669,7 +2549,6 @@ static short construct_markup(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf( (DEFCHAR *)tmp, "Too few tokens, line %d", lineno );
       display_error( 216,(CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if ( equal( (CHARTYPE *)"tag", word[0], 3 ) )
@@ -2680,21 +2559,18 @@ static short construct_markup(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[0], lineno );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if ( strlen( (DEFCHAR *)word[1] ) > MAX_DELIMITER_LENGTH )
    {
       sprintf( (DEFCHAR *)tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *)word[1], lineno, MAX_DELIMITER_LENGTH );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if ( strlen( (DEFCHAR *)word[2] ) > MAX_DELIMITER_LENGTH )
    {
       sprintf( (DEFCHAR *)tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *)word[2], lineno, MAX_DELIMITER_LENGTH );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if ( option == 1 )
@@ -2713,13 +2589,10 @@ static short construct_markup(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       strcpy( (DEFCHAR *)parser->markup_reference_end_delim, (DEFCHAR *)word[2] );
       parser->len_markup_reference_end_delim = strlen( (DEFCHAR *)word[2] );
    }
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
 #define CONSTR_PARAMS  3
    short rc=RC_OK;
@@ -2728,7 +2601,6 @@ static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    unsigned short num_params=0;
    short option=0;
 
-   TRACE_FUNCTION("parser.c:  construct_string");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -2744,7 +2616,6 @@ static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[0],lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if (num_params == 1)
@@ -2757,7 +2628,6 @@ static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
    }
@@ -2768,7 +2638,6 @@ static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[1],lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       else
@@ -2781,7 +2650,6 @@ static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[1],lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       else
@@ -2794,7 +2662,6 @@ static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[1],lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       else
@@ -2808,7 +2675,6 @@ static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       if (equal((CHARTYPE *)"backslash",word[2],9))
@@ -2820,23 +2686,18 @@ static short construct_string(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[2],lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
    }
    parser->have_string = TRUE;
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 /*  Syntax:
  *         line x [column n | any | firstnonblank] [multiple | single]
  *         paired x y [nest | nonest] [multiple | single]
  */
-/***********************************************************************/
 {
 #define CONCOM_PARAMS  5
    short rc=RC_OK;
@@ -2846,7 +2707,6 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
    short option=0,where=0;
    bool nested=FALSE;
 
-   TRACE_FUNCTION("parser.c:  construct_comment");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -2862,7 +2722,6 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
    {
       sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[0],lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if (option == 1)
@@ -2871,14 +2730,12 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
       {
          sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       if (strlen((DEFCHAR *)word[1]) > MAX_DELIMITER_LENGTH)
       {
          sprintf((DEFCHAR *)tmp,"Token too long '%s', line %d. Length should be <= %d",(DEFCHAR *)word[1],lineno,MAX_DELIMITER_LENGTH);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       if (equal((CHARTYPE *)"any",word[2],3))
@@ -2887,7 +2744,6 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
          {
             sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          where = 0;
@@ -2898,7 +2754,6 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
          {
             sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[3],lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          where = atoi((DEFCHAR *)word[3]);
@@ -2909,7 +2764,6 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
          {
             sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          where = MAX_INT;
@@ -2918,7 +2772,6 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",(DEFCHAR *)word[2],lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       parser->current_comments = parse_commentsll_add(parser->first_comments,parser->current_comments,sizeof(PARSE_COMMENTS));
@@ -2936,7 +2789,6 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
       {
          sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       switch(num_params)
@@ -2954,7 +2806,6 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
             {
                sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[2],lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             /*
@@ -2965,14 +2816,12 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
             {
                sprintf((DEFCHAR *)tmp,"Token too long '%s', line %d. Length should be <= %d",(DEFCHAR *)word[1],lineno,MAX_DELIMITER_LENGTH);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             if (strlen((DEFCHAR *)word[2]) > MAX_DELIMITER_LENGTH)
             {
                sprintf((DEFCHAR *)tmp,"Token too long '%s', line %d. Length should be <= %d",(DEFCHAR *)word[2],lineno,MAX_DELIMITER_LENGTH);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             /*
@@ -2993,17 +2842,13 @@ static short construct_comment(CHARTYPE *line, int line_length, PARSER_DETAILS *
             break;
       }
    }
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 /*  Syntax:
  *         line x column n | any | firstnonblank [alt x]
  */
-/***********************************************************************/
 {
 #define CONHEA_PARAMS  6
    short rc=RC_OK;
@@ -3014,7 +2859,6 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    short alt_start,value_idx;
    CHARTYPE alternate=255;
 
-   TRACE_FUNCTION("parser.c:  construct_header");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -3027,21 +2871,18 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[0], lineno );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if ( num_params < 3 )
    {
       sprintf( (DEFCHAR *)tmp, "Too few tokens, line %d", lineno );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if ( strlen( (DEFCHAR *)word[1] ) > MAX_DELIMITER_LENGTH )
    {
       sprintf( (DEFCHAR *)tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *)word[1], lineno, MAX_DELIMITER_LENGTH );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if ( equal( (CHARTYPE *)"any", word[2], 3 ) )
@@ -3050,7 +2891,6 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf( (DEFCHAR *)tmp, "Too many tokens, line %d", lineno );
          display_error( 216, (CHARTYPE *)tmp, FALSE );
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       alt_start = 3;
@@ -3062,14 +2902,12 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf( (DEFCHAR *)tmp, "Too many tokens, line %d", lineno );
          display_error( 216, (CHARTYPE *)tmp, FALSE );
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       if ( !valid_positive_integer( word[3] ) )
       {
          sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[3], lineno );
          display_error( 216, (CHARTYPE *)tmp, FALSE );
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       alt_start = 4;
@@ -3081,7 +2919,6 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf( (DEFCHAR *)tmp, "Too many tokens, line %d", lineno );
          display_error( 216, (CHARTYPE *)tmp, FALSE );
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       alt_start = 3;
@@ -3091,7 +2928,6 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", (DEFCHAR *)word[2], lineno );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    /*
@@ -3106,14 +2942,12 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
          {
             sprintf( (DEFCHAR *)tmp, "ALTernate must be followed by a single character, line %d", lineno );
             display_error( 216, (CHARTYPE *)tmp, FALSE );
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          if ( get_alternate( word[value_idx], &alternate ) )
          {
             sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[value_idx], lineno );
             display_error( 216,(CHARTYPE *)tmp, FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
       }
@@ -3121,7 +2955,6 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[alt_start], lineno );
          display_error( 216, (CHARTYPE *)tmp, FALSE );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
    }
@@ -3133,18 +2966,14 @@ static short construct_header(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    parser->current_header->header_column = where;
    parser->current_header->alternate = alternate;
    parser->have_headers = TRUE;
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 /*  Syntax:
  *         delimiter x [column n | any | firstnonblank]
  *         column n
  */
-/***********************************************************************/
 {
 #define CONLAB_PARAMS  4
    short rc=RC_OK;
@@ -3153,7 +2982,6 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
    unsigned short num_params=0;
    short where=0;
 
-   TRACE_FUNCTION("parser.c:  construct_label");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -3164,7 +2992,6 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
    {
       sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    /*
@@ -3176,7 +3003,6 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",(DEFCHAR *)word[1],lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       where = atoi((DEFCHAR *)word[1]);
@@ -3189,14 +3015,12 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
       {
          sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       if (strlen((DEFCHAR *)word[1]) > MAX_DELIMITER_LENGTH)
       {
          sprintf((DEFCHAR *)tmp,"Token too long '%s', line %d. Length should be <= %d",(DEFCHAR *)word[1],lineno,MAX_DELIMITER_LENGTH);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       if (equal((CHARTYPE *)"any",word[2],3))
@@ -3205,7 +3029,6 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
          {
             sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          where = 0;
@@ -3216,7 +3039,6 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
          {
             sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",(DEFCHAR *)word[3],lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          where = atoi((DEFCHAR *)word[3]);
@@ -3227,7 +3049,6 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
          {
             sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          where = MAX_INT;
@@ -3236,7 +3057,6 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",(DEFCHAR *)word[2],lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       parser->len_label_delim = strlen((DEFCHAR *)word[1]);
@@ -3246,42 +3066,32 @@ static short construct_label(CHARTYPE *line, int line_length, PARSER_DETAILS *pa
    {
       sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[0],lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    parser->label_column = where;
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_match(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 /*  Syntax:
  *         ( )
  *         left,left right,right [middle,middle]
  */
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("parser.c:  construct_match");
    /*
     * Just set have_match to TRUE
     */
    parser->have_match = TRUE;
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_keyword(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 /*  Syntax:
  *         keyword [TYPE n [ALTernate x]]
  *         keyword [ALTernate x [TYPE n]]
  */
-/***********************************************************************/
 {
 #define CONKEY_PARAMS  5
    short rc=RC_OK;
@@ -3291,7 +3101,6 @@ static short construct_keyword(CHARTYPE *line, int line_length, PARSER_DETAILS *
    CHARTYPE alternate=255;
    int i,num_pairs,keyword_idx,value_idx;
 
-   TRACE_FUNCTION("parser.c:  construct_keyword");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -3308,7 +3117,6 @@ static short construct_keyword(CHARTYPE *line, int line_length, PARSER_DETAILS *
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",line,lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       num_pairs = (num_params-1) / 2;
@@ -3322,14 +3130,12 @@ static short construct_keyword(CHARTYPE *line, int line_length, PARSER_DETAILS *
             {
                sprintf((DEFCHAR *)tmp,"ALTernate must be followed by a single character, line %d",lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             if ( get_alternate( word[value_idx], &alternate ) )
             {
                sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[value_idx],lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
          }
@@ -3341,7 +3147,6 @@ static short construct_keyword(CHARTYPE *line, int line_length, PARSER_DETAILS *
          {
             sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[keyword_idx],lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
       }
@@ -3354,7 +3159,6 @@ static short construct_keyword(CHARTYPE *line, int line_length, PARSER_DETAILS *
    if (parser->current_keyword->keyword == NULL)
    {
       display_error(216,(CHARTYPE *)"out of memory",FALSE);
-      TRACE_RETURN();
       return RC_OUT_OF_MEMORY;
    }
    strcpy((DEFCHAR *)parser->current_keyword->keyword,(DEFCHAR *)word[0]);
@@ -3365,13 +3169,10 @@ static short construct_keyword(CHARTYPE *line, int line_length, PARSER_DETAILS *
    if (parser->current_keyword->keyword_length < parser->min_keyword_length)
       parser->min_keyword_length = parser->current_keyword->keyword_length;
 
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_function(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
 #define CONFUN_PARAMS  5
    short rc=RC_OK;
@@ -3380,7 +3181,6 @@ static short construct_function(CHARTYPE *line, int line_length, PARSER_DETAILS 
    unsigned short num_params=0;
    CHARTYPE alternate=255;
 
-   TRACE_FUNCTION("parser.c:  construct_function");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -3397,14 +3197,12 @@ static short construct_function(CHARTYPE *line, int line_length, PARSER_DETAILS 
             {
                sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             if ( get_alternate( word[2], &alternate ) )
             {
                sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[2],lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
          }
@@ -3412,7 +3210,6 @@ static short construct_function(CHARTYPE *line, int line_length, PARSER_DETAILS 
          {
             sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
       }
@@ -3426,7 +3223,6 @@ static short construct_function(CHARTYPE *line, int line_length, PARSER_DETAILS 
    if (parser->current_function->function == NULL)
    {
       display_error(216,(CHARTYPE *)"out of memory",FALSE);
-      TRACE_RETURN();
       return RC_OUT_OF_MEMORY;
    }
    strcpy((DEFCHAR *)parser->current_function->function,(DEFCHAR *)word[0]);
@@ -3437,19 +3233,15 @@ static short construct_function(CHARTYPE *line, int line_length, PARSER_DETAILS 
    if (parser->current_function->function_length < parser->min_function_length)
       parser->min_function_length = parser->current_function->function_length;
 
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 /*  Syntax:
  *         REXX
  *         PREPROCESSOR char
  *         FUNCTION char BLANK|NOBLANK [* ALTernate x]
  */
-/***********************************************************************/
 {
 #define CONOPT_PARAMS  6
    short rc=RC_OK;
@@ -3459,7 +3251,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    unsigned short num_params=0;
    bool rexx_option=FALSE,preprocessor_option=FALSE,function_option=FALSE;
 
-   TRACE_FUNCTION( "parser.c:  construct_option" );
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -3478,7 +3269,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[0], lineno );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if ( num_params == 1 )
@@ -3488,7 +3278,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf( (DEFCHAR *)tmp, "Too few tokens, line %d", lineno );
          display_error( 216, (CHARTYPE *)tmp, FALSE );
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
    }
@@ -3498,7 +3287,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf( (DEFCHAR *)tmp, "Too many tokens, line %d", lineno );
          display_error( 216, (CHARTYPE *)tmp, FALSE );
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       else if ( preprocessor_option )
@@ -3507,7 +3295,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
          {
             sprintf( (DEFCHAR *)tmp, "Too many tokens, line %d", lineno );
             display_error( 216, (CHARTYPE *)tmp, FALSE );
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          else
@@ -3516,7 +3303,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
             {
                sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[1], lineno );
                display_error( 216, (CHARTYPE *)tmp, FALSE );
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             parser->preprocessor_char = word[1][0];
@@ -3528,7 +3314,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
          {
             sprintf( (DEFCHAR *)tmp, "Too few tokens, line %d", lineno );
             display_error( 216, (CHARTYPE *)tmp, FALSE );
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          else
@@ -3537,7 +3322,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
             {
                sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[1], lineno );
                display_error( 216, (CHARTYPE *)tmp, FALSE );
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             if ( equal( (CHARTYPE *)"blank", word[2], 5 ) )
@@ -3552,7 +3336,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
             {
                sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[1], lineno );
                display_error( 216, (CHARTYPE *)tmp, FALSE );
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             parser->function_char = word[1][0];
@@ -3566,7 +3349,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
                {
                   sprintf( (DEFCHAR *)tmp, "Too few tokens, line %d", lineno );
                   display_error( 216, (CHARTYPE *)tmp, FALSE );
-                  TRACE_RETURN();
                   return RC_INVALID_OPERAND;
                }
                /*
@@ -3576,7 +3358,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
                {
                   sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[3], lineno );
                   display_error( 216, (CHARTYPE *)tmp, FALSE );
-                  TRACE_RETURN();
                   return RC_INVALID_OPERAND;
                }
                if ( equal( (CHARTYPE *)"alternate", word[4], 3 ) )
@@ -3585,14 +3366,12 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
                   {
                      sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d", word[5], lineno );
                      display_error( 216, (CHARTYPE *)tmp, FALSE );
-                     TRACE_RETURN();
                      return RC_INVALID_OPERAND;
                   }
                   if ( get_alternate( word[5], &alternate ) )
                   {
                      sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[5], lineno );
                      display_error( 216, (CHARTYPE *)tmp, FALSE );
-                     TRACE_RETURN();
                      return(RC_INVALID_OPERAND);
                   }
                   parser->function_option_alternate = alternate;
@@ -3602,7 +3381,6 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
                {
                   sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[4], lineno );
                   display_error( 216, (CHARTYPE *)tmp, FALSE );
-                  TRACE_RETURN();
                   return RC_INVALID_OPERAND;
                }
             }
@@ -3615,13 +3393,10 @@ static short construct_option(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       parser->rexx_option = TRUE;
    else if (function_option)
       parser->function_option = TRUE;
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_identifier(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
 #define CONID_PARAMS  3
    short rc=RC_OK;
@@ -3630,7 +3405,6 @@ static short construct_identifier(CHARTYPE *line, int line_length, PARSER_DETAIL
    unsigned short num_params=0;
    CHARTYPE *pattern=NULL,*ptr;
 
-   TRACE_FUNCTION("parser.c:  construct_identifier");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -3639,14 +3413,12 @@ static short construct_identifier(CHARTYPE *line, int line_length, PARSER_DETAIL
    {
       sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    pattern = (CHARTYPE *)(*the_malloc)((20+line_length)*sizeof(CHARTYPE));
    if (pattern == NULL)
    {
       display_error(216,(CHARTYPE *)"out of memory",FALSE);
-      TRACE_RETURN();
       return RC_OUT_OF_MEMORY;
    }
    /*
@@ -3675,7 +3447,6 @@ static short construct_identifier(CHARTYPE *line, int line_length, PARSER_DETAIL
       sprintf((DEFCHAR *)tmp,"%s in %s",ptr,pattern);
       display_error(216,(CHARTYPE *)tmp,FALSE);
       (*the_free)(pattern);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    parser->have_body_pattern_buffer = TRUE;
@@ -3711,19 +3482,15 @@ static short construct_identifier(CHARTYPE *line, int line_length, PARSER_DETAIL
          sprintf((DEFCHAR *)tmp,"%s in %s",ptr,pattern);
          display_error(216,(CHARTYPE *)tmp,FALSE);
          (*the_free)(pattern);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
       }
       (*the_free)(pattern);
       parser->have_function_pattern_buffer = TRUE;
    }
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
 #define CONDIR_MAX_EXT 10
 #define CONDIR_PARAMS  CONDIR_MAX_EXT+3
@@ -3736,7 +3503,6 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
    int i;
    CHARTYPE alternate=255;
 
-   TRACE_FUNCTION("parser.c:  construct_directory");
    for ( i = 0; i < CONDIR_PARAMS; i++ )
    {
       strip[i]=STRIP_BOTH;
@@ -3746,7 +3512,6 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
    {
       sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if (equal((CHARTYPE *)"directory",word[0],3))
@@ -3761,7 +3526,6 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
    {
       sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[0],lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    /*
@@ -3779,14 +3543,12 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
          {
             sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          else if ( num_params > 3 )
          {
             sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          /* we have 3; last 2 must be alternate */
@@ -3801,14 +3563,12 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
          {
             sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          else if ( num_params > 3 )
          {
             sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          /* we have 3; last 2 must be alternate */
@@ -3823,14 +3583,12 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
          {
             sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          else if ( num_params > 3 )
          {
             sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          /* we have 3; last 2 must be alternate */
@@ -3841,7 +3599,6 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
          {
             sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
          /*
@@ -3864,14 +3621,12 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
             {
                sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             if ( get_alternate( word[alt_word+1], &alternate ) )
             {
                sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[alt_word+1],lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
          }
@@ -3879,7 +3634,6 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
          {
             sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
       }
@@ -3908,7 +3662,6 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
             if ( curr == NULL )
             {
                display_error(216,(CHARTYPE *)"out of memory",FALSE);
-               TRACE_RETURN();
                return RC_OUT_OF_MEMORY;
             }
             parser->current_extension = curr;
@@ -3921,7 +3674,6 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
             if (parser->current_extension->extension == NULL)
             {
                display_error(216,(CHARTYPE *)"out of memory",FALSE);
-               TRACE_RETURN();
                return RC_OUT_OF_MEMORY;
             }
             strcpy((DEFCHAR *)parser->current_extension->extension,(DEFCHAR *)word[i]);
@@ -3930,13 +3682,10 @@ static short construct_directory(CHARTYPE *line, int line_length, PARSER_DETAILS
          parser->have_extensions = TRUE;
          break;
    }
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
 #define CONPOST_PARAMS  4
    CHARTYPE *word[CONPOST_PARAMS+1];
@@ -3948,7 +3697,6 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
    struct re_pattern_buffer pattern_buffer;
    bool is_class_type;
 
-   TRACE_FUNCTION("parser.c:  construct_postcompare");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -3958,7 +3706,6 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
    {
       sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    /*
@@ -3974,14 +3721,12 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
             {
                sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             if ( get_alternate( word[3], &alternate ) )
             {
                sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[3],lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
          }
@@ -3989,7 +3734,6 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
          {
             sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
       }
@@ -4006,7 +3750,6 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
       if (pattern == NULL)
       {
          display_error(216,(CHARTYPE *)"out of memory",FALSE);
-         TRACE_RETURN();
          return RC_OUT_OF_MEMORY;
       }
       /*
@@ -4024,7 +3767,6 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
          sprintf((DEFCHAR *)tmp,"%s in %s",ptr,pattern);
          display_error(216,(CHARTYPE *)tmp,FALSE);
          (*the_free)(pattern);
-         TRACE_RETURN();
          return RC_INVALID_OPERAND;
        }
       (*the_free)(pattern);
@@ -4041,7 +3783,6 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
    {
       sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[0],lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
 
@@ -4049,7 +3790,6 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
    if ( curr == NULL )
    {
       display_error(216,(CHARTYPE *)"out of memory",FALSE);
-      TRACE_RETURN();
       return RC_OUT_OF_MEMORY;
    }
    parser->current_postcompare = curr;
@@ -4070,7 +3810,6 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
       if (parser->current_postcompare->string == NULL)
       {
          display_error(216,(CHARTYPE *)"out of memory",FALSE);
-         TRACE_RETURN();
          return RC_OUT_OF_MEMORY;
       }
       strcpy((DEFCHAR *)parser->current_postcompare->string,(DEFCHAR *)word[1]);
@@ -4079,13 +3818,10 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
    parser->current_postcompare->alternate = alternate;
    parser->current_postcompare->is_class_type = is_class_type;
    parser->have_postcompare = TRUE;
-   TRACE_RETURN();
    return (RC_OK);
 }
 
-/***********************************************************************/
 static short construct_number(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
 #define CONNUM_PARAMS  1
    CHARTYPE *word[CONNUM_PARAMS+1];
@@ -4094,7 +3830,6 @@ static short construct_number(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    DEFCHAR *pattern;
    char *ptr;
 
-   TRACE_FUNCTION("parser.c:  construct_number");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    num_params = param_split(line,word,CONNUM_PARAMS,WORD_DELIMS,TEMP_PARAM,strip,FALSE);
@@ -4102,14 +3837,12 @@ static short construct_number(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    if (num_params > 1)
    {
       sprintf((DEFCHAR *)tmp,"Too many tokens, line %d",lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    /*
@@ -4131,7 +3864,6 @@ static short construct_number(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf( (DEFCHAR *)tmp, "Invalid operand '%s', line %d", word[0], lineno );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -4146,18 +3878,14 @@ static short construct_number(CHARTYPE *line, int line_length, PARSER_DETAILS *p
        */
       sprintf( (DEFCHAR *)tmp, "%s in %s", ptr, pattern );
       display_error( 216, (CHARTYPE *)tmp, FALSE );
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
 
    parser->have_number_pattern_buffer = TRUE;
-   TRACE_RETURN();
    return (RC_OK);
 }
 
-/***********************************************************************/
 static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *parser, int lineno)
-/***********************************************************************/
 {
 #define CONCOL_PARAMS  5
    CHARTYPE *word[CONCOL_PARAMS+1];
@@ -4166,7 +3894,6 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    CHARTYPE alternate=255;
    LINETYPE col1=0L,col2=0L;
 
-   TRACE_FUNCTION("parser.c:  construct_column");
    strip[0]=STRIP_BOTH;
    strip[1]=STRIP_BOTH;
    strip[2]=STRIP_BOTH;
@@ -4178,7 +3905,6 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return RC_INVALID_OPERAND;
    }
    /*
@@ -4194,14 +3920,12 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
             {
                sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return RC_INVALID_OPERAND;
             }
             if ( get_alternate( word[4], &alternate ) )
             {
                sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[4],lineno);
                display_error(216,(CHARTYPE *)tmp,FALSE);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
          }
@@ -4209,7 +3933,6 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
          {
             sprintf((DEFCHAR *)tmp,"Too few tokens, line %d",lineno);
             display_error(216,(CHARTYPE *)tmp,FALSE);
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
       }
@@ -4221,7 +3944,6 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[0],lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -4231,7 +3953,6 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[1],lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    col1 = atol((DEFCHAR *)word[1]);
@@ -4246,7 +3967,6 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
       {
          sprintf((DEFCHAR *)tmp,"Invalid operand '%s', line %d",word[2],lineno);
          display_error(216,(CHARTYPE *)tmp,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       col2 = atol((DEFCHAR *)word[2]);
@@ -4258,14 +3978,12 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    {
       sprintf((DEFCHAR *)tmp,"First column(%ld) must be < last column(%ld), line %d",col1,col2,lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    if ( parser->number_columns == MAX_PARSER_COLUMNS )
    {
       sprintf((DEFCHAR *)tmp,"Maximum number of :column options (%d) exceeded, line %d",MAX_PARSER_COLUMNS,lineno);
       display_error(216,(CHARTYPE *)tmp,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    parser->first_column[parser->number_columns] = col1;
@@ -4274,13 +3992,10 @@ static short construct_column(CHARTYPE *line, int line_length, PARSER_DETAILS *p
    parser->number_columns++;
    parser->have_columns = TRUE;
 
-   TRACE_RETURN();
    return (RC_OK);
 }
 
-/***********************************************************************/
 short construct_parser(CHARTYPE *contents, int contents_length, PARSER_DETAILS **parser, CHARTYPE *parser_name, CHARTYPE *filename)
-/***********************************************************************/
 {
    int i,j,line_len;
    int state=0;
@@ -4288,7 +4003,6 @@ short construct_parser(CHARTYPE *contents, int contents_length, PARSER_DETAILS *
    short rc=RC_OK;
    int lineno=0;
 
-   TRACE_FUNCTION("parser.c:  construct_parser");
    last_parser = parserll_add( first_parser,last_parser, sizeof(PARSER_DETAILS) );
    if (first_parser == NULL)
       first_parser = last_parser;
@@ -4453,17 +4167,13 @@ short construct_parser(CHARTYPE *contents, int contents_length, PARSER_DETAILS *
       else
          line[j++] = contents[i];
    }
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 short destroy_parser(PARSER_DETAILS *parser)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("parser.c:  destroy_parser");
    if (parser->first_comments)
    {
       parser->first_comments = parse_commentsll_free(parser->first_comments);
@@ -4500,20 +4210,15 @@ short destroy_parser(PARSER_DETAILS *parser)
    {
       parser->first_extension = parse_extensionll_free(parser->first_extension);
    }
-   TRACE_RETURN();
    return rc;
 }
 
-/***********************************************************************/
 bool find_parser_mapping(FILE_DETAILS *fd, PARSER_MAPPING *curr_mapping)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("parser.c:  find_parser_mapping");
    if (curr_mapping->filemask)
    {
       if ( thematch( (DEFCHAR *)curr_mapping->filemask, (DEFCHAR *)fd->fname,0) == 0)
       {
-         TRACE_RETURN();
          return TRUE;
       }
    }
@@ -4561,7 +4266,6 @@ bool find_parser_mapping(FILE_DETAILS *fd, PARSER_MAPPING *curr_mapping)
                         if (len == curr_mapping->magic_number_length
                         &&  memcmp(ptr+start+1,curr_mapping->magic_number,len) == 0)
                         {
-                           TRACE_RETURN();
                            return TRUE;
                            break;
                         }
@@ -4572,17 +4276,13 @@ bool find_parser_mapping(FILE_DETAILS *fd, PARSER_MAPPING *curr_mapping)
          }
       }
    }
-   TRACE_RETURN();
    return FALSE;
 }
 
-/***********************************************************************/
 PARSER_DETAILS *find_auto_parser(FILE_DETAILS *fd)
-/***********************************************************************/
 {
    PARSER_MAPPING *curr_mapping=first_parser_mapping;
 
-   TRACE_FUNCTION("parser.c:  find_auto_parser");
    /*
     * Check the filename against the available parsers' filemasks.
     * If the filemask uses filenames then check the filename.
@@ -4597,13 +4297,10 @@ PARSER_DETAILS *find_auto_parser(FILE_DETAILS *fd)
          break;
       }
    }
-   TRACE_RETURN();
    return(fd->parser);
 }
 
-/***********************************************************************/
 short parse_reserved_line(RESERVED *rsrvd)
-/***********************************************************************/
 {
    int i=0,j=0,k=0;
    chtype current_colour, default_colour;
@@ -4611,7 +4308,6 @@ short parse_reserved_line(RESERVED *rsrvd)
    CHARTYPE *line=rsrvd->line;
    CHARTYPE *disp=rsrvd->disp;
 
-   TRACE_FUNCTION("parser.c:  parse_reserved_line");
    current_colour = default_colour = set_colour( rsrvd->attr );
    if ( CTLCHARx )
    {
@@ -4682,13 +4378,10 @@ short parse_reserved_line(RESERVED *rsrvd)
       }
       rsrvd->disp_length = rsrvd->length;
    }
-   TRACE_RETURN();
    return (RC_OK);
 }
 
-/***********************************************************************/
 CHARTYPE get_syntax_element( CHARTYPE scrno, int row, int col )
-/***********************************************************************/
 {
    SHOW_LINE *scurr;
    CHARTYPE syntax_element;
@@ -4708,6 +4401,5 @@ CHARTYPE get_syntax_element( CHARTYPE scrno, int row, int col )
       else
          syntax_element = scurr->highlight_type[col+vcol];
    }
-   TRACE_RETURN();
    return(syntax_element);
 }

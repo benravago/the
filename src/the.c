@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* THE.C - The Hessling Editor                                         */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2020 Mark Hessling
@@ -272,7 +270,6 @@ void atexit_handler(void)
   }
 }
 
-/***********************************************************************/
 #ifdef MSWIN
 int Themain(argc,argv)
 int argc;
@@ -280,7 +277,6 @@ char *argv[];
 #else
 int main(int argc, char *argv[])
 #endif
-/***********************************************************************/
 {
 #ifdef MSWIN
    extern void efree();
@@ -303,8 +299,6 @@ int main(int argc, char *argv[])
    char **my_argv;
    char *the_arguments;
 
-   TRACE_INITIALISE();
-   TRACE_FUNCTION("the.c:     main");
    /*
     * Set our locale
     */
@@ -1254,11 +1248,8 @@ fclose( fp);
    return(0);
 }
 
-/***********************************************************************/
 static void init_signals(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("the.c:     init_signals");
    signal(SIGQUIT,handle_signal);
    signal(SIGHUP,handle_signal);
    signal(SIGABRT,handle_signal);
@@ -1277,16 +1268,12 @@ static void init_signals(void)
 # if defined(SIGPIPE)
    signal(SIGPIPE,SIG_IGN);
 # endif
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void init_colour_pairs(void)
-/***********************************************************************/
 {
    short fg,bg;
 
-   TRACE_FUNCTION("the.c:     init_colour_pairs");
 #ifdef A_COLOR
    /*
     * Force the use of 8 colours instead of using COLORS;
@@ -1304,12 +1291,9 @@ void init_colour_pairs(void)
       }
    }
 #endif
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 int setup_profile_files(CHARTYPE *specified_prf)
-/***********************************************************************/
 {
    int rc=RC_OK;
    char *envptr=NULL;
@@ -1409,9 +1393,7 @@ int setup_profile_files(CHARTYPE *specified_prf)
    local_prf = (CHARTYPE *)NULL;
    return(rc);
 }
-/***********************************************************************/
 static void display_info(CHARTYPE *argv0)
-/***********************************************************************/
 {
    fprintf(stdout,"\nTHE %s %2s %s. All rights reserved.\n",the_version,the_release,the_copyright);
    fprintf(stdout,"THE is distributed under the terms of the GNU General Public License \n");
@@ -1436,11 +1418,8 @@ static void display_info(CHARTYPE *argv0)
    fflush(stdout);
    return;
 }
-/***********************************************************************/
 int allocate_working_memory(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("the.c:     allocate_working_memory");
    /*
     * Allocate some memory to rec.
     */
@@ -1504,15 +1483,11 @@ int allocate_working_memory(void)
       profile_command_line = (CHARTYPE *)(*the_realloc)(profile_command_line,(max_line_length+2)*sizeof(CHARTYPE));
    if (profile_command_line == NULL)
       return(17);
-   TRACE_RETURN();
    return(0);
 }
 
-/***********************************************************************/
 void cleanup(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("the.c:     cleanup");
 
    if (curses_started)
    {
@@ -1577,13 +1552,10 @@ void cleanup(void)
 #if !defined(MSWIN) && !defined(USE_WINGUICURSES)
    the_free_flists();
 #endif
-   TRACE_RETURN();
    return;
 }
 
-/***********************************************************************/
 static RETSIGTYPE handle_signal(int err)
-/***********************************************************************/
 {
    FILE_DETAILS *cf;
    VIEW_DETAILS *curr;
@@ -1591,7 +1563,6 @@ static RETSIGTYPE handle_signal(int err)
    FILE_DETAILS *first_view_file=NULL;
    register int j=0;
 
-   TRACE_FUNCTION("the.c:     handle_signal");
    /*
     * If a SIGWINCH is caught, set a global flag to indicate that the screen has resized
     * Only do this for NCURSES.

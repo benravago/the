@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* MOUSE.C - THE mouse handling                                        */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -143,13 +141,10 @@ static int last_mouse_x_pos=-1;
 static int last_mouse_y_pos=-1;
 
 #if defined(PDCURSES_MOUSE_ENABLED)
-/***********************************************************************/
 short get_mouse_info(int *button,int *button_action,int *button_modifier)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("mouse.c:  get_mouse_info");
    request_mouse_pos();
    /*
     * Save the current mouse position
@@ -166,7 +161,6 @@ short get_mouse_info(int *button,int *button_action,int *button_modifier)
          *button = 3;
       else
       {
-         TRACE_RETURN();
          return(RC_OK);
       }
       if (BUTTON_STATUS(*button) & BUTTON_SHIFT)
@@ -219,18 +213,14 @@ short get_mouse_info(int *button,int *button_action,int *button_modifier)
       *button = *button_action = *button_modifier = 0;
       rc = RC_INVALID_OPERAND;
    }
-   TRACE_RETURN();
    return(rc);
 }
 #endif
 #if defined(NCURSES_MOUSE_VERSION)
-/***********************************************************************/
 void wmouse_position(WINDOW *win, int *y, int *x)
-/***********************************************************************/
 {
    int begy,begx,maxy,maxx;
 
-   TRACE_FUNCTION("mouse.c:  wmouse_position");
    /*
     * if the current mouse position is outside the provided window, put
     * -1 in x and y
@@ -238,7 +228,6 @@ void wmouse_position(WINDOW *win, int *y, int *x)
    if (win == (WINDOW *)NULL)
    {
       *y = *x = (-1);
-      TRACE_RETURN();
       return;
    }
    getbegyx(win,begy,begx);
@@ -255,16 +244,12 @@ void wmouse_position(WINDOW *win, int *y, int *x)
       *x = ncurses_mouse_event.x - begx;
       *y = ncurses_mouse_event.y - begy;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short get_mouse_info(int *button,int *button_action,int *button_modifier)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("mouse.c:  get_mouse_info");
    getmouse(&ncurses_mouse_event);
    /*
     * Save the current mouse position
@@ -294,7 +279,6 @@ short get_mouse_info(int *button,int *button_action,int *button_modifier)
          else
          {
             *button = *button_action = *button_modifier = 0;
-            TRACE_RETURN();
             return RC_INVALID_OPERAND;
          }
       }
@@ -333,14 +317,11 @@ short get_mouse_info(int *button,int *button_action,int *button_modifier)
          }
       }
    }
-   TRACE_RETURN();
    return(rc);
 }
 #endif
 
-/***********************************************************************/
 short THEMouse(CHARTYPE *params)
-/***********************************************************************/
 {
    int w=0;
    CHARTYPE scrn=0;
@@ -349,32 +330,25 @@ short THEMouse(CHARTYPE *params)
    int curr_button_modifier=0;
    int curr_button=0;
 
-   TRACE_FUNCTION( "mouse.c:  THEMouse" );
    which_window_is_mouse_in( &scrn, &w );
    if (w == (-1)) /* shouldn't happen! */
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    rc = get_mouse_info(&curr_button,&curr_button_action,&curr_button_modifier);
    if (rc != RC_OK)
    {
-      TRACE_RETURN();
       return(rc);
    }
    rc = execute_mouse_commands(MOUSE_INFO_TO_KEY(w,curr_button,curr_button_action,curr_button_modifier));
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 void which_window_is_mouse_in(CHARTYPE *scrn,int *w)
-/***********************************************************************/
 {
    CHARTYPE i=0;
    int j=0;
    int y=0,x=0;
 
-   TRACE_FUNCTION("mouse.c:  which_window_is_mouse_in");
    for (i=0;i<display_screens;i++)
    {
       for (j=0;j<VIEW_WINDOWS;j++)
@@ -387,7 +361,6 @@ void which_window_is_mouse_in(CHARTYPE *scrn,int *w)
             {
                *scrn = i;
                *w = j;
-               TRACE_RETURN();
                return;
             }
          }
@@ -403,7 +376,6 @@ void which_window_is_mouse_in(CHARTYPE *scrn,int *w)
    {
       *w = WINDOW_STATAREA;
       *scrn = current_screen;
-      TRACE_RETURN();
       return;
    }
    /*
@@ -416,7 +388,6 @@ void which_window_is_mouse_in(CHARTYPE *scrn,int *w)
    {
       *w = WINDOW_FILETABS;
       *scrn = current_screen;
-      TRACE_RETURN();
       return;
    }
    /*
@@ -432,7 +403,6 @@ void which_window_is_mouse_in(CHARTYPE *scrn,int *w)
       {
          *w = WINDOW_DIVIDER;
          *scrn = current_screen;
-         TRACE_RETURN();
          return;
       }
    }
@@ -440,34 +410,22 @@ void which_window_is_mouse_in(CHARTYPE *scrn,int *w)
     * To get here, the mouse is NOT in ANY window. Return an error.
     */
    *w = WINDOW_ALL /* was (-1) */;
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void reset_saved_mouse_pos(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("mouse.c:  reset_saved_mouse_pos");
    last_mouse_x_pos = -1;
    last_mouse_y_pos = -1;
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void get_saved_mouse_pos(int *y, int *x)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("mouse.c:  get_saved_mouse_pos");
    *x = last_mouse_x_pos;
    *y = last_mouse_y_pos;
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void initialise_mouse_commands(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("mouse.c:   initialise_mouse_commands");
 
    /*
     * Default mouse actions in FILEAREA
@@ -571,28 +529,20 @@ void initialise_mouse_commands(void)
             WINDOW_DIVIDER|MOUSE_LEFT|MOUSE_CLICK|MOUSE_NORMAL,
             (CHARTYPE *)"SCREEN 1",FALSE,FALSE,0);
 
- TRACE_RETURN();
  return;
 }
-/***********************************************************************/
 int mouse_info_to_key(int w, int button, int button_action, int button_modifier)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("mouse.c:   mouse_info_to_key");
 
-   TRACE_RETURN();
    return(MOUSE_INFO_TO_KEY(w,button,button_action,button_modifier));
 }
 #endif
-/***********************************************************************/
 CHARTYPE *mouse_key_number_to_name(int key_number, CHARTYPE *key_name, int *shift)
-/***********************************************************************/
 {
    register int i=0;
    int w=0,b=0,ba=0,bm=0;
    CHARTYPE *win_name=(CHARTYPE *)"*** unknown ***";
 
-   TRACE_FUNCTION("mouse.c:   mouse_key_number_to_name");
    w = MOUSE_WINDOW_MASK(key_number);
    b = (MOUSE_BUTTON_MASK(key_number)>>MOUSE_BUTTON_OFFSET);
    ba = (MOUSE_ACTION_MASK(key_number)>>MOUSE_ACTION_OFFSET);
@@ -613,25 +563,20 @@ CHARTYPE *mouse_key_number_to_name(int key_number, CHARTYPE *key_name, int *shif
       }
    }
    sprintf( (DEFCHAR *)key_name, "%s%s%s in %s", button_modifier_names[bm], button_action_names[ba], button_names[b], win_name );
-   TRACE_RETURN();
    return( key_name );
 }
 
-/***********************************************************************/
 int find_mouse_key_value( CHARTYPE *mnemonic )
-/***********************************************************************/
 /*   Function: find the matching mouse key value for the supplied name */
 /* Parameters:                                                         */
 /*   mnemonic: the key name to be matched                              */
 /*   win_name: the window to be matched                                */
 /*    Returns: the mouse button, action and modifier or -1 if error    */
-/***********************************************************************/
 {
    int key=0,len=0;
    int b=0,ba=0,bm=0;
    CHARTYPE tmp_buf[6];
 
-   TRACE_FUNCTION("mouse.c:   find_mouse_key_value");
    /*
     * Parse the mnemonic for a valid mouse key definition...
     */
@@ -650,7 +595,6 @@ int find_mouse_key_value( CHARTYPE *mnemonic )
       else
       {
          display_error(1,mnemonic,FALSE);
-         TRACE_RETURN();
          return(-1);
       }
    }
@@ -664,7 +608,6 @@ int find_mouse_key_value( CHARTYPE *mnemonic )
       ))
    {
       display_error(1,mnemonic,FALSE);
-      TRACE_RETURN();
       return(-1);
    }
    /*
@@ -690,7 +633,6 @@ int find_mouse_key_value( CHARTYPE *mnemonic )
          break;
       default:
          display_error(1,mnemonic,FALSE);
-         TRACE_RETURN();
          return(-1);
          break;
    }
@@ -726,7 +668,6 @@ int find_mouse_key_value( CHARTYPE *mnemonic )
 #endif
       default:
          display_error(1,mnemonic,FALSE);
-         TRACE_RETURN();
          return(-1);
          break;
    }
@@ -769,18 +710,14 @@ int find_mouse_key_value( CHARTYPE *mnemonic )
 #endif
       default:
          display_error(1,mnemonic,FALSE);
-         TRACE_RETURN();
          return(-1);
          break;
    }
    key = b|ba|bm;
-   TRACE_RETURN();
    return(key);
 }
 
-/***********************************************************************/
 int find_mouse_key_value_in_window(CHARTYPE *mnemonic,CHARTYPE *win_name)
-/***********************************************************************/
 /*   Function: find the matching mouse key value for the supplied name */
 /*             in the specified window.                                */
 /* Parameters:                                                         */
@@ -788,20 +725,17 @@ int find_mouse_key_value_in_window(CHARTYPE *mnemonic,CHARTYPE *win_name)
 /*   win_name: the window to be matched                                */
 /*    Returns: the mouse button, action, modifier and window           */
 /*             or -1 if error.                                         */
-/***********************************************************************/
 {
    register short i=0;
    int w=(-1),key=0;
    int mb;
 
-   TRACE_FUNCTION("mouse.c:   find_mouse_key_value_in_window");
    /*
     * Parse the mnemonic for a valid mouse key definition...
     */
    mb = find_mouse_key_value( mnemonic );
    if ( mb == (-1) )
    {
-      TRACE_RETURN();
       return mb;
    }
    /*
@@ -825,11 +759,9 @@ int find_mouse_key_value_in_window(CHARTYPE *mnemonic,CHARTYPE *win_name)
    if (w == (-1))
    {
       display_error(1,win_name,FALSE);
-      TRACE_RETURN();
       return(-1);
    }
    key = w | mb;
-   TRACE_RETURN();
    return(key);
 }
 

@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* CURSOR.C - CURSOR commands                                          */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -38,19 +36,15 @@
 #include <the.h>
 #include <proto.h>
 
-/***********************************************************************/
 short THEcursor_cmdline( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short col)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_cmdline");
    /*
     * If in READV CMDLINE, return without doing anything
     */
    if ( in_readv )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -58,7 +52,6 @@ short THEcursor_cmdline( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short co
     */
    if (SCREEN_WINDOW_COMMAND(curr_screen) == (WINDOW *)NULL)
    {
-      TRACE_RETURN();
       return(rc);
    }
    if ( curr_view->current_window != WINDOW_COMMAND )
@@ -70,23 +63,18 @@ short THEcursor_cmdline( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short co
    wmove( SCREEN_WINDOW(curr_screen), 0, col-1 );
    curr_view->cmdline_col = col-1;
    cmd_verify_col = 1;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_column(void)
-/***********************************************************************/
 {
    short rc=RC_OK;
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_column");
    /*
     * If in READV CMDLINE, return without doing anything
     */
    if (in_readv)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    switch(CURRENT_VIEW->current_window)
@@ -101,23 +89,18 @@ short THEcursor_column(void)
          break;
    }
    rc = execute_move_cursor( current_screen, CURRENT_VIEW, CURRENT_VIEW->current_column-1 );
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_down( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short escreen)
-/***********************************************************************/
 {
    short rc=RC_OK;
    short x,y;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_down");
    /*
     * If in READV CMDLINE, return without doing anything
     */
    if ( in_readv )
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    switch( curr_view->current_window )
@@ -146,23 +129,18 @@ short THEcursor_down( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short escre
          display_error( 2, (CHARTYPE *)"", FALSE );
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_file(bool show_errors,LINETYPE line,LENGTHTYPE col)
-/***********************************************************************/
 {
    short rc=RC_OK;
    short y=0,x=0;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_file");
    /*
     * If in READV CMDLINE, return without doing anything.
     */
    if (in_readv)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -172,7 +150,6 @@ short THEcursor_file(bool show_errors,LINETYPE line,LENGTHTYPE col)
    {
       if ( show_errors )
          display_error(63,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
@@ -186,32 +163,26 @@ short THEcursor_file(bool show_errors,LINETYPE line,LENGTHTYPE col)
       {
          if ( show_errors )
             display_error(63,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       x = (LENGTHTYPE)((LINETYPE)col - (LINETYPE)CURRENT_VIEW->verify_col + 1);
    }
    y = get_row_for_focus_line(current_screen,line,CURRENT_VIEW->current_row);
    rc = THEcursor_move( current_screen, CURRENT_VIEW, show_errors, TRUE, (short)(y+1), x );
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_home( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool save )
-/***********************************************************************/
 {
    CHARTYPE last_win=0;
    unsigned short x=0,y=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_home");
    /*
     * If CMDLINE is OFF or in READV CMDLINE, return without doing anything
     */
    if ( SCREEN_WINDOW_COMMAND(curr_screen) == (WINDOW *)NULL
    ||   in_readv)
    {
-      TRACE_RETURN();
       return(rc);
    }
    last_win = curr_view->previous_window;
@@ -236,12 +207,9 @@ short THEcursor_home( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool save )
       wmove( SCREEN_WINDOW(curr_screen), 0, 0 );
    }
    build_screen( curr_screen );
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_left(short escreen,bool kedit_defaults)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    short rc=RC_OK;
@@ -250,7 +218,6 @@ short THEcursor_left(short escreen,bool kedit_defaults)
     * If escreen is CURSOR_ESCREEN or CURSOR_CUA, then scrolling of the
     * window will be done if possible.
     */
-   TRACE_FUNCTION("cursor.c:  THEcursor_left");
    /*
     * The following should be a temporary fix for KEDIT compatibility...
     */
@@ -265,7 +232,6 @@ short THEcursor_left(short escreen,bool kedit_defaults)
    if ( x > 0 )
    {
       wmove( CURRENT_WINDOW, y, x - 1 );
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -358,18 +324,14 @@ short THEcursor_left(short escreen,bool kedit_defaults)
       default:
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_right(short escreen,bool kedit_defaults)
-/***********************************************************************/
 {
    unsigned short x=0,y=0,tempx=0;
    COLTYPE right_column=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_right");
    /*
     * The following should be a temporary fix for KEDIT compatibility...
     */
@@ -385,7 +347,6 @@ short THEcursor_right(short escreen,bool kedit_defaults)
        */
       if ( CURRENT_VIEW->verify_col+x+1 > max_line_length )
       {
-         TRACE_RETURN();
          return(RC_OK);
       }
       /*
@@ -398,7 +359,6 @@ short THEcursor_right(short escreen,bool kedit_defaults)
       {
          rc = scroll_line( current_screen, CURRENT_VIEW, DIRECTION_FORWARD, 1L, FALSE, escreen );
          rc = Sos_firstcol( (CHARTYPE *)"" );
-         TRACE_RETURN();
          return(rc);
       }
    }
@@ -408,7 +368,6 @@ short THEcursor_right(short escreen,bool kedit_defaults)
    if ( x < right_column )
    {
       wmove( CURRENT_WINDOW, y, x+1 );
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -462,24 +421,19 @@ short THEcursor_right(short escreen,bool kedit_defaults)
       default:
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_up(short escreen)
-/***********************************************************************/
 {
    short rc=RC_OK;
    short x,y;
    CHARTYPE *current_command=NULL;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_up");
    /*
     * If in READV CMDLINE, return without doing anything
     */
    if (in_readv)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    switch( CURRENT_VIEW->current_window )
@@ -517,12 +471,9 @@ short THEcursor_up(short escreen)
          rc = RC_INVALID_OPERAND;
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_move( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool show_errors, bool escreen, short row, short col)
-/***********************************************************************/
 {
    register int i=0;
    short rc=RC_OK;
@@ -530,7 +481,6 @@ short THEcursor_move( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool show_e
    unsigned short max_row=0,min_row=0,max_col=0;
    short idx=(-1);
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_move");
 
    getyx( SCREEN_WINDOW_FILEAREA(curr_screen), y, x );
    /*
@@ -544,12 +494,10 @@ short THEcursor_move( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool show_e
        */
       if ( find_last_focus_line( curr_screen, &max_row ) != RC_OK )
       {
-         TRACE_RETURN();
          return(rc);
       }
       if ( find_first_focus_line( curr_screen, &min_row ) != RC_OK )
       {
-         TRACE_RETURN();
          return(rc);
       }
       if ( row == 0 )
@@ -570,7 +518,6 @@ short THEcursor_move( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool show_e
                {
                   if ( show_errors )
                      display_error( 63, (CHARTYPE *)"", FALSE );
-                  TRACE_RETURN();
                   return(RC_TOF_EOF_REACHED);/* this is a strange RC :-( */
                }
             }
@@ -622,7 +569,6 @@ short THEcursor_move( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool show_e
       {
          if ( show_errors )
             display_error( 63, (CHARTYPE *)"", FALSE );
-         TRACE_RETURN();
          return(RC_TOF_EOF_REACHED);/* this is a strange RC :-( */
       }
       /*
@@ -651,7 +597,6 @@ short THEcursor_move( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool show_e
             {
                if ( show_errors )
                   display_error( 63, (CHARTYPE *)"", FALSE );
-               TRACE_RETURN();
                return(RC_TOF_EOF_REACHED);/* this is a strange RC :-( */
             }
             rc = do_Sos_current( (CHARTYPE *)"", curr_screen, curr_view );
@@ -674,7 +619,6 @@ short THEcursor_move( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool show_e
             {
                if ( show_errors )
                   display_error( 63, (CHARTYPE *)"", FALSE );
-               TRACE_RETURN();
                return(RC_TOF_EOF_REACHED);/* this is a strange RC :-( */
             }
             rc = do_Sos_current( (CHARTYPE *)"", curr_screen, curr_view );
@@ -689,27 +633,21 @@ short THEcursor_move( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, bool show_e
          default:
             if ( show_errors )
                display_error( 63, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_TOF_EOF_REACHED);/* this is a strange RC :-( */
             break;
       }
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_goto(LINETYPE row, LENGTHTYPE col)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_goto");
    if ( row > CURRENT_FILE->number_lines
    ||   row < 0
    ||  col > max_line_length )
    {
       display_error(63,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_TOF_EOF_REACHED);/* this is a strange RC :-( */
    }
    if ( col == 0 )
@@ -736,12 +674,9 @@ short THEcursor_goto(LINETYPE row, LENGTHTYPE col)
       display_screen(current_screen);
       THEcursor_file( FALSE, row, col );
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short THEcursor_mouse(void)
-/***********************************************************************/
 {
 #if defined(PDCURSES_MOUSE_ENABLED)
 #define MOUSE_Y (MOUSE_Y_POS+1-screen[scrn].screen_start_row)
@@ -757,7 +692,6 @@ short THEcursor_mouse(void)
 #endif
    short rc=RC_OK;
 
-   TRACE_FUNCTION("cursor.c:  THEcursor_mouse");
 
 #if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    /*
@@ -765,7 +699,6 @@ short THEcursor_mouse(void)
     */
    if (in_readv)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -774,7 +707,6 @@ short THEcursor_mouse(void)
    which_window_is_mouse_in(&scrn,&w);
    if (w == (-1)) /* shouldn't happen! */
    {
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -790,17 +722,13 @@ short THEcursor_mouse(void)
    rc = THEcursor_move( current_screen, CURRENT_VIEW, TRUE, FALSE, (short)MOUSE_Y, (short)MOUSE_X );
 #endif
 
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 long where_now(void)
-/***********************************************************************/
 {
    long rc=0L;
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("cursor.c:  where_now");
    getyx(CURRENT_WINDOW,y,x);
    switch(CURRENT_VIEW->current_window)
    {
@@ -830,16 +758,12 @@ long where_now(void)
          rc |= WHERE_SCREEN_LAST;
    }
    rc |= (long)y;
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 long what_current_now(void)
-/***********************************************************************/
 {
    long rc=0;
 
-   TRACE_FUNCTION("cursor.c:  what_current_now");
    if (CURRENT_WINDOW_PREFIX != NULL)
    {
       if ((CURRENT_VIEW->prefix & PREFIX_LOCATION_MASK) == PREFIX_LEFT)
@@ -854,19 +778,14 @@ long what_current_now(void)
       if (CURRENT_VIEW->cmd_line == 'T')
          rc |= WHERE_WINDOW_CMDLINE_TOP;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 long what_other_now(void)
-/***********************************************************************/
 {
    long rc=0L;
 
-   TRACE_FUNCTION("cursor.c:  what_other_now");
    if (display_screens == 1)
    {
-      TRACE_RETURN();
       return(rc);
    }
    if (OTHER_SCREEN.win[WINDOW_PREFIX] != NULL)
@@ -883,12 +802,9 @@ long what_other_now(void)
       if (OTHER_SCREEN.screen_view->cmd_line == 'T')
          rc |= WHERE_WINDOW_CMDLINE_TOP;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 long where_next(long where,long what_current,long what_other)
-/***********************************************************************/
 {
    long where_row=0L,where_window=0L,where_screen=0L;
    long what_current_window=0L;
@@ -1077,9 +993,7 @@ long where_next(long where,long what_current,long what_other)
    }
    return(rc);
 }
-/***********************************************************************/
 long where_before(long where,long what_current,long what_other)
-/***********************************************************************/
 {
    long where_row=0L,where_window=0L,where_screen=0L;
    long what_current_window=0L;
@@ -1268,16 +1182,13 @@ long where_before(long where,long what_current,long what_other)
    }
    return(rc);
 }
-/***********************************************************************/
 bool enterable_field(long where)
-/***********************************************************************/
 {
    bool rc=TRUE;
    ROWTYPE row=0;
    long where_screen=0L;
    CHARTYPE scrn=0;
 
-   TRACE_FUNCTION("cursor.c:  enterable_field");
    where_screen = where & WHERE_SCREEN_MASK;
    row = (ROWTYPE)(where & WHERE_ROW_MASK);
    scrn = (where_screen == WHERE_SCREEN_LAST) ? 1 : 0;
@@ -1296,12 +1207,9 @@ bool enterable_field(long where)
       case WHERE_WINDOW_CMDLINE_BOTTOM:
          break;
    }
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short go_to_new_field(long save_where,long where)
-/***********************************************************************/
 {
    short rc=RC_OK;
 #if 0
@@ -1310,7 +1218,6 @@ short go_to_new_field(long save_where,long where)
    long save_where_window=0L,where_window=0L;
    ROWTYPE where_row=0;
 
-   TRACE_FUNCTION("cursor.c:  go_to_new_field");
 #if 0
    save_where_screen = save_where & WHERE_SCREEN_MASK;
    where_screen = where & WHERE_SCREEN_MASK;
@@ -1384,17 +1291,13 @@ short go_to_new_field(long save_where,long where)
       }
    }
    wmove(CURRENT_WINDOW,where_row,0);
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 void get_cursor_position(LINETYPE *screen_line, LENGTHTYPE *screen_column, LINETYPE *file_line, LENGTHTYPE *file_column)
-/***********************************************************************/
 {
    unsigned short y=0,x=0;
    unsigned short begy=0,begx=0;
 
-   TRACE_FUNCTION("cursor.c:  get_cursor_position");
    if (curses_started)
    {
       getyx(CURRENT_WINDOW,y,x);
@@ -1418,19 +1321,15 @@ void get_cursor_position(LINETYPE *screen_line, LENGTHTYPE *screen_column, LINET
          *file_line = *file_column = (-1L);
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short advance_focus_line(LINETYPE num_lines)
-/***********************************************************************/
 {
    unsigned short y=0,x=0;
    LINE *curr=NULL;
    LINETYPE actual_lines=num_lines;
    short direction=DIRECTION_FORWARD,rc=RC_OK;
 
-   TRACE_FUNCTION("cursor.c:  advance_focus_line");
    if (num_lines < 0L)
    {
       actual_lines = -num_lines;
@@ -1465,19 +1364,15 @@ short advance_focus_line(LINETYPE num_lines)
    }
    if (FOCUS_TOF || FOCUS_BOF)
       rc = RC_TOF_EOF_REACHED;
-   TRACE_RETURN();
    return rc;
 }
-/***********************************************************************/
 short advance_current_line(LINETYPE num_lines)
-/***********************************************************************/
 {
    LINE *curr=NULL;
    LINETYPE actual_lines=num_lines;
    short direction=DIRECTION_FORWARD;
    short y=0,x=0,rc=RC_OK;
 
-   TRACE_FUNCTION("cursor.c:  advance_current_line");
    if (num_lines < 0L)
    {
       actual_lines = -num_lines;
@@ -1519,22 +1414,17 @@ short advance_current_line(LINETYPE num_lines)
    display_screen(current_screen);
    if (CURRENT_TOF || CURRENT_BOF)
       rc = RC_TOF_EOF_REACHED;
-   TRACE_RETURN();
    return rc;
 }
-/***********************************************************************/
 short advance_current_or_focus_line(LINETYPE num_lines)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("cursor.c:  advance_current_or_focus_line");
    if (CURRENT_VIEW->current_window == WINDOW_COMMAND
    ||  compatible_feel == COMPAT_XEDIT)
       rc = advance_current_line(num_lines);
    else
       rc = advance_focus_line(num_lines);
-   TRACE_RETURN();
    return(rc);
 }
 /*man***************************************************************************
@@ -1575,12 +1465,10 @@ RETURN VALUE
      void
 *******************************************************************************/
 void resolve_current_and_focus_lines( CHARTYPE curr_screen, VIEW_DETAILS *view, LINETYPE true_line, LINETYPE num_lines, short direction, bool respect_stay, bool sos )
-/***********************************************************************/
 {
    short y=0,x=0;
    short save_compatible_feel=compatible_feel;
 
-   TRACE_FUNCTION("cursor.c:  resolve_current_and_focus_lines");
    /*
     * If no lines to move, don't do anything...
     */
@@ -1588,7 +1476,6 @@ void resolve_current_and_focus_lines( CHARTYPE curr_screen, VIEW_DETAILS *view, 
    {
       build_screen( curr_screen );
       display_screen( curr_screen );
-      TRACE_RETURN();
       return;
    }
    /*
@@ -1604,7 +1491,6 @@ void resolve_current_and_focus_lines( CHARTYPE curr_screen, VIEW_DETAILS *view, 
    {
       build_screen( curr_screen );
       display_screen( curr_screen );
-      TRACE_RETURN();
       return;
    }
    /*
@@ -1616,7 +1502,6 @@ void resolve_current_and_focus_lines( CHARTYPE curr_screen, VIEW_DETAILS *view, 
       view->current_line = true_line+num_lines-(LINETYPE)direction;
       build_screen( curr_screen );
       display_screen( curr_screen );
-      TRACE_RETURN();
       return;
    }
    /*
@@ -1661,6 +1546,5 @@ void resolve_current_and_focus_lines( CHARTYPE curr_screen, VIEW_DETAILS *view, 
          display_screen( curr_screen );
          break;
    }
-   TRACE_RETURN();
    return;
 }

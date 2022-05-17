@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* FILE.C - File and view related functions.                           */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -56,26 +54,19 @@ LINE *dir_first_line=NULL;
 LINE *dir_last_line=NULL;
 LINETYPE dir_number_lines=0L;
 
-/***********************************************************************/
 static short process_file_attributes(int restore_attributes, FILE_DETAILS *cf, CHARTYPE *filename)
-/***********************************************************************/
 {
 
-   TRACE_FUNCTION("file.c:    process_file_attributes");
    if (restore_attributes)
    {
-      TRACE_RETURN();
       return RC_OK;
    }
    else
    {
-      TRACE_RETURN();
       return RC_OK;
    }
 }
-/***********************************************************************/
 short get_file(CHARTYPE *filename)
-/***********************************************************************/
 {
    LINE *curr=NULL;
    CHARTYPE *work_filename;
@@ -87,7 +78,6 @@ short get_file(CHARTYPE *filename)
    CHARTYPE pseudo_file=PSEUDO_REAL;
    LENGTHTYPE len,sp_path_len,sp_fname_len;
 
-   TRACE_FUNCTION("file.c:    get_file");
 #if defined(MULTIPLE_PSEUDO_FILES)
    /*
     * Determine if we are editing a PSEUDO file.  Set a temporary flag
@@ -126,7 +116,6 @@ short get_file(CHARTYPE *filename)
             if ((rc = splitpath(filename)) != RC_OK)
             {
                display_error(10,filename,FALSE);
-               TRACE_RETURN();
                return(rc);
             }
             /*
@@ -139,7 +128,6 @@ short get_file(CHARTYPE *filename)
                if ((rc = read_directory()) != RC_OK)
                {
                 display_error(10,sp_path,FALSE);
-                TRACE_RETURN();
                 return(rc);
                }
              pseudo_file = PSEUDO_DIR;
@@ -157,7 +145,6 @@ short get_file(CHARTYPE *filename)
    if ((rc = splitpath(filename)) != RC_OK)
    {
       display_error(10,filename,FALSE);
-      TRACE_RETURN();
       return(rc);
    }
    /*
@@ -170,7 +157,6 @@ short get_file(CHARTYPE *filename)
       if ((rc = read_directory()) != RC_OK)
        {
           display_error(10,sp_path,FALSE);
-          TRACE_RETURN();
           return(rc);
        }
       strcpy((DEFCHAR *)sp_path,(DEFCHAR *)dir_pathname);
@@ -195,7 +181,6 @@ short get_file(CHARTYPE *filename)
    {
       if ((rc = defaults_for_first_file()) != RC_OK)
       {
-         TRACE_RETURN();
          return(rc);
       }
    }
@@ -234,7 +219,6 @@ short get_file(CHARTYPE *filename)
             if (rc != RC_OK)
             {
                /* FGC: fixme: problem: freed up view memory! */
-               TRACE_RETURN();
                return(rc);
             }
          }
@@ -242,7 +226,6 @@ short get_file(CHARTYPE *filename)
          {
             SCREEN_VIEW(current_screen) = CURRENT_VIEW;
             CURRENT_VIEW->in_ring = TRUE;
-            TRACE_RETURN();
             return(RC_OK);
          }
       }
@@ -252,7 +235,6 @@ short get_file(CHARTYPE *filename)
          save_current_file = CURRENT_FILE;
          if ((rc = defaults_for_other_files(NULL)) != RC_OK)
          {
-            TRACE_RETURN();
             return(rc);
          }
       }
@@ -265,7 +247,6 @@ short get_file(CHARTYPE *filename)
          save_current_file = CURRENT_FILE;
          if ((rc = defaults_for_other_files(NULL)) != RC_OK)
          {
-            TRACE_RETURN();
             return(rc);
          }
       }
@@ -274,7 +255,6 @@ short get_file(CHARTYPE *filename)
          CURRENT_VIEW = found_file;
          CURRENT_VIEW->in_ring = TRUE;
          SCREEN_VIEW(current_screen) = CURRENT_VIEW;
-         TRACE_RETURN();
          return(RC_OK);
       }
 #endif
@@ -292,7 +272,6 @@ short get_file(CHARTYPE *filename)
    {
       free_view_memory(TRUE,TRUE);
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -305,7 +284,6 @@ short get_file(CHARTYPE *filename)
    if ((CURRENT_FILE->attr = (COLOUR_ATTR *)(*the_malloc)(ATTR_MAX*sizeof(COLOUR_ATTR))) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    memset(CURRENT_FILE->attr,0,ATTR_MAX*sizeof(COLOUR_ATTR));
@@ -315,7 +293,6 @@ short get_file(CHARTYPE *filename)
    if ((CURRENT_FILE->ecolour = (COLOUR_ATTR *)(*the_malloc)(ECOLOUR_MAX*sizeof(COLOUR_ATTR))) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    memset(CURRENT_FILE->ecolour,0,ECOLOUR_MAX*sizeof(COLOUR_ATTR));
@@ -337,7 +314,6 @@ short get_file(CHARTYPE *filename)
    {
       free_view_memory(TRUE,TRUE);
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    strcpy((DEFCHAR *)CURRENT_FILE->fname,(DEFCHAR *)sp_fname);
@@ -346,7 +322,6 @@ short get_file(CHARTYPE *filename)
    {
       free_view_memory(TRUE,TRUE);
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    strcpy((DEFCHAR *)CURRENT_FILE->fpath,(DEFCHAR *)sp_path);
@@ -355,7 +330,6 @@ short get_file(CHARTYPE *filename)
    {
       free_view_memory(TRUE,TRUE);
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    strcpy((DEFCHAR *)CURRENT_FILE->actualfname,(DEFCHAR *)filename);
@@ -363,7 +337,6 @@ short get_file(CHARTYPE *filename)
    {
       free_view_memory( TRUE, TRUE );
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    strcpy( (DEFCHAR *)CURRENT_FILE->efileid, (DEFCHAR *)sp_path );
@@ -378,7 +351,6 @@ short get_file(CHARTYPE *filename)
       {
          free_view_memory(TRUE,TRUE);
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       new_filename( sp_path, sp_fname, CURRENT_FILE->autosave_fname, (CHARTYPE *)".aus" );
@@ -387,7 +359,6 @@ short get_file(CHARTYPE *filename)
    {
       free_view_memory(TRUE,TRUE);
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -435,7 +406,6 @@ short get_file(CHARTYPE *filename)
        */
       if (CURRENT_FILE->colouring)
          find_auto_parser(CURRENT_FILE);
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -458,7 +428,6 @@ short get_file(CHARTYPE *filename)
             {
                display_error(8,work_filename,FALSE);
                free_view_memory(TRUE,TRUE);
-               TRACE_RETURN();
                return(RC_ACCESS_DENIED);
             }
          }
@@ -471,14 +440,12 @@ short get_file(CHARTYPE *filename)
          {
             display_error(8,work_filename,FALSE);
             free_view_memory(TRUE,TRUE);
-            TRACE_RETURN();
             return(RC_ACCESS_DENIED);
          }
          break;
       case THE_FILE_NAME_TOO_LONG:
          display_error(8,(CHARTYPE *)"- file name too long",TRUE);
          free_view_memory(TRUE,TRUE);
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED);
          break;
       default:
@@ -502,7 +469,6 @@ short get_file(CHARTYPE *filename)
       if (CURRENT_FILE->disposition != FILE_NEW)
          fclose(CURRENT_FILE->fp);
       free_view_memory(TRUE,TRUE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
 
@@ -520,7 +486,6 @@ short get_file(CHARTYPE *filename)
             if (CURRENT_FILE->disposition != FILE_NEW)
                fclose(CURRENT_FILE->fp);
             free_view_memory(TRUE,TRUE);
-            TRACE_RETURN();
             return(RC_ACCESS_DENIED);
          }
       }
@@ -531,7 +496,6 @@ short get_file(CHARTYPE *filename)
             if (CURRENT_FILE->disposition != FILE_NEW)
                fclose(CURRENT_FILE->fp);
             free_view_memory(TRUE,TRUE);
-            TRACE_RETURN();
             return(RC_ACCESS_DENIED);
          }
       }
@@ -548,7 +512,6 @@ short get_file(CHARTYPE *filename)
        strlen((DEFCHAR *)BOTTOM_OF_FILE),0,FALSE)) == NULL)
    {
       free_view_memory(TRUE,TRUE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
@@ -592,12 +555,9 @@ short get_file(CHARTYPE *filename)
     */
    if (CURRENT_FILE->colouring)
       find_auto_parser(CURRENT_FILE);
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LINETYPE numlines, bool called_from_get_command )
-/***********************************************************************/
 {
 #define THE_CR '\r'
 #define THE_LF '\n'
@@ -615,7 +575,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
    LENGTHTYPE read_start=0;
    LINETYPE total_lines_read=0L,actual_lines_read=0L;
 
-   TRACE_FUNCTION("file.c:    read_file");
    temp = curr;
 #ifdef MSWIN
    WinLock();
@@ -638,7 +597,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
 #ifdef MSWIN
          WinUnLock();
 #endif
-         TRACE_RETURN();
          return(NULL);
       }
       memcpy( trec + read_start, brec, sizeof(CHARTYPE)*chars_read );
@@ -717,7 +675,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
 #ifdef MSWIN
                   WinUnLock();
 #endif
-                  TRACE_RETURN();
                   return(NULL);
                }
                if (total_line_length > maxlen)
@@ -729,7 +686,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
 #ifdef MSWIN
                   WinUnLock();
 #endif
-                  TRACE_RETURN();
                   return(NULL);
                }
                actual_lines_read++;
@@ -761,7 +717,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
 #ifdef MSWIN
                      WinUnLock();
 #endif
-                     TRACE_RETURN();
                      return(NULL);
                   }
                }
@@ -772,7 +727,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
 #ifdef MSWIN
                   WinUnLock();
 #endif
-                  TRACE_RETURN();
                   return(NULL);
                }
                actual_lines_read++;
@@ -798,19 +752,15 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
    if (!in_profile)
       show_statarea();
 #endif
-   TRACE_RETURN();
    return(temp);
 }
-/***********************************************************************/
 LINE *read_fixed_file(FILE *fp,LINE *curr,CHARTYPE *filename,LINETYPE fromline,LINETYPE numlines)
-/***********************************************************************/
 {
    LINE *temp=NULL;
    bool eof_reached=FALSE;
    LENGTHTYPE chars_read=0;
    LINETYPE total_lines_read=0L,actual_lines_read=0L;
 
-   TRACE_FUNCTION("file.c:    read_fixed_file");
    temp = curr;
 #ifdef MSWIN
    WinLock();
@@ -843,7 +793,6 @@ LINE *read_fixed_file(FILE *fp,LINE *curr,CHARTYPE *filename,LINETYPE fromline,L
 #ifdef MSWIN
                WinUnLock();
 #endif
-               TRACE_RETURN();
                return(NULL);
             }
             actual_lines_read++;
@@ -860,13 +809,10 @@ LINE *read_fixed_file(FILE *fp,LINE *curr,CHARTYPE *filename,LINETYPE fromline,L
    if (!in_profile)
       show_statarea();
 #endif
-   TRACE_RETURN();
    return(temp);
 }
-/***********************************************************************/
 short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_lines,
                 LINETYPE start_line,LINETYPE *num_file_lines,bool append,LENGTHTYPE start_col, LENGTHTYPE end_col,bool ignore_scope,bool lines_based_on_scope,bool autosave)
-/***********************************************************************/
 {
    CHARTYPE *bak_filename=NULL;
    CHARTYPE *write_fname=NULL;
@@ -887,14 +833,12 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
    int eol_len=0;
    char _THE_FAR buf[MAX_FILE_NAME+1];
 
-   TRACE_FUNCTION("file.c:    save_file");
 
 #ifdef MSWIN_NOT_REQUIRED
    if (!Registered()
    &&  cf->number_lines > 100L)
    {
       display_error(77,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
 #endif
@@ -905,7 +849,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
    &&  (autosave || CURRENT_FILE->save_alt == 0)
    &&  blank_field(new_fname))
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
 
@@ -932,7 +875,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
    if ((write_fname = (CHARTYPE *)(*the_malloc)(MAX_FILE_NAME)) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    if (strcmp((DEFCHAR *)new_fname,"") != 0)       /* new_fname supplied */
@@ -951,7 +893,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
             (*the_free)(bak_filename);
          if (write_fname != (CHARTYPE *)NULL)
             (*the_free)(write_fname);
-         TRACE_RETURN();
          return(rc);
       }
       strcpy((DEFCHAR *)write_fname,(DEFCHAR *)sp_path);
@@ -968,7 +909,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
             (*the_free)(bak_filename);
          if (write_fname != (CHARTYPE *)NULL)
             (*the_free)(write_fname);
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED);
       }
       /*
@@ -981,7 +921,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
             (*the_free)(bak_filename);
          if (write_fname != (CHARTYPE *)NULL)
             (*the_free)(write_fname);
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED);
       }
    }
@@ -1003,7 +942,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
             (*the_free)(bak_filename);
          if (write_fname != (CHARTYPE *)NULL)
             (*the_free)(write_fname);
-         TRACE_RETURN();
          return(RC_ACCESS_DENIED);
       }
       /*
@@ -1032,7 +970,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
                (*the_free)(bak_filename);
             if (write_fname != (CHARTYPE *)NULL)
                (*the_free)(write_fname);
-            TRACE_RETURN();
             return(RC_ACCESS_DENIED);
          }
 
@@ -1042,7 +979,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
                (*the_free)(bak_filename);
             if (write_fname != (CHARTYPE *)NULL)
                (*the_free)(write_fname);
-            TRACE_RETURN();
             return(rc);
          }
          /*
@@ -1061,7 +997,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
                   (*the_free)(bak_filename);
                if (write_fname != (CHARTYPE *)NULL)
                   (*the_free)(write_fname);
-               TRACE_RETURN();
                return(RC_ACCESS_DENIED);
             }
          }
@@ -1077,7 +1012,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
                   (*the_free)(bak_filename);
                if (write_fname != (CHARTYPE *)NULL)
                   (*the_free)(write_fname);
-               TRACE_RETURN();
                return(RC_OUT_OF_MEMORY);
             }
             new_filename( cf->fpath, cf->fname, bak_filename, BACKUP_SUFFIXx );
@@ -1100,7 +1034,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
                         (*the_free)(bak_filename);
                      if (write_fname != (CHARTYPE *)NULL)
                         (*the_free)(write_fname);
-                     TRACE_RETURN();
                      return(RC_ACCESS_DENIED);
                   }
                   fp2 = fopen((DEFCHAR *)bak_filename,"wb");
@@ -1112,7 +1045,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
                      if (write_fname != (CHARTYPE *)NULL)
                         (*the_free)(write_fname);
                      fclose(fp1);
-                     TRACE_RETURN();
                      return(RC_ACCESS_DENIED);
                   }
                   while(1)
@@ -1141,7 +1073,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
                         (*the_free)(bak_filename);
                      if (write_fname != (CHARTYPE *)NULL)
                         (*the_free)(write_fname);
-                     TRACE_RETURN();
                      return(RC_ACCESS_DENIED);
                   }
                }
@@ -1163,7 +1094,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
          (*the_free)(bak_filename);
       if (write_fname != (CHARTYPE *)NULL)
          (*the_free)(write_fname);
-      TRACE_RETURN();
       return(RC_ACCESS_DENIED);
    }
    /*
@@ -1308,7 +1238,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
                (*the_free)(bak_filename);
             if (write_fname != (CHARTYPE *)NULL)
                (*the_free)(write_fname);
-            TRACE_RETURN();
             return(RC_ACCESS_DENIED);
          }
       }
@@ -1351,33 +1280,24 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
    if (write_fname != (CHARTYPE *)NULL)
       (*the_free)(write_fname);
 
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 static short write_char(CHARTYPE chr,FILE *fp)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("file.c:    write_char");
    if (fputc(chr,fp) == chr
    && ferror(fp) == 0)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    clearerr(fp);
    display_error(57,(CHARTYPE *)"",FALSE);
-   TRACE_RETURN();
    return(RC_DISK_FULL);
 }
-/***********************************************************************/
 static short write_line(CHARTYPE *line,LENGTHTYPE len,FILE *fp,short trailing)
-/***********************************************************************/
 {
    short rc=RC_OK;
    long newlen=len;
 
-   TRACE_FUNCTION("file.c:    write_line");
    /*
     * If we started THE with -u switch, then DO NOT do anything with
     * TRAILING; force it to ON
@@ -1410,14 +1330,10 @@ static short write_line(CHARTYPE *line,LENGTHTYPE len,FILE *fp,short trailing)
       default:
          break;
    }
-   TRACE_RETURN();
    return rc;
 }
-/***********************************************************************/
 void increment_alt(FILE_DETAILS *cf)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("file.c:    increment_alt");
    cf->autosave_alt++;
    cf->save_alt++;
    /*
@@ -1431,19 +1347,15 @@ void increment_alt(FILE_DETAILS *cf)
       if (save_file(cf,cf->autosave_fname,TRUE,cf->number_lines,1L,NULL,FALSE,0,max_line_length,TRUE,FALSE,TRUE) == RC_OK)
          cf->autosave_alt = 0;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 CHARTYPE *new_filename(CHARTYPE *ofp,CHARTYPE *ofn,
                             CHARTYPE *nfn,CHARTYPE *ext)
-/***********************************************************************/
 {
 #if defined(DOS)
    short rc=RC_OK;
 #endif
 
-   TRACE_FUNCTION("file.c:    new_filename");
    strcpy((DEFCHAR *)nfn,(DEFCHAR *)ofp);
    strcat((DEFCHAR *)nfn,(DEFCHAR *)ofn);
 
@@ -1455,31 +1367,23 @@ CHARTYPE *new_filename(CHARTYPE *ofp,CHARTYPE *ofn,
 
 
    strcat((DEFCHAR *)nfn,(DEFCHAR *)ext);
-   TRACE_RETURN();
    return(nfn);
 }
-/***********************************************************************/
 short remove_aus_file(FILE_DETAILS *cf)
-/***********************************************************************/
 {
    CHARTYPE *aus_filename=NULL;
 
-   TRACE_FUNCTION("file.c:    remove_aus_file");
    if ((aus_filename = (CHARTYPE *)(*the_malloc)(strlen((DEFCHAR *)cf->fpath)+strlen((DEFCHAR *)cf->fname)+5)) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    new_filename(cf->fpath,cf->fname,aus_filename,(CHARTYPE *)".aus");
    remove_file(aus_filename);
    (*the_free)(aus_filename);
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short free_view_memory(bool free_file_lines,bool display_the_screen)
-/***********************************************************************/
 {
    VIEW_DETAILS *save_current_view=NULL;
    CHARTYPE save_current_screen=0;
@@ -1490,7 +1394,6 @@ short free_view_memory(bool free_file_lines,bool display_the_screen)
    CHARTYPE save_prefix=0;
    short save_gap=0,save_prefix_width=0;
 
-   TRACE_FUNCTION("file.c:    free_view_memory");
    /*
     * Before freeing up anything, determine which scenario is current...
     */
@@ -1572,7 +1475,6 @@ short free_view_memory(bool free_file_lines,bool display_the_screen)
             {
                if (set_up_windows(current_screen) != RC_OK)
                {
-                  TRACE_RETURN();
                   return(RC_OK);
                }
             }
@@ -1603,7 +1505,6 @@ short free_view_memory(bool free_file_lines,bool display_the_screen)
          current_screen = (current_screen==0)?1:0; /* make other screen current */
          if ((rc = defaults_for_other_files(PREVIOUS_VIEW)) != RC_OK)
          {
-            TRACE_RETURN();
             return(rc);
          }
          CURRENT_FILE = save_current_view->file_for_view;
@@ -1616,12 +1517,10 @@ short free_view_memory(bool free_file_lines,bool display_the_screen)
          {
             if ((rc = set_up_windows((CHARTYPE)(other_screen))) != RC_OK)
             {
-               TRACE_RETURN();
                return(rc);
             }
             if ((rc = set_up_windows(current_screen)) != RC_OK)
             {
-               TRACE_RETURN();
                return(rc);
             }
          }
@@ -1676,7 +1575,6 @@ short free_view_memory(bool free_file_lines,bool display_the_screen)
           */
          if ((rc = defaults_for_other_files(OTHER_VIEW)) != RC_OK)
          {
-            TRACE_RETURN();
             return(rc);
          }
          CURRENT_SCREEN.screen_view = CURRENT_VIEW;
@@ -1685,7 +1583,6 @@ short free_view_memory(bool free_file_lines,bool display_the_screen)
          set_screen_defaults();
          if ((rc = set_up_windows(current_screen)) != RC_OK)
          {
-            TRACE_RETURN();
             return(rc);
          }
          break;
@@ -1710,14 +1607,10 @@ short free_view_memory(bool free_file_lines,bool display_the_screen)
          wmove(CURRENT_WINDOW,y,x);
       }
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 void free_a_view(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("file.c:    free_a_view");
    /*
     * If the marked block is within the current view, unset the variables.
     */
@@ -1728,14 +1621,10 @@ void free_a_view(void)
    CURRENT_VIEW = vll_del(&vd_first,&vd_last,CURRENT_VIEW,DIRECTION_BACKWARD);
    CURRENT_SCREEN.screen_view = CURRENT_VIEW;
    number_of_views--;
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short free_file_memory(bool free_file_lines)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("file.c:    free_file_memory");
    /*
     * If the file name is not NULL, free it...
     */
@@ -1853,12 +1742,9 @@ short free_file_memory(bool free_file_lines)
       MyRexxDeregisterFunction(tmp);
    }
    number_of_files--;
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short read_directory(void)
-/***********************************************************************/
 {
 #if !defined(MULTIPLE_PSEUDO_FILES)
 #endif
@@ -1873,7 +1759,6 @@ short read_directory(void)
    int len;
    CHARTYPE _THE_FAR dir_rec[MAX_FILE_NAME+50];
 
-   TRACE_FUNCTION( "file.c:    read_directory" );
    /*
     * Get all file info for the selected files into structure. If no file
     * name specified, force it to '*'.
@@ -1885,12 +1770,10 @@ short read_directory(void)
    if ( rc != RC_OK )
    {
       display_error( (unsigned short)((rc==RC_FILE_NOT_FOUND) ? 9 : rc), sp_path, FALSE );
-      TRACE_RETURN();
       return(RC_FILE_NOT_FOUND);
    }
    if ( dpfirst == dplast )
    {
-      TRACE_RETURN();
       return(RC_FILE_NOT_FOUND);
    }
    /*
@@ -1939,7 +1822,6 @@ short read_directory(void)
     */
    if ( ( dir_first_line = add_LINE( dir_first_line, NULL, TOP_OF_FILE, strlen( (DEFCHAR *)TOP_OF_FILE ), 0, FALSE ) ) == NULL )
    {
-     TRACE_RETURN();
      return(RC_OUT_OF_MEMORY);
    }
    /*
@@ -1947,7 +1829,6 @@ short read_directory(void)
     */
    if ( ( dir_last_line = add_LINE( dir_first_line, dir_first_line, BOTTOM_OF_FILE, strlen( (DEFCHAR *)BOTTOM_OF_FILE ), 0, FALSE ) ) == NULL )
    {
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    curr = dir_first_line;
@@ -1982,7 +1863,6 @@ short read_directory(void)
       }
       if ( ( curr = add_LINE( dir_first_line, curr, dir_rec, strlen( (DEFCHAR *)dir_rec ), 0, FALSE ) ) == NULL )
       {
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
 #if FILENAME_LENGTH
@@ -1995,16 +1875,12 @@ short read_directory(void)
    }
    (*the_free)(dpfirst);
 
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 VIEW_DETAILS *find_file(CHARTYPE *fp,CHARTYPE *fn)
-/***********************************************************************/
 {
    VIEW_DETAILS *save_current_view=NULL,*found_file=NULL;
 
-   TRACE_FUNCTION("file.c:    find_file");
    save_current_view = CURRENT_VIEW;
    CURRENT_VIEW = vd_first;
    while(CURRENT_VIEW != (VIEW_DETAILS *)NULL)
@@ -2014,45 +1890,35 @@ VIEW_DETAILS *find_file(CHARTYPE *fp,CHARTYPE *fn)
       {
          found_file = CURRENT_VIEW;
          CURRENT_VIEW = save_current_view;
-         TRACE_RETURN();
          return(found_file);
       }
       CURRENT_VIEW = CURRENT_VIEW->next;
    }
    CURRENT_VIEW = save_current_view;
-   TRACE_RETURN();
    return((VIEW_DETAILS *)NULL);
 }
-/***********************************************************************/
 VIEW_DETAILS *find_pseudo_file(CHARTYPE file)
-/***********************************************************************/
 {
    VIEW_DETAILS *cv;
 
-   TRACE_FUNCTION("file.c:    find_pseudo_file");
    cv = vd_first;
    while( cv )
    {
       if ( cv->file_for_view
       &&   cv->file_for_view->pseudo_file == file )
       {
-         TRACE_RETURN();
          return(cv);
       }
       cv = cv->next;
    }
-   TRACE_RETURN();
    return((VIEW_DETAILS *)NULL);
 }
-/***********************************************************************/
 static short process_command_line(CHARTYPE *profile_command_line,LINETYPE line_number)
-/***********************************************************************/
 {
    short rc=RC_OK;
    short len=0;
    bool strip=FALSE;
 
-   TRACE_FUNCTION("file.c:    process_command_line");
    /*
     * If the first line of the macro file does not contain the comment
     * 'NOREXX' abort further processing of the macro file.
@@ -2060,7 +1926,6 @@ static short process_command_line(CHARTYPE *profile_command_line,LINETYPE line_n
    if (memcmp(profile_command_line,"/*NOREXX*/",10) != 0
    && line_number == 1)
    {
-      TRACE_RETURN();
       return(RC_NOREXX_ERROR);
    }
    /*
@@ -2068,7 +1933,6 @@ static short process_command_line(CHARTYPE *profile_command_line,LINETYPE line_n
     */
    if (memcmp(profile_command_line,"/*",2) == 0)    /* is a comment line */
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -2089,19 +1953,15 @@ static short process_command_line(CHARTYPE *profile_command_line,LINETYPE line_n
    }
    rc = command_line(profile_command_line,COMMAND_ONLY_FALSE);
 
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short execute_command_file(FILE *fp)
-/***********************************************************************/
 {
    LENGTHTYPE i;
    CHARTYPE ch;
    short rc=RC_OK;
    LINETYPE line_number=0;
 
-   TRACE_FUNCTION("file.c:    execute_command_file");
 
    memset(profile_command_line,' ',MAX_LENGTH_OF_LINE);
    i = 0;
@@ -2150,30 +2010,24 @@ short execute_command_file(FILE *fp)
       profile_command_line[i] = ch;
       i++;
    }
-   TRACE_RETURN();
    return(rc);
 }
 
-/***********************************************************************/
 CHARTYPE *read_file_into_memory(CHARTYPE *filename,int *buffer_size)
-/***********************************************************************/
 {
    FILE *fp=NULL;
    CHARTYPE *buffer=NULL;
 
-   TRACE_FUNCTION("file.c:    read_file_into_memory");
 
    if ( ( stat( (DEFCHAR *)filename, &stat_buf ) == 0 )
    &&   ( is_a_dir_stat( stat_buf.st_mode ) ) )
    {
       display_error(8,(CHARTYPE *)"specified file is a directory",FALSE);
-      TRACE_RETURN();
       return NULL;
    }
    if ((buffer = (CHARTYPE *)(*the_malloc)((stat_buf.st_size)*sizeof(CHARTYPE))) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return NULL;
    }
    /*
@@ -2185,7 +2039,6 @@ CHARTYPE *read_file_into_memory(CHARTYPE *filename,int *buffer_size)
    {
       display_error(8,filename,FALSE);
       (*the_free)(buffer);
-      TRACE_RETURN();
       return NULL;
    }
    /*
@@ -2194,6 +2047,5 @@ CHARTYPE *read_file_into_memory(CHARTYPE *filename,int *buffer_size)
     */
    *buffer_size = fread(buffer,sizeof(CHARTYPE),stat_buf.st_size,fp);
    fclose(fp);
-   TRACE_RETURN();
    return(buffer);
 }

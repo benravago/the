@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* SHOW.C - Functions involving displaying the data.                   */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -352,9 +350,7 @@ static int is_column_being_shown(CHARTYPE scrno,COLTYPE col)
       return 0;
 }
 #endif
-/***********************************************************************/
 static void display_line_left( WINDOW *win, chtype colour, CHARTYPE *str, int lenstr, int line, int width )
-/***********************************************************************/
 {
    int linelength;
 
@@ -369,10 +365,8 @@ static void display_line_left( WINDOW *win, chtype colour, CHARTYPE *str, int le
    END_LINE_OUTPUT();
 }
 
-/***********************************************************************/
 static void display_syntax_line_left(WINDOW *win, chtype colour, CHARTYPE *str,
                               chtype *high, int line, int width)
-/***********************************************************************/
 {
    int linelength;
 
@@ -387,10 +381,8 @@ static void display_syntax_line_left(WINDOW *win, chtype colour, CHARTYPE *str,
    END_LINE_OUTPUT();
 }
 
-/***********************************************************************/
 static void display_line_center(WINDOW *win, chtype colour, CHARTYPE *str,
                               int line, int width, int fillchar)
-/***********************************************************************/
 {
    int linelength,first;
 
@@ -412,9 +404,7 @@ static void display_line_center(WINDOW *win, chtype colour, CHARTYPE *str,
 /* real stuff ****************************************************************/
 
 
-/***********************************************************************/
 void prepare_idline(CHARTYPE scrno)
-/***********************************************************************/
 {
    short fpath_len=0,max_name=0;
    LENGTHTYPE x=0;
@@ -432,7 +422,6 @@ void prepare_idline(CHARTYPE scrno)
    int buflen;
    char *pos_string=NULL;
 
-   TRACE_FUNCTION("show.c:    prepare_idline");
    /*
     * Determine content of window title. This can be display whether IDLINE is ON or OFF
     */
@@ -627,18 +616,14 @@ void prepare_idline(CHARTYPE scrno)
    }
    buflen = screen[scrno].screen_cols - max_name - 1;
    sprintf( (DEFCHAR*)linebuf + max_name, " %-*.*s", buflen, buflen, buffer );
-   TRACE_RETURN();
    return;
 }
 
-/***********************************************************************/
 void show_heading(CHARTYPE scrno)
-/***********************************************************************/
 {
    FILE_DETAILS *screen_file = SCREEN_FILE(scrno);
    WINDOW *screen_window_idline = SCREEN_WINDOW_IDLINE(scrno);
 
-   TRACE_FUNCTION("show.c:    show_heading");
 
    prepare_idline( scrno );
 
@@ -650,12 +635,9 @@ void show_heading(CHARTYPE scrno)
    END_LINE_OUTPUT();
 
    wnoutrefresh( screen_window_idline );
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void show_statarea(void)
-/***********************************************************************/
 {
    short y=0,x=0;
 #ifdef USE_UTF8
@@ -667,13 +649,11 @@ void show_statarea(void)
    int length;
    char _THE_FAR buffer[THE_MAX_SCREEN_WIDTH+10];
 
-   TRACE_FUNCTION("show.c:    show_statarea");
    /*
     * If the status line is off, just exit...
     */
    if ( STATUSLINEx == 'O' || !curses_started || CURRENT_VIEW == NULL )
    {
-      TRACE_RETURN();
       return;
    }
    /*
@@ -683,10 +663,8 @@ void show_statarea(void)
    {
 #ifdef MSWIN
       Show_GUI_footing();
-      TRACE_RETURN();
       return;
 #endif
-      TRACE_RETURN();
       return;
    }
    /*
@@ -790,7 +768,6 @@ void show_statarea(void)
          char buf[100];
          int sz=100;
          charpos = max(0,(COLS-19));
-//         sprintf((DEFCHAR*)linebuf+charpos,"' '=%02X      ", key );
          u8_escape_wchar( buf, sz, key );
          sprintf((DEFCHAR*)linebuf+charpos,"' '=%s", buf );
       }
@@ -834,14 +811,10 @@ void show_statarea(void)
    }
 #endif
    wnoutrefresh( statarea );
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void clear_statarea(void)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("show.c:    clear_statarea");
    /*
     * If the status line is not displayed, don't do anything.
     */
@@ -858,12 +831,9 @@ void clear_statarea(void)
       default:
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void display_filetabs( VIEW_DETAILS *start)
-/***********************************************************************/
 {
    VIEW_DETAILS *curr;
    FILE_DETAILS *first_view_file=NULL;
@@ -873,7 +843,6 @@ void display_filetabs( VIEW_DETAILS *start)
    int fname_len, fill_len = COLS-2, extras;
    bool first = TRUE, more = FALSE;
 
-   TRACE_FUNCTION("show.c:    display_filetabs");
    /*
     * If filetabs is not displayed, don't do anything.
     * Also, if scale line is not on, we don't display filetabs
@@ -953,18 +922,14 @@ void display_filetabs( VIEW_DETAILS *start)
       END_LINE_OUTPUT();
       wnoutrefresh( filetabs );
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void redraw_window(WINDOW *win)
-/***********************************************************************/
 {
    register short i=0,j=0;
    chtype ch=0;
    short y=0,x=0;
 
-   TRACE_FUNCTION( "show.c:    redraw_window" );
    getyx( win, y, x );
    for ( i = 0; i < getmaxx( win ); i++ )
    {
@@ -976,17 +941,13 @@ void redraw_window(WINDOW *win)
       }
    }
    wmove( win, y, x );
-   TRACE_RETURN();
    return;
 }
 #if NOT_USED
-/***********************************************************************/
 void repaint_screen(void)
-/***********************************************************************/
 {
    short y=0,x=0;
 
-   TRACE_FUNCTION("show.c:    repaint_screen");
 
    getyx(CURRENT_WINDOW,y,x);
    y = get_row_for_focus_line(current_screen,CURRENT_VIEW->focus_line,
@@ -999,21 +960,17 @@ void repaint_screen(void)
    /* show_heading();*/
    wmove(CURRENT_WINDOW,y,x);
 
-   TRACE_RETURN();
    return;
 }
 #endif
 
-/***********************************************************************/
 void build_screen(CHARTYPE scrno)
-/***********************************************************************/
 {
    LINE *curr=NULL;
    LINE *save_curr=NULL;
    short crow = SCREEN_VIEW(scrno)->current_row;
    LINETYPE cline = SCREEN_VIEW(scrno)->current_line;
 
-   TRACE_FUNCTION("show.c:    build_screen");
    hexshow_curr = save_curr = curr = lll_find(SCREEN_FILE(scrno)->first_line,SCREEN_FILE(scrno)->last_line,
                                               cline,SCREEN_FILE(scrno)->number_lines);
    displayed_max_line_length = 0;
@@ -1028,18 +985,14 @@ void build_screen(CHARTYPE scrno)
     */
    curr = save_curr->prev;
    build_lines(scrno,DIRECTION_BACKWARD,curr,crow,(short)(crow-1));
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void display_screen(CHARTYPE scrno)
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
    unsigned short savex=0,savey=0;
    short crow;
 
-   TRACE_FUNCTION("show.c:    display_screen");
    /*
     * We don't display the screen if we are in a macro, running in batch,
     * running REPEAT command, or curses hasn't started yet...
@@ -1048,7 +1001,6 @@ void display_screen(CHARTYPE scrno)
    {
       if ( batch_only || in_macro || !curses_started )
       {
-         TRACE_RETURN();
          return;
       }
    }
@@ -1126,20 +1078,15 @@ void display_screen(CHARTYPE scrno)
    if (SCREEN_VIEW(scrno)->current_window == WINDOW_COMMAND)
       wmove(SCREEN_PREV_WINDOW(scrno),savey,savex);
    wmove(SCREEN_WINDOW(scrno),y,x);
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void display_cmdline( CHARTYPE curr_screen, VIEW_DETAILS *curr_view )
-/***********************************************************************/
 {
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("show.c:    display_cmdline");
    if ( batch_only
    ||  !curses_started )
    {
-      TRACE_RETURN();
       return;
    }
    if ( SCREEN_WINDOW_COMMAND(curr_screen) != NULL )
@@ -1157,13 +1104,10 @@ void display_cmdline( CHARTYPE curr_screen, VIEW_DETAILS *curr_view )
       wmove( SCREEN_WINDOW_COMMAND(curr_screen), y, x );
    }
    /* TODO */
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 static void build_lines(CHARTYPE scrno,short direction,LINE *curr,
                          short rows,short start_row)
-/***********************************************************************/
 {
   /* BE CAREFUL! This function and his friend build_lines_for_display below
    * should always be changed in conjunction. EVER!
@@ -1185,7 +1129,6 @@ static void build_lines(CHARTYPE scrno,short direction,LINE *curr,
    int display_rec,isTOForEOF,is_hexshow_on,has_reserveds,is_shadow,
        is_tab_on,is_scale_on;
 
-   TRACE_FUNCTION("show.c:    build_lines");
    /*
     * These only need to be calculated once.
     */
@@ -1547,13 +1490,10 @@ static void build_lines(CHARTYPE scrno,short direction,LINE *curr,
       else
          curr = curr->prev;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 static void build_lines_for_display(CHARTYPE scrno,short direction,
                                     short rows,short start_row)
-/***********************************************************************/
 {
    /*
     * should always be changed in conjunction. EVER!
@@ -1586,7 +1526,6 @@ static void build_lines_for_display(CHARTYPE scrno,short direction,
    LENGTHTYPE mark_start_col=0;
    LENGTHTYPE mark_end_col=0;
 
-   TRACE_FUNCTION("show.c:    build_lines_for_display");
    /*
     * Determine the row that is the focus line.
     */
@@ -2033,12 +1972,9 @@ static void build_lines_for_display(CHARTYPE scrno,short direction,
       scurr += direction;
       rows--;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 static void show_lines(CHARTYPE scrno)
-/***********************************************************************/
 {
    short i=0;
    LENGTHTYPE j=0;
@@ -2054,7 +1990,6 @@ static void show_lines(CHARTYPE scrno)
    CHARTYPE *ptr;
    SHOW_LINE *scurr = screen[scrno].sl;
 
-   TRACE_FUNCTION("show.c:    show_lines");
    for (i=0,scurr=screen[scrno].sl;i<screen[scrno].rows[WINDOW_FILEAREA];i++,scurr++)
    {
       /*
@@ -2289,13 +2224,10 @@ static void show_lines(CHARTYPE scrno)
    if (SCREEN_WINDOW_GAP(scrno) != NULL)
       wattrset(SCREEN_WINDOW_GAP(scrno),set_colour(SCREEN_FILE(scrno)->attr+ATTR_GAP));
    wattrset(screen_window_filearea,set_colour(SCREEN_FILE(scrno)->attr+ATTR_FILEAREA));
-   TRACE_RETURN();
    return;
 }
 #define TMP_EXTRA 1
-/***********************************************************************/
 static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
-/***********************************************************************/
 {
    LENGTHTYPE vend,vlen,blanks_after_length;
    LENGTHTYPE blength,clength;
@@ -2308,7 +2240,6 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
    int fillverify;
    chtype normal,other,*high;
 
-   TRACE_FUNCTION("show.c:    show_a_line");
    /*
     * If the line to be displayed is a reserved line, set the columns to
     * be displayed so that the full line is displayed.
@@ -2337,7 +2268,6 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
       INIT_LINE_OUTPUT(SCREEN_WINDOW_FILEAREA(scrno),row);
       FILL_LINE_OUTPUT(' ',ccols,normal);
       END_LINE_OUTPUT();
-      TRACE_RETURN();
       return;
    }
 
@@ -2652,12 +2582,9 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: ccols %d cother_end_col %d bother_end_col
       }
    }
    END_LINE_OUTPUT();
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 static void set_prefix_contents(CHARTYPE scrno,LINE *curr,short start_row,LINETYPE cline,bool is_current)
-/***********************************************************************/
 {
    CHARTYPE *ptr=NULL;
    VIEW_DETAILS *screen_view = SCREEN_VIEW(scrno);
@@ -2665,7 +2592,6 @@ static void set_prefix_contents(CHARTYPE scrno,LINE *curr,short start_row,LINETY
    SHOW_LINE *scurr;
    int width;
 
-   TRACE_FUNCTION("show.c:    set_prefix_contents");
 
    if (screen_view->prefix)
    {
@@ -2705,12 +2631,9 @@ static void set_prefix_contents(CHARTYPE scrno,LINE *curr,short start_row,LINETY
       scurr->gap_colour = (is_current) ? set_colour(screen_file->attr+ATTR_CGAP)
                                        : set_colour(screen_file->attr+ATTR_GAP);
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 static void show_hex_line(CHARTYPE scrno,short row)
-/***********************************************************************/
 {
    register short i=0;
    LENGTHTYPE vcol=0,vlen=0;
@@ -2723,7 +2646,6 @@ static void show_hex_line(CHARTYPE scrno,short row)
    SHOW_LINE *current;
    static char hexchars[] = "0123456789ABCDEF";
 
-   TRACE_FUNCTION("show.c:    show_hex_line");
    /*
     * Set up columns to display...
     */
@@ -2769,32 +2691,24 @@ static void show_hex_line(CHARTYPE scrno,short row)
       FILL_LINE_OUTPUT(hexchars[(int)(c & 0x0F)],cols - length,normal);
    }
    END_LINE_OUTPUT();
-   TRACE_RETURN();
    return;
 }
 
-/***********************************************************************/
 void touch_screen(CHARTYPE scrno)
-/***********************************************************************/
 {
    register int i=0;
    WINDOW *win;
 
-   TRACE_FUNCTION("commutil.c:touch_screen");
    for (i=0;i<VIEW_WINDOWS;i++)
    {
       win = screen[scrno].win[i];
       if (win != (WINDOW *)NULL)
          touchwin(win);
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void refresh_screen(CHARTYPE scrno)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("commutil.c:refresh_screen");
    /*
     * Turn off the cursor.
     */
@@ -2818,14 +2732,10 @@ void refresh_screen(CHARTYPE scrno)
    /*
     * Turn on the cursor.
     */
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void redraw_screen(CHARTYPE scrno)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("commutil.c:redraw_screen");
    if (curses_started)
    {
       /*
@@ -2867,19 +2777,15 @@ void redraw_screen(CHARTYPE scrno)
        * MH    draw_cursor(TRUE);
        */
    }
-   TRACE_RETURN();
    return;
 }
 
-/***********************************************************************/
 bool line_in_view(CHARTYPE scrno,LINETYPE line_number)
-/***********************************************************************/
 {
    register short i,max=screen[scrno].rows[WINDOW_FILEAREA];
    bool result=FALSE;
    SHOW_LINE *scurr;
 
-   TRACE_FUNCTION("show.c:    line_in_view");
    scurr = screen[scrno].sl;
    for (i=0;i<max;i++,scurr++)
    {
@@ -2889,17 +2795,13 @@ bool line_in_view(CHARTYPE scrno,LINETYPE line_number)
          break;
       }
    }
-   TRACE_RETURN();
    return(result);
 }
-/***********************************************************************/
 bool column_in_view(CHARTYPE scrno,LENGTHTYPE column_number)
-/***********************************************************************/
 {
    bool result=FALSE;
    LENGTHTYPE min_file_col=0,max_file_col=0;
 
-   TRACE_FUNCTION( "show.c:    column_in_view" );
    /*
     * This function is only valid in FILEAREA or CMDLINE
     */
@@ -2917,12 +2819,9 @@ bool column_in_view(CHARTYPE scrno,LENGTHTYPE column_number)
    if ( column_number >= min_file_col
    &&   column_number <= max_file_col )            /* new column in display */
       result = TRUE;
-   TRACE_RETURN();
    return(result);
 }
-/***********************************************************************/
 LINETYPE find_next_current_line(LINETYPE num_pages,short direction)
-/***********************************************************************/
 {
    register short i=0;
    LINETYPE cline = CURRENT_VIEW->current_line;
@@ -2932,7 +2831,6 @@ LINETYPE find_next_current_line(LINETYPE num_pages,short direction)
    short tab_actual_row=calculate_actual_row(CURRENT_VIEW->tab_base,CURRENT_VIEW->tab_off,CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE);
    short scale_actual_row=calculate_actual_row(CURRENT_VIEW->scale_base,CURRENT_VIEW->scale_off,CURRENT_SCREEN.rows[WINDOW_FILEAREA],TRUE);
 
-   TRACE_FUNCTION("show.c:    find_next_current_line");
    /*
     * Determine the number of file lines displayed...
     */
@@ -3011,12 +2909,9 @@ LINETYPE find_next_current_line(LINETYPE num_pages,short direction)
    &&  cline < 0L)
       cline = 0L;
    cline = find_next_in_scope(CURRENT_VIEW,(LINE *)NULL,cline,direction);
-   TRACE_RETURN();
    return(cline);
 }
-/***********************************************************************/
 short get_row_for_focus_line(CHARTYPE scrno,LINETYPE fl,short cr)
-/***********************************************************************/
 {
    /*
     * Returns the row within the main window where the focus line is
@@ -3027,22 +2922,17 @@ short get_row_for_focus_line(CHARTYPE scrno,LINETYPE fl,short cr)
    register short i=0,max=screen[scrno].rows[WINDOW_FILEAREA];
    SHOW_LINE *scurr;
 
-   TRACE_FUNCTION("show.c:    get_row_for_focus_line");
    scurr = screen[scrno].sl;
    for (i=0;i<max;i++,scurr++)
    {
       if (scurr->line_number == fl)
       {
-         TRACE_RETURN();
          return(i);
       }
    }
-   TRACE_RETURN();
    return(cr);
 }
-/***********************************************************************/
 LINETYPE get_focus_line_in_view(CHARTYPE scrno,LINETYPE fl,ROWTYPE row)
-/***********************************************************************/
 {
    /*
     * Returns a new focus line if the specified focus line is no longer
@@ -3051,13 +2941,11 @@ LINETYPE get_focus_line_in_view(CHARTYPE scrno,LINETYPE fl,ROWTYPE row)
    ROWTYPE i,max=screen[scrno].rows[WINDOW_FILEAREA];
    SHOW_LINE *scurr;
 
-   TRACE_FUNCTION("show.c:    get_focus_line_in_view");
    scurr = screen[scrno].sl + row;
    for (i=row;i<max;i++,scurr++)
    {
       if (scurr->line_number != (-1L))
       {
-         TRACE_RETURN();
          return(scurr->line_number);
       }
    }
@@ -3066,19 +2954,15 @@ LINETYPE get_focus_line_in_view(CHARTYPE scrno,LINETYPE fl,ROWTYPE row)
    {
       if (scurr->line_number != (-1L))
       {
-         TRACE_RETURN();
          return(scurr->line_number);
       }
    }
    /*
     * We should never get here as there would be no editable lines in view
     */
-   TRACE_RETURN();
    return(fl);
 }
-/***********************************************************************/
 LINETYPE calculate_focus_line(LINETYPE fl,LINETYPE cl)
-/***********************************************************************/
 {
    /*
     * Returns the new focus line. If the focus line is still in the
@@ -3089,7 +2973,6 @@ LINETYPE calculate_focus_line(LINETYPE fl,LINETYPE cl)
    ROWTYPE i,max=CURRENT_SCREEN.rows[WINDOW_FILEAREA];
    SHOW_LINE *scurr;
 
-   TRACE_FUNCTION("show.c:    calculate_focus_line");
    scurr = CURRENT_SCREEN.sl;
    for (i=0;i<max;i++,scurr++)
    {
@@ -3104,18 +2987,14 @@ LINETYPE calculate_focus_line(LINETYPE fl,LINETYPE cl)
    }
    if (new_fl == (-1L))
       new_fl = cl;
-   TRACE_RETURN();
    return(new_fl);
 }
-/***********************************************************************/
 char *get_current_position(CHARTYPE scrno,LINETYPE *line,LENGTHTYPE *col)
-/***********************************************************************/
 {
    short y=0,x=0;
    char *ret=NULL;
    SHOW_LINE *scurr;
 
-   TRACE_FUNCTION("show.c:    get_current_position");
    if ( curses_started )
       getyx( SCREEN_WINDOW(scrno), y, x );
    scurr = screen[scrno].sl + y;
@@ -3152,21 +3031,16 @@ char *get_current_position(CHARTYPE scrno,LINETYPE *line,LENGTHTYPE *col)
          }
          break;
    }
-   TRACE_RETURN();
    return ret;
 }
-/***********************************************************************/
 void calculate_new_column( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, COLTYPE current_screen_col, LENGTHTYPE current_verify_col, LENGTHTYPE new_file_col, COLTYPE *new_screen_col, LENGTHTYPE *new_verify_col )
-/***********************************************************************/
 {
    LINETYPE x=0;
 
-   TRACE_FUNCTION( "show.c:    calculate_new_column" );
    if ( column_in_view( curr_screen, new_file_col ) )
    {
       *new_screen_col = (LENGTHTYPE)(new_file_col - (current_verify_col - 1));
       *new_verify_col = current_verify_col;
-      TRACE_RETURN();
       return;
    }
    /*
@@ -3175,17 +3049,13 @@ void calculate_new_column( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, COLTYP
    x = screen[curr_screen].cols[curr_view->current_window] / 2;
    *new_verify_col = (LENGTHTYPE)max( 1L, (LINETYPE)new_file_col - x + 2L );
    *new_screen_col = (LENGTHTYPE)((*new_verify_col == 1) ? new_file_col : x - 1);
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 short prepare_view(CHARTYPE scrn)
-/***********************************************************************/
 {
    int y=0,x=0;
    VIEW_DETAILS *screen_view = SCREEN_VIEW(scrn);
 
-   TRACE_FUNCTION("show.c:    prepare_view");
    screen_view->current_row = calculate_actual_row(screen_view->current_base,
                                     screen_view->current_off,
                                     screen[scrn].rows[WINDOW_FILEAREA],TRUE);
@@ -3205,12 +3075,9 @@ short prepare_view(CHARTYPE scrn)
       wmove(SCREEN_WINDOW_FILEAREA(scrn),y,x);
    }
 
-   TRACE_RETURN();
    return(RC_OK);
 }
-/***********************************************************************/
 short advance_view(VIEW_DETAILS *next_view,short direction)
-/***********************************************************************/
 {
    VIEW_DETAILS *save_current_view=next_view; /* point to passed view */
    CHARTYPE save_prefix=0;
@@ -3220,13 +3087,11 @@ short advance_view(VIEW_DETAILS *next_view,short direction)
    int y=0,x=0;
    short rc=RC_OK;
 
-   TRACE_FUNCTION("show.c:    advance_view");
    /*
     * If this is the only file, ignore the command...
     */
    if (number_of_files < 2)
    {
-      TRACE_RETURN();
       return(RC_OK);
    }
    /*
@@ -3328,7 +3193,6 @@ short advance_view(VIEW_DETAILS *next_view,short direction)
             CURRENT_VIEW = CURRENT_SCREEN.screen_view = save_current_view;
             if ((rc = defaults_for_other_files(OTHER_VIEW)) != RC_OK)
             {
-               TRACE_RETURN();
                return(rc);
             }
             CURRENT_SCREEN.screen_view = CURRENT_VIEW;
@@ -3361,7 +3225,6 @@ short advance_view(VIEW_DETAILS *next_view,short direction)
       {
          if (set_up_windows(current_screen) != RC_OK)
          {
-           TRACE_RETURN();
            return(RC_OK);
          }
       }
@@ -3398,19 +3261,15 @@ short advance_view(VIEW_DETAILS *next_view,short direction)
       getyx(CURRENT_WINDOW,y,x);
       wmove(CURRENT_WINDOW,y,x);
    }
-   TRACE_RETURN();
    return(RC_OK);
 }
 
 #if defined(CAN_RESIZE)
-/***********************************************************************/
 short THE_Resize(int rows, int cols)
-/***********************************************************************/
 {
    short i=0;
    int length;
    int rc=RC_OK;
-   TRACE_FUNCTION("show.c:    THE_Resize");
    /*
     * This function is called as the result of a screen resize.
     */
@@ -3435,7 +3294,6 @@ short THE_Resize(int rows, int cols)
       if ((linebuf = (CHARTYPE *)(*the_realloc)(linebuf,linebuf_size)) == NULL)
       {
          cleanup();
-         TRACE_RETURN();
          return(30);
       }
    #ifdef USE_UTF8
@@ -3445,7 +3303,6 @@ short THE_Resize(int rows, int cols)
    #endif
       {
          cleanup();
-         TRACE_RETURN();
          return(30);
       }
    }
@@ -3475,7 +3332,6 @@ short THE_Resize(int rows, int cols)
       {
          if ((rc = set_up_windows(i)) != RC_OK)
          {
-            TRACE_RETURN();
             return(rc);
          }
       }
@@ -3485,7 +3341,6 @@ short THE_Resize(int rows, int cols)
 #if defined(SIGWINCH)
   /* restore_THE();  */
 #endif
-   TRACE_RETURN();
    return (RC_OK);
 }
 #endif

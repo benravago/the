@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* COMM5.C - Commands T-Z                                              */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -84,36 +82,7 @@ static bool ispf_special_lines_entry( short line_type, int ch, CHARTYPE real_key
 }
 
 /*#define DEBUG 1*/
-/*man-start*********************************************************************
-COMMAND
-     tabfile - edit the file under the file tab or shift FILETABS view
-
-SYNTAX
-     TABFILE [+|-]
-
-DESCRIPTION
-     The TABFILE makes the file pointed to by the mouse in the FILETABS
-     window the current file.
-
-     If run from the command line, without a parameter, the leftmost file
-     displayed in the FILETABS window will be made the current file.
-
-
-     TABFILE -, shifts the files in the FILETABS window one file to the right.
-     TABFILE +, shifts the files in the FILETABS window one file to the left.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-SEE ALSO
-     <SET FILETABS>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Tabfile(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 #if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
@@ -124,7 +93,6 @@ short Tabfile(CHARTYPE *params)
    VIEW_DETAILS *curr;
    CHARTYPE edit_fname[MAX_FILE_NAME];
 
-   TRACE_FUNCTION("comm5.c:   Tabfile");
    /*
     * Optionally only 1 argument allowed; + or -
     */
@@ -153,7 +121,6 @@ short Tabfile(CHARTYPE *params)
             strcat( (DEFCHAR *)edit_fname, (DEFCHAR *)curr->file_for_view->fname );
             rc = EditFile( edit_fname, FALSE );
          }
-         TRACE_RETURN();
          return(RC_OK);
       }
 #if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
@@ -186,101 +153,19 @@ short Tabfile(CHARTYPE *params)
    else
    {
       display_error( 1, (CHARTYPE *)params, FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/**an-start*********************************************************************
-COMMAND
-     tabpre - switch between FILEAREA and PREFIX area
-
-SYNTAX
-     tabpre
-
-DESCRIPTION
-     The TABPRE command switches the focus of the editor from the
-     <filearea> to the <prefix area> and vice versa, depending
-     on which window is currently active.
-
-     This command can only be used by assigning it to a function key.
-
-     This command will be removed in a future version.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Equivalent of <SOS LEFTEDGE> and <SOS PREFIX>
-
-SEE ALSO
-     <SOS LEFTEDGE>, <SOS PREFIX>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Tabpre(CHARTYPE *params)
-/***********************************************************************/
 {
-   TRACE_FUNCTION("comm5.c:   Tabpre");
    /*
     * deprecated
     */
    display_error( 0, (CHARTYPE *)"TABPRE is deprecated. Use 'CURSOR PREFIX'", FALSE );
-   TRACE_RETURN();
    return( RC_OK );
 }
-/*man-start*********************************************************************
-COMMAND
-     tag - displays lines matching target in different colour
-
-SYNTAX
-     TAG [More|Less] [rtarget|Focus]
-
-DESCRIPTION
-     The TAG command is similar to the <ALL> command, in that it allows
-     lines that match the specified target to be displayed.  Where it
-     differs from <ALL> is that the lines that don't match are still
-     displayed, but the lines that do match are displayed in the colour
-     specified by <SET COLOUR> HIGHLIGHT.
-     This target consists of any number of individual targets
-     separated by '&' (logical and) or '|' (logical or).
-
-     For example, to display all lines in a file that contain the
-     strings 'ball' and 'cat' on the same line or the named lines
-     .fred or .bill, use the following command
-
-     TAG /ball/ & /cat/ | .fred | .bill
-
-     Logical operators act left to right, with no precedence for &.
-
-     TAG without any arguments displays all lines without any highlighting.
-
-     If <SET HIGHLIGHT> is not set to TAGGED, then if the specified 'rtarget'
-     is found, <SET HIGHLIGHT> is set to TAGGED.
-
-     When the optional 'More' argument is specified, all lines that match
-     the 'rtarget' are highlighted in addition to those already highlighted.
-
-     When the optional 'Less' argument is specified, all lines that match
-     the 'rtarget' and are currently highlighted have their highlighting
-     removed.
-
-     If 'FOCUS' is specified in place of 'rtarget', the <focus line> is
-     tagged.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-        FOCUS is a THE enhancement.
-
-SEE ALSO
-     <ALL>, <SET HIGHLIGHT>, <SET COLOUR>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Tag(CHARTYPE *params)
-/***********************************************************************/
 {
 #define TAG_RTARGET 0
 #define TAG_FOCUS   1
@@ -306,7 +191,6 @@ short Tag(CHARTYPE *params)
    unsigned short num_params=0;
    CHARTYPE *save_params=NULL;
 
-   TRACE_FUNCTION("comm1.c:   Tag");
 
    strip[0] = STRIP_BOTH;
    strip[1] = STRIP_LEADING;
@@ -316,7 +200,6 @@ short Tag(CHARTYPE *params)
    if ( ( save_params = (CHARTYPE *)my_strdup( params ) ) == NULL )
    {
       display_error( 30, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    num_params = param_split( params, word, TAG_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE );
@@ -324,7 +207,6 @@ short Tag(CHARTYPE *params)
    {
       if (CURRENT_FILE->number_lines == 0L)
       {
-         TRACE_RETURN();
          return(rc);
       }
       post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
@@ -338,13 +220,11 @@ short Tag(CHARTYPE *params)
       }
       build_screen(current_screen);
       display_screen(current_screen);
-      TRACE_RETURN();
       return(rc);
    }
    if (CURRENT_FILE->number_lines == 0L)
    {
       display_error(17,params,FALSE);
-      TRACE_RETURN();
       return(RC_TARGET_NOT_FOUND);
    }
    if ( num_params == 1 )
@@ -355,7 +235,6 @@ short Tag(CHARTYPE *params)
          if ( save_params )
             (*the_free)( save_params );
          display_error(3,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       params = save_params;
@@ -398,7 +277,6 @@ short Tag(CHARTYPE *params)
          free_target(&target);
          if ( save_params )
             (*the_free)( save_params );
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
    }
@@ -490,31 +368,9 @@ short Tag(CHARTYPE *params)
       (*the_free)( save_params );
    if ( tag_target == TAG_RTARGET )
       free_target(&target);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     text - simulate keyboard entry of characters
-
-SYNTAX
-     TEXT text
-
-DESCRIPTION
-     The TEXT command simulates the entry of 'text' from the
-     keyboard. This command is actually called when you enter text
-     from the keyboard.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Compatible.
-            Does not allow trailing spaces in text.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Text(CHARTYPE *params)
-/***********************************************************************/
 {
    LENGTHTYPE i=0L;
    CHARTYPE real_key=0;
@@ -530,7 +386,6 @@ short Text(CHARTYPE *params)
    bool save_in_macro=in_macro;
    LENGTHTYPE new_len;
 
-   TRACE_FUNCTION("comm5.c:   Text");
    /*
     * If running in read-only mode, do not allow any text to be entered
     * in the main window.
@@ -539,7 +394,6 @@ short Text(CHARTYPE *params)
    &&   CURRENT_VIEW->current_window == WINDOW_FILEAREA )
    {
       display_error( 56, (CHARTYPE *)"", FALSE );
-      TRACE_RETURN();
       return(RC_INVALID_ENVIRON);
    }
    /*
@@ -553,12 +407,10 @@ short Text(CHARTYPE *params)
       {
          case -1: /* invalid hex value */
             display_error( 32, params, FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          case -2: /* memory exhausted */
             display_error( 30, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
             break;
          default:
@@ -766,54 +618,10 @@ short Text(CHARTYPE *params)
     * Set in_macro back to its original value...
     */
    in_macro = save_in_macro;
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     the - edit another file or switch to next file
 
-SYNTAX
-     THE [filename]
-
-DESCRIPTION
-     The THE command allows the user to edit another 'file'. The new file
-     is placed in the file <ring>. The previous file being edited remains
-     in memory. Several files can be edited at once, and all files
-     are arranged in a ring, with subsequent THE commands moving through
-     the ring, one file at a time.
-
-COMPATIBILITY
-     XEDIT: Does not provide options switches.
-     KEDIT: Does not provide options switches.
-
-SEE ALSO
-     <XEDIT>, <EDIT>, <KEDIT>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     toascii - convert the target from EBCDIC to ASCII
-
-SYNTAX
-     TOASCII [target]
-
-DESCRIPTION
-     The TOASCII command converts the characters in the target from
-     EBCDIC encoding to ASCII coding.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: N/A
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Toascii(CHARTYPE *params)
-/***********************************************************************/
 {
    LINETYPE num_lines=0L,true_line=0L,num_actual_lines=0L,i=0L,num_file_lines=0L;
    short  direction=0;
@@ -825,14 +633,12 @@ short Toascii(CHARTYPE *params)
    bool lines_based_on_scope=TRUE;
    bool adjust_alt=FALSE;
 
-   TRACE_FUNCTION("comm5.c:   Toascii");
    if (strcmp("",(DEFCHAR *)params) == 0)
       params = (CHARTYPE *)"+1";
    initialise_target(&target);
    if ((rc = validate_target(params,&target,target_type,get_true_line(TRUE),TRUE,TRUE)) != RC_OK)
    {
       free_target(&target);
-      TRACE_RETURN();
       return(rc);
    }
    post_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL,TRUE);
@@ -941,47 +747,20 @@ short Toascii(CHARTYPE *params)
     */
    pre_process_line( CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *)NULL );
    resolve_current_and_focus_lines( current_screen, CURRENT_VIEW, true_line, num_file_lines, direction, TRUE, FALSE );
-   TRACE_RETURN();
    return(RC_OK);
 }
 
-/*man-start*********************************************************************
-COMMAND
-     top - move to the top of the file
-
-SYNTAX
-     TOP
-
-DESCRIPTION
-     The TOP command moves to the very start of the current file.
-     The <Top-of-File line> is set to the <current line>.
-
-     TOP is equivalent to <BACKWARD> *.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-SEE ALSO
-     <BACKWARD>, <BOTTOM>
-
-STATUS
-     Complete
-**man-end**********************************************************************/
 short Top(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_TOF_EOF_REACHED;
    unsigned short x=0,y=0;
 
-   TRACE_FUNCTION("comm5.c:   Top");
    /*
     * No arguments are allowed; error if any are present.
     */
    if (strcmp((DEFCHAR *)params,"") != 0)
    {
       display_error(1,(CHARTYPE *)params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    CURRENT_VIEW->current_line = 0L;
@@ -1004,41 +783,13 @@ short Top(CHARTYPE *params)
       else
          wmove(CURRENT_WINDOW,y,x);
    }
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     up - move backward in the file a number of lines
-
-SYNTAX
-     Up [relative target]
-
-DESCRIPTION
-     The UP command moves the <current line> backwards the number of
-     lines specified by the <relative target>. This <relative target> can
-     only be a positive integer or the character "*".
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-DEFAULT
-     1
-
-SEE ALSO
-     <NEXT>, <DOWN>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Up(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
    LINETYPE num_lines=0L,true_line=0L;
 
-   TRACE_FUNCTION("comm5.c:   Up");
    params = MyStrip(params,STRIP_BOTH,' ');
    if (strcmp("",(DEFCHAR *)params) == 0)
       params = (CHARTYPE *)"1";
@@ -1050,83 +801,29 @@ short Up(CHARTYPE *params)
       if (!valid_integer(params))
       {
          display_error(4,params,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       num_lines = atol((DEFCHAR *)params);
       if (num_lines < 0L)
       {
          display_error(5,params,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
    }
    rc = advance_current_or_focus_line(-num_lines);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     uppercase - change lowercase characters to uppercase
-
-SYNTAX
-     UPPercase [target]
-
-DESCRIPTION
-     The UPPERCASE command changes all lowercase characters in all
-     lines up to the <'target'> line to uppercase. All other characters
-     remain untouched.
-
-COMPATIBILITY
-     XEDIT: Equivalent of UPPERCAS
-     KEDIT: Compatible.
-
-SEE ALSO
-     <LOWERCASE>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Uppercase(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm5.c:   Uppercase");
    rc = execute_change_case(params,CASE_UPPER);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     xedit - edit another file or switch to next file
-
-SYNTAX
-     Xedit [file]
-
-DESCRIPTION
-     The XEDIT command allows the user to edit another 'file'. The new file
-     is placed in the file <ring>. The previous file being edited remains
-     in memory. Several files can be edited at once, and all files
-     are arranged in a ring, with subsequent XEDIT commands moving through
-     the ring, one file at a time.
-
-COMPATIBILITY
-     XEDIT: Does not provide options switches.
-     KEDIT: Does not provide options switches.
-
-SEE ALSO
-     <EDIT>, <THE>, <KEDIT>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Xedit(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION( "comm5.c:   Xedit" );
    /*
     * The filename can be quoted; so strip leading and trailing
     * double quotes
@@ -1136,54 +833,15 @@ short Xedit(CHARTYPE *params)
     * Parse any parameters...future work.
     */
    rc = EditFile( params, FALSE );
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     ? - retrieve - return the next/prior command on the command line
-
-SYNTAX
-     ?[+|?...]
-
-DESCRIPTION
-     The ? command returns the next or prior command from the command
-     line ring and displays it on the command line.
-
-     With the ['+'] argument, the next command in the command ring is
-     retrieved.
-
-     With no arguments, the previous command entered on the command
-     line is retrieved.
-
-     With multiple, concatenated ?s as argument, the previous command
-     entered on the command line is retrieved corresponding to the
-     number of ?s entered.
-
-     For Example:
-     The command; ????? will retrieve the fifth last command entered.
-
-COMPATIBILITY
-     XEDIT: Compatible. Support for +.
-     KEDIT: See below..
-     This command is bound to the up and down arrows when on the
-     command line depending on the setting of <SET CMDARROWS>.
-
-SEE ALSO
-     <SET CMDARROWS>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Retrieve(CHARTYPE *params)
-/***********************************************************************/
 {
    CHARTYPE *current_command=NULL;
    CHARTYPE *save_params=NULL;
    int param_len=0;
    short direction=0;
 
-   TRACE_FUNCTION("comm5.c:   Retrieve");
    /*
     * No parameters, get the last command...
     */
@@ -1198,7 +856,6 @@ short Retrieve(CHARTYPE *params)
       if ((save_params = (CHARTYPE *)my_strdup(params)) == NULL)
       {
          display_error(30,(CHARTYPE *)"",FALSE);
-         TRACE_RETURN();
          return(RC_OUT_OF_MEMORY);
       }
       /*
@@ -1223,7 +880,6 @@ short Retrieve(CHARTYPE *params)
       if (strzne(save_params,(CHARTYPE)'?') != (-1))
       {
          display_error(1,params,FALSE);
-         TRACE_RETURN();
          return(RC_INVALID_OPERAND);
       }
       current_command = get_next_command( direction, strlen( (DEFCHAR *)save_params ) + 1 );
@@ -1234,86 +890,21 @@ short Retrieve(CHARTYPE *params)
    my_wclrtoeol(CURRENT_WINDOW_COMMAND);
    if (current_command != (CHARTYPE *)NULL)
       Cmsg(current_command);
-   TRACE_RETURN();
    return(RC_OK);
 }
-/*man-start*********************************************************************
-COMMAND
-     = - re-execute the last command issued on the command line
-
-SYNTAX
-     =
-
-DESCRIPTION
-     The = command retrieves the most recently issued command from
-     the <command line> and re-executes it.
-
-COMPATIBILITY
-     XEDIT: Does not support optional [subcommand] option.
-     KEDIT: Does not support optional [command] option.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
 short Reexecute(CHARTYPE *params)
-/***********************************************************************/
 {
    short rc=RC_OK;
 
-   TRACE_FUNCTION("comm5.c:   Reexecute");
    if (strcmp((DEFCHAR *)params,""))
    {
       display_error(1,params,FALSE);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
    /*
     * Retrieve the last command and execute it.
     */
    rc = command_line(last_command_for_reexecute,COMMAND_ONLY_FALSE);
-   TRACE_RETURN();
    return(rc);
 }
-/*man-start*********************************************************************
-COMMAND
-     ! - execute an operating system command
 
-SYNTAX
-     ! [command]
-
-DESCRIPTION
-     The ! command executes the supplied operating system 'command'
-     or runs an interactive shell if no 'command' is supplied.
-
-COMPATIBILITY
-     XEDIT: N/A
-     KEDIT: Equivalent to DOS command.
-
-SEE ALSO
-     <DOS>, <OS>
-
-STATUS
-     Complete.
-**man-end**********************************************************************/
-
-/*man-start*********************************************************************
-COMMAND
-     & - execute and re-display command
-
-SYNTAX
-     &[command]
-
-DESCRIPTION
-     The & command executes the supplied 'command' in the normal
-     way, but when the command completes, instead of clearing
-     the THE command line, the command, and the & are
-     re-displayed.  This makes it easy to repeat the same
-     command, or make changes to it.
-
-COMPATIBILITY
-     XEDIT: Compatible.
-     KEDIT: Compatible.
-
-STATUS
-     Complete.
-**man-end**********************************************************************/

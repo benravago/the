@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* COLOUR.C - Colour related functions                                 */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -573,9 +571,7 @@ static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] =  { {0,0,0,0},{0,0,0,0},{0,0
     {(CHARTYPE *)NULL,0,0,0,FALSE,FALSE,FALSE},
  };
 
-/***********************************************************************/
 short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spare,bool *any_colours)
-/***********************************************************************/
 {
    register short i=0;
    short num_colours=0;
@@ -589,7 +585,6 @@ short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spar
    bool spare_pos=FALSE;
    int offset=0;
 
-   TRACE_FUNCTION("colour.c:  parse_colours");
    /*
     * Get a copy of the passed string and wreck it rather than the passed
     * string.
@@ -597,7 +592,6 @@ short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spar
    if ((string = (CHARTYPE *)my_strdup(attrib)) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    oldp = string;
@@ -615,7 +609,6 @@ short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spar
             {
                display_error(61,(CHARTYPE *)p,FALSE);
                (*the_free)(string);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
             if (valid_attribs[i].attrib_modifier)
@@ -637,7 +630,6 @@ short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spar
                      {
                         display_error(61,(CHARTYPE *)p,FALSE);
                         (*the_free)(string);
-                        TRACE_RETURN();
                         return(RC_INVALID_OPERAND);
                      }
                      if (valid_attribs[i].actual_attrib != 8)
@@ -654,7 +646,6 @@ short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spar
                      {
                         display_error(61,(CHARTYPE *)p,FALSE);
                         (*the_free)(string);
-                        TRACE_RETURN();
                         return(RC_INVALID_OPERAND);
                      }
                      if (valid_attribs[i].actual_attrib != 8)
@@ -673,7 +664,6 @@ short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spar
                      }
                      display_error(1,(CHARTYPE *)p,FALSE);
                      (*the_free)(string);
-                     TRACE_RETURN();
                      return(RC_INVALID_OPERAND);
                      break;
                }
@@ -699,7 +689,6 @@ short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spar
             }
             display_error(1,(CHARTYPE *)p,FALSE);
             (*the_free)(string);
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
       }
@@ -714,13 +703,10 @@ short parse_colours(CHARTYPE *attrib,COLOUR_ATTR *pattr,CHARTYPE **rem,bool spar
    pattr->mono = mono;
    *any_colours = any_found;
    (*the_free)(string);
-   TRACE_RETURN();
    return(RC_OK);
 }
 
-/***********************************************************************/
 short parse_modifiers(CHARTYPE *attrib,COLOUR_ATTR *pattr)
-/***********************************************************************/
 {
    register short i=0;
    chtype mono=pattr->mono;
@@ -729,7 +715,6 @@ short parse_modifiers(CHARTYPE *attrib,COLOUR_ATTR *pattr)
    CHARTYPE *p=NULL,*last_word=NULL;
    bool found=FALSE;
 
-   TRACE_FUNCTION("colour.c:  parse_modifiers");
    /*
     * Get a copy of the passed string and wreck it rather than the passed
     * string.
@@ -737,7 +722,6 @@ short parse_modifiers(CHARTYPE *attrib,COLOUR_ATTR *pattr)
    if ((string = (CHARTYPE *)my_strdup(attrib)) == NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_OUT_OF_MEMORY);
    }
    p = (CHARTYPE *)strtok((DEFCHAR *)string," \t");
@@ -755,7 +739,6 @@ short parse_modifiers(CHARTYPE *attrib,COLOUR_ATTR *pattr)
             {
                display_error(61,(CHARTYPE *)p,FALSE);
                (*the_free)(string);
-               TRACE_RETURN();
                return(RC_INVALID_OPERAND);
             }
             if (colour_support)
@@ -774,7 +757,6 @@ short parse_modifiers(CHARTYPE *attrib,COLOUR_ATTR *pattr)
          {
             display_error( 1, (CHARTYPE *)p, FALSE );
             (*the_free)( string );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
          }
       }
@@ -794,19 +776,15 @@ short parse_modifiers(CHARTYPE *attrib,COLOUR_ATTR *pattr)
        * somewhere in string.
        */
       (*the_free)(string);
-      TRACE_RETURN();
       return(RC_INVALID_OPERAND);
    }
 
    pattr->mod = specified_mod;
    pattr->mono = mono;
-   TRACE_RETURN();
    return(RC_OK);
 }
 
-/***********************************************************************/
 chtype merge_curline_colour(COLOUR_ATTR *attr, COLOUR_ATTR *ecolour)
-/***********************************************************************/
 {
 /*
  * Combines the foreground of ecolour colour with the background of the
@@ -815,7 +793,6 @@ chtype merge_curline_colour(COLOUR_ATTR *attr, COLOUR_ATTR *ecolour)
  */
    chtype bg,fg,mod,pair;
 
-   TRACE_FUNCTION("colour.c:  merge_curline_colour");
 #ifdef A_COLOR
    bg = BACKFROMPAIR(attr->pair);
    fg = FOREFROMPAIR(ecolour->pair);
@@ -825,19 +802,14 @@ chtype merge_curline_colour(COLOUR_ATTR *attr, COLOUR_ATTR *ecolour)
 #else
    fg = attr->mod | ecolour->mod;
 #endif
-   TRACE_RETURN();
    return fg;
 }
 
-/***********************************************************************/
 void set_up_default_colours(FILE_DETAILS *fd,COLOUR_ATTR *attr,int colour_num)
-/***********************************************************************/
 /* This function is called as part of reading in a new file.           */
-/***********************************************************************/
 {
    register short i=0;
 
-   TRACE_FUNCTION("colour.c:  set_up_default_colours");
    /*
     * Set up default colours.
     */
@@ -912,18 +884,13 @@ void set_up_default_colours(FILE_DETAILS *fd,COLOUR_ATTR *attr,int colour_num)
          }
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 void set_up_default_ecolours(FILE_DETAILS *fd)
-/***********************************************************************/
 /* This function is called as part of reading in a new file.           */
-/***********************************************************************/
 {
    register short i=0;
 
-   TRACE_FUNCTION("colour.c:  set_up_default_ecolours");
    /*
     * Set up default colours.
     */
@@ -962,16 +929,12 @@ void set_up_default_ecolours(FILE_DETAILS *fd)
          }
          break;
    }
-   TRACE_RETURN();
    return;
 }
-/***********************************************************************/
 CHARTYPE *get_colour_strings(COLOUR_ATTR *attr)
-/***********************************************************************/
 /* This function returns a pointer to an allocated block of memory with*/
 /* textual descriptions of the colours associated with the attr.       */
 /* The caller is responsible for freeing up the allocated memory.      */
-/***********************************************************************/
 {
 #define GET_MOD 0
 #define GET_FG  1
@@ -985,7 +948,6 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR *attr)
    chtype match_value=0L;
    chtype matched_modifiers=0L;
 
-   TRACE_FUNCTION("colour.c:  get_colour_strings");
 
    start_with = GET_MOD;
 #ifdef A_COLOR
@@ -999,7 +961,6 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR *attr)
    if (attr_string == (CHARTYPE *)NULL)
    {
       display_error(30,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(NULL);
    }
    strcpy((DEFCHAR *)attr_string,"");
@@ -1059,30 +1020,24 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR *attr)
          }
       }
    }
-   TRACE_RETURN();
    return(attr_string);
 }
 
-/***********************************************************************/
 int is_valid_colour( CHARTYPE *colour )
 /*
  * This function determines if a colour name is passed as the only argument.
  */
-/***********************************************************************/
 {
    int i;
 
-   TRACE_FUNCTION("colour.c:  is_valid_colour");
 
    for ( i = 0; valid_attribs[i].attrib != NULL; i++ )
    {
       if ( equal(valid_attribs[i].attrib, colour, valid_attribs[i].attrib_min_len )
       &&  valid_attribs[i].actual_colour )
       {
-         TRACE_RETURN();
          return valid_attribs[i].actual_attrib;
       }
    }
-   TRACE_RETURN();
    return (-1);
 }

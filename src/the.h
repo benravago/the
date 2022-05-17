@@ -1763,10 +1763,6 @@ extern void* (*the_realloc)(void *, unsigned long);
 # endif
 #endif
 
-# define TRACE_RETURN()
-# define TRACE_FUNCTION(x)
-# define TRACE_INITIALISE()
-# define TRACE_CONSTANT(x)
 #include "vars.h"
 
 #define THE_SEARCH_SEMANTICS                   TRUE

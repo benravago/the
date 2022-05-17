@@ -1,8 +1,6 @@
-/***********************************************************************/
 /* COLUMN.C - Column commands                                          */
 /* This file contains all commands that can be assigned to function    */
 /* keys or typed on the command line.                                  */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -38,9 +36,7 @@
 #include <the.h>
 #include <proto.h>
 
-/***********************************************************************/
 short column_command(CHARTYPE *cmd_text,int cmd_type)
-/***********************************************************************/
 {
    LENGTHTYPE i=0;
    LINETYPE true_line=0L;
@@ -48,7 +44,6 @@ short column_command(CHARTYPE *cmd_text,int cmd_type)
    LENGTHTYPE len_params=0;
    unsigned short y=0,x=0;
 
-   TRACE_FUNCTION("column.c:  column_command");
    /*
     * All column commands under XEDIT compatibility refer to current line.
     * ******* At this stage, revert to THE behaviour at all times *******
@@ -64,7 +59,6 @@ short column_command(CHARTYPE *cmd_text,int cmd_type)
    ||  BOF(true_line))
    {
       display_error(36,(CHARTYPE *)"",FALSE);
-      TRACE_RETURN();
       return(RC_NO_LINES_CHANGED);
    }
    /*
@@ -77,12 +71,10 @@ short column_command(CHARTYPE *cmd_text,int cmd_type)
       {
          case -1: /* invalid hex value */
             display_error( 32, cmd_text, FALSE );
-            TRACE_RETURN();
             return(RC_INVALID_OPERAND);
             break;
          case -2: /* memory exhausted */
             display_error( 30, (CHARTYPE *)"", FALSE );
-            TRACE_RETURN();
             return(RC_OUT_OF_MEMORY);
             break;
          default:
@@ -108,7 +100,6 @@ short column_command(CHARTYPE *cmd_text,int cmd_type)
          if (cmd_type != COLUMN_CAPPEND)
          {
             display_error(36,(CHARTYPE *)"",FALSE);
-            TRACE_RETURN();
             return(RC_NO_LINES_CHANGED);
          }
       }
@@ -202,6 +193,5 @@ short column_command(CHARTYPE *cmd_text,int cmd_type)
    }
    build_screen(current_screen);
    display_screen(current_screen);
-   TRACE_RETURN();
    return(rc);
 }

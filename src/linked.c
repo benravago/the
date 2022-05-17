@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* LINKED.C - Linked list routines.                                    */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -36,7 +34,6 @@
 #include <the.h>
 #include <proto.h>
 
-/***********************************************************************/
 THELIST *ll_add( THELIST *first, THELIST *curr, unsigned short size )
 /***********************************************************************
  * Adds a THELIST to the current linked list after the current member.
@@ -49,7 +46,6 @@ THELIST *ll_add( THELIST *first, THELIST *curr, unsigned short size )
 {
    THELIST *next=NULL;
 
-   TRACE_FUNCTION( "linked.c:    ll_add" );
 
    if ( (next=(THELIST *)(*the_malloc)(size)) != (THELIST *)NULL )
    {
@@ -87,11 +83,9 @@ THELIST *ll_add( THELIST *first, THELIST *curr, unsigned short size )
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return next;
 }
 
-/***********************************************************************/
 THELIST *ll_del( THELIST **first, THELIST **last, THELIST *curr, short direction, THELIST_DEL delfunc )
 /***********************************************************************
  * Deletes a THELIST from the current linked list.
@@ -107,7 +101,6 @@ THELIST *ll_del( THELIST **first, THELIST **last, THELIST *curr, short direction
 {
    THELIST *new_curr=NULL;
 
-   TRACE_FUNCTION( "linked.c:    ll_del" );
    if ( delfunc )
       (*delfunc)(curr->data);
    /*
@@ -119,7 +112,6 @@ THELIST *ll_del( THELIST **first, THELIST **last, THELIST *curr, short direction
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return NULL;
    }
    /*
@@ -131,7 +123,6 @@ THELIST *ll_del( THELIST **first, THELIST **last, THELIST *curr, short direction
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return curr;
    }
    /*
@@ -145,7 +136,6 @@ THELIST *ll_del( THELIST **first, THELIST **last, THELIST *curr, short direction
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return curr;
    }
    /*
@@ -160,11 +150,9 @@ THELIST *ll_del( THELIST **first, THELIST **last, THELIST *curr, short direction
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return curr;
 }
 
-/***********************************************************************/
 THELIST *ll_free( THELIST *first, THELIST_DEL delfunc )
 /***********************************************************************
  * Frees all THELIST items from a linked list.
@@ -177,7 +165,6 @@ THELIST *ll_free( THELIST *first, THELIST_DEL delfunc )
    THELIST *curr=NULL;
    THELIST *new_curr=NULL;
 
-   TRACE_FUNCTION( "linked.c:    ll_free" );
    curr = first;
    while ( curr != NULL )
    {
@@ -187,24 +174,19 @@ THELIST *ll_free( THELIST *first, THELIST_DEL delfunc )
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return (THELIST *)NULL;
 }
 
-/***********************************************************************/
 LINE *lll_add(LINE *first,LINE *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a LINE to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first LINE in linked list                   */
 /* curr       - pointer to current LINE in linked list                 */
 /* size       - size of a LINE item                                    */
 /* RETURN:    - pointer to next LINE item                              */
-/***********************************************************************/
 {
    LINE *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    lll_add");
 
    if ((next=(LINE *)(*the_malloc)(size)) != (LINE *)NULL)
    {
@@ -243,16 +225,12 @@ LINE *lll_add(LINE *first,LINE *curr,unsigned short size)
          next->prev = curr;
       }
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 LINE *lll_del(LINE **first,LINE **last,LINE *curr,short direction)
-/***********************************************************************/
 {
    LINE *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    lll_del");
    /*
     * Delete the only record
     */
@@ -262,7 +240,6 @@ LINE *lll_del(LINE **first,LINE **last,LINE *curr,short direction)
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -274,7 +251,6 @@ LINE *lll_del(LINE **first,LINE **last,LINE *curr,short direction)
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -288,7 +264,6 @@ LINE *lll_del(LINE **first,LINE **last,LINE *curr,short direction)
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -303,22 +278,17 @@ LINE *lll_del(LINE **first,LINE **last,LINE *curr,short direction)
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 LINE *lll_free(LINE *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    LINE *curr=NULL;
    LINE *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    lll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -328,17 +298,13 @@ LINE *lll_free(LINE *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((LINE *)NULL);
 }
-/***********************************************************************/
 LINE *lll_find(LINE *first,LINE *last,LINETYPE line_number,LINETYPE max_lines)
-/***********************************************************************/
 {
    LINE *curr=NULL;
    LINETYPE i=0L;
 
-   TRACE_FUNCTION("linked.c:    lll_find");
    if (line_number < (max_lines/2))
    {
       curr = first;
@@ -355,16 +321,12 @@ LINE *lll_find(LINE *first,LINE *last,LINETYPE line_number,LINETYPE max_lines)
          for(i=max_lines+1L;i>line_number; i--, curr=curr->prev); /* FGC - removed check for NULL */
       }
    }
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 LINE *lll_locate(LINE *first,CHARTYPE *value)
-/***********************************************************************/
 {
    LINE *curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    lll_locate");
    curr = first;
    while (curr)
    {
@@ -373,23 +335,18 @@ LINE *lll_locate(LINE *first,CHARTYPE *value)
          break;
       curr = curr->next;
    }
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 VIEW_DETAILS *vll_add(VIEW_DETAILS *first,VIEW_DETAILS *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a VIEW_DETAILS to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first VIEW_DETAILS in linked list                   */
 /* curr       - pointer to current VIEW_DETAILS in linked list                 */
 /* size       - size of a VIEW_DETAILS item                                    */
 /* RETURN:    - pointer to next VIEW_DETAILS item                              */
-/***********************************************************************/
 {
    VIEW_DETAILS *next=(VIEW_DETAILS *)NULL;
 
-   TRACE_FUNCTION("linked.c:    vll_add");
 
    if ((next=(VIEW_DETAILS *)(*the_malloc)(size)) != (VIEW_DETAILS *)NULL)
    {
@@ -411,18 +368,13 @@ VIEW_DETAILS *vll_add(VIEW_DETAILS *first,VIEW_DETAILS *curr,unsigned short size
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 VIEW_DETAILS *vll_del(VIEW_DETAILS **first,VIEW_DETAILS **last,VIEW_DETAILS *curr,short direction)
-/***********************************************************************/
 /* This ll_del() function is different to others!!!!!!!!               */
-/***********************************************************************/
 {
    VIEW_DETAILS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    vll_del");
    /*
     * Delete the only record
     */
@@ -432,7 +384,6 @@ VIEW_DETAILS *vll_del(VIEW_DETAILS **first,VIEW_DETAILS **last,VIEW_DETAILS *cur
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -444,7 +395,6 @@ VIEW_DETAILS *vll_del(VIEW_DETAILS **first,VIEW_DETAILS **last,VIEW_DETAILS *cur
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -462,7 +412,6 @@ VIEW_DETAILS *vll_del(VIEW_DETAILS **first,VIEW_DETAILS **last,VIEW_DETAILS *cur
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -477,23 +426,18 @@ VIEW_DETAILS *vll_del(VIEW_DETAILS **first,VIEW_DETAILS **last,VIEW_DETAILS *cur
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 DEFINE *dll_add(DEFINE *first,DEFINE *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a DEFINE to the current linked list after the current member.  */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first DEFINE in linked list                 */
 /* curr       - pointer to current DEFINE in linked list               */
 /* size       - size of a DEFINE item                                  */
 /* RETURN:    - pointer to next DEFINE item                            */
-/***********************************************************************/
 {
    DEFINE *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    dll_add");
    if ((next=(DEFINE *)(*the_malloc)(size)) != (DEFINE *)NULL)
    {
       /*
@@ -514,16 +458,12 @@ DEFINE *dll_add(DEFINE *first,DEFINE *curr,unsigned short size)
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 DEFINE *dll_del(DEFINE **first,DEFINE **last,DEFINE *curr,short direction)
-/***********************************************************************/
 {
    DEFINE *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    dll_del");
    /*
     * Delete the only record
     */
@@ -533,7 +473,6 @@ DEFINE *dll_del(DEFINE **first,DEFINE **last,DEFINE *curr,short direction)
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -545,7 +484,6 @@ DEFINE *dll_del(DEFINE **first,DEFINE **last,DEFINE *curr,short direction)
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -559,7 +497,6 @@ DEFINE *dll_del(DEFINE **first,DEFINE **last,DEFINE *curr,short direction)
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -574,17 +511,13 @@ DEFINE *dll_del(DEFINE **first,DEFINE **last,DEFINE *curr,short direction)
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 DEFINE *dll_free(DEFINE *first)
-/***********************************************************************/
 {
    DEFINE *curr=NULL;
    DEFINE *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    dll_free");
    curr = first;
    while (curr != (DEFINE *)NULL)
    {
@@ -596,23 +529,18 @@ DEFINE *dll_free(DEFINE *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((DEFINE *)NULL);
 }
-/***********************************************************************/
 THE_PPC *pll_add(THE_PPC **first,unsigned short size,LINETYPE line_number)
-/***********************************************************************/
 /* Adds a THE_PPC to the current linked list in line_number order.     */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first THE_PPC in linked list                */
 /* size       - size of a THE_PPC item                                 */
 /* line_number- line number for this THE_PPC                           */
 /* RETURN:    - pointer to new THE_PPC item                            */
-/***********************************************************************/
 {
    THE_PPC *next=NULL,*curr,*prev=NULL;
 
-   TRACE_FUNCTION("linked.c:    pll_add");
 
    if ( (next=(THE_PPC *)(*the_malloc)(size)) != (THE_PPC *)NULL )
    {
@@ -669,16 +597,12 @@ THE_PPC *pll_add(THE_PPC **first,unsigned short size,LINETYPE line_number)
          }
       }
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 THE_PPC *pll_del(THE_PPC **first,THE_PPC **last,THE_PPC *curr,short direction)
-/***********************************************************************/
 {
    THE_PPC *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    pll_del");
    /*
     * Delete the only record
     */
@@ -688,7 +612,6 @@ THE_PPC *pll_del(THE_PPC **first,THE_PPC **last,THE_PPC *curr,short direction)
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -700,7 +623,6 @@ THE_PPC *pll_del(THE_PPC **first,THE_PPC **last,THE_PPC *curr,short direction)
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -714,7 +636,6 @@ THE_PPC *pll_del(THE_PPC **first,THE_PPC **last,THE_PPC *curr,short direction)
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -729,22 +650,17 @@ THE_PPC *pll_del(THE_PPC **first,THE_PPC **last,THE_PPC *curr,short direction)
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 THE_PPC *pll_free(THE_PPC *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    THE_PPC *curr=NULL;
    THE_PPC *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    pll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -752,43 +668,33 @@ THE_PPC *pll_free(THE_PPC *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((THE_PPC *)NULL);
 }
-/***********************************************************************/
 THE_PPC *pll_find(THE_PPC *first,LINETYPE line_number)
-/***********************************************************************/
 {
    THE_PPC *curr_ppc=NULL;
 
-   TRACE_FUNCTION("linked.c:    pll_find");
    curr_ppc = first;
    while (curr_ppc != NULL)
    {
       if (curr_ppc->ppc_line_number == line_number)
       {
-         TRACE_RETURN();
          return(curr_ppc);
       }
       curr_ppc = curr_ppc->next;
    }
-   TRACE_RETURN();
    return(NULL);
 }
-/***********************************************************************/
 RESERVED *rll_add(RESERVED *first,RESERVED *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a RESERVED to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first RESERVED in linked list                   */
 /* curr       - pointer to current RESERVED in linked list                 */
 /* size       - size of a RESERVED item                                    */
 /* RETURN:    - pointer to next RESERVED item                              */
-/***********************************************************************/
 {
    RESERVED *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    rll_add");
 
    if ((next=(RESERVED *)(*the_malloc)(size)) != (RESERVED *)NULL)
    {
@@ -810,16 +716,12 @@ RESERVED *rll_add(RESERVED *first,RESERVED *curr,unsigned short size)
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 RESERVED *rll_del(RESERVED **first,RESERVED **last,RESERVED *curr,short direction)
-/***********************************************************************/
 {
    RESERVED *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    rll_del");
    /*
     * Delete the only record
     */
@@ -829,7 +731,6 @@ RESERVED *rll_del(RESERVED **first,RESERVED **last,RESERVED *curr,short directio
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -841,7 +742,6 @@ RESERVED *rll_del(RESERVED **first,RESERVED **last,RESERVED *curr,short directio
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -855,7 +755,6 @@ RESERVED *rll_del(RESERVED **first,RESERVED **last,RESERVED *curr,short directio
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -870,22 +769,17 @@ RESERVED *rll_del(RESERVED **first,RESERVED **last,RESERVED *curr,short directio
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 RESERVED *rll_free(RESERVED *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    RESERVED *curr=NULL;
    RESERVED *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    rll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -899,39 +793,30 @@ RESERVED *rll_free(RESERVED *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((RESERVED *)NULL);
 }
-/***********************************************************************/
 RESERVED *rll_find(RESERVED *first,short row)
-/***********************************************************************/
 {
    RESERVED *curr=NULL;
    short i=0;
 
-   TRACE_FUNCTION("linked.c:    rll_find");
    curr = first;
    if (curr != NULL)
    {
       for(i=0;i<row && curr->next != NULL; i++, curr=curr->next);
    }
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 PARSER_DETAILS *parserll_add(PARSER_DETAILS *first,PARSER_DETAILS *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a PARSER_DETAILS to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSER_DETAILS in linked list         */
 /* curr       - pointer to current PARSER_DETAILS in linked list       */
 /* size       - size of a PARSER_DETAILS item                          */
 /* RETURN:    - pointer to next PARSER_DETAILS item                    */
-/***********************************************************************/
 {
    PARSER_DETAILS *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    parserll_add");
 
    if ((next=(PARSER_DETAILS *)(*the_malloc)(size)) != (PARSER_DETAILS *)NULL)
    {
@@ -953,16 +838,12 @@ PARSER_DETAILS *parserll_add(PARSER_DETAILS *first,PARSER_DETAILS *curr,unsigned
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 PARSER_DETAILS *parserll_del(PARSER_DETAILS **first,PARSER_DETAILS **last,PARSER_DETAILS *curr,short direction)
-/***********************************************************************/
 {
    PARSER_DETAILS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parserll_del");
    /*
     * Delete the only record
     */
@@ -972,7 +853,6 @@ PARSER_DETAILS *parserll_del(PARSER_DETAILS **first,PARSER_DETAILS **last,PARSER
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -984,7 +864,6 @@ PARSER_DETAILS *parserll_del(PARSER_DETAILS **first,PARSER_DETAILS **last,PARSER
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -998,7 +877,6 @@ PARSER_DETAILS *parserll_del(PARSER_DETAILS **first,PARSER_DETAILS **last,PARSER
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1013,22 +891,17 @@ PARSER_DETAILS *parserll_del(PARSER_DETAILS **first,PARSER_DETAILS **last,PARSER
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 PARSER_DETAILS *parserll_free(PARSER_DETAILS *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    PARSER_DETAILS *curr=NULL;
    PARSER_DETAILS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parserll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -1042,17 +915,13 @@ PARSER_DETAILS *parserll_free(PARSER_DETAILS *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((PARSER_DETAILS *)NULL);
 }
-/***********************************************************************/
 PARSER_DETAILS *parserll_find(PARSER_DETAILS *first,CHARTYPE *name)
-/***********************************************************************/
 {
  PARSER_DETAILS *curr=NULL;
  short i=0;
 
-   TRACE_FUNCTION("linked.c:    parserll_find");
    curr = first;
    if (curr != NULL)
    {
@@ -1060,28 +929,22 @@ PARSER_DETAILS *parserll_find(PARSER_DETAILS *first,CHARTYPE *name)
       {
          if (my_stricmp((DEFCHAR *)name,(DEFCHAR *)curr->parser_name) == 0)
          {
-            TRACE_RETURN();
             return curr;
          }
       }
    }
-   TRACE_RETURN();
    return(NULL);
 }
-/***********************************************************************/
 PARSE_KEYWORDS *parse_keywordll_add(PARSE_KEYWORDS *first,PARSE_KEYWORDS *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a PARSE_KEYWORDS to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSE_KEYWORDS in linked list         */
 /* curr       - pointer to current PARSE_KEYWORDS in linked list       */
 /* size       - size of a PARSE_KEYWORDS item                          */
 /* RETURN:    - pointer to next PARSE_KEYWORDS item                    */
-/***********************************************************************/
 {
    PARSE_KEYWORDS *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_keywordll_add");
 
    if ((next=(PARSE_KEYWORDS *)(*the_malloc)(size)) != (PARSE_KEYWORDS *)NULL)
    {
@@ -1103,16 +966,12 @@ PARSE_KEYWORDS *parse_keywordll_add(PARSE_KEYWORDS *first,PARSE_KEYWORDS *curr,u
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS **first,PARSE_KEYWORDS **last,PARSE_KEYWORDS *curr,short direction)
-/***********************************************************************/
 {
    PARSE_KEYWORDS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_keywordll_del");
    /*
     * Delete the only record
     */
@@ -1122,7 +981,6 @@ PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS **first,PARSE_KEYWORDS **last
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -1134,7 +992,6 @@ PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS **first,PARSE_KEYWORDS **last
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1148,7 +1005,6 @@ PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS **first,PARSE_KEYWORDS **last
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1163,22 +1019,17 @@ PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS **first,PARSE_KEYWORDS **last
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 PARSE_KEYWORDS *parse_keywordll_free(PARSE_KEYWORDS *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    PARSE_KEYWORDS *curr=NULL;
    PARSE_KEYWORDS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_keywordll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -1188,23 +1039,18 @@ PARSE_KEYWORDS *parse_keywordll_free(PARSE_KEYWORDS *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((PARSE_KEYWORDS *)NULL);
 }
-/***********************************************************************/
 PARSE_FUNCTIONS *parse_functionll_add(PARSE_FUNCTIONS *first,PARSE_FUNCTIONS *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a PARSE_FUNCTIONS to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSE_FUNCTIONS in linked list         */
 /* curr       - pointer to current PARSE_FUNCTIONS in linked list       */
 /* size       - size of a PARSE_FUNCTIONS item                          */
 /* RETURN:    - pointer to next PARSE_FUNCTIONS item                    */
-/***********************************************************************/
 {
    PARSE_FUNCTIONS *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_functionll_add");
 
    if ((next=(PARSE_FUNCTIONS *)(*the_malloc)(size)) != (PARSE_FUNCTIONS *)NULL)
    {
@@ -1226,16 +1072,12 @@ PARSE_FUNCTIONS *parse_functionll_add(PARSE_FUNCTIONS *first,PARSE_FUNCTIONS *cu
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS **first,PARSE_FUNCTIONS **last,PARSE_FUNCTIONS *curr,short direction)
-/***********************************************************************/
 {
    PARSE_FUNCTIONS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_functionll_del");
    /*
     * Delete the only record
     */
@@ -1245,7 +1087,6 @@ PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS **first,PARSE_FUNCTIONS **
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -1257,7 +1098,6 @@ PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS **first,PARSE_FUNCTIONS **
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1271,7 +1111,6 @@ PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS **first,PARSE_FUNCTIONS **
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1286,22 +1125,17 @@ PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS **first,PARSE_FUNCTIONS **
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 PARSE_FUNCTIONS *parse_functionll_free(PARSE_FUNCTIONS *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    PARSE_FUNCTIONS *curr=NULL;
    PARSE_FUNCTIONS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_functionll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -1311,23 +1145,18 @@ PARSE_FUNCTIONS *parse_functionll_free(PARSE_FUNCTIONS *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((PARSE_FUNCTIONS *)NULL);
 }
-/***********************************************************************/
 PARSE_HEADERS *parse_headerll_add(PARSE_HEADERS *first,PARSE_HEADERS *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a PARSE_HEADERS to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSE_HEADERS in linked list         */
 /* curr       - pointer to current PARSE_HEADERS in linked list       */
 /* size       - size of a PARSE_HEADERS item                          */
 /* RETURN:    - pointer to next PARSE_HEADERS item                    */
-/***********************************************************************/
 {
    PARSE_HEADERS *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_headerll_add");
 
    if ((next=(PARSE_HEADERS *)(*the_malloc)(size)) != (PARSE_HEADERS *)NULL)
    {
@@ -1349,22 +1178,17 @@ PARSE_HEADERS *parse_headerll_add(PARSE_HEADERS *first,PARSE_HEADERS *curr,unsig
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 PARSE_HEADERS *parse_headerll_free(PARSE_HEADERS *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    PARSE_HEADERS *curr=NULL;
    PARSE_HEADERS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_headerll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -1372,23 +1196,18 @@ PARSE_HEADERS *parse_headerll_free(PARSE_HEADERS *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((PARSE_HEADERS *)NULL);
 }
-/***********************************************************************/
 PARSER_MAPPING *mappingll_add(PARSER_MAPPING *first,PARSER_MAPPING *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a PARSER_MAPPING to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSER_MAPPING in linked list         */
 /* curr       - pointer to current PARSER_MAPPING in linked list       */
 /* size       - size of a PARSER_MAPPING item                          */
 /* RETURN:    - pointer to next PARSER_MAPPING item                    */
-/***********************************************************************/
 {
    PARSER_MAPPING *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    mappingll_add");
 
    if ((next=(PARSER_MAPPING *)(*the_malloc)(size)) != (PARSER_MAPPING *)NULL)
    {
@@ -1410,16 +1229,12 @@ PARSER_MAPPING *mappingll_add(PARSER_MAPPING *first,PARSER_MAPPING *curr,unsigne
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 PARSER_MAPPING *mappingll_del(PARSER_MAPPING **first,PARSER_MAPPING **last,PARSER_MAPPING *curr,short direction)
-/***********************************************************************/
 {
    PARSER_MAPPING *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    mappingll_del");
    /*
     * Delete the only record
     */
@@ -1429,7 +1244,6 @@ PARSER_MAPPING *mappingll_del(PARSER_MAPPING **first,PARSER_MAPPING **last,PARSE
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -1441,7 +1255,6 @@ PARSER_MAPPING *mappingll_del(PARSER_MAPPING **first,PARSER_MAPPING **last,PARSE
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1455,7 +1268,6 @@ PARSER_MAPPING *mappingll_del(PARSER_MAPPING **first,PARSER_MAPPING **last,PARSE
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1470,22 +1282,17 @@ PARSER_MAPPING *mappingll_del(PARSER_MAPPING **first,PARSER_MAPPING **last,PARSE
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 PARSER_MAPPING *mappingll_free(PARSER_MAPPING *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    PARSER_MAPPING *curr=NULL;
    PARSER_MAPPING *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    mappingll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -1499,17 +1306,13 @@ PARSER_MAPPING *mappingll_free(PARSER_MAPPING *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((PARSER_MAPPING *)NULL);
 }
-/***********************************************************************/
 PARSER_MAPPING *mappingll_find(PARSER_MAPPING *first,CHARTYPE *filemask, CHARTYPE *magic_number)
-/***********************************************************************/
 {
    PARSER_MAPPING *curr=NULL;
    short i=0;
 
-   TRACE_FUNCTION("linked.c:    mappingll_find");
    curr = first;
    if (curr != NULL)
    {
@@ -1520,7 +1323,6 @@ PARSER_MAPPING *mappingll_find(PARSER_MAPPING *first,CHARTYPE *filemask, CHARTYP
             if (curr->filemask
             &&  strcmp((DEFCHAR *)filemask,(DEFCHAR *)curr->filemask) == 0)
             {
-               TRACE_RETURN();
                return curr;
             }
          }
@@ -1529,29 +1331,23 @@ PARSER_MAPPING *mappingll_find(PARSER_MAPPING *first,CHARTYPE *filemask, CHARTYP
             if (curr->magic_number
             &&  strcmp((DEFCHAR *)magic_number,(DEFCHAR *)curr->magic_number) == 0)
             {
-               TRACE_RETURN();
                return curr;
             }
          }
       }
    }
-   TRACE_RETURN();
    return(NULL);
 }
-/***********************************************************************/
 PARSE_COMMENTS *parse_commentsll_add(PARSE_COMMENTS *first,PARSE_COMMENTS *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a PARSE_COMMENTS to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSE_COMMENTS in linked list         */
 /* curr       - pointer to current PARSE_COMMENTS in linked list       */
 /* size       - size of a PARSE_COMMENTS item                          */
 /* RETURN:    - pointer to next PARSE_COMMENTS item                    */
-/***********************************************************************/
 {
    PARSE_COMMENTS *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_commentsll_add");
 
    if ((next=(PARSE_COMMENTS *)(*the_malloc)(size)) != (PARSE_COMMENTS *)NULL)
    {
@@ -1573,16 +1369,12 @@ PARSE_COMMENTS *parse_commentsll_add(PARSE_COMMENTS *first,PARSE_COMMENTS *curr,
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS **first,PARSE_COMMENTS **last,PARSE_COMMENTS *curr,short direction)
-/***********************************************************************/
 {
    PARSE_COMMENTS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_commentsll_del");
    /*
     * Delete the only record
     */
@@ -1592,7 +1384,6 @@ PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS **first,PARSE_COMMENTS **las
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -1604,7 +1395,6 @@ PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS **first,PARSE_COMMENTS **las
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1618,7 +1408,6 @@ PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS **first,PARSE_COMMENTS **las
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1633,22 +1422,17 @@ PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS **first,PARSE_COMMENTS **las
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 PARSE_COMMENTS *parse_commentsll_free(PARSE_COMMENTS *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first line for the file                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    PARSE_COMMENTS *curr=NULL;
    PARSE_COMMENTS *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_commentsll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -1656,23 +1440,18 @@ PARSE_COMMENTS *parse_commentsll_free(PARSE_COMMENTS *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((PARSE_COMMENTS *)NULL);
 }
-/***********************************************************************/
 PARSE_POSTCOMPARE *parse_postcomparell_add(PARSE_POSTCOMPARE *first,PARSE_POSTCOMPARE *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a PARSE_POSTCOMPARE to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSE_POSTCOMPARE in linked list      */
 /* curr       - pointer to current PARSE_POSTCOMPARE in linked list    */
 /* size       - size of a PARSE_POSTCOMPARE item                       */
 /* RETURN:    - pointer to next PARSE_POSTCOMPARE item                 */
-/***********************************************************************/
 {
    PARSE_POSTCOMPARE *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_postcomparell_add");
 
    if ((next=(PARSE_POSTCOMPARE *)(*the_malloc)(size)) != (PARSE_POSTCOMPARE *)NULL)
    {
@@ -1694,16 +1473,12 @@ PARSE_POSTCOMPARE *parse_postcomparell_add(PARSE_POSTCOMPARE *first,PARSE_POSTCO
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE **first,PARSE_POSTCOMPARE **last,PARSE_POSTCOMPARE *curr,short direction)
-/***********************************************************************/
 {
    PARSE_POSTCOMPARE *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_postcomparell_del");
    if ( curr->string )
       (*the_free)(curr->string);
    if ( curr->is_class_type )
@@ -1717,7 +1492,6 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE **first,PARSE_POSTC
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -1729,7 +1503,6 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE **first,PARSE_POSTC
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1743,7 +1516,6 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE **first,PARSE_POSTC
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1758,22 +1530,17 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE **first,PARSE_POSTC
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 PARSE_POSTCOMPARE *parse_postcomparell_free(PARSE_POSTCOMPARE *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSE_POSTCOMPARE                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    PARSE_POSTCOMPARE *curr=NULL;
    PARSE_POSTCOMPARE *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_postcomparell_free");
    curr = first;
    while (curr != NULL)
    {
@@ -1785,23 +1552,18 @@ PARSE_POSTCOMPARE *parse_postcomparell_free(PARSE_POSTCOMPARE *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((PARSE_POSTCOMPARE *)NULL);
 }
-/***********************************************************************/
 PARSE_EXTENSION *parse_extensionll_add(PARSE_EXTENSION *first,PARSE_EXTENSION *curr,unsigned short size)
-/***********************************************************************/
 /* Adds a PARSE_EXTENSION to the current linked list after the current member.    */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSE_EXTENSION in linked list      */
 /* curr       - pointer to current PARSE_EXTENSION in linked list    */
 /* size       - size of a PARSE_EXTENSION item                       */
 /* RETURN:    - pointer to next PARSE_EXTENSION item                 */
-/***********************************************************************/
 {
    PARSE_EXTENSION *next=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_extensionll_add");
 
    if ((next=(PARSE_EXTENSION *)(*the_malloc)(size)) != (PARSE_EXTENSION *)NULL)
    {
@@ -1823,16 +1585,12 @@ PARSE_EXTENSION *parse_extensionll_add(PARSE_EXTENSION *first,PARSE_EXTENSION *c
       }
       next->prev = curr;
    }
-   TRACE_RETURN();
    return(next);
 }
-/***********************************************************************/
 PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION **first,PARSE_EXTENSION **last,PARSE_EXTENSION *curr,short direction)
-/***********************************************************************/
 {
    PARSE_EXTENSION *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_extensionll_del");
    if ( curr->extension )
       (*the_free)(curr->extension );
    /*
@@ -1844,7 +1602,6 @@ PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION **first,PARSE_EXTENSION *
       *first = NULL;
       if (last != NULL)
          *last = NULL;
-      TRACE_RETURN();
       return(NULL);
    }
    /*
@@ -1856,7 +1613,6 @@ PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION **first,PARSE_EXTENSION *
       *first = new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1870,7 +1626,6 @@ PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION **first,PARSE_EXTENSION *
          *last = curr->prev;
       (*the_free)(curr);
       curr = new_curr;
-      TRACE_RETURN();
       return(curr);
    }
    /*
@@ -1885,22 +1640,17 @@ PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION **first,PARSE_EXTENSION *
 
    (*the_free)(curr);
    curr = new_curr;
-   TRACE_RETURN();
    return(curr);
 }
-/***********************************************************************/
 PARSE_EXTENSION *parse_extensionll_free(PARSE_EXTENSION *first)
-/***********************************************************************/
 /* Free up all allocated memory until the last item in the linked-list */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first PARSE_EXTENSION                     */
 /* RETURN:    - NULL                                                   */
-/***********************************************************************/
 {
    PARSE_EXTENSION *curr=NULL;
    PARSE_EXTENSION *new_curr=NULL;
 
-   TRACE_FUNCTION("linked.c:    parse_extensionll_free");
    curr = first;
    while (curr != NULL)
    {
@@ -1910,6 +1660,5 @@ PARSE_EXTENSION *parse_extensionll_free(PARSE_EXTENSION *first)
       (*the_free)(curr);
       curr = new_curr;
    }
-   TRACE_RETURN();
    return((PARSE_EXTENSION *)NULL);
 }

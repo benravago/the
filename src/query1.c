@@ -61,9 +61,7 @@ extern CHARTYPE query_num8[10];
 extern CHARTYPE query_rsrvd[MAX_FILE_NAME+1];
 static LINE *curr;
 
-/***********************************************************************/
 short extract_after_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0;
    bool bool_flag=FALSE;
@@ -97,9 +95,7 @@ short extract_after_function(short number_variables,short itemno,CHARTYPE *itema
    return 1; /* number of values set */
 }
 
-/***********************************************************************/
 short extract_alt(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%d",CURRENT_FILE->autosave_alt);
    sprintf((DEFCHAR *)query_num2,"%d",CURRENT_FILE->save_alt);
@@ -110,16 +106,12 @@ short extract_alt(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYP
    return number_variables;
 }
 
-/***********************************************************************/
 short extract_alt_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(CURRENT_FILE->save_alt != 0),(short)1);
 }
 
-/***********************************************************************/
 short extract_altkey_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    int shift=0;
 
@@ -127,16 +119,12 @@ short extract_altkey_function(short number_variables,short itemno,CHARTYPE *item
    return set_boolean_value((bool)(shift & SHIFT_ALT),(short)1);
 }
 
-/***********************************************************************/
 short extract_batch_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)batch_only,(short)1);
 }
 
-/***********************************************************************/
 short extract_arbchar(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    set_on_off_value(CURRENT_VIEW->arbchar_status,1);
    query_num1[0] = CURRENT_VIEW->arbchar_multiple;
@@ -150,9 +138,7 @@ short extract_arbchar(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    return number_variables;
 }
 
-/***********************************************************************/
 short extract_autosave(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (CURRENT_FILE->autosave == 0)
    {
@@ -168,22 +154,16 @@ short extract_autosave(short number_variables,short itemno,CHARTYPE *itemargs,CH
    return number_variables;
 }
 
-/***********************************************************************/
 short extract_autocolor(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return extract_autocolour_settings(itemno,query_rsrvd,query_type,itemargs,TRUE);
 }
-/***********************************************************************/
 short extract_autocolour(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return extract_autocolour_settings(itemno,query_rsrvd,query_type,itemargs,FALSE);
 }
 
-/***********************************************************************/
 short extract_autoscroll(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (CURRENT_VIEW->autoscroll == 0)
    {
@@ -204,9 +184,7 @@ short extract_autoscroll(short number_variables,short itemno,CHARTYPE *itemargs,
    return number_variables;
 }
 
-/***********************************************************************/
 short extract_backup(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    switch( CURRENT_FILE->backup )
    {
@@ -231,16 +209,12 @@ short extract_backup(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    return number_variables;
 }
 
-/***********************************************************************/
 short extract_beep(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(BEEPx,1);
 }
 
-/***********************************************************************/
 short extract_before_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0;
    bool bool_flag=FALSE;
@@ -272,9 +246,7 @@ short extract_before_function(short number_variables,short itemno,CHARTYPE *item
    return number_variables;
 }
 
-/***********************************************************************/
 short extract_blank_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)"0"; /* FALSE by default */
    switch(CURRENT_VIEW->current_window)
@@ -295,9 +267,7 @@ short extract_blank_function(short number_variables,short itemno,CHARTYPE *itema
    item_values[1].len = 1;
    return number_variables;
 }
-/***********************************************************************/
 short extract_block(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (MARK_VIEW == NULL)
    {
@@ -329,15 +299,11 @@ short extract_block(short number_variables,short itemno,CHARTYPE *itemargs,CHART
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_block_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(CURRENT_VIEW == MARK_VIEW),(short)1);
 }
-/***********************************************************************/
 short extract_bottomedge_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0;
 
@@ -350,9 +316,7 @@ short extract_bottomedge_function(short number_variables,short itemno,CHARTYPE *
    getyx(CURRENT_WINDOW,y,x);
    return set_boolean_value((bool)(CURRENT_VIEW->current_window == WINDOW_FILEAREA && y == CURRENT_SCREEN.rows[WINDOW_FILEAREA]-1),(short)1);
 }
-/***********************************************************************/
 short extract_case(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    switch(CURRENT_VIEW->case_enter)
    {
@@ -440,9 +404,7 @@ short extract_case(short number_variables,short itemno,CHARTYPE *itemargs,CHARTY
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_clearerrorkey(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    int dummy=0;
 
@@ -458,27 +420,19 @@ short extract_clearerrorkey(short number_variables,short itemno,CHARTYPE *itemar
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_clearscreen(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(CLEARSCREENx,1);
 }
-/***********************************************************************/
 short extract_clock(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(CLOCKx,1);
 }
-/***********************************************************************/
 short extract_command_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(CURRENT_WINDOW_COMMAND != NULL),(short)1);
 }
-/***********************************************************************/
 short extract_cmdarrows(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (CMDARROWSTABCMDx)
    {
@@ -492,9 +446,7 @@ short extract_cmdarrows(short number_variables,short itemno,CHARTYPE *itemargs,C
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_cmdline(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    switch(CURRENT_VIEW->cmd_line)
    {
@@ -529,21 +481,15 @@ short extract_cmdline(short number_variables,short itemno,CHARTYPE *itemargs,CHA
       number_variables = 1;
    return number_variables;
 }
-/***********************************************************************/
 short extract_color(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return extract_colour_settings(itemno,query_rsrvd,query_type,itemargs,TRUE,FALSE);
 }
-/***********************************************************************/
 short extract_colour(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return extract_colour_settings(itemno,query_rsrvd,query_type,itemargs,FALSE,FALSE);
 }
-/***********************************************************************/
 short extract_coloring(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (CURRENT_FILE->colouring)
    {
@@ -578,9 +524,7 @@ short extract_coloring(short number_variables,short itemno,CHARTYPE *itemargs,CH
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_colouring(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (CURRENT_FILE->colouring)
    {
@@ -615,9 +559,7 @@ short extract_colouring(short number_variables,short itemno,CHARTYPE *itemargs,C
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_column(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0;
 
@@ -633,9 +575,7 @@ short extract_column(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    item_values[1].len = strlen((DEFCHAR *)query_num1);
    return number_variables;
 }
-/***********************************************************************/
 short extract_compat(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    switch(compatible_look)
    {
@@ -708,9 +648,7 @@ short extract_compat(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_ctlchar(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    int i,j;
    bool found=FALSE;
@@ -778,18 +716,14 @@ short extract_ctlchar(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    return number_variables;
 }
 
-/***********************************************************************/
 short extract_ctrl_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    int shift=0;
 
    get_key_name(lastkeys[current_key],&shift);
    return set_boolean_value((bool)(shift & SHIFT_CTRL),(short)1);
 }
-/***********************************************************************/
 short extract_curline(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (CURRENT_VIEW->current_base == POSITION_MIDDLE)
    {
@@ -838,9 +772,7 @@ short extract_curline(short number_variables,short itemno,CHARTYPE *itemargs,CHA
       number_variables = 1;
    return number_variables;
 }
-/***********************************************************************/
 short extract_cursor(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    LINETYPE current_screen_line=(-1L);
    LINETYPE current_screen_column=(-1L);
@@ -875,21 +807,15 @@ short extract_cursor(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    item_values[8].len = strlen((DEFCHAR *)query_num8);
    return number_variables;
 }
-/***********************************************************************/
 short extract_cursorstay(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(scroll_cursor_stay,1);
 }
-/***********************************************************************/
 short extract_current_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(CURRENT_VIEW->current_window != WINDOW_COMMAND && CURRENT_VIEW->focus_line == CURRENT_VIEW->current_line),(short)1);
 }
-/***********************************************************************/
 short extract_define(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    char buf[20];
    int len, number_keys;
@@ -1021,9 +947,7 @@ short extract_define(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_defsort(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    switch(DEFSORTx)
    {
@@ -1059,15 +983,11 @@ short extract_defsort(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_dir_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(CURRENT_FILE->pseudo_file == PSEUDO_DIR),(short)1);
 }
-/***********************************************************************/
 short extract_dirfileid(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    LINETYPE true_line = (-1L);
 
@@ -1112,29 +1032,21 @@ short extract_dirfileid(short number_variables,short itemno,CHARTYPE *itemargs,C
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_dirinclude(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    item_values[1].value = get_dirtype(query_rsrvd);
    item_values[1].len = strlen((DEFCHAR*)item_values[1].value);
    return number_variables;
 }
-/***********************************************************************/
 short extract_ecolor(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return extract_colour_settings(itemno,query_rsrvd,query_type,itemargs,TRUE,TRUE);
 }
-/***********************************************************************/
 short extract_ecolour(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return extract_colour_settings(itemno,query_rsrvd,query_type,itemargs,FALSE,TRUE);
 }
-/***********************************************************************/
 short extract_end_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0;
 
@@ -1166,9 +1078,7 @@ short extract_end_function(short number_variables,short itemno,CHARTYPE *itemarg
    item_values[1].len = 1;
    return number_variables;
 }
-/***********************************************************************/
 short extract_display(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%d",CURRENT_VIEW->display_low);
    item_values[1].value = query_num1;
@@ -1178,21 +1088,15 @@ short extract_display(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    item_values[2].len = strlen((DEFCHAR *)query_num2);
    return number_variables;
 }
-/***********************************************************************/
 short extract_eof(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value((bool)CURRENT_BOF,1);
 }
-/***********************************************************************/
 short extract_eof_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(FOCUS_BOF && CURRENT_VIEW->current_window != WINDOW_COMMAND),(short)1);
 }
-/***********************************************************************/
 short extract_eolout(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    switch(CURRENT_FILE->eolout)
    {
@@ -1215,17 +1119,13 @@ short extract_eolout(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_equivchar(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    item_values[1].value = EQUIVCHARstr;
    item_values[1].len = strlen((DEFCHAR *)EQUIVCHARstr);
    return number_variables;
 }
-/***********************************************************************/
 short extract_errorformat(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    switch(ERRORFORMATx)
    {
@@ -1242,15 +1142,11 @@ short extract_errorformat(short number_variables,short itemno,CHARTYPE *itemargs
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_erroroutput(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(ERROROUTPUTx,1);
 }
-/***********************************************************************/
 short extract_etmode(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    get_etmode(query_num1,query_rsrvd);
    item_values[1].value = query_num1;
@@ -1259,9 +1155,7 @@ short extract_etmode(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    item_values[2].len = strlen((DEFCHAR *)query_rsrvd);
    return number_variables;
 }
-/***********************************************************************/
 short extract_field(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    int i=0;
    short y=0,x=0;
@@ -1308,9 +1202,7 @@ short extract_field(short number_variables,short itemno,CHARTYPE *itemargs,CHART
    item_values[3].len = strlen((DEFCHAR*)query_num2);
    return number_variables;
 }
-/***********************************************************************/
 short extract_fieldword(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0,rc;
    LENGTHTYPE real_col=0;
@@ -1424,9 +1316,7 @@ short extract_fieldword(short number_variables,short itemno,CHARTYPE *itemargs,C
 
  return EXTRACT_VARIABLES_SET;
 }
-/***********************************************************************/
 short extract_first_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0;
 
@@ -1439,9 +1329,7 @@ short extract_first_function(short number_variables,short itemno,CHARTYPE *itema
    getyx(CURRENT_WINDOW,y,x);
    return set_boolean_value((bool)(x == 0 && CURRENT_VIEW->verify_col == 1),(short)1);
 }
-/***********************************************************************/
 short extract_focuseof_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    bool bool_flag;
    if ( CURRENT_VIEW->current_window == WINDOW_COMMAND )
@@ -1450,9 +1338,7 @@ short extract_focuseof_function(short number_variables,short itemno,CHARTYPE *it
       bool_flag = FOCUS_BOF;
    return set_boolean_value( (bool)(bool_flag), (short)1 );
 }
-/***********************************************************************/
 short extract_focustof_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    bool bool_flag;
    if ( CURRENT_VIEW->current_window == WINDOW_COMMAND )
@@ -1461,17 +1347,13 @@ short extract_focustof_function(short number_variables,short itemno,CHARTYPE *it
       bool_flag = FOCUS_TOF;
    return set_boolean_value( (bool)(bool_flag), (short)1 );
 }
-/***********************************************************************/
 short extract_filename(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)CURRENT_FILE->fname;
    item_values[1].len = strlen((DEFCHAR *)CURRENT_FILE->fname);
    return number_variables;
 }
-/***********************************************************************/
 short extract_filestatus(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)"NONE";
    item_values[1].len = 4;
@@ -1506,23 +1388,17 @@ short extract_filestatus(short number_variables,short itemno,CHARTYPE *itemargs,
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_filetabs(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value((bool)FILETABSx,1);
 }
-/***********************************************************************/
 short extract_fmode(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)"";
    item_values[1].len = 0;
    return number_variables;
 }
-/***********************************************************************/
 short extract_fname(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short x=0;
 
@@ -1534,9 +1410,7 @@ short extract_fname(short number_variables,short itemno,CHARTYPE *itemargs,CHART
    item_values[1].len = strlen((DEFCHAR *)query_rsrvd);
    return number_variables;
 }
-/***********************************************************************/
 short extract_efileid(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)CURRENT_FILE->efileid;
    item_values[1].len = strlen( (DEFCHAR *)CURRENT_FILE->efileid );
@@ -1544,17 +1418,13 @@ short extract_efileid(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    item_values[2].len = strlen( (DEFCHAR *)CURRENT_FILE->actualfname );
    return number_variables;
 }
-/***********************************************************************/
 short extract_fpath(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    item_values[1].value = (CHARTYPE *)CURRENT_FILE->fpath;
    item_values[1].len = strlen((DEFCHAR *)CURRENT_FILE->fpath);
    return number_variables;
 }
-/***********************************************************************/
 short extract_ftype(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short x=0;
 
@@ -1572,15 +1442,11 @@ short extract_ftype(short number_variables,short itemno,CHARTYPE *itemargs,CHART
    return number_variables;
 }
 
-/***********************************************************************/
 short extract_fullfname(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(CURRENT_FILE->display_actual_filename,1);
 }
-/***********************************************************************/
 short extract_getenv(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    CHARTYPE *tmpbuf=NULL;
 
@@ -1602,16 +1468,13 @@ short extract_getenv(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    item_values[1].len = strlen((DEFCHAR *)item_values[1].value);
    return number_variables;
 }
-/***********************************************************************/
 short extract_header(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short rc=RC_OK;
    register int i=0,off=0;
    ROWTYPE save_msgline_rows = CURRENT_VIEW->msgline_rows;
    bool save_msgmode_status = CURRENT_VIEW->msgmode_status;
 
-   TRACE_FUNCTION("query.c:   extract_header");
    if (query_type == QUERY_QUERY)
    {
       for ( i = 0; thm[i].the_header != HEADER_ALL; i++ )
@@ -1649,24 +1512,17 @@ short extract_header(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    else
       rc = number_variables;
 
-   TRACE_RETURN();
    return(rc);
 }
-/***********************************************************************/
 short extract_hex(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->hex,1);
 }
-/***********************************************************************/
 short extract_hexdisplay(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(HEXDISPLAYx,1);
 }
-/***********************************************************************/
 short extract_hexshow(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    set_on_off_value(CURRENT_VIEW->hexshow_on,1);
    if (CURRENT_VIEW->hexshow_base == POSITION_MIDDLE)
@@ -1677,9 +1533,7 @@ short extract_hexshow(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    item_values[2].len = strlen((DEFCHAR *)query_rsrvd);
    return number_variables;
 }
-/***********************************************************************/
 short extract_highlight(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    switch (CURRENT_VIEW->highlight)
    {
@@ -1708,9 +1562,7 @@ short extract_highlight(short number_variables,short itemno,CHARTYPE *itemargs,C
    item_values[1].len = strlen((DEFCHAR *)item_values[1].value);
    return number_variables;
 }
-/***********************************************************************/
 short extract_idline(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if ( query_type == QUERY_EXTRACT
    &&   !blank_field( itemargs ) )
@@ -1739,21 +1591,15 @@ short extract_idline(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_impmacro(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->imp_macro,1);
 }
-/***********************************************************************/
 short extract_impos(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(CURRENT_VIEW->imp_os,1);
 }
-/***********************************************************************/
 short extract_inblock_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0;
    bool bool_flag=FALSE;
@@ -1838,27 +1684,19 @@ short extract_inblock_function(short number_variables,short itemno,CHARTYPE *ite
    }
    return set_boolean_value((bool)bool_flag,(short)1);
 }
-/***********************************************************************/
 short extract_incommand_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(CURRENT_VIEW->current_window == WINDOW_COMMAND),(short)1);
 }
-/***********************************************************************/
 short extract_initial_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)in_profile,(short)1);
 }
-/***********************************************************************/
 short extract_inprefix_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(CURRENT_VIEW->current_window == WINDOW_PREFIX),(short)1);
 }
-/***********************************************************************/
 short extract_inputmode(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (CURRENT_VIEW->inputmode == INPUTMODE_OFF)
    {
@@ -1877,15 +1715,11 @@ short extract_inputmode(short number_variables,short itemno,CHARTYPE *itemargs,C
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_insertmode(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_on_off_value(INSERTMODEx,1);
 }
-/***********************************************************************/
 short extract_interface(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if ( INTERFACEx == INTERFACE_CLASSIC )
    {
@@ -1899,15 +1733,11 @@ short extract_interface(short number_variables,short itemno,CHARTYPE *itemargs,C
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_insertmode_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    return set_boolean_value((bool)(INSERTMODEx),(short)1);
 }
-/***********************************************************************/
 short extract_lastkey(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    int keynum=0;
 
@@ -1937,9 +1767,7 @@ short extract_lastkey(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_lastmsg(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    if (last_message == NULL)
    {
@@ -1953,9 +1781,7 @@ short extract_lastmsg(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    }
    return number_variables;
 }
-/***********************************************************************/
 short extract_lastop(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short rc=RC_OK;
    register int i=0;
@@ -2019,7 +1845,6 @@ short extract_lastop(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
          if (!found)
          {
             display_error( 1, itemargs, TRUE );
-            TRACE_RETURN();
             return EXTRACT_ARG_ERROR;
          }
          sprintf((DEFCHAR *)query_rsrvd,"%s%s %s",
@@ -2032,7 +1857,6 @@ short extract_lastop(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
       {
          if (!found)
          {
-            TRACE_RETURN();
             return EXTRACT_ARG_ERROR;
          }
          item_values[1].value = lastop[i].command;
@@ -2052,22 +1876,17 @@ short extract_lastop(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    else
       rc = number_variables;
 
-   TRACE_RETURN();
    return rc;
 
 }
-/***********************************************************************/
 short extract_lastrc(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%d",lastrc);
    item_values[1].value = query_num1;
    item_values[1].len = strlen((DEFCHAR *)query_num1);
    return number_variables;
 }
-/***********************************************************************/
 short extract_leftedge_function(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    short y=0,x=0;
 
@@ -2080,9 +1899,7 @@ short extract_leftedge_function(short number_variables,short itemno,CHARTYPE *it
    getyx(CURRENT_WINDOW,y,x);
    return set_boolean_value((bool)(CURRENT_VIEW->current_window == WINDOW_FILEAREA && x == 0),(short)1);
 }
-/***********************************************************************/
 short extract_length(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    curr = lll_find(CURRENT_FILE->first_line,CURRENT_FILE->last_line,CURRENT_VIEW->current_line,CURRENT_FILE->number_lines);
    sprintf((DEFCHAR *)query_num1,"%ld",curr->length);
@@ -2090,9 +1907,7 @@ short extract_length(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    item_values[1].len = strlen((DEFCHAR *)query_num1);
    return number_variables;
 }
-/***********************************************************************/
 short extract_line(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%ld",
       (compatible_feel==COMPAT_XEDIT)?CURRENT_VIEW->current_line:get_true_line(TRUE));
@@ -2100,9 +1915,7 @@ short extract_line(short number_variables,short itemno,CHARTYPE *itemargs,CHARTY
    item_values[1].len = strlen((DEFCHAR *)query_num1);
    return number_variables;
 }
-/***********************************************************************/
 short extract_lineflag(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    curr = lll_find(CURRENT_FILE->first_line,CURRENT_FILE->last_line,
                    (compatible_feel==COMPAT_XEDIT)?CURRENT_VIEW->current_line:get_true_line(TRUE),
@@ -2124,9 +1937,7 @@ short extract_lineflag(short number_variables,short itemno,CHARTYPE *itemargs,CH
    item_values[3].len = strlen((DEFCHAR *)item_values[3].value);
    return number_variables;
 }
-/***********************************************************************/
 short extract_linend(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    set_on_off_value(CURRENT_VIEW->linend_status,1);
    query_num1[0] = CURRENT_VIEW->linend_value;
@@ -2135,9 +1946,7 @@ short extract_linend(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
    item_values[2].len = 1;
    return number_variables;
 }
-/***********************************************************************/
 short extract_lscreen(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-/***********************************************************************/
 {
    sprintf((DEFCHAR *)query_num1,"%d",CURRENT_SCREEN.screen_rows);
    item_values[1].value = query_num1;

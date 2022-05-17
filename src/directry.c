@@ -1,6 +1,4 @@
-/***********************************************************************/
 /* DIRECTRY.C - Directory routines                                     */
-/***********************************************************************/
 /*
  * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
  * Copyright (C) 1991-2013 Mark Hessling
@@ -54,9 +52,7 @@ static CHARTYPE _THE_FAR *dirtype[NUM_DIRTYPE] =
 static ATTR_TYPE att[NUM_DIRTYPE] =
        {0,F_RO,F_SY,F_HI,F_DI};
 
-/*********************************************************************/
 CHARTYPE *make_full(CHARTYPE *path, CHARTYPE *file)
-/*********************************************************************/
 {
    static CHARTYPE _THE_FAR filebuf[BUFSIZ];
    short pathlen=strlen((DEFCHAR *)path);
@@ -74,10 +70,8 @@ CHARTYPE *make_full(CHARTYPE *path, CHARTYPE *file)
    (void) strcat((DEFCHAR *)filebuf, (DEFCHAR *)file);
    return(filebuf);
 }
-/*********************************************************************/
 short getfiles(CHARTYPE *path,CHARTYPE *files,struct dirfile **dpfirst,
                                     struct dirfile **dplast)
-/*********************************************************************/
 {
    DIR *dirp=NULL;
    struct stat sp;
@@ -168,9 +162,7 @@ short getfiles(CHARTYPE *path,CHARTYPE *files,struct dirfile **dpfirst,
    return(0);
 }
 
-/*********************************************************************/
 int date_compare(struct dirfile *first,struct dirfile *next)
-/*********************************************************************/
 {
    if (first->f_yy > next->f_yy)
       return(1);
@@ -186,9 +178,7 @@ int date_compare(struct dirfile *first,struct dirfile *next)
       return(-1);
    return(0);
 }
-/*********************************************************************/
 int time_compare(struct dirfile *first,struct dirfile *next)
-/*********************************************************************/
 {
    if (first->f_hh > next->f_hh)
       return(1);
@@ -205,9 +195,7 @@ int time_compare(struct dirfile *first,struct dirfile *next)
    return(0);
 }
 
-/*********************************************************************/
 int date_comp( const void *in_first, const void *in_next )
-/*********************************************************************/
 {
    int rc=0;
    struct dirfile *first=(struct dirfile *)in_first,*next=(struct dirfile *)in_next;
@@ -228,9 +216,7 @@ int date_comp( const void *in_first, const void *in_next )
    return(rc);
 }
 
-/*********************************************************************/
 int time_comp( const void *in_first, const void *in_next )
-/*********************************************************************/
 {
    int rc=0;
    struct dirfile *first=(struct dirfile *)in_first,*next=(struct dirfile *)in_next;
@@ -249,9 +235,7 @@ int time_comp( const void *in_first, const void *in_next )
    return(rc);
 }
 
-/*********************************************************************/
 int dir_comp( const void *in_first, const void *in_next )
-/*********************************************************************/
 {
    int first_dir=0;
    int next_dir=0;
@@ -277,9 +261,7 @@ int dir_comp( const void *in_first, const void *in_next )
    return(rc);
 }
 
-/*********************************************************************/
 int size_comp( const void *in_first, const void *in_next )
-/*********************************************************************/
 {
    int rc=0;
    struct dirfile *first=(struct dirfile *)in_first,*next=(struct dirfile *)in_next;
@@ -304,9 +286,7 @@ int size_comp( const void *in_first, const void *in_next )
    return(rc);
 }
 
-/*********************************************************************/
 int name_comp( const void *in_first, const void *in_next )
-/*********************************************************************/
 {
    int rc=0;
    struct dirfile *first=(struct dirfile *)in_first,*next=(struct dirfile *)in_next;
@@ -322,25 +302,19 @@ int name_comp( const void *in_first, const void *in_next )
       rc = (rc > 0) ? (-1) : 1;
    return(rc);
 }
-/*********************************************************************/
 CHARTYPE *file_date(struct dirfile *date,CHARTYPE *str_date)
-/*********************************************************************/
 {
    static CHARTYPE _THE_FAR *mon[12] =
    { (CHARTYPE *)"Jan",(CHARTYPE *)"Feb",(CHARTYPE *)"Mar",(CHARTYPE *)"Apr",(CHARTYPE *)"May",(CHARTYPE *)"Jun",(CHARTYPE *)"Jul",(CHARTYPE *)"Aug",(CHARTYPE *)"Sep",(CHARTYPE *)"Oct",(CHARTYPE *)"Nov",(CHARTYPE *)"Dec"};
    sprintf((DEFCHAR *)str_date,"%2d-%3.3s-%4.4d",date->f_dd,mon[date->f_mm],date->f_yy);
    return(str_date);
 }
-/*********************************************************************/
 CHARTYPE *file_time(struct dirfile *time,CHARTYPE *str_time)
-/*********************************************************************/
 {
    sprintf((DEFCHAR *)str_time,"%2d:%2.2d",time->f_hh,time->f_mi);
    return(str_time);
 }
-/*********************************************************************/
 CHARTYPE *file_attrs(ATTR_TYPE attrs,CHARTYPE *str_attr,int facl)
-/*********************************************************************/
 {
 #if 0
    ATTR_TYPE ftype=(attrs & S_IFMT);
@@ -390,9 +364,7 @@ CHARTYPE *file_attrs(ATTR_TYPE attrs,CHARTYPE *str_attr,int facl)
    str_attr[9] = (attrs & S_IXOTH) ? 'x' : '-';
    return(str_attr);
 }
-/*********************************************************************/
 short set_dirtype(CHARTYPE *params)
-/***********************************************************************/
 {
    CHARTYPE *p=NULL;
    register short i=0;
@@ -432,9 +404,7 @@ short set_dirtype(CHARTYPE *params)
    return(RC_OK);
 }
 
-/*********************************************************************/
 CHARTYPE *get_dirtype(CHARTYPE *buf)
-/***********************************************************************/
 {
    if (curr_dirtype == all_dirtype)                 /* all masks enabled */
    {
