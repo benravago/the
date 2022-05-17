@@ -270,10 +270,6 @@ short Directory(CHARTYPE *params)
          display_error( 9, (CHARTYPE *)word[0], FALSE );
       return(rc);
    }
-#if 0
- if (CURRENT_VIEW != NULL)
-    pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
-#endif
 
 #if defined(MULTIPLE_PSEUDO_FILES)
    strcpy( (DEFCHAR *)temp_cmd, (DEFCHAR *)dir_path );

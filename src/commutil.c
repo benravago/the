@@ -1218,9 +1218,6 @@ short command_line(CHARTYPE *cmd_line,bool command_only)
       display_error(30,(CHARTYPE *)"",FALSE);
       return(RC_OUT_OF_MEMORY);
    }
-#if 0
-fprintf(stderr,"%s %d: Command: [%s] idline: %d\n",__FILE__,__LINE__,command_entered,(vd_current) ? vd_current->file_for_view->attr[5].pair : -1);
-#endif
    /*
     * Allocate some space to cl_cmd and cl_param for the a command when
     * it is split into a command and its parameters.
@@ -1299,12 +1296,7 @@ fprintf(stderr,"%s %d: Command: [%s] idline: %d\n",__FILE__,__LINE__,command_ent
       &&  CURRENT_VIEW->imp_macro
       && !command_only)
       {
-#if 0
-         strcpy( (DEFCHAR *)command_entered, (DEFCHAR *)cmd[j] );
-         rc = execute_macro( command_entered, FALSE, &macrorc );
-#else
          rc = execute_macro( cmd[j], FALSE, &macrorc );
-#endif
          if ( rc != RC_FILE_NOT_FOUND )
          {
             lastrc = (rc==RC_SYSTEM_ERROR)?rc:macrorc;
@@ -2706,19 +2698,6 @@ short tabs_convert( LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_rec
                }
                break;
             case STATE_TAB:
-#if 0
-               if (*(curr->line+i) == ' ')
-               {
-                  if (is_tab_col(i+1)
-                  &&  i != 0)
-                     trec[j++] = '\t';
-               }
-               else
-               {
-                  trec[j++] = *(curr->line+i);
-                  state = STATE_NORMAL;
-               }
-#else
                if (is_tab_col(i+1)
                &&  i != 0)
                {
@@ -2741,7 +2720,6 @@ short tabs_convert( LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_rec
                      state = STATE_NORMAL;
                   }
                }
-#endif
             break;
          }
       }
@@ -2873,9 +2851,6 @@ short convert_hex_strings(CHARTYPE *str)
    CHARTYPE *ptr, *end_ptr, *first_non_blank=NULL, *last_non_blank=NULL;
    short num=0;
    int str_len;
-#if 0
-   CHARTYPE ch1=0,ch2=0;
-#endif
 
    /*
     * If the string is less than 4 chars; d'3', then it can't be a hex/dec
@@ -3027,10 +3002,6 @@ short restore_THE(void)
    }
    getyx(CURRENT_WINDOW,y,x);
 
-#if 0
-   wclear(stdscr);
-   refresh();
-#endif
 
    if (display_screens > 1)
    {

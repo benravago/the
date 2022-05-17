@@ -288,11 +288,7 @@ CHARTYPE *file_time(struct dirfile *time,CHARTYPE *str_time)
 }
 CHARTYPE *file_attrs(ATTR_TYPE attrs,CHARTYPE *str_attr,int facl)
 {
-#if 0
-   ATTR_TYPE ftype=(attrs & S_IFMT);
-#else
    ATTR_TYPE ftype=attrs;
-#endif
 
    str_attr[11] = '\0';
    str_attr[10] = ' ';

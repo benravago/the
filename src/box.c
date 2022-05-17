@@ -457,7 +457,6 @@ static short box_copy_to_temp(BOXP *prm)
     if ( processable_line( prm->src_view, prm->src_start_line+i, tmp ) == LINE_LINE )
     {
        memset( rec, ' ', max_line_length );
-#if 1
        if ( prm->mark_type == M_STREAM
        ||   prm->mark_type == M_CUA )
        {
@@ -491,15 +490,6 @@ static short box_copy_to_temp(BOXP *prm)
           }
        }
 
-#else
-       memcpy(rec,tmp->line,tmp->length);
-       rec_len = tmp->length;
-       if ((save_src = add_LINE(first_save,save_src,
-            rec+prm->src_start_col,prm->num_cols,0,TRUE)) == (LINE *)NULL)
-       {
-          return(RC_OUT_OF_MEMORY);
-       }
-#endif
        if (first_save == (LINE *)NULL)
           first_save = save_src;
     }

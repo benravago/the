@@ -423,15 +423,9 @@ short execute_sort(CHARTYPE *params)
             break;
          default:
             lp[num_sorted_lines] = curr;
-#if 0
-            memcpy(origlp++,&curr,sizeof(LINE*));
-            memcpy(origlp++,&curr->next,sizeof(LINE*));
-            memcpy(origlp++,&curr->prev,sizeof(LINE*));
-#else
             *origlp++ = curr;
             *origlp++ = curr->next;
             *origlp++ = curr->prev;
-#endif
             num_actual_lines++;
             num_sorted_lines++;
             break;

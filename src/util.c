@@ -1362,11 +1362,7 @@ short set_up_windows(short scrn)
       }
       keypad( divider, TRUE );
 
-#if 0
       wattrset( divider, set_colour( fp.attr+ATTR_DIVIDER ) );
-#else
-      wattrset( divider, set_colour( fp.attr+ATTR_DIVIDER ) );
-#endif
 
       draw_divider();
    }
@@ -2153,19 +2149,6 @@ short get_fieldword( CHARTYPE *string, LENGTHTYPE length, LENGTHTYPE curr_pos,
             break;
          }
       }
-#if 0
-      if (i < length)
-      {
-         for (;i<length;i++)
-         {
-            if (*(string+i) != ' ')
-            {
-               *last_col = i-1;
-               break;
-            }
-         }
-      }
-#endif
       if (i == length)
          *last_col = length - 1;
    }
@@ -2197,20 +2180,6 @@ short get_fieldword( CHARTYPE *string, LENGTHTYPE length, LENGTHTYPE curr_pos,
             break;
          }
       }
-#if 0
-      if (i < length
-      && *(string+i) == ' ')
-      {
-         for (;i<length;i++)
-         {
-            if (*(string+i) != ' ')
-            {
-               *last_col = i-1;
-               break;
-            }
-         }
-      }
-#endif
       if (i == length)
          *last_col = length - 1;
    }

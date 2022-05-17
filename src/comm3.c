@@ -1128,7 +1128,6 @@ short Osredir(CHARTYPE *params)
    close( save_stdin );
 #endif
 
-#if 1
    if ( close( save_stdout ) == (-1) )
    {
       strcat( (DEFCHAR *)err, "Error closing save_stdout: " );
@@ -1141,7 +1140,6 @@ short Osredir(CHARTYPE *params)
       strcat( (DEFCHAR *)err, strerror( errno ) );
       rc = RC_INVALID_OPERAND;
    }
-#endif
 
    if ( rc == RC_OK )
       return(rrc);

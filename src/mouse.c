@@ -55,17 +55,10 @@ MEVENT ncurses_mouse_event;
 /*
  * Button masks
  */
-#if 0
-#define MOUSE_MODIFIER_MASK(x)  ((x) & 0xE000) /* 1110000000000000 */
-#define MOUSE_ACTION_MASK(x)    ((x) & 0x1C00) /* 0001110000000000 */
-#define MOUSE_BUTTON_MASK(x)    ((x) & 0x0380) /* 0000001110000000 */
-#define MOUSE_WINDOW_MASK(x)    ((x) & 0x007F) /* 0000000001111111 */
-#else
 #define MOUSE_MODIFIER_MASK(x)  ((x) & 0xE0000) /* 11100000000000000000 */
 #define MOUSE_ACTION_MASK(x)    ((x) & 0x1F000) /* 00011111000000000000 */
 #define MOUSE_BUTTON_MASK(x)    ((x) & 0x00F80) /* 00000000111110000000 */
 #define MOUSE_WINDOW_MASK(x)    ((x) & 0x0007F) /* 00000000000001111111 */
-#endif
 /*
  * Button modifiers
  */

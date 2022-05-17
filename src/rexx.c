@@ -1043,9 +1043,6 @@ static RXSTRING *get_compound_rexx_variable
       strcpy(variable_name,(DEFCHAR*)name);
    else
       sprintf(variable_name,"%s.%-d",name,suffix);
-#if 0
- (void)make_upper((CHARTYPE *)variable_name);/* make variable name uppercase */
-#endif
    /*
     * Now (attempt to) get the REXX variable
     * Set shv.shvvalue to NULL to force interpreter to allocate memory.

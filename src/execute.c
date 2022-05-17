@@ -1195,11 +1195,6 @@ short rearrange_line_blocks(CHARTYPE command,CHARTYPE source,
    LINE *save_curr_src=NULL,*save_curr_dst=NULL;
    FILE_DETAILS *src_file=NULL,*dst_file=NULL;
 
-#if 0
-fprintf(stderr, "command: %d source: %d start_line: %d end_line: %d dest_line: %d",
-command,source,start_line,end_line,dest_line);
-#endif
-
    src_file = src_view->file_for_view;
    dst_file = dst_view->file_for_view;
    if (source == SOURCE_BLOCK)
@@ -1484,9 +1479,6 @@ command,source,start_line,end_line,dest_line);
             {
                if (dst_view->current_line > dst_file->number_lines+1L)
                {
-#if 0
-                  dst_view->current_line -= (num_actual_lines-num_pseudo_lines);
-#else
                   /*
                    * This is better than before, but the cursor still ends up NOT on the
                    * focus line ?????
@@ -1494,7 +1486,6 @@ command,source,start_line,end_line,dest_line);
                   dst_view->current_line = dst_file->number_lines+1L;
 /*                dst_view->focus_line = dst_view->current_line; */
                   dst_view->focus_line = dest_line;
-#endif
                }
                else
                   dst_view->focus_line = dest_line;

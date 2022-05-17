@@ -1215,13 +1215,6 @@ short Copy(CHARTYPE *params)
          }
          source_view = CURRENT_VIEW;
          dest_view = CURRENT_VIEW;
-#if 0
-         if (TOF(target1.true_line))
-         {
-            target1.true_line = 1L;
-            target1.num_lines--;
-         }
-#endif
          start_line = target1.true_line;
          if (target1.num_lines < 0)
             end_line = (target1.true_line + target1.num_lines) + 1L;

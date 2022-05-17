@@ -945,56 +945,6 @@ static short prefix_uppercase(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_li
 static short prefix_overlay(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_lines)
 {
    short rc=(-1);
-#if 0
-   unsigned short y=0,x=0;
-   LINETYPE true_line=0L,num_lines=0L,dest_line=0L,lines_affected=0L;
-   VIEW_DETAILS *old_mark_view=NULL;
-   LINE *curr=NULL;
-   LINETYPE save_current_line=PENDING_VIEW->current_line;
-   LINETYPE top_line=curr_ppc->ppc_line_number;
-   LINETYPE bottom_line;
-   THE_PPC *target_ppc=NULL;
-
-   if ((target_ppc = calculate_target_line()) == NULL)
-      return(rc);
-   dest_line = target_ppc->ppc_line_number+target_ppc->ppc_cmd_param;
-   clear_pending_prefix_command( curr_ppc, PENDING_FILE, (LINE *)NULL );
-   bottom_line = top_line + number_lines - ((number_lines < 0L) ? (-1L) : 1L);
-
-   if (top_line != 0L
-   &&  top_line != PENDING_FILE->number_lines+1)
-   {
-      true_line = get_true_line(TRUE);
-
-      rc = rearrange_line_blocks(COMMAND_OVERLAY_COPY,SOURCE_PREFIX,top_line,
-                            bottom_line,dest_line,1L,PENDING_VIEW,PENDING_VIEW,FALSE,
-                            &lines_affected);
-      if (rc == RC_OK
-      &&  lines_affected != 0)
-      {
-         top_line = bottom_line = dest_line + lines_affected;
-         curr = lll_find(PENDING_FILE->first_line,PENDING_FILE->last_line,top_line,PENDING_FILE->number_lines);
-         for ( ; ; )
-         {
-            if (PENDING_VIEW->scope_all
-            ||  IN_SCOPE(PENDING_VIEW,curr))
-               lines_affected--;
-            curr = curr->next;
-            if (curr == NULL
-            ||  lines_affected == 0L
-            ||  bottom_line == PENDING_FILE->number_lines)
-               break;
-            bottom_line++;
-         }
-         dest_line = true_line;
-         post_process_line(PENDING_VIEW,PENDING_VIEW->focus_line,(LINE *)NULL,TRUE);
-         rc = rearrange_line_blocks(COMMAND_OVERLAY_DELETE,SOURCE_PREFIX,top_line,
-                            bottom_line,dest_line,1L,PENDING_VIEW,PENDING_VIEW,FALSE,
-                            &lines_affected);
-      }
-   }
-   clear_pending_prefix_command( target_ppc, PENDING_FILE, (LINE *)NULL );
-#endif
    return(rc);
 }
 static short prefix_block_duplicate(THE_PPC *curr_ppc,short cmd_idx,LINETYPE number_occ)
@@ -1379,14 +1329,6 @@ static THE_PPC *calculate_target_line(void)
           */
          if ( !TOF(target_ppc->ppc_line_number) )
             target_ppc->ppc_cmd_param = (-1);
-#if 0
-         else if ( 1 )
-         {
-            LINETYPE find_last_not_in_scope( PENDING_VIEW,LINE *in_curr,LINETYPE line_number,short direction)
-            target->last_line = find_next_in_scope(PENDING_VIEW,curr,++line_number,DIRECTION_FORWARD);
-            target_ppc->ppc_cmd_param = (-1);
-         }
-#endif
          break;
       case THE_PPC_TARGET_FOLLOWING:
          /*
@@ -1395,13 +1337,6 @@ static THE_PPC *calculate_target_line(void)
           */
          if ( BOF(target_ppc->ppc_line_number) )
             target_ppc->ppc_cmd_param = (-1);
-#if 0
-         else if ( 1 )
-         {
-            target->last_line = find_next_in_scope(PENDING_VIEW,curr,++line_number,DIRECTION_FORWARD);
-            target_ppc->ppc_cmd_param = 1;
-         }
-#endif
          break;
       default:
          break;

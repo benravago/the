@@ -1345,11 +1345,7 @@ static void build_lines(CHARTYPE scrno,short direction,LINE *curr,
          if (direction != DIRECTION_FORWARD)
          {
             scurr->line_number = cline+1;
-#if 1
             scurr->current = curr;
-#else
-            scurr->current = curr->next;
-#endif
          }
          scurr->main_enterable = TRUE;
          scurr->prefix_enterable = TRUE;

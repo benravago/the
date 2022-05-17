@@ -388,7 +388,6 @@ int main(int argc, char *argv[])
          }
       }
    }
-#if 1
    /*
     * Add a hack for MacOS X to allow arguments to be passed as environment variables
     * instead of on the command line. This is to allow the ncurses version of THE
@@ -419,10 +418,6 @@ int main(int argc, char *argv[])
       my_argc = argc;
       my_argv = argv;
    }
-#else
-   my_argc = argc;
-   my_argv = argv;
-#endif
    /*
     * Process the command line arguments.
     */

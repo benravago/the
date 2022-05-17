@@ -1413,20 +1413,8 @@ static short parse_directory(CHARTYPE scrno,FILE_DETAILS *fd,SHOW_LINE *scurr)
    LENGTHTYPE i,vcol,len=scurr->length, start;
    bool found=FALSE;
    chtype directory_colour;
-#if 0
-   chtype original_directory_colour;
-#endif
    CHARTYPE alternate, type;
 
-#if 0
-   if ( scurr->is_cursor_line
-   &&   scurr->is_cursor_line_filearea_different )
-      original_directory_colour = merge_curline_colour(fd->attr+ATTR_CURSORLINE,fd->ecolour+ECOLOUR_KEYWORDS);
-   else if ( scurr->is_current_line )
-      original_directory_colour = merge_curline_colour(fd->attr+ATTR_CURLINE,fd->ecolour+ECOLOUR_KEYWORDS);
-   else
-      original_directory_colour = set_colour(fd->ecolour+ECOLOUR_KEYWORDS);
-#endif
    vcol = SCREEN_VIEW(scrno)->verify_col-1;
 
    /*

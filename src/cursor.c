@@ -1212,24 +1212,12 @@ bool enterable_field(long where)
 short go_to_new_field(long save_where,long where)
 {
    short rc=RC_OK;
-#if 0
-   long save_where_screen=0L,where_screen=0L;
-#endif
    long save_where_window=0L,where_window=0L;
    ROWTYPE where_row=0;
 
-#if 0
-   save_where_screen = save_where & WHERE_SCREEN_MASK;
-   where_screen = where & WHERE_SCREEN_MASK;
-#endif
    save_where_window = save_where & WHERE_WINDOW_MASK;
    where_window = where & WHERE_WINDOW_MASK;
    where_row = (ROWTYPE)(where & WHERE_ROW_MASK);
-#if 0
-   if (save_where_screen != where_screen)
-   {
-   }
-#endif
    if (save_where_window == where_window)
    {
       /*
