@@ -329,7 +329,6 @@ $Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
 
 #define KEY_DELETE  127
 
-#if !defined(DOS)
 
 /* vt220 special keys */
 
@@ -358,133 +357,7 @@ $Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
 #  define KEY_BKSP      0x8
 # endif
 
-#endif
 
-#if defined(DOS)
-/* normal characters */
-#define KEY_a      0x61
-#define KEY_b      0x62
-#define KEY_c      0x63
-#define KEY_d      0x64
-#define KEY_e      0x65
-#define KEY_f      0x66
-#define KEY_g      0x67
-#define KEY_h      0x68
-#define KEY_i      0x69
-#define KEY_j      0x6a
-#define KEY_k      0x6b
-#define KEY_l      0x6c
-#define KEY_m      0x6d
-#define KEY_n      0x6e
-#define KEY_o      0x6f
-#define KEY_p      0x70
-#define KEY_q      0x71
-#define KEY_r      0x72
-#define KEY_s      0x73
-#define KEY_t      0x74
-#define KEY_u      0x75
-#define KEY_v      0x76
-#define KEY_w      0x77
-#define KEY_x      0x78
-#define KEY_y      0x79
-#define KEY_z      0x7a
-#define KEY_0      0x30
-#define KEY_1      0x31
-#define KEY_2      0x32
-#define KEY_3      0x33
-#define KEY_4      0x34
-#define KEY_5      0x35
-#define KEY_6      0x36
-#define KEY_7      0x37
-#define KEY_8      0x38
-#define KEY_9      0x39
-#define KEY_BQUOTE      0x60
-#define KEY_MINUS      0x2d
-#define KEY_EQUAL      0x3d
-#define KEY_LBRACKET      0x5b
-#define KEY_RBRACKET      0x5d
-#define KEY_BSLASH      0x5c
-#define KEY_SEMICOLON      0x3b
-#define KEY_FQUOTE      0x27
-#define KEY_COMMA      0x2c
-#define KEY_STOP      0x2e
-#define KEY_FSLASH      0x2f
-#define KEY_SPACE      0x20
-#define KEY_RETURN     0xd
-#define KEY_TAB      0x9
-#define KEY_BKSP      0x8
-#define KEY_PGUP      KEY_PPAGE
-#define KEY_PGDN      KEY_NPAGE
-#define KEY_CURU      KEY_UP
-#define KEY_CURD      KEY_DOWN
-#define KEY_CURL      KEY_LEFT
-#define KEY_CURR      KEY_RIGHT
-#define KEY_INS      KEY_IC
-#define KEY_DEL      KEY_DC
-#define KEY_NUMENTER PADENTER
-/* shifted characters */
-#define KEY_S_a      0x41
-#define KEY_S_b      0x42
-#define KEY_S_c      0x43
-#define KEY_S_d      0x44
-#define KEY_S_e      0x45
-#define KEY_S_f      0x46
-#define KEY_S_g      0x47
-#define KEY_S_h      0x48
-#define KEY_S_i      0x49
-#define KEY_S_j      0x4a
-#define KEY_S_k      0x4b
-#define KEY_S_l      0x4c
-#define KEY_S_m      0x4d
-#define KEY_S_n      0x4e
-#define KEY_S_o      0x4f
-#define KEY_S_p      0x50
-#define KEY_S_q      0x51
-#define KEY_S_r      0x52
-#define KEY_S_s      0x53
-#define KEY_S_t      0x54
-#define KEY_S_u      0x55
-#define KEY_S_v      0x56
-#define KEY_S_w      0x57
-#define KEY_S_x      0x58
-#define KEY_S_y      0x59
-#define KEY_S_z      0x5a
-#define KEY_S_0      0x29
-#define KEY_S_1      0x21
-#define KEY_S_2      0x40
-#define KEY_S_3      0x23
-#define KEY_S_4      0x24
-#define KEY_S_5      0x25
-#define KEY_S_6      0x5e
-#define KEY_S_7      0x26
-#define KEY_S_8      0x2a
-#define KEY_S_9      0x28
-#define KEY_S_BQUOTE      0x7e
-#define KEY_S_MINUS      0x5f
-#define KEY_S_EQUAL      0x2b
-#define KEY_S_LBRACKET      0x7b
-#define KEY_S_RBRACKET      0x7d
-#define KEY_S_BSLASH      0x7c
-#define KEY_S_SEMICOLON      0x3a
-#define KEY_S_FQUOTE      0x22
-#define KEY_S_COMMA      0x3c
-#define KEY_S_STOP      0x3e
-#define KEY_S_FSLASH      0x3f
-#define KEY_S_TAB     KEY_BTAB
-#define KEY_S_CURU    KEY_SUP
-#define KEY_S_CURD    KEY_SDOWN
-#define KEY_S_INS     KEY_SIC
-#define KEY_S_DEL     KEY_SDC
-#define KEY_S_NUMCENTER  KEY_5
-/* control characters */
-/* Control-A to Control-Z at end */
-#define KEY_C_2      0x0
-#define KEY_C_6      0x1e
-#define KEY_C_MINUS      0x1f
-#define KEY_C_LBRACKET      0x1b
-#define KEY_C_RBRACKET      0x1d
-#define KEY_C_BSLASH      0x1c
-#endif
 
 /* special definition for UNIX systems */
 #ifndef KEY_RETURN

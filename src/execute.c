@@ -675,25 +675,11 @@ short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, CHARTYPE *l
 }
 short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
 {
-#if defined(DOS)
-# define SHELL "COMSPEC"
-#else
 # define SHELL "SHELL"
-#endif
    short rc=0;
-#if defined(USE_WINGUICURSES)
-   bool save_curses_started=curses_started;
-#endif
 
 
-#ifdef MSWIN
-   quiet = 1;
-   pause = 0;
-#endif
 
-#if defined(USE_WINGUICURSES)
-   curses_started=FALSE;
-#endif
 
    STARTUPCONSOLE();
    if (!quiet && curses_started)
@@ -733,9 +719,6 @@ short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
    if (quiet)
    {
       strcat((DEFCHAR *)temp_cmd," > /dev/null");
-#if defined(DOS)
-      strcat((DEFCHAR *)temp_cmd," > nul:");
-#endif
    }
 #ifdef USE_PROG_MODE_NO_MORE
    def_prog_mode();
@@ -760,9 +743,6 @@ short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
    if (curses_started)
       draw_cursor(TRUE);
 
-#if defined(USE_WINGUICURSES)
-   curses_started = save_curses_started;
-#endif
    return(rc);
 }
 short execute_makecurr( CHARTYPE curr_screen, VIEW_DETAILS *curr_view, LINETYPE line)

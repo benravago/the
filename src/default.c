@@ -269,9 +269,6 @@ void set_global_defaults(void)
    else
    {
       EOLx = EOLOUT_LF;
-#if defined(DOS)
-      EOLx = EOLOUT_CRLF;
-#endif
    }
    /*
     * Set CTLCHAR defaults...

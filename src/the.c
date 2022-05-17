@@ -38,19 +38,7 @@
 
 #include "mygetopt.h"
 
-#if defined(DOS)
-#  if !defined(EMX) && !defined(GO32)
-#    include <direct.h>
-#  endif
-#endif
 
-#if defined(USE_WINGUICURSES)
-# include <windows.h>
-# if defined(TRYING_DRAG_DROP)
-#  include "DragAndDrop.h"
-static DWORD THEDropProc( CLIPFORMAT cf, HGLOBAL hData, HWND hWnd, DWORD dwKeyState, POINTL pt, void *pUserdata );
-# endif
-#endif
 
 static RETSIGTYPE handle_signal(int);
 static void display_info(CHARTYPE *);
@@ -270,20 +258,8 @@ void atexit_handler(void)
   }
 }
 
-#ifdef MSWIN
-int Themain(argc,argv)
-int argc;
-char *argv[];
-#else
 int main(int argc, char *argv[])
-#endif
 {
-#ifdef MSWIN
-   extern void efree();
-   extern char far *emalloc(unsigned long);
-   extern char far *erealloc(void far *,unsigned long);
-   extern char far *ecalloc();
-#endif
    register short i=0;
    short c=0;
    int length;
@@ -313,13 +289,6 @@ int main(int argc, char *argv[])
    * Set up our memory management calls. This is where you can specify a
    * debugging memory manager.
    */
-#ifdef MSWIN
-   the_malloc  = emalloc;
-   the_calloc  = ecalloc;
-   the_free    = efree;
-   the_realloc = erealloc;
-   Win31Startup();
-#else
    if (getenv("NO_FLISTS"))
    {
       the_malloc  = malloc;
@@ -335,7 +304,6 @@ int main(int argc, char *argv[])
       the_realloc = resize_a_block;
       init_memory_table();
    }
-#endif
    /*
     * Set up flag to indicate that we are not interactive...yet.
     */
@@ -376,11 +344,6 @@ int main(int argc, char *argv[])
       strcpy((DEFCHAR *)term_name,envptr);
    else
       strcpy((DEFCHAR *)term_name,"default");
-#if defined(DOS)
-   strcpy((DEFCHAR *)term_name,"DOS");
-#elif defined(USE_WINGUICURSES)
-   strcpy((DEFCHAR *)term_name,"WINGUI");
-#endif
    strcpy((DEFCHAR *)xterm_program,XTERM_PROGRAM);
    /*
     * Get THE_HOME_DIR first (as all other paths rely on this value)
@@ -738,10 +701,6 @@ int main(int argc, char *argv[])
    {
       if ( initialise_fifo( first_file_name, startup_line, startup_column, the_readonly ) )
       {
-# ifdef MSWIN
-         Win31Cleanup();
-         return(0);
-# endif
          cleanup();
          return(0);
       }
@@ -823,9 +782,6 @@ int main(int argc, char *argv[])
     * Set up filename for directory temporary file (DIR.DIR).
     */
    strcpy((DEFCHAR *)dir_pathname,(DEFCHAR *)user_home_dir);
-#if defined(DOS)
-   strcpy((DEFCHAR *)dir_pathname,(DEFCHAR *)ISTR_SLASH);
-#endif
 
    strcat( (DEFCHAR *)dir_pathname, (DEFCHAR *)dirfilename );
    if ( splitpath( dir_pathname ) != RC_OK )
@@ -857,11 +813,9 @@ int main(int argc, char *argv[])
    /*
     * Initialise rexx support. If no Rexx available, set flag...
     */
-#ifndef MSWIN
    rexx_support = TRUE;
    if (initialise_rexx() != RC_OK)
       rexx_support = FALSE;
-#endif
    /*
     * Create the builtin parsers...
     */
@@ -923,13 +877,6 @@ int main(int argc, char *argv[])
            {
               error_on_screen = FALSE;
            }
-#ifdef MSWIN
-           (void)get_user_profile();
-           if (error_on_screen)
-           {
-              error_on_screen = FALSE;
-           }
-#endif
         }
         current_file_name = current_file_name->next;
       }
@@ -965,37 +912,9 @@ int main(int argc, char *argv[])
    /*
     * Start up curses. This is done ONLY for interactive sessions!
     */
-# if defined(USE_WINGUICURSES)
-   PDC_set_resize_limits( 10, 1000, 10, 10000);
-# endif
    initscr();
    curses_started = TRUE;
 
-#if defined(USE_WINGUICURSES)
-   /*
-    * Tell PDCurses which key should be returned when the window close button is clicked
-    */
-#endif
-#if defined(USE_WINGUICURSES)
-   /*
-    * Setup drag and drop support
-    */
-   {
-#if defined(TRYING_DRAG_DROP)
-      CLIPFORMAT cf;
-      HWND hWindow = (HWND)PDC_get_top_window();
-{
-FILE *fp;
-fp = fopen( "log.log", "a");
-fprintf(fp,"%d: hWindow %x\n",__LINE__,hWindow);
-fclose( fp);
-}
-      MyDragDropInit( NULL );
-      cf = CF_HDROP; /* we only handle file handles being dropped on us */
-      MyRegisterDragDrop( hWindow, &cf, 1, WM_NULL, THEDropProc, NULL );
-#endif
-   }
-#endif
    /*
     * Save the value of LINES and COLS and use these for all screen
     * sizing calculations. This is because BSD scrolls if a character is
@@ -1023,14 +942,8 @@ fclose( fp);
       {
          start_color();
          colour_support = TRUE;
-# if defined(PDCURSES) && PDC_BUILD >= 3001
-         PDC_set_blink( FALSE );
-# endif
          init_colour_pairs();
       }
-#endif
-#if defined(USE_WINGUICURSES)
-   PDC_set_line_color( 1 );
 #endif
    }
    /*
@@ -1038,12 +951,6 @@ fclose( fp);
     */
    cbreak();
    raw();
-#if defined(PDCURSES)
-   raw_output( TRUE );
-#endif
-#if defined(KEY_SHIFT_L) && defined(PDCURSES)
-   PDC_return_key_modifiers( TRUE );
-#endif
    nonl();
    noecho();
    keypad( stdscr, TRUE );
@@ -1095,11 +1002,7 @@ fclose( fp);
    /*
     * Set up ETMODE tables...
     */
-#if defined(DOS)
-   (void)Etmode((CHARTYPE *)"ON");
-#else
    (void)Etmode((CHARTYPE *)"OFF");
-#endif
    /*
     * Add the default settings to statusline before the profile
     * file is executed so they can be overridden
@@ -1143,9 +1046,7 @@ fclose( fp);
    /*
     * Finalise rexx support...
     */
-#ifndef MSWIN
    finalise_rexx();
-#endif
    /*
     * Free up the dynamically allocated memory.
     */
@@ -1210,7 +1111,6 @@ fclose( fp);
    /*
     * If the user wants a clearscreen done before exiting, do it...
     */
-#if !defined(USE_WINGUICURSES)
    if (CLEARSCREENx)
    {
       wclear(stdscr);
@@ -1219,7 +1119,6 @@ fclose( fp);
       refresh();
    }
    else
-#endif
    /*
     * ...otherwise, get the cursor to the bottom line.
     */
@@ -1518,11 +1417,9 @@ void cleanup(void)
 */
       curses_started = FALSE;
    }
-#if !defined(USE_WINGUICURSES)
    if (!CLEARSCREENx
    && been_interactive)
       printf("\n");
-#endif
 #ifdef THE_SINGLE_INSTANCE_ENABLED
    /*
     * If we are the initial instance of THE running in single instance
@@ -1549,9 +1446,7 @@ void cleanup(void)
    /*
     * Free up the working memory
     */
-#if !defined(MSWIN) && !defined(USE_WINGUICURSES)
    the_free_flists();
-#endif
    return;
 }
 

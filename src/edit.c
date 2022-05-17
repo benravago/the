@@ -63,9 +63,6 @@ void editor(void)
          wrefresh(CURRENT_WINDOW);
       }
    }
-#ifdef MSWIN
-   draw_cursor(TRUE);
-#endif
 
    for ( ; ; )
    {

@@ -39,12 +39,6 @@
 #include <errno.h>
 
 /*#define DEBUG 1*/
-#if defined(DOS)
-#  include <dos.h>
-#  if !defined(GO32)
-#    include <direct.h>
-#  endif
-#endif
 
 /*
  * Replace non-ANSI defs with ANSI ones
@@ -134,10 +128,6 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
    CHARTYPE *in_ftype,*in_fpath,*in_fname;
    CHARTYPE *current_ftype,*current_fpath,*current_fname;
    LINETYPE last_pos;
-#if defined(DOS)
-   CHARTYPE *in_fmode;
-   CHARTYPE *current_fmode;
-#endif
 /*--------------------------- processing ------------------------------*/
    /*
     * If we don't have a current file, or there are no equivalence chars
@@ -155,22 +145,7 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
    * fpath/fname/ftype.
    */
    strcpy( (DEFCHAR *)in_filename, (DEFCHAR *)strrmdup( strtrans( infilename, OSLASH, ISLASH), EQUIVCHARx, TRUE ) );
-#if defined(DOS)
-   last_pos = strzreveq( in_filename, (CHARTYPE)':' );
-   if ( last_pos  == (-1) )
-   {
-      in_fmode = NULL;
-      in_fpath = in_filename;
-   }
-   else
-   {
-      in_fmode = in_filename;
-      in_filename[last_pos] = '\0';
-      in_fpath = in_filename + last_pos + 1;
-   }
-#else
    in_fpath = in_filename;
-#endif
    last_pos = strzreveq( in_fpath, (CHARTYPE)ISLASH );
    if ( last_pos  == (-1) )
    {
@@ -195,22 +170,7 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
     */
    strcpy( (DEFCHAR *)current_filename, (DEFCHAR *)CURRENT_FILE->fpath );
    strcat( (DEFCHAR *)current_filename, (DEFCHAR *)CURRENT_FILE->fname );
-#if defined(DOS)
-   last_pos = strzreveq( current_filename, (CHARTYPE)':' );
-   if ( last_pos  == (-1) )
-   {
-      current_fmode = NULL;
-      current_fpath = current_filename;
-   }
-   else
-   {
-      current_fmode = current_filename;
-      current_filename[last_pos] = '\0';
-      current_fpath = current_filename + last_pos + 1;
-   }
-#else
    current_fpath = current_filename;
-#endif
    last_pos = strzreveq( current_fpath, (CHARTYPE)ISLASH );
    if ( last_pos  == (-1) )
    {
@@ -233,15 +193,7 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
    /*
     * Now its time to put the new file name together
     */
-#if defined(DOS)
-   if ( in_fmode && !equal( in_fmode, EQUIVCHARstr, 1 ) )
-      strcpy( (DEFCHAR *)outfilename, (DEFCHAR *)in_fmode );
-   else
-      strcpy( (DEFCHAR *)outfilename, (DEFCHAR *)current_fmode );
-   strcat( (DEFCHAR *)outfilename, ":" );
-#else
    strcpy( (DEFCHAR *)outfilename, "" );
-#endif
    if ( in_fpath && !equal( in_fpath, EQUIVCHARstr, 1 ) )
       strcat( (DEFCHAR *)outfilename, (DEFCHAR *)in_fpath );
    else
@@ -267,238 +219,7 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
    return;
 }
 
-#if defined(DOS)
-short splitpath(CHARTYPE *filename)
-{
-   LENGTHTYPE len=0;
-   CHARTYPE _THE_FAR work_filename[MAX_FILE_NAME+1] ;
-   CHARTYPE _THE_FAR conv_filename[MAX_FILE_NAME+1] ;
-   CHARTYPE _THE_FAR current_dir[MAX_FILE_NAME+1] ;
-#if defined(DOS)
-# if defined(__WATCOMC__)
-   unsigned int new_dos_disk=0,current_dos_disk=0;        /* 1 - A,2 - B... */
-   unsigned int temp_disk=0;
-# else
-   short new_dos_disk=0,current_dos_disk=0;        /* 1 - A,2 - B... */
-   short temp_disk=0;
-# endif
-#endif
-
-
-   if ( strlen( (DEFCHAR *)filename ) > MAX_FILE_NAME )
-   {
-      return(RC_BAD_FILEID);
-   }
-   /*
-    * Save the current directory.
-    */
-#if defined(EMX)
-   if ( _getcwd2( curr_path, MAX_FILE_NAME ) == NULL )
-#else
-   if ( getcwd( (DEFCHAR *)curr_path, MAX_FILE_NAME ) == NULL )
-#endif
-   {
-      return(RC_BAD_FILEID);
-   }
-   strcpy(sp_path,"");
-   strcpy(sp_fname,"");
-   convert_equals_in_filename( conv_filename, filename );
-   strcpy( work_filename, conv_filename );
-   /*
-    * If the supplied filename is empty, set the path = cwd and filename
-    * equal to blank.
-    */
-   if (strcmp(filename,"") == 0)
-   {
-      getcwd(sp_path,MAX_FILE_NAME);
-      strcpy(sp_fname,"");
-   }
-   /*
-    * For DOS and OS/2, get current drive.
-    */
-#if defined(DOS)
-# if defined(TC) || defined(GO32)
-   current_dos_disk = (short)(getdisk() + 1);
-# endif
-# if defined(MSC)
-   _dos_getdrive(&current_dos_disk);
-# endif
-#else  /* WIN32 */
-# if defined(__WATCOMC__)
-   _dos_getdrive(&current_dos_disk);
-# else /* assume MSC */
-   current_dos_disk = _getdrive();
-# endif
-#endif
-   new_dos_disk = current_dos_disk;
-   /*
-    * For DOS and OS/2, if a drive specified determine the drive number.
-    */
-   if (*(conv_filename+1) == ':')/* we assume this means a drive secification */
-      new_dos_disk = (toupper(*(conv_filename)) - 'A') + 1;
-   /*
-    * For DOS and OS/2, change to the specified disk (if supplied and
-    * different). Validate the drive number.
-    */
-   if (new_dos_disk != current_dos_disk)
-   {
-#if defined(DOS)
-# if defined(TC) || defined(GO32)
-      setdisk((short)(new_dos_disk-1));
-      temp_disk = getdisk()+1;
-# else   /* assume MSC */
-      _dos_setdrive(new_dos_disk,&temp_disk);
-      _dos_getdrive(&temp_disk);
-# endif
-#else   /* assume WIN32 */
-# if defined(__WATCOMC__)
-      _dos_setdrive(new_dos_disk,&temp_disk);
-      _dos_getdrive(&temp_disk);
-# else  /* assume MSC */
-      _chdrive(new_dos_disk);
-      temp_disk = _getdrive();
-# endif
-#endif
-      if (temp_disk != new_dos_disk)  /* invalid drive */
-      {
-         return (RC_BAD_DRIVE);
-      }
-   }
-   /*
-    * Save the current working directory on the specified drive, or the
-    * current drive if not specified.
-    */
-   getcwd(current_dir,MAX_FILE_NAME);
-   /*
-    * If the work_filename contains a drive specifier, special handling is
-    * needed.
-    */
-   switch(strlen(conv_filename))
-   {
-      case 1:
-         break;
-      case 2:
-      /*
-       * If the filename consists only of a drive specifier, copy the current
-       * directory for the now new drive into work_filename.
-       */
-         if (*(conv_filename+1) == ':')
-            strcpy(work_filename,current_dir);
-         break;
-      default:
-         if (*(conv_filename+1) == ':'
-         &&  *(conv_filename+2) != ISLASH)
-         {
-            strcpy(work_filename,current_dir);
-            if (current_dir[strlen(current_dir)-1] != ISLASH)
-               strcat(work_filename,ISTR_SLASH);
-            strcat(work_filename,conv_filename+2);
-         }
-         break;
-   }
-   /*
-    * First determine if the supplied filename is a directory.
-    */
-   if (chdir(work_filename) == 0)  /* valid directory */
-   {
-      getcwd(sp_path,MAX_FILE_NAME);
-      strcpy(sp_fname,"");
-   }
-   else          /* here if the file is not a directory */
-   {
-      len = strzreveq(work_filename,ISLASH);
-      switch(len)
-      {
-         case (-1):
-            getcwd(sp_path,MAX_FILE_NAME);
-            strcpy(sp_fname,work_filename);
-            break;
-         case 0:
-            strcpy(sp_path,work_filename);
-            sp_path[1] = '\0';
-            strcpy(sp_fname,work_filename+1+len);
-            break;
-         default:
-            strcpy(sp_path,work_filename);
-            sp_path[len] = '\0';
-            strcpy(sp_fname,work_filename+1+len);
-            break;
-      }
-   }
-   if (strlen(sp_path) == 2
-   && sp_path[1] == ':')
-      strcat(sp_path,ISTR_SLASH);
-   /*
-    * Change directory to the supplied path, if possible and store the
-    * expanded path.
-    * If an error, restore the current path.
-    */
-   if (chdir(sp_path) != 0)
-   {
-      if (new_dos_disk != current_dos_disk)
-      {
-         chdir(current_dir);
-#if defined(DOS)
-# if defined(TC) || defined(GO32)
-         setdisk((short)(current_dos_disk-1));
-# else   /* assume MSC */
-         _dos_setdrive(current_dos_disk,&temp_disk);
-# endif
-#else    /* assume WIN32 */
-# if defined(__WATCOMC__)
-         _dos_setdrive(current_dos_disk,&temp_disk);
-# else   /* assume MSC */
-         _chdrive(current_dos_disk);
-# endif
-#endif
-      }
-      chdir(curr_path);
-      return(RC_FILE_NOT_FOUND);
-   }
-   /*
-    * We are now in a valid directory, get the fully qualified directory
-    * name.
-    */
-   getcwd(sp_path,MAX_FILE_NAME);
-   /*
-    * For DOS or OS/2, change back to the current directory of the now
-    * current disk and then change back to the original disk.
-    */
-   if (new_dos_disk != current_dos_disk)
-   {
-      if (chdir(current_dir) != 0)
-      {
-         return(RC_FILE_NOT_FOUND);
-      }
-#if defined(DOS)
-# if defined(TC) || defined(GO32)
-      setdisk((short)(current_dos_disk-1));
-# else /* assume MSC */
-      _dos_setdrive(current_dos_disk,&temp_disk);
-# endif
-#else  /* assume WIN32 */
-# if defined(__WATCOMC__)
-      _dos_setdrive(current_dos_disk,&temp_disk);
-# else /* assume MSC */
-      _chdrive(current_dos_disk);
-# endif
-#endif
-   }
-   chdir(curr_path);
-   /*
-    * Append the OS directory character to the path if it doesn't already
-    * end in the character.
-    */
-   len = strlen(sp_path);
-   if (len > 0)
-   {
-      if (sp_path[len-1] != ISLASH)
-         strcat(sp_path,(CHARTYPE *)ISTR_SLASH);
-      return(RC_OK);
-   }
-   return(RC_OK);
-}
-#elif defined(__QNX__) && !defined(__QNXNTO__)
+#if defined(__QNX__) && !defined(__QNXNTO__)
 short splitpath(CHARTYPE *filename)
 {
    short len=0;
@@ -627,11 +348,7 @@ short splitpath(CHARTYPE *filename)
    /*
     * Save the current directory.
     */
-#if defined(EMX)
-   if ( _getcwd2( curr_path, MAX_FILE_NAME ) == NULL )
-#else
    if ( getcwd( (DEFCHAR *)curr_path, MAX_FILE_NAME ) == NULL )
-#endif
    {
       return(RC_BAD_FILEID);
    }
@@ -1206,47 +923,6 @@ short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_l
  */
 
 
-#if defined(DOS)
-# define curs_set THE_curs_set
-static void PDC_curs_set(int visibility)
-{
-   union REGS regs;
-   int start, end;
-
-   /* get scrnmode into regs.h.al */
-   regs.h.ah = 0x0f;
-   int86( 0x10, &regs, &regs );
-
-   switch( visibility )
-   {
-      case 0:  /* invisible */
-         start = 32;
-         end = 0;  /* was 32 */
-         break;
-      case 2:  /* highly visible */
-         start = 0;   /* full-height block */
-         end = 7;
-         break;
-      default:  /* normal visibility */
-         start = 6;
-         end = 7;
-         break;
-   }
-
-   /* if scrnmode is not set, some BIOSes hang */
-   regs.h.ah = 0x01;
-   regs.h.ch = (unsigned char)start;
-   regs.h.cl = (unsigned char)end;
-   int86( 0x10, &regs, &regs );
-
-   /*
-    * Tell curses internals we have changed visibility
-    */
-   SP->visibility = visibility;
-
-   return;
-}
-#endif
 
 void draw_cursor(bool visible)
 {

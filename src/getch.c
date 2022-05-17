@@ -38,7 +38,6 @@
 /*
  * Do special character handling if using ncurses, xcurses
  */
-#if !defined(PDCURSES)
 #include <getch.h>
 
 #define NORMAL 100
@@ -46,11 +45,7 @@
 #define FKEY   300
 #define BRACK  400
 
-#  ifdef MSWIN
-int my_getch (WINDOW far *winptr)
-#  else
 int my_getch (WINDOW *winptr)
-#  endif
 {
    int c=0,tmp_c=(-1);
    short state = NORMAL;
@@ -58,9 +53,6 @@ int my_getch (WINDOW *winptr)
 
    while (1)
    {
-#ifdef VMS1
-      c = keypress();
-#else
       c = wgetch( winptr );
 # if defined(EINTR) && defined(KEY_RESIZE)
       if ( c == ERR )
@@ -74,7 +66,6 @@ int my_getch (WINDOW *winptr)
          }
       }
 # endif
-#endif
       switch (state)
       {
          case BRACK:
@@ -329,36 +320,4 @@ int my_getch (WINDOW *winptr)
       }
    }
 }
-#endif
 
-#ifdef VMS1
-#include iodef
-#include descrip
-short keypress()
-{
-   struct { long length; char *address; } logical_name;
-   struct { short status; short length; short remainder; } iosb;
-
-   static char kb[] = { "sys$input" };
-   static short chan;
-
-   static char key = 0;
-   short new_key;
-   static short first = 1;
-   short status;
-
-   key = 0;
-   logical_name.length = strlen (kb);
-   logical_name.address = kb;
-   status = sys$assign (&logical_name, &chan, 0, 0);
-   if (status != 1)
-      return(-1);
-   status = SYS$QIOW(0, chan, IO$_READVBLK | IO$M_NOFILTR | IO$M_NOECHO
-        | IO$M_TIMED, &iosb, 0, 0, &key, 1,600, 0,0, 0, 0);
-   if (!key)
-      return (0);
-   new_key = (short)(key);
-   status = sys$dassgn (chan);
-   return (new_key);
-}
-#endif

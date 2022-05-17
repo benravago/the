@@ -37,7 +37,6 @@
 static void print_shadow_line(FILE *,CHARTYPE *,LINETYPE);
 
 
-#ifndef MSWIN
 void print_line(bool close_spooler,LINETYPE true_line,LINETYPE num_lines,
                 short pagesize,CHARTYPE *text,CHARTYPE *line_term,short target_type)
 {
@@ -295,4 +294,3 @@ short setorient(char ori)
 {
    return (RC_OK);
 }
-#endif

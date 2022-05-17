@@ -1969,15 +1969,11 @@ short extract_typeahead(short number_variables,short itemno,CHARTYPE *itemargs,C
 }
 short extract_ui(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
 {
-#if defined(PDCURSES)
-   sprintf((DEFCHAR *)query_rsrvd,"%s Build: %d", curses_version(), PDC_BUILD);
-#else
 # if NCURSES_VERSION_MAJOR > 4
    sprintf((DEFCHAR *)query_rsrvd,"%s", curses_version());
 # else
    strcpy((DEFCHAR *)query_rsrvd,NCURSES_VERSION);
 # endif
-#endif
    item_values[1].value = query_rsrvd;
    item_values[1].len = strlen((DEFCHAR *)query_rsrvd);
    return number_variables;
@@ -2024,33 +2020,11 @@ short extract_version(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    item_values[2].value = (CHARTYPE *)the_version;
    item_values[2].len = strlen((DEFCHAR *)the_version);
    item_values[3].value = (CHARTYPE *)"???";
-#if defined(DOS)
-# if defined(EMX)
-   if (_osmode == DOS_MODE)
-      item_values[3].value = (CHARTYPE *)"DOS";
-   else
-      item_values[3].value = (CHARTYPE *)"OS2";
-#else
-   item_values[3].value = (CHARTYPE *)"DOS";
-# endif
-#endif
 # if defined(__QNX__)
    item_values[3].value = (CHARTYPE *)"QNX";
 # else
    item_values[3].value = (CHARTYPE *)"UNIX";
 # endif
-#if defined(MSWIN)
-   item_values[3].value = (CHARTYPE *)"MS-WINDOWS";
-#endif
-#if defined(_WIN32)
-   item_values[3].value = (CHARTYPE *)"WIN32";
-#endif
-#if defined(_WIN64)
-   item_values[3].value = (CHARTYPE *)"WIN64";
-#endif
-#if defined(__BEOS__)
-   item_values[3].value = (CHARTYPE *)"BEOS";
-#endif
    item_values[3].len = strlen((DEFCHAR *)item_values[3].value);
    item_values[4].value = (CHARTYPE *)the_release;
    item_values[4].len = strlen((DEFCHAR *)item_values[4].value);

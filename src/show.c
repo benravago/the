@@ -291,9 +291,7 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d(%s): END_LINE_OUTPUT\n", __FILE__,__LINE__
                           }
 # endif
 
-#if defined(USE_OS2REXX)
-# define REXX_INT_CHAR         'O'
-#elif defined(USE_WINREXX)
+#if defined(USE_WINREXX)
 # define REXX_INT_CHAR         'W'
 #elif defined(USE_QUERCUS)
 # define REXX_INT_CHAR         'Q'
@@ -339,17 +337,6 @@ static void show_highlighted_line( int lineno, SHOW_LINE *scurr, char *msg )
 #endif
 
 /* small helper routines *****************************************************/
-#if defined(USE_WINGUICURSES) && PDC_BUILD >= 2501
-static int is_column_being_shown(CHARTYPE scrno,COLTYPE col)
-{
-   COLTYPE lcol = SCREEN_VIEW(scrno)->verify_col-1;
-   COLTYPE rcol = lcol + screen[scrno].cols[WINDOW_FILEAREA]-1;
-   if ( col >= lcol && col <= rcol )
-      return 1;
-   else
-      return 0;
-}
-#endif
 static void display_line_left( WINDOW *win, chtype colour, CHARTYPE *str, int lenstr, int line, int width )
 {
    int linelength;
@@ -411,10 +398,6 @@ void prepare_idline(CHARTYPE scrno)
    LINETYPE line_number=0L;
    CHARTYPE _THE_FAR buffer[120]; /* should be large enough for very long values */
    CHARTYPE _THE_FAR display_path[MAX_FILE_NAME+1];
-#ifdef __PDCURSES__
-   CHARTYPE _THE_FAR title[MAX_FILE_NAME+1];
-   static CHARTYPE _THE_FAR old_title[MAX_FILE_NAME+1];
-#endif
    CHARTYPE *fpath = display_path;
    short num_to_delete=0,num_to_start=0;
    VIEW_DETAILS *screen_view = SCREEN_VIEW(scrno);
@@ -454,18 +437,6 @@ void prepare_idline(CHARTYPE scrno)
             strcpy( (DEFCHAR *)display_path, (DEFCHAR *)screen_file->fname );
          }
          break;
-   }
-#endif
-#if defined(__PDCURSES__) & !defined(MSWIN)
-   if ( curses_started )
-   {
-      sprintf( (DEFCHAR *)title, "THE %s - %s", the_version, (DEFCHAR *)display_path );
-      /* only display the title if different from previous one */
-      if ( strcmp( (DEFCHAR *)title, (DEFCHAR *)old_title ) != 0 )
-      {
-         PDC_set_title( (DEFCHAR *)title );
-         strcpy( (DEFCHAR *)old_title, (DEFCHAR *)title );
-      }
    }
 #endif
    /*
@@ -661,10 +632,6 @@ void show_statarea(void)
     */
    if (STATUSLINEx == 'G')
    {
-#ifdef MSWIN
-      Show_GUI_footing();
-      return;
-#endif
       return;
    }
    /*
@@ -2469,61 +2436,6 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: ccols %d cother_end_col %d bother_end_col
    }
    if ( fillverify )
       FILL_LINE_OUTPUT(' ',fillverify,normal);
-#if defined(USE_WINGUICURSES) && PDC_BUILD >= 2501
-   /*
-    * PDCurses 2.5 XCurses port allows for the display of lines
-    * between characters.  This is controlled by SET BOUNDMARK
-    */
-   if ( SCREEN_VIEW(scrno)->boundmark != BOUNDMARK_OFF
-   &&   current->line_type != LINE_RESERVED )
-   {
-      int filearea_cols = screen[scrno].cols[WINDOW_FILEAREA],j;
-      int bbm;
-      short max_cols = min( filearea_cols, SCREEN_VIEW(scrno)->verify_end-SCREEN_VIEW(scrno)->verify_start+1), true_col;
-      switch( SCREEN_VIEW(scrno)->boundmark )
-      {
-         case BOUNDMARK_ZONE:
-            /* display left zone column */
-            if ( is_column_being_shown(scrno, SCREEN_VIEW(scrno)->zone_start-1 ) )
-            {
-               bbm = SCREEN_VIEW(scrno)->zone_start-1-cvcol;
-               linebufch[bbm] |= A_LEFTLINE;
-            }
-            /* display right zone column */
-            if ( is_column_being_shown(scrno, SCREEN_VIEW(scrno)->zone_end-1 ) )
-            {
-               bbm = SCREEN_VIEW(scrno)->zone_end-1-cvcol;
-               linebufch[bbm] |= A_RIGHTLINE;
-            }
-            break;
-         case BOUNDMARK_TABS:
-            true_col = SCREEN_VIEW(scrno)->verify_col-1;
-            for ( j = 0; j < max_cols; j++, true_col++ )
-            {
-               if ( is_tab_col( true_col + 1 ) )
-               {
-                  bbm = true_col;
-                  linebufch[bbm] |= A_LEFTLINE;
-               }
-            }
-            break;
-         case BOUNDMARK_MARGINS:
-            if ( is_column_being_shown(scrno, SCREEN_VIEW(scrno)->margin_left-1 ) )
-            {
-               bbm = SCREEN_VIEW(scrno)->margin_left-1-cvcol;
-               linebufch[bbm] |= A_LEFTLINE;
-            }
-            if ( is_column_being_shown(scrno, SCREEN_VIEW(scrno)->margin_right-1 ) )
-            {
-               bbm = SCREEN_VIEW(scrno)->margin_right-1-cvcol;
-               linebufch[bbm] |= A_RIGHTLINE;
-            }
-            break;
-         default:
-            break;
-      }
-   }
-#endif
 
    /*
     * If THIGHLIGHT is on and active and the line contains the target, display

@@ -1302,9 +1302,7 @@ short set_up_windows(short scrn)
             return(RC_OUT_OF_MEMORY);
          }
          keypad( screen[scrn].win[i], TRUE );
-#if !defined(PDCURSES)
          touchwin( screen[scrn].win[i] );
-#endif
          wmove( screen[scrn].win[i], y, x );
       }
    }

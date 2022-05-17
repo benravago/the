@@ -72,9 +72,6 @@ short execute_set_sos_command Args((bool,CHARTYPE *));
 short valid_command_type Args((bool,CHARTYPE *));
 short allocate_temp_space Args((LENGTHTYPE,CHARTYPE));
 void free_temp_space Args((CHARTYPE));
-#ifdef MSWIN
-void init_temp_space Args((void));
-#endif
 CHARTYPE calculate_actual_row Args((short, short, ROWTYPE, bool));
 short get_valid_macro_file_name Args((CHARTYPE *,CHARTYPE *,CHARTYPE *,short *));
 bool define_command Args((CHARTYPE *));
@@ -203,9 +200,7 @@ VIEW_DETAILS *find_pseudo_file Args((CHARTYPE));
 short execute_command_file Args((FILE *));
 CHARTYPE *read_file_into_memory Args((CHARTYPE *,int *));
                                                             /* getch.c */
-#if !defined(DOS)
 int my_getch  Args((WINDOW *));
-#endif
                                                           /* nonansi.c */
 short file_readable Args((CHARTYPE *));
 short file_writable Args((CHARTYPE *));

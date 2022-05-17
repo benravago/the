@@ -343,26 +343,6 @@ static CHARTYPE _THE_FAR *error_message[] =
    {
       return rc;
    }
-#ifdef MSWIN
-   {
-   char hdr[512];
-   if (in_profile)
-   {
-      if (!error_on_screen
-      &&  !be_quiet)
-      {
-         if (number_of_files == 0)
-            sprintf(hdr,"*** Messages from profile file  ***\n");
-         else
-            sprintf(hdr,"*** Messages from profile file for ***\n%s%s\n",
-                           CURRENT_FILE->fpath,CURRENT_FILE->fname);
-      }
-      error_on_screen = TRUE;
-      Operator("%s%s",hdr,last_message);
-      return rc;
-   }
-   }
-#else
    if (!curses_started)
    {
       if (!error_on_screen
@@ -377,7 +357,6 @@ static CHARTYPE _THE_FAR *error_message[] =
       fprintf(stderr,"%s\n",last_message);
       return rc;
    }
-#endif
    /*
     * If SET ERROROUTPUT is ON, write the error message to stderr
     */

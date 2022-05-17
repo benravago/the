@@ -37,18 +37,8 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 /*
  * Handle Win32 console when using PDCurses GUI
  */
-#if defined(USE_WINGUICURSES)
-# include <windows.h>
-# undef MOUSE_MOVED
-extern int gotOutput;
-extern void StartupConsole( void );
-extern void ClosedownConsole( void );
-# define STARTUPCONSOLE() StartupConsole()
-# define CLOSEDOWNCONSOLE() ClosedownConsole()
-#else
 # define STARTUPCONSOLE()
 # define CLOSEDOWNCONSOLE()
-#endif
 
 
 # if defined(USE_UTF8)
@@ -95,9 +85,6 @@ extern void ClosedownConsole( void );
 #ifdef M_XENIX
 #endif
 
-#ifdef MINIX
-#  define short int
-#endif
 
 #  define ESLASH '/'
 #  define ESTR_SLASH (CHARTYPE *)"/"
@@ -108,24 +95,6 @@ extern void ClosedownConsole( void );
 #  define CURRENT_DIR (CHARTYPE *)"."
 
 
-#ifdef VMS1
-#  define ISLASH ']'
-#  define ISTR_SLASH (CHARTYPE *)"]"
-#  define OSLASH ISLASH
-#  define OSTR_SLASH ISTR_SLASH
-#  define ESLASH ISLASH
-#  define ESTR_SLASH ISTR_SLASH
-#  define CURRENT_DIR (CHARTYPE *)"[]"
-#  ifdef BSD
-#    define chtype short
-#    define BSDcurses 1
-#  endif
-#  define touchline(WIN,START,NUM)       touchwin(WIN)
-/* #define isdigit(c)   (_ctype[(c) + 1] & 2)
-#  define islower(c)   (_ctype[(c) + 1] & 8)
-#  define isupper(c)   (_ctype[(c) + 1] & 4)*/
-#  define NO_KEYPAD 1
-#endif
 
 # include <errno.h>
 
@@ -177,13 +146,8 @@ extern void ClosedownConsole( void );
 #  define CAN_RESIZE 1
 #endif
 
-# if defined(__PDCURSES__)
-#  define MAX_SLK    12
-#  define MAX_SLK_FORMAT 5
-# else
 #  define MAX_SLK    12
 #  define MAX_SLK_FORMAT 4
-# endif
 
 #ifndef F_OK
 #  define         F_OK          00
@@ -211,11 +175,6 @@ extern void ClosedownConsole( void );
  * THE and PDCurses are picked up
  *
  */
-#if defined(PDCURSES)
-# if PDC_BUILD < 2601
-# include "You need a version of PDCurses with PDC_BUILD >= 2601 defined in curses.h"
-# endif
-#endif
 
 
 # define THE_SINGLE_INSTANCE_ENABLED 1
@@ -1628,11 +1587,7 @@ struct regexp_syntax
 #  define getbegyx(win,y,x)       (y = (win)->_begy, x = (win)->_begx)
 #endif
 
-#if defined(USE_WINGUICURSES)
-# define HIT_ANY_KEY "** Command completed **"
-#else
 # define HIT_ANY_KEY "Hit any key to continue..."
-#endif
 
 /*---------------------- useful macros --------------------------------*/
 #define     TOF(line)           ((line == 0L) ? TRUE : FALSE)
@@ -1648,11 +1603,6 @@ struct regexp_syntax
 #define     IN_VIEW(view,line)   ((line >= (view->current_line - (LINETYPE)view->current_row)) && (line <= (view->current_line + ((LINETYPE)CURRENT_SCREEN.rows[WINDOW_FILEAREA] - (LINETYPE)view->current_row))))
 #define     IN_SCOPE(view,line) ((line)->select >= (view)->display_low && (line)->select <= (view)->display_high)
 /*---------------------- system specific redefines --------------------*/
-#ifdef VAX
-#define     wattrset     wsetattr
-#define     A_REVERSE    _REVERSE
-#define     A_BOLD       _BOLD
-#endif
 
 #define ISREADONLY(x)  (the_readonly || (READONLYx==READONLY_FORCE) || (READONLYx==READONLY_ON && x->disposition == FILE_READONLY) || !(x->readonly==READONLY_OFF))
 #define STATUSLINEON() ((STATUSLINEx == 'T') || (STATUSLINEx == 'B'))
@@ -1734,33 +1684,17 @@ typedef struct
 # define my_stricmp strcasecmp
 
 #if defined(MAIN)
-# ifdef MSWIN
-#  define _THE_FAR __far
-void far * (*the_malloc)(unsigned long);             /* ptr to some malloc(size) */
-void far * (*the_calloc)();                          /* ptr to some ecalloc(num,size)*/
-void  (*the_free)();                            /* ptr to some free(ptr) */
-void far * (*the_realloc)(void far *,unsigned long); /* ptr to some realloc(ptr,size) */
-# else
 #  define _THE_FAR
 void* (*the_malloc)(size_t);  /* ptr to some malloc(size) */
 void* (*the_calloc)(size_t,size_t);  /* ptr to some calloc(num,size)*/
 void  (*the_free)(void *);    /* ptr to some free(ptr) */
 void* (*the_realloc)(void *, size_t); /* ptr to some realloc(ptr,size) */
-# endif
 #else
-# ifdef MSWIN
-#  define _THE_FAR __far
-extern void far * (*the_malloc)(unsigned long);
-extern void far * (*the_calloc)(unsigned long);
-extern void  (*the_free)(void *);
-extern void far * (*the_realloc)(void far *,unsigned long);
-# else
 #  define _THE_FAR
 extern void* (*the_malloc)(unsigned long);
 extern void* (*the_calloc)(unsigned long);
 extern void  (*the_free)(void *);
 extern void* (*the_realloc)(void *, unsigned long);
-# endif
 #endif
 
 #include "vars.h"
@@ -1773,7 +1707,5 @@ extern void* (*the_realloc)(void *, unsigned long);
 /*
  * Don't call the *prog_mode functions when using PDCurses
  */
-# ifndef PDCURSES
 #  define USE_PROG_MODE 1
-# endif
 #include "directry.h"

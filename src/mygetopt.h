@@ -18,9 +18,6 @@
 #ifndef _GETOPT_H
 #define _GETOPT_H 1
 
-#ifdef  __cplusplus
-extern "C" {
-#endif
 
 /* For communication from `getopt' to the caller.
    When `getopt' finds an option that takes an argument,
@@ -95,7 +92,7 @@ struct my_getopt_option
 #define optional_argument   2
 
 #if __STDC__
-#if defined(__GNU_LIBRARY__) || defined(__cplusplus)
+#if defined(__GNU_LIBRARY__)
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
@@ -122,8 +119,5 @@ extern int my_getopt_long_only ();
 extern int _getopt_internal ();
 #endif /* not __STDC__ */
 
-#ifdef  __cplusplus
-}
-#endif
 
 #endif /* _GETOPT_H */

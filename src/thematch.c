@@ -29,14 +29,10 @@ Cambridge, MA 02139, USA.  */
 
 /* Match STRING against the filename pattern PATTERN, returning zero if
    it matches, nonzero if not.  */
-#ifdef __cplusplus
-int thematch( char *pattern, char *string, int flags )
-#else
 int thematch(pattern, string, flags)
      char *pattern;
      char *string;
      int flags;
-#endif
 {
   register char *p = pattern, *n = string;
   register char c;

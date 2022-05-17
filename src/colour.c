@@ -127,52 +127,6 @@ static COLOUR_DEF _THE_FAR kedit_colours[ATTR_MAX] =
    {COLOR_YELLOW  ,COLOR_BLUE  ,A_BOLD   ,A_BOLD                   }, /* POP-DIVIDER   */
 };
 
-# if defined(USE_WINGUICURSES1)
-static COLOUR_DEF _THE_FAR keditw_colours[ATTR_MAX] =
-{
-   /* foreground   background   modifier          mono                     */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* FILEAREA    */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_BOLD           ,A_BOLD                   }, /* CURLINE     */
-   {COLOR_WHITE   ,COLOR_BLACK ,A_BOLD           ,A_REVERSE                }, /* BLOCK       */
-   {COLOR_CYAN    ,COLOR_BLACK ,A_NORMAL         ,A_REVERSE|A_BOLD         }, /* CBLOCK      */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* CMDLINE     */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* IDLINE      */
-   {COLOR_BLACK   ,COLOR_CYAN  ,A_NORMAL         ,A_BOLD                   }, /* MSGLINE     */
-   {COLOR_CYAN    ,COLOR_WHITE ,A_NORMAL         ,A_BOLD                   }, /* ARROW       */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* PREFIX      */
-   {COLOR_CYAN    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* CPREFIX     */
-   {COLOR_RED     ,COLOR_WHITE ,A_NORMAL         ,A_BOLD                   }, /* PENDING     */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* SCALE       */
-   {COLOR_GREEN   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* TOFEOF      */
-   {COLOR_GREEN   ,COLOR_WHITE ,A_BOLD           ,A_BOLD                   }, /* CTOFEOF     */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* TABLINE     */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_BOLD           ,A_NORMAL                 }, /* SHADOW      */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_BOLD                   }, /* STATAREA    */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* DIVIDER     */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* RESERVED    */
-   {COLOR_MAGENTA ,COLOR_WHITE ,A_NORMAL         ,A_REVERSE                }, /* NONDISP     */
-   {COLOR_BLACK   ,COLOR_YELLOW,A_BOLD           ,A_REVERSE                }, /* HIGHLIGHT   */
-   {COLOR_GREEN   ,COLOR_YELLOW,A_NORMAL         ,A_BOLD|A_REVERSE         }, /* CHIGHLIGHT  */
-   {COLOR_BLACK   ,COLOR_GREEN ,A_NORMAL         ,A_BOLD                   }, /* THIGHLIGHT  */
-   {COLOR_BLACK   ,COLOR_CYAN  ,A_NORMAL         ,A_BOLD|A_REVERSE         }, /* SLK         */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* GAP         */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* CGAP        */
-   {COLOR_WHITE   ,COLOR_RED   ,A_BOLD           ,A_REVERSE                }, /* ALERT       */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* DIALOG      */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* BOUNDMARK   */
-   {COLOR_MAGENTA ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* FILETABS    */
-   {COLOR_YELLOW  ,COLOR_WHITE ,A_BOLD           ,A_NORMAL                 }, /* FILETABSDIV */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* CURSORLINE   */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* DIA-BORDER    */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* DIA-EDITFIELD */
-   {COLOR_WHITE   ,COLOR_BLACK ,A_BOLD           ,A_REVERSE                }, /* DIA-BUTTON    */
-   {COLOR_CYAN    ,COLOR_BLACK ,A_NORMAL         ,A_REVERSE|A_BOLD         }, /* DIA-ABUTTON   */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* POP-BORDER    */
-   {COLOR_BLACK   ,COLOR_WHITE ,A_NORMAL         ,A_NORMAL                 }, /* POP-CURLINE   */
-   {COLOR_WHITE   ,COLOR_BLACK ,A_BOLD           ,A_REVERSE                }, /* POPUP         */
-   {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_BOLD                   }, /* POP-DIVIDER   */
-};
-# else
 static COLOUR_DEF _THE_FAR keditw_colours[ATTR_MAX] =
 {
    /* foreground   background   modifier          mono                     */
@@ -217,7 +171,6 @@ static COLOUR_DEF _THE_FAR keditw_colours[ATTR_MAX] =
    {COLOR_WHITE   ,COLOR_BLACK ,A_NORMAL |A_BOLD ,A_REVERSE                }, /* POPUP         */
    {COLOR_BLUE    ,COLOR_WHITE ,A_NORMAL         ,A_BOLD                   }, /* POP-DIVIDER   */
 };
-# endif
 
 static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] =
 {
@@ -426,47 +379,6 @@ static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] =  { {0,0,0,0},{0,0,0,0},{0,0
   {COLOR_BLUE,    COLOR_BLUE,  A_BOLD ,  A_NORMAL}, /* 9 */
  };
 
-#if defined(USE_WINGUICURSES1)
- static COLOUR_DEF _THE_FAR keditw_ecolours[ECOLOUR_MAX] =
- {
-  /* foreground   background   modifier  mono */
-  {COLOR_GREEN,   COLOR_WHITE, A_NORMAL|A_ITALIC, A_NORMAL}, /* A */
-  {COLOR_CYAN,    COLOR_WHITE, A_NORMAL, A_NORMAL}, /* B */
-  {COLOR_RED,     COLOR_WHITE, A_NORMAL, A_NORMAL}, /* C */
-  {COLOR_BLUE,    COLOR_WHITE, A_NORMAL, A_NORMAL}, /* D */
-  {COLOR_RED,     COLOR_WHITE, A_NORMAL, A_NORMAL}, /* E */
-  {COLOR_RED,     COLOR_WHITE, A_NORMAL, A_NORMAL}, /* F */
-  {COLOR_RED,     COLOR_WHITE, A_BOLD  , A_NORMAL}, /* G */
-  {COLOR_BLACK,   COLOR_WHITE, A_NORMAL, A_NORMAL}, /* H */
-  {COLOR_GREEN,   COLOR_WHITE, A_NORMAL, A_NORMAL}, /* I */
-  {COLOR_BLUE,    COLOR_WHITE, A_BOLD  , A_NORMAL}, /* J */
-  {COLOR_RED,     COLOR_WHITE, A_NORMAL, A_NORMAL}, /* K */
-  {COLOR_GREEN,   COLOR_WHITE, A_NORMAL, A_NORMAL}, /* L */
-  {COLOR_RED,     COLOR_WHITE, A_BOLD  , A_NORMAL}, /* M */
-  {COLOR_CYAN,    COLOR_WHITE, A_NORMAL, A_NORMAL}, /* N */
-  {COLOR_MAGENTA, COLOR_WHITE, A_NORMAL, A_NORMAL}, /* O */
-  {COLOR_WHITE,   COLOR_WHITE, A_NORMAL, A_NORMAL}, /* P */
-  {COLOR_BLUE,    COLOR_WHITE, A_NORMAL, A_NORMAL}, /* Q */
-  {COLOR_MAGENTA, COLOR_WHITE, A_BOLD  , A_NORMAL}, /* R */
-  {COLOR_MAGENTA, COLOR_WHITE, A_BOLD  , A_NORMAL}, /* S */
-  {COLOR_BLUE,    COLOR_WHITE, A_BOLD  , A_NORMAL}, /* T */
-  {COLOR_RED,     COLOR_WHITE, A_BOLD  , A_NORMAL}, /* U */
-  {COLOR_MAGENTA, COLOR_WHITE, A_BOLD  , A_NORMAL}, /* V */
-  {COLOR_YELLOW,  COLOR_WHITE, A_NORMAL, A_NORMAL}, /* W */
-  {COLOR_GREEN,   COLOR_WHITE, A_BOLD  , A_NORMAL}, /* X */
-  {COLOR_RED,     COLOR_WHITE, A_NORMAL, A_NORMAL}, /* Y */
-  {COLOR_BLACK,   COLOR_WHITE, A_NORMAL, A_NORMAL}, /* Z */
-  {COLOR_RED,     COLOR_WHITE, A_BOLD  , A_NORMAL}, /* 1 */
-  {COLOR_BLUE,    COLOR_WHITE, A_NORMAL, A_NORMAL}, /* 2 */
-  {COLOR_RED,     COLOR_WHITE, A_NORMAL, A_NORMAL}, /* 3 */
-  {COLOR_MAGENTA, COLOR_WHITE, A_NORMAL, A_NORMAL}, /* 4 */
-  {COLOR_GREEN,   COLOR_WHITE, A_NORMAL, A_NORMAL}, /* 5 */
-  {COLOR_CYAN,    COLOR_WHITE, A_NORMAL, A_NORMAL}, /* 6 */
-  {COLOR_YELLOW,  COLOR_WHITE, A_NORMAL, A_NORMAL}, /* 7 */
-  {COLOR_WHITE,   COLOR_WHITE, A_NORMAL, A_NORMAL}, /* 8 */
-  {COLOR_BLUE,    COLOR_WHITE, A_BOLD  , A_NORMAL}, /* 9 */
- };
-#else
  static COLOUR_DEF _THE_FAR keditw_ecolours[ECOLOUR_MAX] =
  {
   /* foreground   background   modifier  mono */
@@ -506,7 +418,6 @@ static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] =  { {0,0,0,0},{0,0,0,0},{0,0
   {COLOR_WHITE,   COLOR_WHITE, A_NORMAL|A_BLINK, A_NORMAL}, /* 8 */
   {COLOR_BLUE,    COLOR_WHITE, A_BOLD  |A_BLINK, A_NORMAL}, /* 9 */
  };
-#endif
 
  struct attributes
  {

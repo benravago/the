@@ -92,8 +92,6 @@ void *THEAllocateMemory
 
 #if defined(REXXALLOCATEMEMORY)
    ptr = (RXSTRING_STRPTR_TYPE)RexxAllocateMemory( size );
-#elif defined(USE_OS2REXX)
-   DosAllocMem( (void *)ptr, size, PAG_READ|PAG_WRITE|PAG_COMMIT );
 #else
    ptr = (RXSTRING_STRPTR_TYPE)malloc( size );
 #endif
@@ -109,8 +107,6 @@ void THEFreeMemory
 {
 #if defined(REXXFREEMEMORY)
    RexxFreeMemory( ptr );
-#elif defined(USE_OS2REXX)
-   DosFreeMem( ptr );
 #else
    free( ptr );
 #endif
@@ -293,7 +289,6 @@ REH_RETURN_TYPE THE_Exit_Handler
                   found_view->file_for_view->last_line = rexxout_last_line;
                }
             }
-#ifndef XCURSES
             else
             {
                if (!batch_only)
@@ -305,7 +300,6 @@ REH_RETURN_TYPE THE_Exit_Handler
                printf("\n");                       /* scroll the screen 1 line */
                fflush(stdout);
             }
-#endif
          }
          /*
           * If the REXX interpreter has been halted by line limit exceeded, just
@@ -568,12 +562,6 @@ short initialise_rexx
    char _THE_FAR buf[50];
 
 
-#if defined(MSWIN)
-   if (RexxThread(GetCurrentTask(),THREAD_ATTACH) != THREAD_ATTACH_AOK)
-   {
-      return(RC_INVALID_ENVIRON);
-   }
-#endif
 
    rc = RexxRegisterSubcomExe((RRSE_ARG0_TYPE)"THE",
                               (RRSE_ARG1_TYPE)THE_Commands,
@@ -671,9 +659,6 @@ short finalise_rexx
    }
 #endif
 
-#if defined(MSWIN)
-   (void)RexxThread(GetCurrentTask(),THREAD_DETACH);
-#endif
 
    return((short)rc);
 }
@@ -779,7 +764,6 @@ short execute_macro_file
       {
          if (batch_only)
             error_on_screen = TRUE;
-#ifndef XCURSES
          else
          {
             /*
@@ -795,7 +779,6 @@ short execute_macro_file
                restore_THE();
             }
          }
-#endif
       }
    }
 
@@ -895,7 +878,6 @@ short execute_macro_instore
       {
          if (batch_only)
             error_on_screen = TRUE;
-#ifndef XCURSES
          else
          {
             /*
@@ -911,7 +893,6 @@ short execute_macro_instore
                restore_THE();
             }
          }
-#endif
       }
    }
    in_macro = save_in_macro;
@@ -1033,12 +1014,8 @@ short set_rexx_variable
    shv.shvnamelen=strlen(variable_name);
    shv.shvvaluelen=value_length;
 
-#if defined(USE_OS2REXX)
-   rc=(short)RexxVariablePool(&shv);              /* Set the REXX variable */
-#else
    rc = RexxVariablePool(&shv);                 /* Set the REXX variable */
 /* rc = RXSHV_OK;*/
-#endif
    if (rc != RXSHV_OK 
    &&  rc != RXSHV_NEWV)
    {
@@ -1081,11 +1058,7 @@ static RXSTRING *get_compound_rexx_variable
     */
    shv.shvnamelen=strlen(variable_name);
    shv.shvvaluelen=0;
-#if defined(USE_OS2REXX)
-   rc=(short)RexxVariablePool(&shv);              /* Set the REXX variable */
-#else
    rc = RexxVariablePool(&shv);                 /* Set the REXX variable */
-#endif
    switch(rc)
    {
       case RXSHV_OK:
@@ -1098,8 +1071,6 @@ static RXSTRING *get_compound_rexx_variable
          }
 #if defined(REXXFREEMEMORY)
          RexxFreeMemory( shv.shvvalue.strptr );
-#elif defined(USE_OS2REXX)
-         DosFreeMem( shv.shvvalue.strptr );
 #else
          free( shv.shvvalue.strptr );
 #endif

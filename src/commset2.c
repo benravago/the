@@ -1750,16 +1750,10 @@ short Statusline(CHARTYPE *params)
    else if ( equal( (CHARTYPE *)"off", params, 2 ) )
    {
       stat_place='O';
-#ifdef MSWIN
-      SetStatusBar( 0 );
-#endif
    }
    else if ( equal( (CHARTYPE *)"gui", params, 3 ) )
    {
       stat_place='G';
-#ifdef MSWIN
-      SetStatusBar( 1 );
-#endif
    }
    else
    {
@@ -2722,9 +2716,6 @@ short Verify(CHARTYPE *params)
    CURRENT_VIEW->verify_end = (LENGTHTYPE)col2;
    CURRENT_VIEW->verify_end_max = end_max;
 
-#ifdef MSWIN
-   Win31HScroll( CURRENT_VIEW->verify_col );
-#endif
 
    build_screen( current_screen );
    display_screen( current_screen );

@@ -38,9 +38,6 @@
 #include "directry.h"
 #include "thematch.h"
 
-#if defined(DOS)
-#include <io.h>
-#endif
 
 /****************** needs to be fixed *************/
 #ifdef GO32
@@ -576,9 +573,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
    LINETYPE total_lines_read=0L,actual_lines_read=0L;
 
    temp = curr;
-#ifdef MSWIN
-   WinLock();
-#endif
 
    /*
     * Reset the length of trec_len, as it may have been changed elsewhere.
@@ -594,9 +588,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
          display_error(29,trec,FALSE);
          if (!called_from_get_command)
             CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
-#ifdef MSWIN
-         WinUnLock();
-#endif
          return(NULL);
       }
       memcpy( trec + read_start, brec, sizeof(CHARTYPE)*chars_read );
@@ -672,9 +663,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
                   display_error(29,trec,FALSE);
                   if (!called_from_get_command)
                      CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
-#ifdef MSWIN
-                  WinUnLock();
-#endif
                   return(NULL);
                }
                if (total_line_length > maxlen)
@@ -683,9 +671,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
                {
                   if (!called_from_get_command)
                      CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
-#ifdef MSWIN
-                  WinUnLock();
-#endif
                   return(NULL);
                }
                actual_lines_read++;
@@ -714,9 +699,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
                      display_error(29,trec,FALSE);
                      if (!called_from_get_command)
                         CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
-#ifdef MSWIN
-                     WinUnLock();
-#endif
                      return(NULL);
                   }
                }
@@ -724,9 +706,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
                {
                   if (!called_from_get_command)
                      CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
-#ifdef MSWIN
-                  WinUnLock();
-#endif
                   return(NULL);
                }
                actual_lines_read++;
@@ -747,11 +726,6 @@ LINE *read_file( FILE *fp, LINE *curr, CHARTYPE *filename, LINETYPE fromline, LI
 
    CURRENT_FILE->max_line_length = maxlen;
    CURRENT_FILE->number_lines += actual_lines_read;
-#ifdef MSWIN
-   WinUnLock();
-   if (!in_profile)
-      show_statarea();
-#endif
    return(temp);
 }
 LINE *read_fixed_file(FILE *fp,LINE *curr,CHARTYPE *filename,LINETYPE fromline,LINETYPE numlines)
@@ -762,9 +736,6 @@ LINE *read_fixed_file(FILE *fp,LINE *curr,CHARTYPE *filename,LINETYPE fromline,L
    LINETYPE total_lines_read=0L,actual_lines_read=0L;
 
    temp = curr;
-#ifdef MSWIN
-   WinLock();
-#endif
 
    while(1)
    {
@@ -790,9 +761,6 @@ LINE *read_fixed_file(FILE *fp,LINE *curr,CHARTYPE *filename,LINETYPE fromline,L
             if ((temp = add_LINE(CURRENT_FILE->first_line,temp,trec,chars_read,0,FALSE)) == NULL)
             {
                CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
-#ifdef MSWIN
-               WinUnLock();
-#endif
                return(NULL);
             }
             actual_lines_read++;
@@ -804,11 +772,6 @@ LINE *read_fixed_file(FILE *fp,LINE *curr,CHARTYPE *filename,LINETYPE fromline,L
    CURRENT_FILE->max_line_length = display_length;
    CURRENT_FILE->number_lines += actual_lines_read;
    CURRENT_FILE->eolfirst = EOLOUT_NONE;
-#ifdef MSWIN
-   WinUnLock();
-   if (!in_profile)
-      show_statarea();
-#endif
    return(temp);
 }
 short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_lines,
@@ -1352,18 +1315,10 @@ void increment_alt(FILE_DETAILS *cf)
 CHARTYPE *new_filename(CHARTYPE *ofp,CHARTYPE *ofn,
                             CHARTYPE *nfn,CHARTYPE *ext)
 {
-#if defined(DOS)
-   short rc=RC_OK;
-#endif
 
    strcpy((DEFCHAR *)nfn,(DEFCHAR *)ofp);
    strcat((DEFCHAR *)nfn,(DEFCHAR *)ofn);
 
-#ifdef DOS
-   rc = strzeq(nfn,'.');
-   if (rc != (-1))
-      *(nfn+rc) = '\0';
-#endif
 
 
    strcat((DEFCHAR *)nfn,(DEFCHAR *)ext);

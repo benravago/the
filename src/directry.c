@@ -104,16 +104,8 @@ short getfiles(CHARTYPE *path,CHARTYPE *files,struct dirfile **dpfirst,
          if ((dp->fname = (CHARTYPE *)(*the_malloc)(dp->fname_length*sizeof(CHARTYPE))) == NULL)
             return(RC_OUT_OF_MEMORY);
          strcpy((DEFCHAR *)dp->fname,direntp->d_name);
-#if defined(EMX)
-         dp->fattr = sp.st_attr;
-#else
          dp->fattr = sp.st_mode;
-#endif
-#if defined(_HPUX_SOURCE)
-         dp->facl  = sp.st_acl;
-#else
          dp->facl  = 0;
-#endif
          timp = localtime(&(sp.st_mtime));
          dp->f_hh = HH_MASK(timp);
          dp->f_mi = MI_MASK(timp);
@@ -204,11 +196,7 @@ int date_comp( const void *in_first, const void *in_next )
    if (rc == 0)
       rc = time_compare( first, next );
    if (rc == 0)
-#if defined(DOS)
-      rc = my_stricmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#else
       rc = strcmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#endif
    if (rc == 0)
       return(0);
    if (DIRORDERx == DIRSORT_DESC)
@@ -223,11 +211,7 @@ int time_comp( const void *in_first, const void *in_next )
 
    rc = time_compare(first,next);
    if (rc == 0)
-#if defined(DOS)
-      rc = my_stricmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#else
       rc = strcmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#endif
    if (rc == 0)
       return(0);
    if (DIRORDERx == DIRSORT_DESC)
@@ -249,11 +233,7 @@ int dir_comp( const void *in_first, const void *in_next )
    if (!first_dir && next_dir)
       rc = 1;
    if (rc == 0)
-#if defined(DOS)
-      rc = my_stricmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#else
       rc = strcmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#endif
    if (rc == 0)
       return(0);
    if (DIRORDERx == DIRSORT_DESC)
@@ -274,11 +254,7 @@ int size_comp( const void *in_first, const void *in_next )
          rc = -1;
    }
    if (rc == 0)
-#if defined(DOS)
-      rc = my_stricmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#else
       rc = strcmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#endif
    if (rc == 0)
       return(0);
    if (DIRORDERx == DIRSORT_DESC)
@@ -291,11 +267,7 @@ int name_comp( const void *in_first, const void *in_next )
    int rc=0;
    struct dirfile *first=(struct dirfile *)in_first,*next=(struct dirfile *)in_next;
 
-#if defined(DOS)
-   rc = my_stricmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#else
    rc = strcmp((DEFCHAR *)first->fname,(DEFCHAR *)next->fname);
-#endif
    if (rc == 0)
       return(0);
    if (DIRORDERx == DIRSORT_DESC)

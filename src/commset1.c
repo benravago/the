@@ -84,19 +84,6 @@ static short set_active_colour( short area )
    {
       return(RC_OK);
    }
-#if defined(USE_WINGUICURSES) && PDC_BUILD >= 2501
-   /*
-    * For the special BOUNDMARK colour, set the curses global colour
-    * to the foreground and return
-    */
-   if ( area == ATTR_BOUNDMARK)
-   {
-      PDC_set_line_color(FOREFROMPAIR(attr.pair));
-      build_screen(current_screen);
-      display_screen(current_screen);
-      return(RC_OK);
-   }
-#endif
    /*
     * Update the appropriate window with the new colour combination...
     */
@@ -107,14 +94,6 @@ static short set_active_colour( short area )
             wattrset(CURRENT_WINDOW_FILEAREA,set_colour(CURRENT_FILE->attr+area));
          build_screen(current_screen);
          display_screen(current_screen);
-#if defined(USE_WINGUICURSES) && PDC_BUILD >= 2501
-         if ( area == ATTR_BOUNDMARK)
-         {
-            redraw_window(CURRENT_WINDOW_FILEAREA);
-            touchwin(CURRENT_WINDOW_FILEAREA);
-            wnoutrefresh(CURRENT_WINDOW_FILEAREA);
-         }
-#endif
          break;
       case WINDOW_PREFIX:
          if (CURRENT_WINDOW_PREFIX != NULL)

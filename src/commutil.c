@@ -3350,11 +3350,6 @@ short get_valid_macro_file_name(CHARTYPE *inmacroname,CHARTYPE *filename,CHARTYP
    strcpy((DEFCHAR *)delims,(DEFCHAR *)ISTR_SLASH);
    if (strpbrk((DEFCHAR *)macroname,(DEFCHAR *)delims) == NULL
    && *(macroname) != '~')
-#if defined(DOS)
-   strcpy((DEFCHAR *)delims,ISTR_SLASH);
-   strcat((DEFCHAR *)delims,":");
-   if (strpbrk((DEFCHAR *)macroname,(DEFCHAR *)delims) == NULL)
-#endif
    {
       /*
        * The supplied macro file name does not contain a path...so for each
@@ -3998,13 +3993,8 @@ int is_file_in_ring( CHARTYPE *fpath, CHARTYPE *fname )
 
    while( curr )
    {
-#if defined(DOS)
-      if ( my_stricmp( (DEFCHAR *)curr->file_for_view->fpath, (DEFCHAR *)fpath ) == 0
-      &&   my_stricmp( (DEFCHAR *)curr->file_for_view->fname, (DEFCHAR *)fname ) == 0 )
-#else
       if ( strcmp( (DEFCHAR *)curr->file_for_view->fpath, (DEFCHAR *)fpath ) == 0
       &&   strcmp( (DEFCHAR *)curr->file_for_view->fname, (DEFCHAR *)fname ) == 0 )
-#endif
       {
          return TRUE;
       }
