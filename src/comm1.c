@@ -651,10 +651,6 @@ short Clast(CHARTYPE *params)
 short THEClipboard(CHARTYPE *params)
 {
    short rc=RC_OK;
-#if defined(PDC_CLIP_SUCCESS)
-   LINETYPE true_line;
-   LINE *curr;
-#endif
 
    /*
     * Validate the argument
@@ -695,23 +691,13 @@ short THEClipboard(CHARTYPE *params)
        * If no marked block, simply insert the text in the clipboard at the
        * cursor position, adding lines as required.
        */
-#if defined(PDC_CLIP_SUCCESS)
-      true_line = get_true_line(TRUE);
-      curr = lll_find(CURRENT_FILE->first_line,CURRENT_FILE->last_line,true_line,CURRENT_FILE->number_lines);
-      getclipboard( curr, 0 );
-#else
       display_error(82,(CHARTYPE *)"CLIP:",FALSE);
       rc = RC_INVALID_ENVIRON;
-#endif
    }
    else if ( equal( (CHARTYPE *)"clear", params, 5 ) )
    {
-#if defined(PDC_CLIP_SUCCESS)
-      rc = PDC_clearclipboard( );
-#else
       display_error(82,(CHARTYPE *)"CLIP:",FALSE);
       rc = RC_INVALID_ENVIRON;
-#endif
    }
    else
    {

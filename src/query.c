@@ -460,7 +460,6 @@ void set_key_values(int key, bool mouse_key)
    int shift=0;
    int mod_shift, mod_ctrl, mod_alt;
 
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    if ( mouse_key )
    {
       int b,ba,bm,w;
@@ -477,7 +476,6 @@ void set_key_values(int key, bool mouse_key)
       mod_alt = SHIFT_MOUSE_ALT;
    }
    else
-#endif
    {
       keyname = get_key_name( key, &shift );
       if (keyname == NULL)

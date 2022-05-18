@@ -3591,12 +3591,7 @@ short Mouse(CHARTYPE *params)
    short rc=RC_OK;
 
    rc = execute_set_on_off(params,&MOUSEx, TRUE );
-#if defined(PDCURSES_MOUSE_ENABLED)
-   mouse_set((MOUSEx)?ALL_MOUSE_EVENTS:0L);
-#endif
-#if defined(NCURSES_MOUSE_VERSION)
    mousemask((MOUSEx)?ALL_MOUSE_EVENTS:0, (mmask_t*)NULL);
-#endif
    return(rc);
 }
 short Msgline(CHARTYPE *params)

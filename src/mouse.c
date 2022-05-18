@@ -44,9 +44,7 @@
 #define MY_BUTTON_CONTROL         0020
 #define MY_BUTTON_ALT             0040
 
-#if defined(NCURSES_MOUSE_VERSION)
 MEVENT ncurses_mouse_event;
-#endif
 
 /*   3         2         1         0
  * 210987654321098765432109876543210
@@ -76,9 +74,6 @@ MEVENT ncurses_mouse_event;
 #define MOUSE_DRAG              (BUTTON_MOVED << MOUSE_ACTION_OFFSET)
 #define MOUSE_CLICK             (BUTTON_CLICKED << MOUSE_ACTION_OFFSET)
 #define MOUSE_DOUBLE_CLICK      (BUTTON_DOUBLE_CLICKED << MOUSE_ACTION_OFFSET)
-#if defined(PDCURSES_MOUSE_ENABLED) && defined(WHEEL_SCROLLED)
-#define MOUSE_SCROLLED          (WHEEL_SCROLLED << MOUSE_ACTION_OFFSET)
-#endif
 /*
  * Button numbers
  */
@@ -125,7 +120,6 @@ static CHARTYPE *button_action_names[] =
    (CHARTYPE *)"S", /* scrolled */
 };
 
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
 /*
  * These two variables are saved by each mouse key press or reset to -1
  * when a normal key it pressed.
@@ -133,83 +127,6 @@ static CHARTYPE *button_action_names[] =
 static int last_mouse_x_pos=-1;
 static int last_mouse_y_pos=-1;
 
-#if defined(PDCURSES_MOUSE_ENABLED)
-short get_mouse_info(int *button,int *button_action,int *button_modifier)
-{
-   short rc=RC_OK;
-
-   request_mouse_pos();
-   /*
-    * Save the current mouse position
-    */
-   last_mouse_x_pos = MOUSE_X_POS;
-   last_mouse_y_pos = MOUSE_Y_POS;
-   if (A_BUTTON_CHANGED)
-   {
-      if (BUTTON_CHANGED(1))
-         *button = 1;
-      else if (BUTTON_CHANGED(2))
-         *button = 2;
-      else if (BUTTON_CHANGED(3))
-         *button = 3;
-      else
-      {
-         return(RC_OK);
-      }
-      if (BUTTON_STATUS(*button) & BUTTON_SHIFT)
-         *button_modifier = MY_BUTTON_SHIFT;
-      else if (BUTTON_STATUS(*button) & BUTTON_CONTROL)
-         *button_modifier = MY_BUTTON_CONTROL;
-      else if (BUTTON_STATUS(*button) & BUTTON_ALT)
-         *button_modifier = MY_BUTTON_ALT;
-      else
-         *button_modifier = 0;
-      if (MOUSE_MOVED)
-         *button_action = BUTTON_MOVED;
-      else
-         *button_action = BUTTON_STATUS(*button) & BUTTON_ACTION_MASK;
-   }
-#if defined(MOUSE_WHEEL_UP) && defined(WHEEL_SCROLLED)
-   else if ( MOUSE_WHEEL_UP )
-   {
-      *button_action = WHEEL_SCROLLED;
-      *button = 4;
-      *button_modifier = 0;
-   }
-#endif
-#if defined(MOUSE_WHEEL_DOWN) && defined(WHEEL_SCROLLED)
-   else if ( MOUSE_WHEEL_DOWN )
-   {
-      *button_action = WHEEL_SCROLLED;
-      *button = 5;
-      *button_modifier = 0;
-   }
-#endif
-#if defined(MOUSE_WHEEL_LEFT) && defined(WHEEL_SCROLLED)
-   else if ( MOUSE_WHEEL_LEFT )
-   {
-      *button_action = WHEEL_SCROLLED;
-      *button = 6;
-      *button_modifier = 0;
-   }
-#endif
-#if defined(MOUSE_WHEEL_RIGHT) && defined(WHEEL_SCROLLED)
-   else if ( MOUSE_WHEEL_RIGHT )
-   {
-      *button_action = WHEEL_SCROLLED;
-      *button = 7;
-      *button_modifier = 0;
-   }
-#endif
-   else
-   {
-      *button = *button_action = *button_modifier = 0;
-      rc = RC_INVALID_OPERAND;
-   }
-   return(rc);
-}
-#endif
-#if defined(NCURSES_MOUSE_VERSION)
 void wmouse_position(WINDOW *win, int *y, int *x)
 {
    int begy,begx,maxy,maxx;
@@ -312,7 +229,6 @@ short get_mouse_info(int *button,int *button_action,int *button_modifier)
    }
    return(rc);
 }
-#endif
 
 short THEMouse(CHARTYPE *params)
 {
@@ -426,20 +342,6 @@ void initialise_mouse_commands(void)
    add_define(&first_mouse_define,&last_mouse_define,
             WINDOW_FILEAREA|MOUSE_LEFT|MOUSE_CLICK|MOUSE_NORMAL,
             (CHARTYPE *)"CURSOR MOUSE",FALSE,FALSE,0);
-#if defined(PDCURSES_MOUSE_ENABLED) && defined(WHEEL_SCROLLED)
-   add_define(&first_mouse_define,&last_mouse_define,
-            WINDOW_ALL|THE_MOUSE_WHEEL_UP|MOUSE_SCROLLED,
-            (CHARTYPE *)"BACK 5 LINES",FALSE,FALSE,0);
-   add_define(&first_mouse_define,&last_mouse_define,
-            WINDOW_ALL|THE_MOUSE_WHEEL_DOWN|MOUSE_SCROLLED,
-            (CHARTYPE *)"FOR 5 LINES",FALSE,FALSE,0);
-   add_define(&first_mouse_define,&last_mouse_define,
-            WINDOW_ALL|THE_MOUSE_WHEEL_LEFT|MOUSE_SCROLLED,
-            (CHARTYPE *)"LEFT 5",FALSE,FALSE,0);
-   add_define(&first_mouse_define,&last_mouse_define,
-            WINDOW_ALL|THE_MOUSE_WHEEL_RIGHT|MOUSE_SCROLLED,
-            (CHARTYPE *)"RIGHT 5",FALSE,FALSE,0);
-#endif
    add_define(&first_mouse_define,&last_mouse_define,
             WINDOW_FILEAREA|MOUSE_LEFT|MOUSE_PRESS|MOUSE_SHIFT,
             (CHARTYPE *)"CURSOR MOUSE#RESET BLOCK#MARK LINE",FALSE,FALSE,0);
@@ -529,7 +431,6 @@ int mouse_info_to_key(int w, int button, int button_action, int button_modifier)
 
    return(MOUSE_INFO_TO_KEY(w,button,button_action,button_modifier));
 }
-#endif
 CHARTYPE *mouse_key_number_to_name(int key_number, CHARTYPE *key_name, int *shift)
 {
    register int i=0;
@@ -594,10 +495,6 @@ int find_mouse_key_value( CHARTYPE *mnemonic )
    if (tmp_buf[1] != '-'
    || ( tmp_buf[4] != 'B'
       && tmp_buf[4] != 'b'
-#if defined(PDCURSES_MOUSE_ENABLED)
-      && tmp_buf[4] != 'W'
-      && tmp_buf[4] != 'w'
-#endif
       ))
    {
       display_error(1,mnemonic,FALSE);
@@ -653,12 +550,6 @@ int find_mouse_key_value( CHARTYPE *mnemonic )
       case 'd':
          ba = MOUSE_DRAG;
          break;
-#if defined(PDCURSES_MOUSE_ENABLED) && defined(WHEEL_SCROLLED)
-      case 'S':
-      case 's':
-         ba = MOUSE_SCROLLED;
-         break;
-#endif
       default:
          display_error(1,mnemonic,FALSE);
          return(-1);
@@ -671,36 +562,16 @@ int find_mouse_key_value( CHARTYPE *mnemonic )
    {
       case 'L':
       case 'l':
-#if defined(PDCURSES_MOUSE_ENABLED)
-         if ( ba == MOUSE_SCROLLED )
-            b = THE_MOUSE_WHEEL_LEFT;
-         else
-#endif
             b = MOUSE_LEFT;
          break;
       case 'R':
       case 'r':
-#if defined(PDCURSES_MOUSE_ENABLED)
-         if ( ba == MOUSE_SCROLLED )
-            b = THE_MOUSE_WHEEL_RIGHT;
-         else
-#endif
             b = MOUSE_RIGHT;
          break;
       case 'M':
       case 'm':
          b = MOUSE_MIDDLE;
          break;
-#if defined(PDCURSES_MOUSE_ENABLED)
-      case 'U':
-      case 'u':
-         b = THE_MOUSE_WHEEL_UP;
-         break;
-      case 'D':
-      case 'd':
-         b = THE_MOUSE_WHEEL_DOWN;
-         break;
-#endif
       default:
          display_error(1,mnemonic,FALSE);
          return(-1);
@@ -734,11 +605,6 @@ int find_mouse_key_value_in_window(CHARTYPE *mnemonic,CHARTYPE *win_name)
    /*
     * Find a valid window name for win_name...
     */
-#if defined(PDCURSES_MOUSE_ENABLED)
-   if ( strcmp( "*", (DEFCHAR *)win_name ) == 0 )
-      w = WINDOW_ALL;
-   else
-#endif
    {
       for (i=0;i<ATTR_MAX;i++)
       {

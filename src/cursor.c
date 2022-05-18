@@ -678,22 +678,13 @@ short THEcursor_goto(LINETYPE row, LENGTHTYPE col)
 }
 short THEcursor_mouse(void)
 {
-#if defined(PDCURSES_MOUSE_ENABLED)
-#define MOUSE_Y (MOUSE_Y_POS+1-screen[scrn].screen_start_row)
-#define MOUSE_X (MOUSE_X_POS+1-screen[scrn].screen_start_col)
-#endif
-#if defined(NCURSES_MOUSE_VERSION)
 #define MOUSE_Y (ncurses_mouse_event.y+1-screen[scrn].screen_start_row)
 #define MOUSE_X (ncurses_mouse_event.x+1-screen[scrn].screen_start_col)
-#endif
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    int w=0;
    CHARTYPE scrn=0;
-#endif
    short rc=RC_OK;
 
 
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    /*
     * If in READV CMDLINE, return without doing anything
     */
@@ -720,7 +711,6 @@ short THEcursor_mouse(void)
     * Move the cursor to the correct screen coordinates...
     */
    rc = THEcursor_move( current_screen, CURRENT_VIEW, TRUE, FALSE, (short)MOUSE_Y, (short)MOUSE_X );
-#endif
 
    return(rc);
 }

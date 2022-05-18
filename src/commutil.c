@@ -1047,7 +1047,6 @@ short display_all_keys(void)
       key = curr_define->def_funkey;
       curr_define = curr_define->next;
    }
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    /*
     * ...last, display any mouse key definitions.
     */
@@ -1071,7 +1070,6 @@ short display_all_keys(void)
       key = curr_define->def_funkey;
       curr_define = curr_define->next;
    }
-#endif
 #if defined(MULTIPLE_PSEUDO_FILES)
    Xedit((CHARTYPE *)"***KEY***");
 #else
@@ -1128,7 +1126,6 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return)
          curr_define = curr_define->next;
       }
    }
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    /*
     * ...last, display any mouse key definitions.
     */
@@ -1150,7 +1147,6 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return)
          curr_define = curr_define->next;
       }
    }
-#endif
    *number_keys_return = number_keys;
    return(RC_OK);
 }
@@ -3459,7 +3455,6 @@ int readv_cmdline(CHARTYPE *initial, WINDOW *dw, int start_col)
    while( 1 )
    {
       key = my_getch( CURRENT_WINDOW_COMMAND );
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
       if (key == KEY_MOUSE)
       {
          int b,ba,bm,y,x;
@@ -3498,7 +3493,6 @@ int readv_cmdline(CHARTYPE *initial, WINDOW *dw, int start_col)
             continue;
       }
       else
-#endif
       {
          rc = function_key( key, OPTION_READV, FALSE );
          switch( rc )

@@ -547,118 +547,9 @@ LINE *getclipboard(LINE *now, int from_get)
  */
 {
    LINE *curr=now;
-#if defined(PDC_CLIP_SUCCESS)
-   LINE *clip_first_line=NULL;
-   LINE *my_first_line=NULL;
-   CHARTYPE *ptr=NULL;
-   LINETYPE i,line_start,numlines=0,numcols=0;
-   LENGTHTYPE maxlen=0;
-   LENGTHTYPE length=0;
-   short rc=RC_OK;
-   int offset = 0;
-   int this_offset;
-#endif
 
-#if defined(PDC_CLIP_SUCCESS)
-   rc = PDC_getclipboard( (DEFCHAR **)&ptr, &length );
-
-   switch( rc )
-   {
-      case PDC_CLIP_MEMORY_ERROR:
-         display_error( 30, (CHARTYPE *)"", FALSE );
-         rc = RC_OUT_OF_MEMORY;
-         break;
-      case PDC_CLIP_ACCESS_ERROR:
-         display_error( 186, (CHARTYPE *)"", FALSE );
-         rc = RC_INVALID_ENVIRON;
-         break;
-      case PDC_CLIP_EMPTY:
-         display_error( 187, (CHARTYPE *)"", FALSE );
-         rc = RC_INVALID_ENVIRON;
-         break;
-      default:
-         rc = RC_OK;
-         break;
-   }
-   if (rc != RC_OK)
-   {
-      return NULL;
-   }
-
-   line_start=0;
-   maxlen = CURRENT_FILE->max_line_length;
-
-   if ( from_get )
-      my_first_line = CURRENT_FILE->first_line;
-   else
-   {
-      my_first_line = clip_first_line;
-      curr = NULL;
-   }
-   for (i=0; i<length; i++)
-   {
-      if ( i - line_start == max_line_length /* exceeding WIDTH */
-      ||   *(ptr+i) == 0x0A ) /* CR may have been prior character */
-      {
-         if ( *(ptr+i) == 0x0A )
-            this_offset = offset;
-         else
-            this_offset = 0;
-         numcols = i - line_start - this_offset;
-/*         *(ptr+i-offset) = '\0'; */
-         if ( ( curr = add_LINE( my_first_line, curr, ptr+line_start, numcols, 0, TRUE ) ) == NULL )
-         {
-            curr = NULL;
-            break;
-         }
-         if ( clip_first_line == NULL )
-         {
-            clip_first_line = my_first_line = curr;
-         }
-         if ( *(ptr+i) == 0x0A )
-            line_start = i+1;
-         else
-            line_start = i;
-         numlines++;
-         if (i - line_start - this_offset > maxlen)
-            maxlen = i - line_start - this_offset;
-      }
-   }
-   if (line_start != i )
-   {
-      numcols = i-line_start;
-      curr = add_LINE( my_first_line, curr, ptr+line_start, numcols, 0, TRUE );
-      numlines++;
-      if (i-line_start > maxlen)
-         maxlen = i-line_start;
-      if ( clip_first_line == NULL )
-      {
-         clip_first_line = my_first_line = curr;
-      }
-   }
-   if ( !from_get )
-   {
-      /*
-       * We have created our own source list of lines...
-       *...we need to fix up the list; the last entry to have a NULL next pointer
-       * numcols will be the length of the last line, but it is only used
-       * when there is only 1 line.
-       */
-     box_paste_from_clipboard( clip_first_line, numlines, numcols );
-     lll_free( clip_first_line );
-   }
-
-   PDC_freeclipboard( (DEFCHAR *)ptr );
-
-   if ( from_get && curr)
-   {
-      CURRENT_FILE->max_line_length = maxlen;
-      CURRENT_FILE->number_lines += numlines;
-   }
-#else
    display_error( 82, (CHARTYPE *)"CLIP:", FALSE );
    curr = NULL;
-#endif
    return curr;
 }
 short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_lines,
@@ -886,30 +777,8 @@ short setclipboard(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_l
    if (ignore_scope)
       CURRENT_VIEW->scope_all = save_scope_all;
 
-#if defined(PDC_CLIP_SUCCESS)
-   if ( pos )
-   {
-      rc = PDC_setclipboard( (DEFCHAR *)ptr, pos );
-
-      switch( rc )
-      {
-         case PDC_CLIP_MEMORY_ERROR:
-            display_error(30,(CHARTYPE *)"",FALSE);
-            return(RC_OUT_OF_MEMORY);
-            break;
-         case PDC_CLIP_ACCESS_ERROR:
-            display_error(186,(CHARTYPE *)"",FALSE);
-            rc = RC_INVALID_ENVIRON;
-            break;
-         default:
-            rc = RC_OK;
-            break;
-      }
-   }
-#else
    display_error(82,(CHARTYPE *)"CLIP:",FALSE);
    rc = RC_INVALID_ENVIRON;
-#endif
 
    (*the_free)( (void *)ptr);
    return(rc);

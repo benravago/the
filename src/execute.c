@@ -3892,7 +3892,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
          }
          key = my_getch( CURRENT_WINDOW_COMMAND );
       }
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
       if (key == KEY_MOUSE)
       {
          int b,ba,bm,y,x;
@@ -3968,7 +3967,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
          continue;
       }
       else
-#endif
       {
          if (key == 9)
          {
@@ -4525,11 +4523,7 @@ short prepare_popup( CHARTYPE *params )
       switch(location)
       {
          case 'M':
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
             get_saved_mouse_pos(&y,&x);
-#else
-            x = y = -1;
-#endif
             break;
          case 'C':
             x = (terminal_cols - width) / 2;
@@ -4773,7 +4767,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
       prefresh( pad, y_offset, x_offset, screeny+1, screenx+1, screeny+height-2, screenx+width-2 );
 
       key = wgetch(stdscr);
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
       if (key == KEY_MOUSE)
       {
          int b,ba,bm,y,x;
@@ -4833,7 +4826,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
          continue;
       }
       else
-#endif
       {
          time_to_quit = FALSE;
          switch( key )

@@ -844,14 +844,12 @@ short extract_readv(short number_variables,short itemno,CHARTYPE *itemargs,CHART
       if (is_termresized())
          continue;
 #endif
-#if defined (PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
       if (key == KEY_MOUSE)
       {
          mouse_key = TRUE;
       }
       else
          mouse_key = FALSE;
-#endif
       break;
    }
    if (current_key == -1)

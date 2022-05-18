@@ -892,9 +892,7 @@ int main(int argc, char *argv[])
    /*
     * If the platform supports the mouse, set up the default commands.
     */
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    initialise_mouse_commands();
-#endif
 /*traceon();*/
 /*
  * Initialise Soft Label Keys
@@ -957,12 +955,7 @@ int main(int argc, char *argv[])
    /*
     * Set up mouse support if enabled in curses library.
     */
-#if defined(PDCURSES_MOUSE_ENABLED)
-   mouse_set(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION);
-#endif
-#if defined( NCURSES_MOUSE_VERSION )
    mousemask( ALL_MOUSE_EVENTS, (mmask_t*)NULL );
-#endif
    /*
     * Set up variables and values dependent on LINES and COLS now with
     * values set by initscr().

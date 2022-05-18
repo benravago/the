@@ -259,11 +259,7 @@ void set_global_defaults(void)
    TABI_Nx = 8;
    UNTAAx = FALSE;
    READONLYx = READONLY_OFF;
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    MOUSEx = TRUE;
-#else
-   MOUSEx = FALSE;
-#endif
    if (display_length)          /* if display_length has been specified) */
       EOLx = EOLOUT_NONE;
    else

@@ -1197,7 +1197,6 @@ short ShowKey(CHARTYPE *params)
             if (is_termresized())
                continue;
 #endif
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
             if (key == KEY_MOUSE)
             {
                int b,ba,bm,w;
@@ -1210,7 +1209,6 @@ short ShowKey(CHARTYPE *params)
             }
             else
                mouse_key = FALSE;
-#endif
             break;
          }
          clear_msgline(-1);

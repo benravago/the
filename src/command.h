@@ -227,9 +227,7 @@ COMMAND command[] =
  {(CHARTYPE *)"mark",        4,  (-1),            Mark,             FALSE,FALSE,FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_ALL    ,(CHARTYPE *)""},  /* comm3.c */
  {(CHARTYPE *)"modify",      3,  (-1),            Modify,           FALSE,FALSE,FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* comm3.c */
  {(CHARTYPE *)"mouse",       5,  (-1),            Mouse,            TRUE, TRUE, FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commset1.c */
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
  {(CHARTYPE *)"",            0,  KEY_MOUSE,       THEMouse,         FALSE,FALSE,FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* comm3.c */
-#endif
  {(CHARTYPE *)"mark",        0,  KEY_C_l,         Mark,             FALSE,FALSE,FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_ALL    ,(CHARTYPE *)"line"},  /* comm3.c */
  {(CHARTYPE *)"mark",        0,  KEY_C_b,         Mark,             FALSE,FALSE,FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_ALL    ,(CHARTYPE *)"box"},  /* comm3.c */
  {(CHARTYPE *)"move",        4,  KEY_C_v,         THEMove,          FALSE,FALSE,FALSE,FALSE,FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_RESET_ALL    ,(CHARTYPE *)"block reset"},  /* comm3.c */

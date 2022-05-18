@@ -85,10 +85,8 @@ static bool ispf_special_lines_entry( short line_type, int ch, CHARTYPE real_key
 short Tabfile(CHARTYPE *params)
 {
    short rc=RC_OK;
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    int x,y;
    CHARTYPE scrn;
-#endif
    int w;
    VIEW_DETAILS *curr;
    CHARTYPE edit_fname[MAX_FILE_NAME];
@@ -104,11 +102,7 @@ short Tabfile(CHARTYPE *params)
        * If called from mouse click, find file under mouse (or arrows)
        * If called from command line, edit first file displayed
        */
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
       which_window_is_mouse_in( &scrn, &w );
-#else
-      w = -1;
-#endif
       if ( w == (-1 ) )
       {
          /*
@@ -123,7 +117,6 @@ short Tabfile(CHARTYPE *params)
          }
          return(RC_OK);
       }
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
       /*
        * Get mouse position
        */
@@ -140,7 +133,6 @@ short Tabfile(CHARTYPE *params)
        * or on an arrow. If on an arrow, we call this function again with
        * a + or - parameter.
        */
-#endif
    }
    else if ( equal( (CHARTYPE *)"+", params, 1 ) )
    {

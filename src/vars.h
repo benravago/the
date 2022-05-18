@@ -135,9 +135,7 @@ extern bool           in_prefix_macro;
 extern VALUE          item_values[MAX_VARIABLES_RETURNED];
 
 /* mouse.c */
-#if defined(NCURSES_MOUSE_VERSION)
 extern MEVENT         ncurses_mouse_event;
-#endif
 
 /* rexx.c */
 extern LINE           *rexxout_first_line,

@@ -95,13 +95,11 @@ int process_key(int key, bool mouse_details_present)
    {
       key = my_getch( CURRENT_WINDOW );
    }
-#if defined(PDCURSES_MOUSE_ENABLED) || defined(NCURSES_MOUSE_VERSION)
    if (key != KEY_MOUSE)
    {
       if (!mouse_details_present)
          reset_saved_mouse_pos();
    }
-#endif
 
 #ifdef CAN_RESIZE
    if (is_termresized())
