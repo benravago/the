@@ -600,7 +600,7 @@ static short parse_prefix_command( THE_PPC *curr_ppc )
    {
       if ( pc[ispf_idx][i].cmd == NULL )
         break;
-      if ( my_stricmp( (DEFCHAR *)curr_ppc->ppc_command, (DEFCHAR *)pc[ispf_idx][i].cmd ) == 0 )
+      if ( strcasecmp( (DEFCHAR *)curr_ppc->ppc_command, (DEFCHAR *)pc[ispf_idx][i].cmd ) == 0 )
       {
          /*
           * Set a flag in ppc[] array to indicate which command is present.

@@ -39,11 +39,6 @@
 #include "thematch.h"
 
 
-/****************** needs to be fixed *************/
-#ifdef GO32
-#define stricmp strcasecmp
-#endif
-
 static short write_line(CHARTYPE *,LENGTHTYPE,FILE *,short);
 static short write_char(CHARTYPE,FILE *);
 
@@ -705,15 +700,6 @@ short save_file(FILE_DETAILS *cf,CHARTYPE *new_fname,bool force,LINETYPE in_line
    int eol_len=0;
    char _THE_FAR buf[MAX_FILE_NAME+1];
 
-
-#ifdef MSWIN_NOT_REQUIRED
-   if (!Registered()
-   &&  cf->number_lines > 100L)
-   {
-      display_error(77,(CHARTYPE *)"",FALSE);
-      return(RC_INVALID_ENVIRON);
-   }
-#endif
    /*
     * Do not attempt to autosave a pseudo file...
     */
@@ -1725,12 +1711,6 @@ short read_directory(void)
       {
          return(RC_OUT_OF_MEMORY);
       }
-#if FILENAME_LENGTH
-      /*
-       * Set the filename length here for all files...
-       */
-      curr->filename_length = dp->fname_length;
-#endif
       (*the_free)(dp->fname);
    }
    (*the_free)(dpfirst);

@@ -1271,8 +1271,8 @@ short command_line(CHARTYPE *cmd_line,bool command_only)
        * To reduce file accesses, check if command is COMMAND or MACRO, and treat
        * both as though they were already prefixed with COMMAND
        */
-      if ( my_stricmp( (DEFCHAR *)"COMMAND", (DEFCHAR *)cl_cmd ) == 0
-      ||   my_stricmp( (DEFCHAR *)"MACRO", (DEFCHAR *)cl_cmd ) == 0 )
+      if ( strcasecmp( (DEFCHAR *)"COMMAND", (DEFCHAR *)cl_cmd ) == 0
+      ||   strcasecmp( (DEFCHAR *)"MACRO", (DEFCHAR *)cl_cmd ) == 0 )
       {
          command_only = 1;
       }
@@ -2208,7 +2208,7 @@ short remove_define(DEFINE **first,DEFINE **last,int key_value,CHARTYPE *synonym
    {
       while(curr != NULL)
       {
-         if ( my_stricmp( (DEFCHAR *)curr->synonym, (DEFCHAR *)synonym ) == 0 )
+         if ( strcasecmp( (DEFCHAR *)curr->synonym, (DEFCHAR *)synonym ) == 0 )
          {
             if (curr->def_params != NULL)
                (*the_free)(curr->def_params);
@@ -3407,7 +3407,7 @@ int find_key_name(CHARTYPE *keyname)
 
    for (i=0;key_table[i].mnemonic != NULL;i++)
    {
-      if ( my_stricmp( keyname, key_table[i].mnemonic ) == 0 )
+      if ( strcasecmp( keyname, key_table[i].mnemonic ) == 0 )
       {
          key = key_table[i].key_value;
          break;

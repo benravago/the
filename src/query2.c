@@ -291,7 +291,7 @@ short extract_parser(short number_variables,short itemno,CHARTYPE *itemargs,CHAR
        */
       for (curr=first_parser;curr!=NULL;curr=curr->next)
       {
-         if (my_stricmp((DEFCHAR *)itemargs,(DEFCHAR *)curr->parser_name) == 0)
+         if (strcasecmp((DEFCHAR *)itemargs,(DEFCHAR *)curr->parser_name) == 0)
          {
             ptr_filename = curr->filename;
             found = TRUE;
@@ -563,7 +563,7 @@ short extract_pending(short number_variables,short itemno,CHARTYPE *itemargs,CHA
             /*
              * We want to find a specific command...
              */
-            if ( my_stricmp( (DEFCHAR *)curr_ppc->ppc_command, (DEFCHAR *)name ) == 0 )
+            if ( strcasecmp( (DEFCHAR *)curr_ppc->ppc_command, (DEFCHAR *)name ) == 0 )
             {
                /*
                 * Are we looking for a specific BLOCK command...
@@ -1995,20 +1995,12 @@ short extract_version(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    item_values[2].value = (CHARTYPE *)the_version;
    item_values[2].len = strlen((DEFCHAR *)the_version);
    item_values[3].value = (CHARTYPE *)"???";
-# if defined(__QNX__)
-   item_values[3].value = (CHARTYPE *)"QNX";
-# else
    item_values[3].value = (CHARTYPE *)"UNIX";
-# endif
    item_values[3].len = strlen((DEFCHAR *)item_values[3].value);
    item_values[4].value = (CHARTYPE *)the_release;
    item_values[4].len = strlen((DEFCHAR *)item_values[4].value);
    item_values[5].value = item_values[3].value;
    item_values[5].len = item_values[3].len;
-#ifdef MH_KERNEL_NAME
-   item_values[5].value = (CHARTYPE *)MH_KERNEL_NAME;
-   item_values[5].len = strlen( (DEFCHAR *)item_values[5].value );
-#endif
    return number_variables;
 }
 short extract_width(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)

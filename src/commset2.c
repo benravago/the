@@ -746,7 +746,7 @@ short Regexp(CHARTYPE *params)
 
    for ( i = 0; regexp_syntaxes[i].name != NULL; i++ )
    {
-      if ( my_stricmp( (DEFCHAR *)regexp_syntaxes[i].name, (DEFCHAR *)params ) == 0 )
+      if ( strcasecmp( (DEFCHAR *)regexp_syntaxes[i].name, (DEFCHAR *)params ) == 0 )
       {
          idx = i;
          break;
@@ -1933,7 +1933,7 @@ short Synonym(CHARTYPE *params)
    /*
     * Do not allow the command COMMAND to be synonymed.
     */
-   if ( my_stricmp( (DEFCHAR *)newname, (DEFCHAR *)"COMMAND" ) == 0 )
+   if ( strcasecmp( (DEFCHAR *)newname, (DEFCHAR *)"COMMAND" ) == 0 )
    {
       display_error( 1, newname, FALSE );
       (*the_free)( newname );

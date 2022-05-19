@@ -123,9 +123,7 @@ static void init_signals(void);
    CHARTYPE _THE_FAR rexx_filename[10];
    CHARTYPE *dirfilename = (CHARTYPE *)"DIR.DIR";
 
-#if !defined(XTERM_PROGRAM)
-# define XTERM_PROGRAM "N/A"
-#endif
+#define XTERM_PROGRAM "xterm"
 
    CHARTYPE _THE_FAR xterm_program[MAX_FILE_NAME+1]; /* default shell for XCURSES */
 
@@ -1349,16 +1347,12 @@ void cleanup(void)
       {
          display_error(0,(CHARTYPE *)HIT_ANY_KEY,FALSE);
          wrefresh(error_window);
-#ifdef KEY_RESIZE
          /*
           * Real hack here. If we have an error caused by editing the first file
           * like line too long, then we need to ignore all KEY_RESIZE events; XCurses
           * sends a resize on startup every time!
           */
          while ( getch() == KEY_RESIZE );
-#else
-         getch();
-#endif
       }
       INSERTMODEx=FALSE;
 /*      draw_cursor(TRUE);*/

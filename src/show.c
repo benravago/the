@@ -94,31 +94,6 @@ static LINE *hexshow_curr=NULL; /* module global for historical reasons? */
  */
 # define make_chtype(ch,col) (etmode_flag[ch])?((chtype) etmode_table[ch]):(((chtype) etmode_table[ch]) | ((chtype) col))
 
-/* Set up the paranoia test macros if wanted */
-#ifdef PARANOIA_TEST
-static int _fast_maxx = 0,_fast_pos;
-# define PARATEST_INIT_LINE(win,line) {                                        \
-                          if (line >= getmaxy(win))                           \
-                          {                                                 \
-                             fprintf(stderr,"\nINIT_LINE_OUTPUT in %s: "      \
-                                                   "line %d doesn't exist\n", \
-                                            __FILE__,line);                   \
-                             exit(3);                                         \
-                          }                                                 \
-                          _fast_maxx = getmaxx(win);                          \
-                          _fast_pos = 0; }
-# define PARATEST_ADD_LINE(num,string) {                                       \
-                         if (((_fast_pos += num) > _fast_maxx) || (num < 0))  \
-                         {                                                  \
-                            fprintf(stderr,"\n%s in %s: line overrun (%d,%d)\n",\
-                                           string,__FILE__,_fast_pos-num,num);\
-                            exit(3);                                          \
-                         } }
-#else
-# define PARATEST_INIT_LINE(win,line)
-# define PARATEST_ADD_LINE(num,string)
-#endif
-
 #define mysetchar(dest, ch, colour ) {                   \
                   setcchar( dest, &ch, colour, 0, NULL ); \
                   }
@@ -131,7 +106,6 @@ static WINDOW *_fast_win; /* buffered for waddchnstr */
 # define INIT_LINE_OUTPUT(win,line) {                  \
                         _fast_win = win;              \
                         _fast_col = 0;                \
-                        PARATEST_INIT_LINE(win,line); \
                         wmove(_fast_win,line,0);     \
                         }
 #  define ADD_LINE_OUTPUT(line,length,colour) {                  \
@@ -139,7 +113,6 @@ static WINDOW *_fast_win; /* buffered for waddchnstr */
                        CHARTYPE *src;                          \
                        chtype color, /* beware of slow arg! */ \
                               *dest;                           \
-                       PARATEST_ADD_LINE(l,"ADD_LINE_OUTPUT"); \
                        dest = linebufch + _fast_col;           \
                        _fast_col += l;                         \
                        src = line;                             \
@@ -152,7 +125,6 @@ static WINDOW *_fast_win; /* buffered for waddchnstr */
                        LENGTHTYPE l = length;                  \
                        CHARTYPE *src;                          \
                        chtype *dest,*highl;            \
-                       PARATEST_ADD_LINE(l,"ADD_SYNTAX_LINE_OUTPUT"); \
                        dest = linebufch + _fast_col;           \
                        _fast_col += l;                         \
                        src = line;                             \
@@ -165,7 +137,6 @@ static WINDOW *_fast_win; /* buffered for waddchnstr */
 #  define FILL_LINE_OUTPUT(c,length,colour) {                      \
                         chtype *dest,C = make_chtype(c,colour);  \
                         LENGTHTYPE l = length;                   \
-                        PARATEST_ADD_LINE(l,"FILL_LINE_OUTPUT"); \
                         dest = linebufch + _fast_col;            \
                         _fast_col += l;                          \
                         while (l--)                              \
@@ -176,13 +147,7 @@ static WINDOW *_fast_win; /* buffered for waddchnstr */
                                      _fast_col);                 \
                           }
 
-#if defined(USE_WINREXX)
-# define REXX_INT_CHAR         'W'
-#elif defined(USE_QUERCUS)
-# define REXX_INT_CHAR         'Q'
-#else
-# define REXX_INT_CHAR         'I'
-#endif
+#define REXX_INT_CHAR         'I'
 
 
 
@@ -704,26 +669,6 @@ void redraw_window(WINDOW *win)
    wmove( win, y, x );
    return;
 }
-#if NOT_USED
-void repaint_screen(void)
-{
-   short y=0,x=0;
-
-
-   getyx(CURRENT_WINDOW,y,x);
-   y = get_row_for_focus_line(current_screen,CURRENT_VIEW->focus_line,
-                              CURRENT_VIEW->current_row);
-   if (x > CURRENT_SCREEN.cols[WINDOW_FILEAREA])
-      x = 0;
-   pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);
-   build_screen(current_screen);
-   display_screen(current_screen);
-   /* show_heading();*/
-   wmove(CURRENT_WINDOW,y,x);
-
-   return;
-}
-#endif
 
 void build_screen(CHARTYPE scrno)
 {
@@ -1205,10 +1150,8 @@ static void build_lines(CHARTYPE scrno,short direction,LINE *curr,
        */
       if (isTOForEOF)
       {
-#ifndef REMOVED_FOR_CONSISTANCY
          if (compatible_feel == COMPAT_XEDIT)
             scurr->main_enterable = FALSE;
-#endif
          scurr->line_type = (curr->next==NULL)?LINE_EOF:LINE_TOF; /* MH12 */
       }
       else
@@ -1785,7 +1728,6 @@ static void show_lines(CHARTYPE scrno)
                /* as this is NOT a reserved line, nothing is displayed in the gap */
                /* except for a LINE if required */
                /* no need to use UTF-8 length here */
-#ifdef ACS_VLINE
                memset( tmp_gap, ' ', SCREEN_VIEW(scrno)->prefix_gap );
                tmp_gap[SCREEN_VIEW(scrno)->prefix_gap] = '\0';
                display_line_left(SCREEN_WINDOW_GAP(scrno),
@@ -1794,16 +1736,6 @@ static void show_lines(CHARTYPE scrno)
                               SCREEN_VIEW(scrno)->prefix_gap,
                               i,
                               gap);
-#else
-               memset( tmp_gap, (SCREEN_VIEW(scrno)->prefix_gap_line) ? '|' : ' ', SCREEN_VIEW(scrno)->prefix_gap );
-               tmp_gap[SCREEN_VIEW(scrno)->prefix_gap] = '\0';
-               display_line_left(SCREEN_WINDOW_GAP(scrno),
-                              scurr->gap_colour,
-                              (CHARTYPE *)tmp_gap,
-                              SCREEN_VIEW(scrno)->prefix_gap,
-                              i,
-                              gap);
-#endif
             }
          }
       }

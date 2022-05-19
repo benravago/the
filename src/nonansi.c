@@ -72,11 +72,9 @@ short file_exists(CHARTYPE *filename)
       rc = errno;
       switch( rc )
       {
-#ifdef ENAMETOOLONG
          case ENAMETOOLONG:
             rc = THE_FILE_NAME_TOO_LONG;
             break;
-#endif
          default:
             rc = THE_FILE_UNKNOWN;
             break;
@@ -212,121 +210,6 @@ void convert_equals_in_filename(CHARTYPE *outfilename,CHARTYPE *infilename)
    return;
 }
 
-#if defined(__QNX__) && !defined(__QNXNTO__)
-short splitpath(CHARTYPE *filename)
-{
-   short len=0;
-   CHARTYPE _THE_FAR work_filename[MAX_FILE_NAME+1] ;
-   CHARTYPE _THE_FAR conv_filename[MAX_FILE_NAME+1] ;
-
-
-   if ( strlen( (DEFCHAR *)filename ) > MAX_FILE_NAME )
-   {
-      return(RC_BAD_FILEID);
-   }
-   /*
-    * Copy the argument to a working area
-    */
-   if ( getcwd( (DEFCHAR *)curr_path, MAX_FILE_NAME ) == NULL )
-   {
-      return(RC_BAD_FILEID);
-   }
-   strcpy((DEFCHAR *)sp_path,"");
-   strcpy((DEFCHAR *)sp_fname,"");
-   convert_equals_in_filename(conv_filename,filename);
-   strcpy( work_filename, conv_filename );
-   /*
-    * If the supplied filename is empty, set the path = cwd and filename
-    * equal to blank.
-    */
-   if (strcmp((DEFCHAR *)filename,"") == 0)
-   {
-      getcwd((DEFCHAR *)sp_path,MAX_FILE_NAME);
-      strcpy((DEFCHAR *)sp_fname,"");
-   }
-   /*
-    * Check if the first character is tilde; translate HOME env variable
-    * if there is one. Obviously only applicable to UNIX.
-    */
-   if (*(conv_filename) == '~')
-   {
-      if (*(conv_filename+1) == ISLASH
-      ||  *(conv_filename+1) == '\0')
-      {
-         strcpy((DEFCHAR *)work_filename,(DEFCHAR *)getenv("HOME"));
-         strcat((DEFCHAR *)work_filename,(DEFCHAR *)(conv_filename+1));
-      }
-      else
-      {
-         struct passwd *pwd;
-
-         strcpy((DEFCHAR *)sp_path,(DEFCHAR *)conv_filename+1);
-         if ((len = strzeq(sp_path,ISLASH)) != (-1))
-            sp_path[len] = '\0';
-         if ((pwd = getpwnam((DEFCHAR *)sp_path)) == NULL)
-         {
-            return(RC_BAD_FILEID);
-         }
-         strcpy((DEFCHAR *)work_filename,pwd->pw_dir);
-         if (len != (-1))
-            strcat((DEFCHAR *)work_filename,(DEFCHAR *)(conv_filename+1+len));
-      }
-   }
-   /*
-    * First determine if the supplied filename is a directory.
-    */
-   if (chdir(work_filename) == 0)
-   {
-      chdir(curr_path);
-      strcpy((DEFCHAR *)sp_path,(DEFCHAR *)work_filename);
-      strcpy((DEFCHAR *)sp_fname,"");
-   }
-   else      /* here if the file doesn't exist or is not a directory */
-   {
-      len = strzreveq(work_filename,ISLASH);
-      switch(len)
-      {
-         case (-1):
-            getcwd((DEFCHAR *)sp_path,MAX_FILE_NAME);
-            strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)work_filename);
-            break;
-         case 0:
-            strcpy((DEFCHAR *)sp_path,(DEFCHAR *)work_filename);
-            sp_path[1] = '\0';
-            strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)work_filename+1+len);
-            break;
-        default:
-            strcpy((DEFCHAR *)sp_path,(DEFCHAR *)work_filename);
-            sp_path[len] = '\0';
-            strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)work_filename+1+len);
-            break;
-      }
-   }
-   /*
-    * Change directory to the supplied path, if possible and store the
-    * expanded path.
-    * If an error, restore the current path.
-    */
-   if (qnx_fullpath((DEFCHAR *)work_filename,(DEFCHAR *)sp_path) == NULL)
-   {
-      chdir((DEFCHAR *)curr_path);
-      return(RC_FILE_NOT_FOUND);
-   }
-   strcpy(sp_path,work_filename);
-   chdir((DEFCHAR *)curr_path);
-   /*
-    * Append the OS directory character to the path if it doesn't already
-    * end in the character.
-    */
-   len = strlen((DEFCHAR *)sp_path);
-   if (len > 0)
-   {
-      if (sp_path[len-1] != ISLASH)
-         strcat((DEFCHAR *)sp_path,(DEFCHAR *)ISTR_SLASH);
-   }
-   return(RC_OK);
-}
-#else
 short splitpath(CHARTYPE *filename)
 {
    short len=0;
@@ -456,81 +339,6 @@ short splitpath(CHARTYPE *filename)
       strcat((DEFCHAR *)sp_path,(DEFCHAR *)ISTR_SLASH);
    return(RC_OK);
 }
-#endif
-
-
-
-#ifdef USE_OLD_LONGFILENAMES /* FGC: previous ifdef OS2     */
-#  if defined(__32BIT__) || defined(__386__)
-#  define FSQBUFFERSIZE 64
-bool LongFileNames(CHARTYPE *path)
-/* Function  : Determine if file system allows long file names. (HPFS) */
-/*             This is the 32-bit version.                             */
-/* Parameters: path     - directory path                               */
-/* Return    : 1 if file system is HPFS                                */
-{
-   ULONG nDrive=0L;
-   ULONG lMap=0L;
-   char _THE_FAR buffer[FSQBUFFERSIZE];
-   FSQBUFFER2 *bData = (FSQBUFFER2 *) buffer;
-   char bName[3];
-   ULONG bDataLen=0L;
-
-   if ((strlen (path) > 0) && path [1] == ':')
-      bName[0] = path[0];
-   else
-   {
-      DosQueryCurrentDisk(&nDrive, &lMap);
-      bName[0] = (char) (nDrive + 'A' - 1);
-   }
-   bName[1] = ':';
-   bName[2] = 0;
-   bDataLen = FSQBUFFERSIZE;
-   DosQueryFSAttach(bName, 0, FSAIL_QUERYNAME, bData, &bDataLen);
-   return(strcmp(bData->szFSDName + bData->cbName, "HPFS") == 0);
-}
-#  else
-
-bool LongFileNames(CHARTYPE *path)
-/* Function  : Determine if file system allows long filenames. (HPFS)  */
-/*             This is the 16-bit version.                             */
-/* Parameters: path     - directory path                               */
-/* Return    : 1 if file system is HPFS                                */
-{
-typedef struct _FSNAME {
-        USHORT cbName;
-        UCHAR  szName[1];
-} FSNAME;
-typedef struct _FSQINFO {
-        USHORT iType;
-        FSNAME Name;
-        UCHAR  rgFSAData[59];
-} FSQINFO;
-typedef FSQINFO FAR *PFSQINFO;
-
-   USHORT nDrive=0,cbData=0;
-   ULONG lMap=0L;
-   FSQINFO bData;
-   BYTE bName[3];
-   FSNAME *pFSName=NULL;
-
-   if ((strlen(path) > 0) && path[1] == ':')
-      bName[0] = path[0];
-   else
-   {
-      DosQueryCurrentDisk(&nDrive, &lMap);
-      bName[0] = (char)(nDrive + '@');
-   }
-   bName[1] = ':';
-   bName[2] = 0;
-   cbData = sizeof(bData);
-   DosQFSAttach((PSZ)bName,0,1,(PBYTE)&bData,&cbData,0L);
-   pFSName = &bData.Name;
-   (CHARTYPE *)pFSName += pFSName->cbName + sizeof(pFSName->cbName)+1;
-   return(strcmp((CHARTYPE *)&(pFSName->szName[0]),"HPFS") == 0);
-}
-#  endif
-#endif
 
 LINE *getclipboard(LINE *now, int from_get)
 /*
@@ -823,14 +631,9 @@ int is_a_dir_stat(ATTR_TYPE attrs)
  */
 int is_a_dir_dir(ATTR_TYPE attrs)
 {
-#if defined(_A_SUBDIR)
-   if ( ( attrs & _A_SUBDIR) == _A_SUBDIR )
-      return(1);
-#else
    ATTR_TYPE ftype=(attrs & S_IFMT);
 
    if (ftype == S_IFDIR)
       return(1);
-#endif
    return(0);
 }

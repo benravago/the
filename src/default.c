@@ -1396,7 +1396,7 @@ short construct_default_parser_mapping(void)
       curr->parser = NULL;
       for(currp=first_parser;currp!=NULL;currp=currp->next)
       {
-         if (my_stricmp((DEFCHAR *)currp->parser_name,(DEFCHAR *)default_parser_mapping[i].parser_name) == 0)
+         if (strcasecmp((DEFCHAR *)currp->parser_name,(DEFCHAR *)default_parser_mapping[i].parser_name) == 0)
          {
             curr->parser = currp;
             break;
@@ -1426,7 +1426,7 @@ CHARTYPE *find_default_parser(CHARTYPE *name)
    {
       if (default_parsers[i].filename == NULL)
          break;
-      if (my_stricmp((DEFCHAR *)default_parsers[i].filename,(DEFCHAR *)name) == 0)
+      if (strcasecmp((DEFCHAR *)default_parsers[i].filename,(DEFCHAR *)name) == 0)
       {
          contents = default_parsers[i].contents;
          break;

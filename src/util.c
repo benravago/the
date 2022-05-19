@@ -34,9 +34,6 @@
 #include "the.h"
 #include "proto.h"
 
-#ifdef my_stricmp
-# undef my_stricmp
-#endif
 /*--------------------------- common data -----------------------------*/
  static CHARTYPE *rcvry[MAX_RECV];
  static LENGTHTYPE rcvry_len[MAX_RECV];
@@ -889,41 +886,7 @@ LENGTHTYPE memcmpi( CHARTYPE *buf1, CHARTYPE *buf2, LENGTHTYPE len )
    }
    return(0);
 }
-LENGTHTYPE my_stricmp( DEFCHAR *str1, DEFCHAR *str2 )
-/* Function  : Compares two string buffers for equality;               */
-/*             case insensitive. Same as stricmp(), strcasecmp() etc.  */
-/* Parameters: str1     - first string                                 */
-/*             str2     - second string                                */
-/* Return    : <0 if str1 < str2,                                      */
-/*             =0 if str1 = str2,                                      */
-/*             >0 if str1 > str2,                                      */
-{
-   LENGTHTYPE len1=strlen((DEFCHAR *)str1),len2=strlen((DEFCHAR *)str2);
-   LENGTHTYPE i,len;
-   DEFCHAR c1,c2;
 
-   len = min( len1, len2 );
-   for( i = 0; i < len; i++ )
-   {
-      if ( isupper( *str1 ) )
-         c1 = tolower( *str1 );
-      else
-         c1 = *str1;
-      if ( isupper( *str2 ) )
-         c2 = tolower( *str2 );
-      else
-         c2 = *str2;
-      if ( c1 != c2 )
-         return( c1 - c2 );
-      ++str1;
-      ++str2;
-   }
-   if ( len1 > len2 )
-      return(1);
-   if ( len1 < len2 )
-      return(-1);
-   return(0);
-}
 CHARTYPE *make_upper(CHARTYPE *str)
 /* Function  : Makes the supplied string uppercase.                    */
 /*             Equivalent to strupr() on some platforms.               */

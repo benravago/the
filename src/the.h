@@ -1655,8 +1655,6 @@ typedef struct
    LINETYPE the_header;
 } the_header_mapping;
 
-# define my_stricmp strcasecmp
-
 #if defined(MAIN)
 #  define _THE_FAR
 void* (*the_malloc)(size_t);  /* ptr to some malloc(size) */

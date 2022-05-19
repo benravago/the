@@ -913,9 +913,9 @@ short Colour(CHARTYPE *params)
    if ( clr == (-1) )
    {
       {
-         if ( my_stricmp( (DEFCHAR *)word[1]+word1_len-3, " ON" ) == 0 )
+         if ( strcasecmp( (DEFCHAR *)word[1]+word1_len-3, " ON" ) == 0 )
             modifier_set = COL_MODIFIER_SET_ON;
-         else if ( my_stricmp( (DEFCHAR *)word[1]+word1_len-4, " OFF" ) == 0 )
+         else if ( strcasecmp( (DEFCHAR *)word[1]+word1_len-4, " OFF" ) == 0 )
             modifier_set = COL_MODIFIER_SET_OFF;
          if ( modifier_set )
          {
@@ -1902,9 +1902,9 @@ short Ecolour(CHARTYPE *params)
     * second format.
     */
    word1_len = strlen( (DEFCHAR *)word[1] );
-   if ( my_stricmp( (DEFCHAR *)word[1]+word1_len-2, "ON" ) == 0 )
+   if ( strcasecmp( (DEFCHAR *)word[1]+word1_len-2, "ON" ) == 0 )
       modifier_set = COL_MODIFIER_SET_ON;
-   else if ( my_stricmp( (DEFCHAR *)word[1]+word1_len-3, "OFF" ) == 0 )
+   else if ( strcasecmp( (DEFCHAR *)word[1]+word1_len-3, "OFF" ) == 0 )
       modifier_set = COL_MODIFIER_SET_OFF;
    if ( modifier_set )
    {
@@ -3355,7 +3355,7 @@ short Macropath(CHARTYPE *params)
       display_error( 3, (CHARTYPE *)"", FALSE );
       return(RC_INVALID_OPERAND);
    }
-   if ( my_stricmp( (DEFCHAR *)params, "PATH" ) == 0 )
+   if ( strcasecmp( (DEFCHAR *)params, "PATH" ) == 0 )
       src = (CHARTYPE *)getenv( "PATH" );
    else
       src = params;

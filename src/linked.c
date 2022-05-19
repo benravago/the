@@ -927,7 +927,7 @@ PARSER_DETAILS *parserll_find(PARSER_DETAILS *first,CHARTYPE *name)
    {
       for(i=0; curr != NULL; i++, curr=curr->next)
       {
-         if (my_stricmp((DEFCHAR *)name,(DEFCHAR *)curr->parser_name) == 0)
+         if (strcasecmp((DEFCHAR *)name,(DEFCHAR *)curr->parser_name) == 0)
          {
             return curr;
          }
