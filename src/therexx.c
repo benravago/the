@@ -90,11 +90,7 @@ void *THEAllocateMemory
    void *ptr;
 
 
-#if defined(REXXALLOCATEMEMORY)
-   ptr = (RXSTRING_STRPTR_TYPE)RexxAllocateMemory( size );
-#else
    ptr = (RXSTRING_STRPTR_TYPE)malloc( size );
-#endif
    return ptr;
 }
 
@@ -105,11 +101,7 @@ void THEFreeMemory
    (
    void *ptr)
 {
-#if defined(REXXFREEMEMORY)
-   RexxFreeMemory( ptr );
-#else
    free( ptr );
-#endif
    return;
 }
 
@@ -210,9 +202,6 @@ REH_RETURN_TYPE THE_Exit_Handler
    )
 {
    RXSIOTRC_PARM *trc_parm;
-#ifdef RXFNC
-   RXFNCCAL_PARM *fnc_parm;
-#endif
    LONG rc=0L;
    short errnum=0;
    short macrorc;
@@ -343,79 +332,6 @@ REH_RETURN_TYPE THE_Exit_Handler
             rexx_halted = TRUE;
          }
          break;
-#ifdef RXFNC
-      case RXFNC:
-         fnc_parm = (RXFNCCAL_PARM *)ParmBlock;
-/*       fprintf(stderr,"Got a RXFNC: %s %d\n",fnc_parm->rxfnc_name,fnc_parm->rxfnc_namel); */
-         /*
-          * Allocate some space for macroname...
-          */
-         if ((macroname = (CHARTYPE *)(*the_malloc)((MAX_FILE_NAME+1)*sizeof(CHARTYPE))) == NULL)
-         {
-            display_error(30,(CHARTYPE *)"",FALSE);
-            return(RC_OUT_OF_MEMORY);
-         }
-         /*
-          * Find the fully qualified file name for the supplied macro name.
-          */
-         rc = get_valid_macro_file_name( fnc_parm->rxfnc_name, macroname, macro_suffix, &errnum );
-         /*
-          * Validate the return code...
-          */
-         if ( rc != RC_OK )
-         {
-            rc = RXEXIT_NOT_HANDLED;
-            (*the_free)(macroname);
-            break;
-         }
-         /*
-          * Found the macro file, we will process it instead of the Rexx interpreter
-          */
-         /*
-          * Set up pointer to REXX Exit Handler.
-          */
-         exit_list[0].sysexit_name = "THE_EXIT";
-         exit_list[1].sysexit_name = "THE_EXIT";
-         exit_list[0].sysexit_code = RXSIO;
-         exit_list[1].sysexit_code = RXFNC;
-         exit_list[2].sysexit_code = RXENDLST;
-         MAKERXSTRING( retstr, NULL, 0 );
-         /*
-          * Call the REXX interpreter.
-          */
-         rc = RexxStart((RS_ARG0_TYPE)fnc_parm->rxfnc_argc,
-                (RS_ARG1_TYPE)fnc_parm->rxfnc_argv,
-                (RS_ARG2_TYPE)macroname,
-                (RS_ARG3_TYPE)NULL,
-                (RS_ARG4_TYPE)"THE",
-                (RS_ARG5_TYPE)RXSUBROUTINE,
-                (RS_ARG6_TYPE)exit_list,
-                (RS_ARG7_TYPE)&macrorc,
-                (RS_ARG8_TYPE)&retstr);
-         if (rc != RC_OK)
-         {
-            display_error(54,(CHARTYPE *)"",FALSE);
-            rc = RXEXIT_NOT_HANDLED;
-         }
-         else
-         {
-            if ( retstr.strlength > RXAUTOBUFLEN )
-            {
-               fnc_parm->rxfnc_retc.strptr = retstr.strptr;
-               fnc_parm->rxfnc_retc.strlength = retstr.strlength;
-               /* The Rexx interpreter needs to free the memory in retstr.strptr */
-            }
-            else
-            {
-               memcpy( fnc_parm->rxfnc_retc.strptr, retstr.strptr, retstr.strlength );
-               fnc_parm->rxfnc_retc.strlength = retstr.strlength;
-               THEFreeMemory( retstr.strptr );
-            }
-            rc = RXEXIT_HANDLED;
-         }
-         (*the_free)(macroname);
-         break;
-#endif /* RXFNC */
       default:
          rc = RXEXIT_NOT_HANDLED;
    }
@@ -667,12 +583,7 @@ short execute_macro_file
    exit_list[0].sysexit_name = "THE_EXIT";
    exit_list[1].sysexit_name = "THE_EXIT";
    exit_list[0].sysexit_code = RXSIO;
-#ifdef RXFNC
-   exit_list[1].sysexit_code = RXFNC;
-   exit_list[2].sysexit_code = RXENDLST;
-#else
    exit_list[1].sysexit_code = RXENDLST;
-#endif
    /*
     * Under OS/2 use of interactive trace in a macro only works if an OS
     * command has been run before executing the macro, so we run a REM
@@ -1017,11 +928,7 @@ static RXSTRING *get_compound_rexx_variable
             memcpy(value->strptr,shv.shvvalue.strptr,value->strlength);
             *(value->strptr+value->strlength) = '\0';
          }
-#if defined(REXXFREEMEMORY)
-         RexxFreeMemory( shv.shvvalue.strptr );
-#else
          free( shv.shvvalue.strptr );
-#endif
          break;
       case RXSHV_NEWV:
          value->strptr = (char *)(*the_malloc)((sizeof(char)*shv.shvname.strlength)+1);
@@ -1285,13 +1192,6 @@ static int run_os_command
       {
          return(RC_ACCESS_DENIED+1000);
       }
-#if defined(GO32)
-      /*
-       * For djgpp and emx convert all \ to / for internal file handling
-       * functions.
-       */
-      strrmdup(strtrans(infile,'\\','/'),'/',TRUE);
-#endif
       if ((infp = fopen(infile,"w")) == NULL)
       {
          return(RC_ACCESS_DENIED+1000);
