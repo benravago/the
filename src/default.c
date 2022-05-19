@@ -80,7 +80,6 @@
  bool ctlchar_protect[MAX_CTLCHARS];              /* protected ctlchar */
  CHARTYPE INTERFACEx=INTERFACE_CLASSIC;       /* behavioural interface */
  int TARGETSAVEx=TARGET_ALL;
- int REGEXPx=0;           /* default regular expression syntax - EMACS */
  bool save_for_repeat=1;
  CHARTYPE BACKUP_SUFFIXx[101];
  int COMMANDCALLSx=0;
@@ -88,23 +87,6 @@
  bool inDIALOG=FALSE; /* indicates if we are running a dialog or alert */
  CHARTYPE ERRORFORMATx='N'; /* normal error text format */
  int last_command_index=-1;
-
-/*--------------------------- regular expression syntaxes -------------*/
-struct regexp_syntax _THE_FAR regexp_syntaxes[] =
-{
-   {"EMACS"                 ,RE_SYNTAX_EMACS                  },
-   {"AWK"                   ,RE_SYNTAX_AWK                    },
-   {"POSIX_AWK"             ,RE_SYNTAX_POSIX_AWK              },
-   {"GREP"                  ,RE_SYNTAX_GREP                   },
-   {"EGREP"                 ,RE_SYNTAX_EGREP                  },
-   {"POSIX_EGREP"           ,RE_SYNTAX_POSIX_EGREP            },
-   {"SED"                   ,RE_SYNTAX_SED                    },
-   {"POSIX_BASIC"           ,RE_SYNTAX_POSIX_BASIC            },
-   {"POSIX_MINIMAL_BASIC"   ,RE_SYNTAX_POSIX_MINIMAL_BASIC    },
-   {"POSIX_EXTENDED"        ,RE_SYNTAX_POSIX_EXTENDED         },
-   {"POSIX_MINIMAL_EXTENDED",RE_SYNTAX_POSIX_MINIMAL_EXTENDED },
-   {NULL                    ,0                                }
-};
 
 /*--------------------------- default parsers -------------------------*/
 typedef struct

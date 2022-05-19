@@ -739,30 +739,6 @@ short THEReadonly(CHARTYPE *params)
    }
    return(rc);
 }
-short Regexp(CHARTYPE *params)
-{
-   short rc=RC_OK;
-   int i,idx=(-1);
-
-   for ( i = 0; regexp_syntaxes[i].name != NULL; i++ )
-   {
-      if ( strcasecmp( (DEFCHAR *)regexp_syntaxes[i].name, (DEFCHAR *)params ) == 0 )
-      {
-         idx = i;
-         break;
-      }
-   }
-   if ( idx == (-1) )
-   {
-       display_error( 1, params, FALSE );
-       rc = RC_INVALID_OPERAND;
-   }
-   else
-   {
-      REGEXPx = regexp_syntaxes[idx].value;
-   }
-   return(rc);
-}
 short Reprofile(CHARTYPE *params)
 {
    short rc=RC_OK;

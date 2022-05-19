@@ -44,7 +44,6 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 #include <ncurses.h>
 #define CURSES_H_INCLUDED
 
-#define _GNU_SOURCE
 #include <regex.h>
 
 # define Args(a) a

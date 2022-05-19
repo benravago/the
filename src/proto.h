@@ -613,7 +613,6 @@ short Reexecute Args((CHARTYPE *));
 short Redit Args((CHARTYPE *));
 short Redraw Args((CHARTYPE *));
 short THERefresh Args((CHARTYPE *));
-short Regexp Args((CHARTYPE *));
 short Repeat Args((CHARTYPE *));
 short Replace Args((CHARTYPE *));
 short Reprofile Args((CHARTYPE *));

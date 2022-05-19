@@ -282,7 +282,6 @@ COMMAND command[] =
  {(CHARTYPE *)"refresh",     7,  (-1),            THERefresh,       FALSE,FALSE,FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* comm4.c */
  {(CHARTYPE *)"repeat",      4,  (-1),            Repeat,           TRUE, FALSE,FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* comm4.c */
  {(CHARTYPE *)"replace",     1,  (-1),            Replace,          TRUE, FALSE,FALSE,FALSE,FALSE,STRIP_NONE,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* comm4.c */
- {(CHARTYPE *)"regexp",      6,  (-1),            Regexp,           TRUE, TRUE, FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commset2.c */
  {(CHARTYPE *)"reprofile",   6,  (-1),            Reprofile,        TRUE, TRUE, FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commset2.c */
  {(CHARTYPE *)"reserved",    5,  (-1),            Reserved,         TRUE, TRUE, FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commset2.c */
  {(CHARTYPE *)"reset",       3,  (-1),            Reset,            FALSE,FALSE,FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* comm4.c */

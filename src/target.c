@@ -1075,7 +1075,6 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
              * Compile the RE
              */
             memset( &target->rt[i].pattern_buffer, 0, sizeof(struct re_pattern_buffer) );
-            re_set_syntax(REGEXPx);
             ptr = (CHARTYPE *)re_compile_pattern( (DEFCHAR *)target->rt[i].string, strlen( (DEFCHAR *)target->rt[i].string ), &target->rt[i].pattern_buffer );
             if (ptr)
             {

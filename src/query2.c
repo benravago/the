@@ -797,21 +797,6 @@ short extract_readonly(short number_variables,short itemno,CHARTYPE *itemargs,CH
    }
    return number_variables;
 }
-short extract_regexp(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-{
-   int i;
-   item_values[1].value = (CHARTYPE *)"";
-   for ( i = 0; regexp_syntaxes[i].name != NULL; i++ )
-   {
-      if ( regexp_syntaxes[i].value == REGEXPx )
-      {
-         item_values[1].value = (CHARTYPE *)regexp_syntaxes[i].name;
-         break;
-      }
-   }
-   item_values[1].len = strlen((DEFCHAR *)item_values[1].value);
-   return number_variables;
-}
 short extract_readv(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
 {
    int key=0;

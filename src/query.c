@@ -159,7 +159,6 @@ extern ExtractFunction extract_printer;
 extern ExtractFunction extract_profile;
 extern ExtractFunction extract_pscreen;
 extern ExtractFunction extract_reprofile;
-extern ExtractFunction extract_regexp;
 extern ExtractFunction extract_readonly;
 extern ExtractFunction extract_readv;
 extern ExtractFunction extract_reserved;
@@ -337,7 +336,6 @@ QUERY_ITEM _THE_FAR query_item[] =
    {(CHARTYPE *)"pscreen",         7, 4,ITEM_PSCREEN,       2, 2,          LVL_GLOB,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_pscreen                },
    {(CHARTYPE *)"readonly",        8, 8,ITEM_READONLY,      1, 1,          LVL_GLOB,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_readonly               },
    {(CHARTYPE *)"readv",           5, 5,ITEM_READV,         4, 1,          LVL_GLOB,QUERY_READV                                        ,extract_readv                  },
-   {(CHARTYPE *)"regexp",          6, 6,ITEM_REGEXP,        1, 1,          LVL_GLOB,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_regexp                 },
    {(CHARTYPE *)"reprofile",       9, 6,ITEM_REPROFILE,     1, 1,          LVL_FILE,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_reprofile              },
    {(CHARTYPE *)"reserved",        8, 5,ITEM_RESERVED,      1, 1,          LVL_GLOB,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT             ,extract_reserved               },
    {(CHARTYPE *)"rexx",            4, 4,ITEM_REXX,          1, 1,          LVL_GLOB,QUERY_QUERY                                        ,extract_rexx                   },
