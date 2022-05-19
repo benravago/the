@@ -36,7 +36,7 @@
 #include "proto.h"
 
 #include "directry.h"
-#include "thematch.h"
+#include <fnmatch.h>
 
 #define NUM_DIRTYPE 5
 static ATTR_TYPE curr_dirtype =
@@ -94,7 +94,7 @@ short getfiles(CHARTYPE *path,CHARTYPE *files,struct dirfile **dpfirst,
 
    for (direntp = readdir(dirp);direntp != NULL;direntp = readdir(dirp))
    {
-      if (thematch( (DEFCHAR *)files, (DEFCHAR *)direntp->d_name,0) == 0)
+      if ( fnmatch( (DEFCHAR *)files, (DEFCHAR *)direntp->d_name,0) == 0)
       {
          if ((full_name = make_full(path,(CHARTYPE *)direntp->d_name)) == NULL)
             return(RC_OUT_OF_MEMORY);

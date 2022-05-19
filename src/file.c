@@ -36,7 +36,6 @@
 
 #include <errno.h>
 #include "directry.h"
-#include "thematch.h"
 
 
 static short write_line(CHARTYPE *,LENGTHTYPE,FILE *,short);

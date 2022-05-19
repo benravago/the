@@ -402,8 +402,6 @@ void format_options Args(( CHARTYPE * ));
                                                          /* directry.c */
 short set_dirtype Args((CHARTYPE *));
 CHARTYPE *get_dirtype Args((CHARTYPE *));
-                                                          /* thematch.c */
-int thematch Args((char *,char *,int));
                                                              /* sort.c */
 short execute_sort Args((CHARTYPE *));
                                                            /* cursor.c */

@@ -33,7 +33,7 @@
 
 #include <the.h>
 #include <proto.h>
-#include <thematch.h>
+#include <fnmatch.h>
 
 #define STATE_START             0
 #define STATE_SINGLE_QUOTE      1
@@ -4205,7 +4205,7 @@ bool find_parser_mapping(FILE_DETAILS *fd, PARSER_MAPPING *curr_mapping)
 {
    if (curr_mapping->filemask)
    {
-      if ( thematch( (DEFCHAR *)curr_mapping->filemask, (DEFCHAR *)fd->fname,0) == 0)
+      if ( fnmatch( (DEFCHAR *)curr_mapping->filemask, (DEFCHAR *)fd->fname,0) == 0)
       {
          return TRUE;
       }
