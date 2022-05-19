@@ -722,7 +722,7 @@ int main(int argc, char *argv[])
    {
       FILE *fp=NULL;
       int num=0;
-      if ( ( stdinprofile = (CHARTYPE *)strdup( thetmpnam ( "PRF" ) ) ) == NULL )
+      if ( ( stdinprofile = (CHARTYPE *)strdup( tmpnam(NULL) ) ) == NULL ) // thetmpnam ( "PRF" )
       {
          cleanup();
          return(31);
@@ -794,7 +794,7 @@ int main(int argc, char *argv[])
    /*
     * Set up a temporary file name for output from PUT command to go...
     */
-   if ( ( tempfilename = (CHARTYPE *)strdup( thetmpnam ( "TMP" ) ) ) == NULL )
+   if ( ( tempfilename = (CHARTYPE *)strdup( tmpnam(NULL) ) ) == NULL ) // thetmpnam ( "TMP" )
    {
       cleanup();
       return(31);

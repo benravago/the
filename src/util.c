@@ -1666,11 +1666,7 @@ void adjust_pending_prefix(VIEW_DETAILS *view,bool binsert_line,LINETYPE base_li
             }
             if (base_line > curr_ppc->ppc_line_number)
                break;
-#if OLD_CLEAR
-            (void)delete_pending_prefix_command(curr_ppc,view->file_for_view,(LINE *)NULL);
-#else
             clear_pending_prefix_command( curr_ppc, view->file_for_view, (LINE *)NULL );
-#endif
             break;
       }
       curr_ppc = curr_ppc->next;
@@ -1805,66 +1801,11 @@ void free_recovery_list(void)
    return;
 }
 
-#if THIS_APPEARS_TO_NOT_BE_USED
-WINDOW *adjust_window(WINDOW *win,short tr,short tc,short lines,short cols)
-{
-   WINDOW *neww=NULL;
-   short begy=0,begx=0,maxy=0,maxx=0,y=0,x=0;
-   short rc=RC_OK;
-
-   /*
-    * Get existing details about the current window.
-    */
-   getbegyx(win,begy,begx);
-   getmaxyx(win,maxy,maxx);
-   if (maxy == lines && maxx == cols)  /* same size */
-   {
-      if (begy == tr && begx == tc)   /* same position */
-      {
-         return(win); /* nothing to do, return same window */
-      }
-      else /* need to move window */
-      {
-         rc = mvwin(win,tr,tc);
-         return(win);
-      }
-   }
-   /*
-    * To get here the window needs to be resized.
-    */
-   getyx(win,y,x);
-   delwin(win);
-   neww = newwin(lines,cols,tr,tc);
-   if (neww != (WINDOW *)NULL)
-   {
-      wmove(neww,y,x);
-      keypad( neww, TRUE );
-   }
-   return(neww);
-}
-#endif
-
 short my_wclrtoeol(WINDOW *win)
 {
    register short i=0;
    short x=0,y=0,maxx=0,maxy=0;
 
-#if defined(USE_NCURSES_IGNORED)
-   /*
-    * This extra code here to get around an ncurses bug that
-    * does not overwrite existing characters displayed when a
-    * clrtoeol() is called.
-    * Try COMPAT X#PREFIX OFF#PREFIX ON
-    */
-   if (win != (WINDOW *)NULL)
-   {
-      getyx(win,y,x);
-      getmaxyx(win,maxy,maxx);
-      for ( i = x; i < maxx; i++ )
-         waddch(win,'@');
-      wmove(win,y,x);
-   }
-#endif
    if (win != (WINDOW *)NULL)
    {
       getyx(win,y,x);
@@ -2279,19 +2220,8 @@ int search_query_item_array(void *base, size_t num, size_t width, const char *ne
 {
    char *buf=NULL, *result=NULL;
    int i=0;
-#ifdef __CHECKER__
-   /* checker has a buggy bsearch stub */
-   size_t alloclen = width;
-#endif
 
-
-#ifdef __CHECKER__
-   if (len > alloclen)
-      alloclen = len;
-   if ((buf = (char*)(*the_malloc)(alloclen+1)) == NULL)
-#else
    if ((buf = (char*)(*the_malloc)(len+1)) == NULL)
-#endif
    {
       return(-1);
    }
@@ -2347,65 +2277,6 @@ int split_function_name(CHARTYPE *funcname, int *funcname_length)
    }
    *funcname_length = functionname_length;
    return itemno;
-}
-
-char *thetmpnam(char *prefix)
-{
-  /*
-   * This function is not thread safe.
-   */
-#define PATH_DELIMS ":\\/"
-#if defined HAVE_BROKEN_TMPNAM
-   char *path=NULL,*filename=NULL;
-   static char *buffer = NULL;
-   static size_t buffersize = 0;
-   size_t needed;
-   unsigned long i;
-   FILE *fp=NULL;
-   char tmpbuf[4]="C:?";
-
-   if ((path = getenv("TMP")) == NULL)
-   {
-      if ((path = getenv("TEMP")) == NULL)
-      {
-         if ((path = getenv("TMPDIR")) == NULL)
-         {
-            tmpbuf[2] = ISLASH;
-            path = tmpbuf; /* works in most cases */
-         }
-      }
-   }
-   needed = strlen(path) + 1 /* ISTR_SLASH */ + sizeof("TMP12345.TMP");
-   if (needed > buffersize)
-   {
-      if ((buffer = realloc(buffer,needed)) == NULL)
-         return(NULL);
-      buffersize = needed;
-   }
-
-   strcpy(buffer,path);
-   if (strchr(PATH_DELIMS,buffer[strlen(buffer)-1]) == NULL)
-      strcat(buffer,ISTR_SLASH);
-   filename = buffer + strlen(buffer);
-   for (i = 0;i <= 99999;i++)
-   {
-      sprintf(filename,"%s%05lu.TMP",prefix,i);
-      if (access(filename,0) != 0)
-      {
-         /*
-          * Open the file to ensure it is created
-          */
-         if ( ( fp = fopen( buffer, "w" ) ) == NULL )
-            return( NULL );
-         fclose( fp );
-         return(buffer);
-      }
-   }
-
-   return(NULL);
-#else
-   return tmpnam( NULL );
-#endif
 }
 
 VIEW_DETAILS *find_filetab(int x)

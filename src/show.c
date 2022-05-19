@@ -85,20 +85,8 @@ static LINETYPE displayed_max_line_length = 0; /* max length of displayed line *
 static LINE *hexshow_curr=NULL; /* module global for historical reasons? */
 
 
-#ifdef DEBUG1
-/* if you want to debug lots of detail in debug for UTF8 changes, change the DEBUGDUMPDETAIL to the same as DEBUGDUMP macro */
-# define DEBUGDUMP(x) {x;}
-# define DEBUGDUMPDETAIL(x) {}
-#else
-# define DEBUGDUMP(x) {}
-# define DEBUGDUMPDETAIL(x) {}
-#endif
 
-#ifdef DEBUG_SYNTAX_HIGHLIGHTING
-# define SHOW_HIGHLIGHTED_LINE(x,y,z) show_highlighted_line(x,y,z)
-#else
 # define SHOW_HIGHLIGHTED_LINE(x,y,z) {}
-#endif
 
 /* Make a chtype value from a character and a colour. This may be wrong if
  * the format of the chtype is incompatible. Please check this first if
@@ -154,7 +142,6 @@ static WINDOW *_fast_win; /* buffered for waddchnstr */
                         _fast_col = 0;                \
                         PARATEST_INIT_LINE(win,line); \
                         wmove(_fast_win,line,0);     \
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d(%s): INIT_LINE_OUTPUT: line: %d\n", __FILE__,__LINE__,__func__,line );) \
                         }
 # ifdef USE_UTF8
 /* length MUST be number of characters: u8_strlen(); NOT bytes: strlen() */
@@ -171,7 +158,6 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d(%s): INIT_LINE_OUTPUT: line: %d\n", __FILE
                        _fast_col += l;                         \
                        src = line;                             \
                        color = colour;                         \
-DEBUGDUMPDETAIL(fprintf(stderr,"  %s %d(%s): ADD_LINE_OUTPUT: length %d: ", __FILE__,__LINE__,__func__,length );) \
                        while (l--) {                           \
                           ch = u8_nextchar( (char *)src, &pos );       \
                           if (ch < 256 && etmode_flag[ch])     \
@@ -185,10 +171,8 @@ DEBUGDUMPDETAIL(fprintf(stderr,"  %s %d(%s): ADD_LINE_OUTPUT: length %d: ", __FI
                           {                                    \
                              mysetchar( dest, ch, color );     \
                           }                                    \
-DEBUGDUMPDETAIL(fprintf(stderr,"x%x@%d ", ch, pos );) \
                           dest++;                              \
                        }                                       \
-DEBUGDUMPDETAIL(fprintf(stderr,"\n");)                                          \
                         }
 #  define ADD_SYNTAX_LINE_OUTPUT(line,length,highlight) {      \
                        LENGTHTYPE l = length;                  \
@@ -203,27 +187,22 @@ DEBUGDUMPDETAIL(fprintf(stderr,"\n");)                                          
                        _fast_col += l;                         \
                        src = line;                             \
                        highl = highlight;                      \
-DEBUGDUMPDETAIL(fprintf(stderr,"  %s %d(%s): ADD_SYNTAX_LINE_OUTPUT: length %d: ", __FILE__,__LINE__,__func__,length );) \
                        while (l--) {                           \
                           ch = u8_nextchar( (char *)src, &pos );       \
-DEBUGDUMPDETAIL(fprintf(stderr,"x%x@%d ", ch, pos );) \
                           if (ch < 256 && etmode_flag[ch])     \
                           {                                    \
                              cc = (char)ch;                    \
                              ch = etmode_table[cc];            \
                              hi1 = (etmode_table[cc] & A_COLOR); \
-DEBUGDUMPDETAIL(fprintf(stderr,": 0X%x 0X%x ", ch, hi1 );)            \
                              mysetchar( dest, ch, hi1 );       \
                           }                                    \
                           else                                 \
                           {                                    \
-DEBUGDUMPDETAIL(fprintf(stderr,": x%x %x ", ch, *highl );) \
                              mysetchar( dest, ch, *highl );       \
                           }                                    \
                           dest++;                              \
                           highl++;                             \
                        }                                       \
-DEBUGDUMPDETAIL(fprintf(stderr,"\n");)                                          \
                         }
 #  define FILL_LINE_OUTPUT(c,length,colour) {                    \
                         cchar_t *dest;                           \
@@ -232,20 +211,16 @@ DEBUGDUMPDETAIL(fprintf(stderr,"\n");)                                          
                         PARATEST_ADD_LINE(l,"FILL_LINE_OUTPUT"); \
                         dest = linebufch + _fast_col;            \
                         _fast_col += l;                          \
-DEBUGDUMPDETAIL(fprintf(stderr,"  %s %d(%s): FILL_LINE_OUTPUT: length %d: ", __FILE__,__LINE__,__func__,length );) \
                         while (l--) {                            \
-DEBUGDUMPDETAIL(fprintf(stderr,"x%x ", c );) \
                           if (ch < 256 && etmode_flag[ch])     \
                              ch = etmode_table[ch];            \
                           mysetchar( dest, ch, colour );          \
                           dest++;                                \
                        }                                       \
-DEBUGDUMPDETAIL(fprintf(stderr,"\n");)                                          \
                         }
 #  define END_LINE_OUTPUT() { wadd_wchnstr(_fast_win,            \
                                      linebufch,                  \
                                      _fast_col);                 \
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d(%s): END_LINE_OUTPUT\n", __FILE__,__LINE__,__func__);) \
                           }
 # else
 #  define ADD_LINE_OUTPUT(line,length,colour) {                  \
@@ -300,41 +275,6 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d(%s): END_LINE_OUTPUT\n", __FILE__,__LINE__
 #endif
 
 
-#ifdef DEBUG_SYNTAX_HIGHLIGHTING
-static void show_highlighted_line( int lineno, SHOW_LINE *scurr, char *msg )
-{
-   int i;
-   fprintf(stderr,"=====================================================\n" );
-   fprintf(stderr, "%s %d: %s\n",__FILE__,lineno,msg );
-
-   if ( scurr )
-   {
-      if ( scurr->contents)
-      {
-         fprintf(stderr,"%s\n",scurr->contents);
-         for( i =0; i < scurr->length; i++ )
-         {
-            fprintf(stderr,"%c", scurr->highlight_type[i]);
-         }
-         fprintf(stderr,"\n\n");
-      }
-   }
-   else
-   {
-      scurr = screen[current_screen].sl;
-      for( i = 0 ; i < screen[current_screen].rows[WINDOW_FILEAREA]; i++ )
-      {
-         if ( scurr->contents )
-         {
-            fprintf(stderr,"Row: %3.3d:%.*s\n      ==>",i,scurr->length,scurr->contents);
-            fwrite( scurr->highlight_type, sizeof(char), scurr->length, stderr );
-            fprintf( stderr, "\n" );
-         }
-         scurr++;
-      }
-   }
-}
-#endif
 
 /* small helper routines *****************************************************/
 static void display_line_left( WINDOW *win, chtype colour, CHARTYPE *str, int lenstr, int line, int width )
@@ -2256,21 +2196,6 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
    bvcol = cvcol;
 #endif
 
-#if defined( USE_UTF8 ) && defined(DEBUG1)
-{
-int ii,pos=0;
-for(ii=0;pos<blength;ii++)
-{
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: ii %d pos %d\n",__FILE__,__LINE__,ii,pos);)
-u8_inc(line,&pos);
-}
-pos = 0;
-for(ii=0;ii<blength;ii++)
-{
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: ii %d off %d\n",__FILE__,__LINE__,ii,u8_offset((char *)line,ii));)
-}
-}
-#endif
    other = current->other_colour;
 
    INIT_LINE_OUTPUT(SCREEN_WINDOW_FILEAREA(scrno),row);
@@ -2308,7 +2233,6 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: ii %d off %d\n",__FILE__,__LINE__,ii,u8_o
        * line points to that first byte
        */
       memcpy( linebuf, line, bcols + TMP_EXTRA);
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: Line exceeds window width: clength %d blength %d cvcol %d bvcol %d ccols %d bcols %d\n",__FILE__,__LINE__,clength,blength,cvcol,bvcol,ccols,bcols);)
    }
    else /* line must be padded with blanks */
    {
@@ -2317,7 +2241,6 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: Line exceeds window width: clength %d ble
       memcpy( linebuf, line, blength );
       memset( linebuf + blength, ' ', ccols - clength + 1);
       blanks_after_length = ccols - clength;
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: Partial line: clength %d (cvcol %d) blength %d (bvcol %d) blanks_after_length %d\n",__FILE__,__LINE__,clength,cvcol,blength,bvcol,ccols - clength);)
    }
 
    if ( ( cvcol > cother_end_col )
@@ -2347,8 +2270,6 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: Partial line: clength %d (cvcol %d) bleng
       bother_start_col = cother_start_col;
       bother_end_col = cother_end_col;
 #endif
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d:  bother_start_col %d bother_end_col %d\n",__FILE__,__LINE__,bother_start_col,bother_end_col);)
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d:  cother_start_col %d cother_end_col %d\n",__FILE__,__LINE__,cother_start_col,cother_end_col);)
       /* something must be displayed in another colour.
        * 1. display normal chars up to the start of other
        * 2. display another chars up to the end of other
@@ -2360,8 +2281,6 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d:  cother_start_col %d cother_end_col %d\n"
       if ( cother_end_col > ccols )
          cother_end_col = ccols;
       /* other_end_col normalized to cols */
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d:  bother_start_col %d bother_end_col %d\n",__FILE__,__LINE__,bother_start_col,bother_end_col);)
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d:  cother_start_col %d cother_end_col %d\n",__FILE__,__LINE__,cother_start_col,cother_end_col);)
 
       line = linebuf; /* var line is unused now, will be incremented */
       /* other_start_col -= vcol; NOT allowed: vcol may be > other_start_col! */
@@ -2413,7 +2332,6 @@ DEBUGDUMPDETAIL(fprintf(stderr,"%s %d:  cother_start_col %d cother_end_col %d\n"
       {
          high          += cother_end_col;
       }
-DEBUGDUMPDETAIL(fprintf(stderr,"%s %d: ccols %d cother_end_col %d bother_end_col %d line %c\n",__FILE__,__LINE__,ccols,cother_end_col,bother_end_col,*line);)
       if ( ccols )
       {
          /*

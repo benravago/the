@@ -132,35 +132,10 @@
 #include <the.h>
 #include <proto.h>
 
-#if defined(__BOUNDS_CHECKING_ON) || defined(__USING_EFENCE)
-void *get_a_block( size_t size )
-{
-   return( malloc( size ) );
-}
-
-void give_a_block( void *ptr )
-{
-   free( ptr );
-}
-
-void *resize_a_block( void *ptr, size_t size )
-{
-   return( realloc( ptr, size ) );
-}
-
-void init_memory_table( void )
-{
-}
-
-void the_free_flists( void )
-{
-}
-#else
 
 #define FLISTS
 #define PATTERN_MEMORY
 
-#ifdef FLISTS
 
 /*
  * CHUNK_SIZE it the size in which memory is allocated using malloc(),
@@ -280,31 +255,10 @@ static meminfo *hashtable[ MEMINFO_HASHSIZE ] = { NULL } ;
  * really ought to fix it a more clean way.
  */
 static short hash[ CHUNK_SIZE/4 + 1 ] ;
-#endif
 
 static meminfo *first_chunk=NULL;
 static meminfo *curr_chunk=NULL;
 
-# ifdef THE_DEBUG_MEMORY2
-static int show_a_free_list(int bin, char *str)
-{
-   char *ptr;
-   int j=0;
-
-   if ( theflists[bin] == NULL )
-   {
-      if (str)
-         fprintf(stderr,"%sbin[%d] Free List unallocated Maximum %d Size: %d\n",str,bin,(CHUNK_SIZE / sizes[bin]), sizes[bin]);
-   }
-   else
-   {
-      for (j=1,ptr=theflists[bin]; *(char**)ptr!=NULL && j<5000; ptr=*(char **)ptr,j++ );
-      if (str)
-         fprintf(stderr,"%sbin[%d] Number in Free List %d Maximum %d Size: %d\n",str,bin,j,(CHUNK_SIZE / sizes[bin]), sizes[bin]);
-   }
-   return j;
-}
-#endif
 /*
  * This function stores in a singly linked list all chunks of memory
  * that are allocated with malloc(). This is so that they can all be
@@ -501,9 +455,6 @@ void *get_a_block( size_t size )
    register int bin ;     /* bin no in array of freelists */
    register char *vptr ;  /* holds the result */
    register void *result ;
-#ifdef THE_DEBUG_MEMORY2
-   int before, after;
-#endif
 
    /*
     * If memory is too big, let malloc() handle the problem.
@@ -567,9 +518,6 @@ void *get_a_block( size_t size )
 
       *((char**)(ptr-sizes[bin])) = NULL ;
 
-#ifdef THE_DEBUG_MEMORY2
-      show_a_free_list( bin, "get_a_block(): empty freelist for ");
-#endif
    }
 
    /*
@@ -577,15 +525,7 @@ void *get_a_block( size_t size )
     * freelist instead of the one we just allocated, and return to
     * caller.
     */
-#ifdef THE_DEBUG_MEMORY2
-   before = show_a_free_list( bin, NULL);
-#endif
    theflists[bin] = (*((char**)(vptr))) ;
-#ifdef THE_DEBUG_MEMORY2
-   after = show_a_free_list( bin, NULL );
-   if ( before - 1 != after )
-      fprintf(stderr,"****** get_a_block() for bin [%d] failed. Before %d After %d\n",bin,before,after);
-#endif
    return (vptr) ;
 }
 
@@ -603,9 +543,6 @@ void give_a_block( void *ptr )
 {
    char *cptr ;      /* pseudonym for 'ptr' */
    meminfo *mptr ;   /* caches the right element in hashtable */
-#ifdef THE_DEBUG_MEMORY2
-   int before, after;
-#endif
 
    /*
     * initialize a few values, 'cptr' is easy, while 'mptr' is the
@@ -637,16 +574,8 @@ void give_a_block( void *ptr )
       /*
        * Link it into the first place of the freelist.
        */
-#ifdef THE_DEBUG_MEMORY2
-      before = show_a_free_list( mptr->size, NULL );
-#endif
       *((char**)cptr) = theflists[mptr->size] ;
       theflists[mptr->size] = cptr ;
-#ifdef THE_DEBUG_MEMORY2
-      after = show_a_free_list( mptr->size, NULL );
-      if ( before + 1 != after )
-         fprintf(stderr,"****** give_a_block() for bin [%d] failed. Before %d After %d\n",mptr->size,before,after);
-#endif
    }
    else
       free( ptr ) ;
@@ -737,4 +666,3 @@ void the_free_flists( void )
    first_chunk = curr_chunk = NULL;
    return;
 }
-#endif /* __BOUNDS_CHECKING_ON */

@@ -318,7 +318,6 @@ short get_row_for_tof_eof Args((short, CHARTYPE));
 void set_compare_exact Args((bool));
 int search_query_item_array Args((void *, size_t, size_t, const char *, int));
 int split_function_name Args((CHARTYPE *, int *));
-char *thetmpnam Args((char *));
 VIEW_DETAILS *find_filetab Args((int));
 VIEW_DETAILS *find_next_file Args((VIEW_DETAILS *,short));
 

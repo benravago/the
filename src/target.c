@@ -2129,19 +2129,7 @@ short validate_target(CHARTYPE *string,TARGET *target,long target_type,LINETYPE 
    }
    return(RC_OK);
 }
-#ifdef NOT_USED_ANYMORE
-bool in_scope(VIEW_DETAILS *view,LINE *curr)
-{
-   bool rc=RC_OK;
 
-   if (curr->select < view->display_low
-   ||  curr->select > view->display_high)
-      rc = FALSE;
-   else
-      rc = TRUE;
-   return(rc);
-}
-#endif
 void calculate_scroll_values(CHARTYPE curr_screen, VIEW_DETAILS *curr_view, short *number_focus_rows,LINETYPE *new_focus_line,
                              LINETYPE *new_current_line,bool *limit_of_screen,
                              bool *limit_of_file,bool *leave_cursor,
