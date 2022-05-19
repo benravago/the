@@ -3179,10 +3179,8 @@ short execute_editv(short editv_type,bool editv_file,CHARTYPE *params)
             if ( key == KEY_MOUSE )
                continue;
 #endif
-#ifdef CAN_RESIZE
             if ( is_termresized() )
                continue;
-#endif
             break;
          }
          THERefresh( (CHARTYPE *)"" );

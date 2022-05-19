@@ -975,7 +975,6 @@ short display_all_keys(void)
       strcpy((DEFCHAR *)key_filename,(DEFCHAR *)sp_fname);
       first = FALSE;
    }
-#if !defined(MULTIPLE_PSEUDO_FILES)
    key_first_line = key_last_line = lll_free(key_first_line);
    key_number_lines = 0L;
    if ((found_view = find_file(key_pathname,key_filename)) != (VIEW_DETAILS *)NULL)
@@ -983,7 +982,6 @@ short display_all_keys(void)
       found_view->file_for_view->first_line = found_view->file_for_view->last_line = NULL;
       found_view->file_for_view->number_lines = 0L;
    }
-#endif
    /*
     * first_line is set to "Top of File"
     */
@@ -1070,13 +1068,9 @@ short display_all_keys(void)
       key = curr_define->def_funkey;
       curr_define = curr_define->next;
    }
-#if defined(MULTIPLE_PSEUDO_FILES)
-   Xedit((CHARTYPE *)"***KEY***");
-#else
    strcpy((DEFCHAR *)temp_cmd,(DEFCHAR *)key_pathname);
    strcat((DEFCHAR *)temp_cmd,(DEFCHAR *)key_filename);
    Xedit(temp_cmd);
-#endif
    return(RC_OK);
 }
 int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return)
@@ -2969,13 +2963,6 @@ short suspend_curses(void)
 {
 
    endwin();
-
-#if WAS_HAVE_BSD_CURSES
-   noraw();
-   nl();
-   echo();
-   nocbreak();
-#endif
 
    return(RC_OK);
 }

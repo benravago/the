@@ -37,7 +37,6 @@
 static LENGTHTYPE tmp_len;
 static CHARTYPE tmp_str[2*MAX_FILE_NAME+100];
 
-#ifdef THE_SINGLE_INSTANCE_ENABLED
 
 
 /*
@@ -228,4 +227,3 @@ void close_fifo( void )
    return;
 }
 
-#endif

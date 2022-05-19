@@ -832,18 +832,14 @@ short extract_readv(short number_variables,short itemno,CHARTYPE *itemargs,CHART
    }
    while(1)
    {
-#ifdef CAN_RESIZE
       if (is_termresized())
       {
          (void)THE_Resize(0,0);
          (void)THERefresh((CHARTYPE *)"");
       }
-#endif
       key = my_getch( CURRENT_WINDOW );
-#ifdef CAN_RESIZE
       if (is_termresized())
          continue;
-#endif
       if (key == KEY_MOUSE)
       {
          mouse_key = TRUE;
@@ -1979,11 +1975,7 @@ short extract_untaa(short number_variables,short itemno,CHARTYPE *itemargs,CHART
 
 short extract_utf8(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
 {
-#ifdef USE_UTF8
-   return set_on_off_value(1,1);
-#else
    return set_on_off_value(0,1);
-#endif
 }
 short extract_verify(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
 {

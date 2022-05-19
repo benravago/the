@@ -92,9 +92,7 @@ static LINE *hexshow_curr=NULL; /* module global for historical reasons? */
  * the format of the chtype is incompatible. Please check this first if
  * you get strange results with your curses implementation.
  */
-#ifndef USE_UTF8
 # define make_chtype(ch,col) (etmode_flag[ch])?((chtype) etmode_table[ch]):(((chtype) etmode_table[ch]) | ((chtype) col))
-#endif
 
 /* Set up the paranoia test macros if wanted */
 #ifdef PARANOIA_TEST
@@ -121,16 +119,9 @@ static int _fast_maxx = 0,_fast_pos;
 # define PARATEST_ADD_LINE(num,string)
 #endif
 
-#ifdef USE_UTF8
-#define mysetchar(dest, ch, colour) {                      \
-                  wchar_t wch=ch;                          \
-                  setcchar( dest, &wch, colour, PAIR_NUMBER(colour & A_COLOR), NULL ); \
-                  }
-#else
 #define mysetchar(dest, ch, colour ) {                   \
                   setcchar( dest, &ch, colour, 0, NULL ); \
                   }
-#endif
 
 /* Use fast line output routines. We are faster with one simple function call
  * in opposite of many wmove/wattrset/waddch calls.
@@ -143,86 +134,6 @@ static WINDOW *_fast_win; /* buffered for waddchnstr */
                         PARATEST_INIT_LINE(win,line); \
                         wmove(_fast_win,line,0);     \
                         }
-# ifdef USE_UTF8
-/* length MUST be number of characters: u8_strlen(); NOT bytes: strlen() */
-#  define ADD_LINE_OUTPUT(line,length,colour) {                \
-                       LENGTHTYPE l = length;                  \
-                       CHARTYPE *src;                          \
-                       chtype color,hi1; /* beware of slow arg! */ \
-                       cchar_t *dest;                          \
-                       char cc;                                \
-                       u_int32_t ch;                           \
-                       int pos=0;                              \
-                       PARATEST_ADD_LINE(l,"ADD_LINE_OUTPUT"); \
-                       dest = linebufch + _fast_col;           \
-                       _fast_col += l;                         \
-                       src = line;                             \
-                       color = colour;                         \
-                       while (l--) {                           \
-                          ch = u8_nextchar( (char *)src, &pos );       \
-                          if (ch < 256 && etmode_flag[ch])     \
-                          {                                    \
-                             cc = (char)ch;                    \
-                             ch = etmode_table[cc];            \
-                             hi1 = (etmode_table[cc] & A_COLOR); \
-                             mysetchar( dest, ch, hi1 );       \
-                          }                                    \
-                          else                                 \
-                          {                                    \
-                             mysetchar( dest, ch, color );     \
-                          }                                    \
-                          dest++;                              \
-                       }                                       \
-                        }
-#  define ADD_SYNTAX_LINE_OUTPUT(line,length,highlight) {      \
-                       LENGTHTYPE l = length;                  \
-                       CHARTYPE *src;                          \
-                       chtype *highl,hi1;                      \
-                       cchar_t *dest;                          \
-                       char cc;                                \
-                       u_int32_t ch;                           \
-                       int pos=0;                              \
-                       PARATEST_ADD_LINE(l,"ADD_SYNTAX_LINE_OUTPUT"); \
-                       dest = linebufch + _fast_col;           \
-                       _fast_col += l;                         \
-                       src = line;                             \
-                       highl = highlight;                      \
-                       while (l--) {                           \
-                          ch = u8_nextchar( (char *)src, &pos );       \
-                          if (ch < 256 && etmode_flag[ch])     \
-                          {                                    \
-                             cc = (char)ch;                    \
-                             ch = etmode_table[cc];            \
-                             hi1 = (etmode_table[cc] & A_COLOR); \
-                             mysetchar( dest, ch, hi1 );       \
-                          }                                    \
-                          else                                 \
-                          {                                    \
-                             mysetchar( dest, ch, *highl );       \
-                          }                                    \
-                          dest++;                              \
-                          highl++;                             \
-                       }                                       \
-                        }
-#  define FILL_LINE_OUTPUT(c,length,colour) {                    \
-                        cchar_t *dest;                           \
-                        u_int32_t ch=c;                           \
-                        LENGTHTYPE l = length;                   \
-                        PARATEST_ADD_LINE(l,"FILL_LINE_OUTPUT"); \
-                        dest = linebufch + _fast_col;            \
-                        _fast_col += l;                          \
-                        while (l--) {                            \
-                          if (ch < 256 && etmode_flag[ch])     \
-                             ch = etmode_table[ch];            \
-                          mysetchar( dest, ch, colour );          \
-                          dest++;                                \
-                       }                                       \
-                        }
-#  define END_LINE_OUTPUT() { wadd_wchnstr(_fast_win,            \
-                                     linebufch,                  \
-                                     _fast_col);                 \
-                          }
-# else
 #  define ADD_LINE_OUTPUT(line,length,colour) {                  \
                        LENGTHTYPE l = length;                  \
                        CHARTYPE *src;                          \
@@ -264,7 +175,6 @@ static WINDOW *_fast_win; /* buffered for waddchnstr */
                                      linebufch,                  \
                                      _fast_col);                 \
                           }
-# endif
 
 #if defined(USE_WINREXX)
 # define REXX_INT_CHAR         'W'
@@ -348,10 +258,6 @@ void prepare_idline(CHARTYPE scrno)
    /*
     * Determine content of window title. This can be display whether IDLINE is ON or OFF
     */
-#if defined(MULTIPLE_PSEUDO_FILES)
-   strcpy( (DEFCHAR *)display_path, (DEFCHAR *)screen_file->fpath );
-   strcat( (DEFCHAR *)display_path, (DEFCHAR *)screen_file->fname );
-#else
    switch( screen_file->pseudo_file )
    {
       case PSEUDO_DIR:
@@ -378,7 +284,6 @@ void prepare_idline(CHARTYPE scrno)
          }
          break;
    }
-#endif
    /*
     * Get line,col values only if POSITION is ON...
     */
@@ -551,9 +456,6 @@ void show_heading(CHARTYPE scrno)
 void show_statarea(void)
 {
    short y=0,x=0;
-#ifdef USE_UTF8
-   int charpos;
-#endif
    int key=0;
    time_t timer;
    struct tm *tblock=NULL;
@@ -635,51 +537,15 @@ void show_statarea(void)
       switch(CURRENT_VIEW->current_window)
       {
          case WINDOW_FILEAREA:
-#ifdef USE_UTF8
-         {
-            int col = u8_offset( (char *)rec, CURRENT_VIEW->verify_col-1+x );
-            key = u8_nextchar( (char *)rec, &col );
-         }
-#else
             key = (short)( *(rec+CURRENT_VIEW->verify_col-1+x) & A_CHARTEXT );
-#endif
             break;
          case WINDOW_COMMAND:
-#ifdef USE_UTF8
-         {
-            int col = u8_offset( (char *)cmd_rec, x+cmd_verify_col-1 );
-            key = u8_nextchar( (char *)cmd_rec, &col );
-         }
-#else
             key = (short)( *(cmd_rec+x+cmd_verify_col-1) & A_CHARTEXT );
-#endif
             break;
          case WINDOW_PREFIX:
-#ifdef USE_UTF8
-         {
-            int col = u8_offset( (char *)pre_rec, x );
-            key = u8_nextchar( (char *)pre_rec, &col );
-         }
-#else
             key = (short)( *(pre_rec+x) & A_CHARTEXT );
-#endif
             break;
       }
-#ifdef USE_UTF8
-      /*
-       * If the character where the cursor is positioned is larger than one character
-       * display just the character and the hex values - no decimal)
-       */
-      if ( key > 255 )
-      {
-         char buf[100];
-         int sz=100;
-         charpos = max(0,(COLS-19));
-         u8_escape_wchar( buf, sz, key );
-         sprintf((DEFCHAR*)linebuf+charpos,"' '=%s", buf );
-      }
-      else
-#endif
       {
          sprintf((DEFCHAR*)linebuf+max(0,(COLS-19)),"'%c'=%02X/%03d  ",
                        (unsigned char) ((key == 0) ? ' ' : key),key,key);
@@ -709,14 +575,6 @@ void show_statarea(void)
    INIT_LINE_OUTPUT( statarea, 0 );
    ADD_LINE_OUTPUT( linebuf, strlen( (DEFCHAR*)linebuf ), set_colour( CURRENT_FILE->attr+ATTR_STATAREA) );
    END_LINE_OUTPUT();
-#ifdef USE_UTF8
-   if ( key > 127 )
-   {
-      cchar_t dest;
-      mysetchar( &dest, key, 0 );
-      mvwadd_wchnstr(statarea , 0, charpos+1, &dest, 1);
-   }
-#endif
    wnoutrefresh( statarea );
    return;
 }
@@ -1922,11 +1780,7 @@ static void show_lines(CHARTYPE scrno)
             display_line_left(SCREEN_WINDOW_PREFIX(scrno),
                            scurr->prefix_colour,
                            scurr->prefix,
-#ifdef USE_UTF8
-                           u8_strlen( (DEFCHAR *)scurr->prefix ),
-#else
                            strlen( (DEFCHAR *)scurr->prefix ),
-#endif
                            i,
                            width);
             if (SCREEN_VIEW(scrno)->prefix_gap)
@@ -2188,13 +2042,8 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
       vlen = SCREEN_VIEW(scrno)->verify_end - SCREEN_VIEW(scrno)->verify_start + 1;
    }
    blength = current->length; /* length of line in bytes; ie actual space used */
-#ifdef USE_UTF8
-   bvcol = u8_offset( (char *)line, cvcol ); /* byte position in line; > or = cvcol */
-   clength = u8_charnum( (char *)line, blength); /* length of line in UTF-8 characters; equal to or less than blength */
-#else
    clength = blength;
    bvcol = cvcol;
-#endif
 
    other = current->other_colour;
 
@@ -2223,11 +2072,7 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
       memset( linebuf, ' ', ccols );
    else if ( cvcol + ccols <= clength ) /* line fills at least filearea? */
    {
-#ifdef USE_UTF8
-      bcols = u8_offset( (char *)line, ccols );
-#else
       bcols = ccols;
-#endif
       /*
        * Copy to our working buffer from the first byte of the verify column;
        * line points to that first byte
@@ -2263,13 +2108,8 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
    }
    else
    {
-#ifdef USE_UTF8
-      bother_start_col = u8_offset( (char *)linebuf, cother_start_col );
-      bother_end_col = u8_offset( (char *)linebuf, cother_end_col );
-#else
       bother_start_col = cother_start_col;
       bother_end_col = cother_end_col;
-#endif
       /* something must be displayed in another colour.
        * 1. display normal chars up to the start of other
        * 2. display another chars up to the end of other
@@ -2307,18 +2147,10 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
          }
          ccols          -= cother_start_col;
          cother_end_col -= cother_start_col;
-#ifdef USE_UTF8
-         bother_start_col = u8_offset( (char *)line, cother_start_col );
-#else
          bother_start_col = cother_start_col;
-#endif
          line           += bother_start_col;
       }
-#ifdef USE_UTF8
-      bother_end_col = u8_offset( (char *)line, cother_end_col );
-#else
       bother_end_col = cother_end_col;
-#endif
 
       /*
        * Display the columns IN the the marked block
@@ -2370,27 +2202,6 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
           */
          if ( SCREEN_VIEW(scrno)->thighlight_target.rt[i].found & !SCREEN_VIEW(scrno)->thighlight_target.rt[i].not_target )
          {
-#ifdef USE_UTF8
-            LENGTHTYPE cstart;
-            cstart = u8_charnum( (char *)current->contents, SCREEN_VIEW(scrno)->thighlight_target.rt[i].start ); /* column position from start of line where thighlight starts */
-            for ( j = 0; j < SCREEN_VIEW(scrno)->thighlight_target.rt[i].found_length; j++ )
-            {
-               idx = cstart-cvcol+j;
-               if ( idx <= (vend-cvcol)
-               &&   idx >= 0 )
-               {
-                  /*
-                   * Get the current character at the column position and change its colour
-                   */
-                  wchar_t wch[6]; /* 6 should be enough to receive; we should only get 1 */
-                  const wchar_t *pwch = (const wchar_t *)&wch;
-                  attr_t attrs;
-                  short pair;
-                  getcchar( &linebufch[idx], wch, &attrs, &pair, NULL );
-                  setcchar( &linebufch[idx], pwch, 0, PAIR_NUMBER(other & A_COLOR), NULL );
-               }
-            }
-#else
             if ( SCREEN_VIEW(scrno)->thighlight_target.rt[i].start < (bvcol+linebuf_size)
             &&  (SCREEN_VIEW(scrno)->thighlight_target.rt[i].start + SCREEN_VIEW(scrno)->thighlight_target.rt[i].found_length) > bvcol )
             {
@@ -2403,7 +2214,6 @@ static void show_a_line(CHARTYPE scrno,short row, SHOW_LINE *scurr)
                      linebufch[idx] = make_chtype( *line, other );
                }
             }
-#endif
          }
       }
    }
@@ -3090,7 +2900,6 @@ short advance_view(VIEW_DETAILS *next_view,short direction)
    return(RC_OK);
 }
 
-#if defined(CAN_RESIZE)
 short THE_Resize(int rows, int cols)
 {
    short i=0;
@@ -3099,7 +2908,6 @@ short THE_Resize(int rows, int cols)
    /*
     * This function is called as the result of a screen resize.
     */
-#if defined(SIGWINCH)
    if ( rows && cols )
       resizeterm(rows,cols);
    endwin();
@@ -3107,9 +2915,6 @@ short THE_Resize(int rows, int cols)
    wnoutrefresh( stdscr );
    /* wnoutrefresh( curscr ); */
    ncurses_screen_resized = FALSE;
-#else
-   resize_term(rows,cols);
-#endif
    terminal_lines = LINES;
    terminal_cols = COLS;
    length = COLS + 1;
@@ -3122,11 +2927,7 @@ short THE_Resize(int rows, int cols)
          cleanup();
          return(30);
       }
-   #ifdef USE_UTF8
-      if ((linebufch = (cchar_t *)(*the_realloc)(linebufch, (linebuf_size * sizeof(cchar_t)))) == NULL)
-   #else
       if ((linebufch = (chtype *)(*the_realloc)(linebufch, (linebuf_size * sizeof(chtype)))) == NULL)
-   #endif
       {
          cleanup();
          return(30);
@@ -3164,10 +2965,7 @@ short THE_Resize(int rows, int cols)
    }
    create_statusline_window();
    create_filetabs_window();
-#if defined(SIGWINCH)
   /* restore_THE();  */
-#endif
    return (RC_OK);
 }
-#endif
 

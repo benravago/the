@@ -677,11 +677,9 @@ short Pscreen(CHARTYPE *params)
          return( RC_INVALID_OPERAND );
       }
    }
-#if defined(CAN_RESIZE)
    rc = THE_Resize( current_lines, current_cols );
    (void)THERefresh( (CHARTYPE *)"" );
    draw_cursor( TRUE );
-#endif
    return( rc );
 }
 short THEReadonly(CHARTYPE *params)

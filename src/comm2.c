@@ -230,8 +230,6 @@ short Dialog(CHARTYPE *params)
 
 short Directory(CHARTYPE *params)
 {
-#if !defined(MULTIPLE_PSEUDO_FILES)
-#endif
 #define DIR_PARAMS  1
    CHARTYPE *word[DIR_PARAMS+1];
    CHARTYPE strip[DIR_PARAMS];
@@ -271,13 +269,8 @@ short Directory(CHARTYPE *params)
       return(rc);
    }
 
-#if defined(MULTIPLE_PSEUDO_FILES)
-   strcpy( (DEFCHAR *)temp_cmd, (DEFCHAR *)dir_path );
-   strcat( (DEFCHAR *)temp_cmd, (DEFCHAR *)dir_files );
-#else
    strcpy( (DEFCHAR *)temp_cmd, (DEFCHAR *)dir_pathname );
    strcat( (DEFCHAR *)temp_cmd, (DEFCHAR *)dir_filename );
-#endif
    /*
     * If we have a DIR.DIR file in the ring, find it...
     */

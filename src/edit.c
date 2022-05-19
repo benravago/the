@@ -80,17 +80,13 @@ int process_key(int key, bool mouse_details_present)
 
    string_key[1] = '\0';
 
-#ifdef CAN_RESIZE
    if (is_termresized())
    {
       (void)THE_Resize(0,0);
       (void)THERefresh((CHARTYPE *)"");
    }
-#endif
-#ifdef THE_SINGLE_INSTANCE_ENABLED
    if ( single_instance_server )
       key = process_fifo_input( key );
-#endif
    if (key == (-1))
    {
       key = my_getch( CURRENT_WINDOW );
@@ -101,12 +97,10 @@ int process_key(int key, bool mouse_details_present)
          reset_saved_mouse_pos();
    }
 
-#ifdef CAN_RESIZE
    if (is_termresized())
    {
       return(RC_OK);
    }
-#endif
    if ( key == -1 )
    {
       return(RC_OK);

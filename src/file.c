@@ -75,66 +75,6 @@ short get_file(CHARTYPE *filename)
    CHARTYPE pseudo_file=PSEUDO_REAL;
    LENGTHTYPE len,sp_path_len,sp_fname_len;
 
-#if defined(MULTIPLE_PSEUDO_FILES)
-   /*
-    * Determine if we are editing a PSEUDO file.  Set a temporary flag
-    * here for REXXOUT and KEY files; a DIR.DIR file is determined below.
-    */
-   if (dir_number_lines != 0L)
-   {
-      pseudo_file = PSEUDO_DIR;
-      strcpy((DEFCHAR *)sp_path,(DEFCHAR *)dir_path);
-      strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)dir_files);
-   }
-   else
-   {
-      if (rexxout_number_lines != 0L)
-      {
-         pseudo_file = PSEUDO_REXX;
-         strcpy((DEFCHAR *)sp_path,"Output from: ");
-         strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)rexx_macro_name);
-         strcat((DEFCHAR *)sp_fname," ");
-         strcat((DEFCHAR *)sp_fname,(DEFCHAR *)rexx_macro_parameters);
-      }
-      else
-      {
-         if (key_number_lines != 0L)
-         {
-            pseudo_file = PSEUDO_KEY;
-            strcpy((DEFCHAR *)sp_path,"Key definitions:");
-            strcpy((DEFCHAR *)sp_fname,"");
-         }
-         else
-         {
-            /*
-             * Split the filename supplied into directory and filename parts.
-             * This is done before allocating a new current_file number.
-             */
-            if ((rc = splitpath(filename)) != RC_OK)
-            {
-               display_error(10,filename,FALSE);
-               return(rc);
-            }
-            /*
-             * If the filename portion of the splitpath is empty, then we are
-             * editing a directory. So create the new file with the appropriate OS
-             * command and set the filename to DIR.DIR.
-             */
-            if (strcmp((DEFCHAR *)sp_fname,"") == 0)
-            {
-               if ((rc = read_directory()) != RC_OK)
-               {
-                display_error(10,sp_path,FALSE);
-                return(rc);
-               }
-             pseudo_file = PSEUDO_DIR;
-             strcpy((DEFCHAR *)sp_path,(DEFCHAR *)dir_path);
-             strcpy((DEFCHAR *)sp_fname,(DEFCHAR *)dir_files);
-            }
-         }
-      }
-   }
-#else
    /*
     * Split the filename supplied into directory and filename parts.
     * This is done before allocating a new current_file number.
@@ -169,7 +109,6 @@ short get_file(CHARTYPE *filename)
       pseudo_file = PSEUDO_REXX;
    else if (strcmp((DEFCHAR *)keyfilename,(DEFCHAR *)sp_fname) == 0)
       pseudo_file = PSEUDO_KEY;
-#endif
    /*
     * If this is the first file to be edited, don't check to see if the
     * file is already in the ring. Obvious hey!
@@ -190,7 +129,6 @@ short get_file(CHARTYPE *filename)
        * Same applies to REXX output file.
        */
       save_current_view = CURRENT_VIEW;
-#if !defined(MULTIPLE_PSEUDO_FILES)
       if ((found_file = find_file(sp_path,sp_fname)) != (VIEW_DETAILS *)NULL)
       {
          CURRENT_VIEW = found_file;
@@ -235,26 +173,6 @@ short get_file(CHARTYPE *filename)
             return(rc);
          }
       }
-#else
-      found_file = find_file(sp_path,sp_fname);
-      if (CURRENT_FILE->pseudo_file != PSEUDO_REAL
-      ||  found_file == (VIEW_DETAILS *)NULL)
-      {
-         CURRENT_VIEW = save_current_view;
-         save_current_file = CURRENT_FILE;
-         if ((rc = defaults_for_other_files(NULL)) != RC_OK)
-         {
-            return(rc);
-         }
-      }
-      else
-      {
-         CURRENT_VIEW = found_file;
-         CURRENT_VIEW->in_ring = TRUE;
-         SCREEN_VIEW(current_screen) = CURRENT_VIEW;
-         return(RC_OK);
-      }
-#endif
     }
    /*
     * Increment the number of files in storage here, so that if there are
@@ -377,25 +295,16 @@ short get_file(CHARTYPE *filename)
             CURRENT_FILE->first_line = dir_first_line;
             CURRENT_FILE->last_line = dir_last_line;
             CURRENT_FILE->number_lines = dir_number_lines;
-#if defined(MULTIPLE_PSEUDO_FILES)
-            dir_number_lines = 0L;
-#endif
             break;
          case PSEUDO_REXX:
             CURRENT_FILE->first_line = rexxout_first_line;
             CURRENT_FILE->last_line = rexxout_last_line;
             CURRENT_FILE->number_lines = rexxout_number_lines;
-#if defined(MULTIPLE_PSEUDO_FILES)
-            rexxout_number_lines = 0L;
-#endif
             break;
          case PSEUDO_KEY:
             CURRENT_FILE->first_line = key_first_line;
             CURRENT_FILE->last_line = key_last_line;
             CURRENT_FILE->number_lines = key_number_lines;
-#if defined(MULTIPLE_PSEUDO_FILES)
-            key_number_lines = 0L;
-#endif
             break;
       }
       /*
@@ -1701,8 +1610,6 @@ short free_file_memory(bool free_file_lines)
 }
 short read_directory(void)
 {
-#if !defined(MULTIPLE_PSEUDO_FILES)
-#endif
    struct dirfile *dpfirst=NULL,*dplast=NULL,*dp;
    CHARTYPE str_attr[12];
    CHARTYPE str_date[12];
@@ -1760,7 +1667,6 @@ short read_directory(void)
       default:                              /* DIRSORT_NONE - no sorting */
          break;
    }
-#if !defined(MULTIPLE_PSEUDO_FILES)
    /*
     * Free up the existing linked list (if any)
     */
@@ -1771,7 +1677,6 @@ short read_directory(void)
       found_view->file_for_view->first_line = found_view->file_for_view->last_line = NULL;
       found_view->file_for_view->number_lines = 0L;
    }
-#endif
    /*
     * first_line is set to "Top of File"
     */

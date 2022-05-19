@@ -216,21 +216,17 @@ extern CHARTYPE       *the_version,
 extern CHARTYPE       *tempfilename;
 extern short          colour_offset_bits;
 extern CHARTYPE       user_home_dir[MAX_FILE_NAME+1];
-#if !defined(MULTIPLE_PSEUDO_FILES)
 extern CHARTYPE       *rexxoutname,
                       *keyfilename,
                       _THE_FAR rexx_pathname[MAX_FILE_NAME+1],
                       rexx_filename[10],
                       *dirfilename;
-#endif
 extern CHARTYPE       _THE_FAR xterm_program[MAX_FILE_NAME+1],
                       macro_suffix[12];
-#if !defined(MULTIPLE_PSEUDO_FILES)
 extern CHARTYPE       _THE_FAR dir_pathname[MAX_FILE_NAME+1],
                       dir_filename[10],
                       _THE_FAR key_pathname[MAX_FILE_NAME+1],
                       key_filename[15];
-#endif
 extern CHARTYPE       _THE_FAR curr_path[MAX_FILE_NAME+1],
                       _THE_FAR sp_path[MAX_FILE_NAME+1],
                       _THE_FAR sp_fname[MAX_FILE_NAME+1],
@@ -270,26 +266,18 @@ extern LINETYPE       original_screen_line,
                       startup_line;
 extern LENGTHTYPE     startup_column;
 extern CHARTYPE       *linebuf;
-#if defined(USE_UTF8)
-extern cchar_t        *linebufch;
-#else
 extern chtype         *linebufch;
-#endif
 extern LENGTHTYPE linebuf_size;
 extern int            lastkeys[8],
                       lastkeys_is_mouse[8],
                       current_key;
 
-#if defined(SIGWINCH)
 extern bool ncurses_screen_resized;
-#endif
 extern int            max_slk_labels,
                       slk_format_switch;
 extern bool           single_instance_server;
-#ifdef THE_SINGLE_INSTANCE_ENABLED
 extern CHARTYPE       fifo_name[MAX_FILE_NAME+1];
 extern CHARTYPE       pid_name[MAX_FILE_NAME+1];
-#endif
 extern LASTOP         lastop[LASTOP_MAX];
 extern FILE           *record_fp;
 extern int            record_key;

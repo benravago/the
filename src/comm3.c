@@ -1087,18 +1087,14 @@ short Osredir(CHARTYPE *params)
       rc = RC_INVALID_OPERAND;
    }
 #endif
-#ifdef USE_PROG_MODE
    def_prog_mode();
-#endif
    /*
     * Run the supplied OS command with stdout and stderr going to the
     * supplied redirection file
     */
    if ( rc == RC_OK )
       rrc = system( (DEFCHAR *)word[1] );
-#ifdef USE_PROG_MODE
    reset_prog_mode();
-#endif
    /*
     * Close the redirected file
     */

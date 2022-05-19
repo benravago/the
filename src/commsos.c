@@ -582,15 +582,6 @@ short Sos_edit(CHARTYPE *params)
    /*
     * Validate that the supplied file is valid.
     */
-#if defined(MULTIPLE_PSEUDO_FILES)
-   strcpy((DEFCHAR *)edit_fname,(DEFCHAR *)CURRENT_FILE->fpath);
-   strcat((DEFCHAR *)edit_fname,(DEFCHAR *)curr->line+FILE_START);
-# ifdef FILENAME_LENGTH
-   edit_fname[(strlen((DEFCHAR *)CURRENT_FILE->fpath)+curr->filename_length)-1] = '\0';
-# else
-   edit_fname[(strlen((DEFCHAR *)CURRENT_FILE->fpath)+curr->length)-1] = '\0';
-# endif
-#else
    strcpy((DEFCHAR *)edit_fname,(DEFCHAR *)dir_path);
    fname = curr->line+FILE_START;
    if (*(curr->line) == 'l')
@@ -611,9 +602,7 @@ short Sos_edit(CHARTYPE *params)
       }
    }
    strcat((DEFCHAR *)edit_fname,(DEFCHAR *)fname);
-#endif
 
-#if !defined(MULTIPLE_PSEUDO_FILES)
    if ((rc = splitpath(edit_fname)) != RC_OK)
    {
       display_error(10,edit_fname,FALSE);
@@ -621,7 +610,6 @@ short Sos_edit(CHARTYPE *params)
    }
    strcpy((DEFCHAR *)edit_fname,(DEFCHAR *)sp_path);
    strcat((DEFCHAR *)edit_fname,(DEFCHAR *)sp_fname);
-#endif
    /*
     * If we are editing a directory and have a DIR.DIR file in the ring, find it...
     */
@@ -665,28 +653,16 @@ short Sos_endchar(CHARTYPE *params)
    switch( CURRENT_VIEW->current_window )
    {
       case WINDOW_PREFIX:
-#ifdef USE_UTF8
-         charnum = u8_charnum( (char *)pre_rec, pre_rec_len );
-#else
          charnum = pre_rec_len;
-#endif
          wmove( CURRENT_WINDOW, y, min( charnum, CURRENT_VIEW->prefix_width - CURRENT_VIEW->prefix_gap - 1 ) );
          rc = RC_OK;
          break;
       case WINDOW_COMMAND:
-#ifdef USE_UTF8
-         charnum = u8_charnum( (char *)cmd_rec, cmd_rec_len );
-#else
          charnum = cmd_rec_len;
-#endif
          rc = execute_move_cursor( current_screen, CURRENT_VIEW, charnum );
          break;
       case WINDOW_FILEAREA:
-#ifdef USE_UTF8
-         charnum = u8_charnum( (char *)rec, rec_len );
-#else
          charnum = rec_len;
-#endif
          rc = execute_move_cursor( current_screen, CURRENT_VIEW, charnum );
          break;
    }
@@ -1079,33 +1055,21 @@ short Sos_startendchar(CHARTYPE *params)
    switch( CURRENT_VIEW->current_window )
    {
       case WINDOW_PREFIX:
-#ifdef USE_UTF8
-         charnum = u8_charnum( (char *)pre_rec, pre_rec_len );
-#else
          charnum = pre_rec_len;
-#endif
          if ( x >= charnum )
             wmove( CURRENT_WINDOW, y, 0 );
          else
             wmove( CURRENT_WINDOW, y, charnum );
          break;
       case WINDOW_COMMAND:
-#ifdef USE_UTF8
-         charnum = u8_charnum( (char *)cmd_rec, cmd_rec_len );
-#else
          charnum = cmd_rec_len;
-#endif
          if ( x + cmd_verify_col > charnum )
             rc = Sos_firstcol( (CHARTYPE *)"" );
          else
             rc = Sos_endchar( (CHARTYPE *)"" );
          break;
       case WINDOW_FILEAREA:
-#ifdef USE_UTF8
-         charnum = u8_charnum( (char *)rec, rec_len );
-#else
          charnum = rec_len;
-#endif
          if (x + CURRENT_VIEW->verify_col > min( charnum, CURRENT_VIEW->verify_end ) )
             rc = Sos_firstcol( (CHARTYPE *)"" );
          else

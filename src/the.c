@@ -112,20 +112,16 @@ static void init_signals(void);
    CHARTYPE user_home_dir[MAX_FILE_NAME+1];
 # define THE_PROFILE_FILE ".therc"
 
-#ifdef THE_SINGLE_INSTANCE_ENABLED
 # define THE_FIFO_FILE ".thefifo"
 # define THE_PID_FILE ".thepid"
    CHARTYPE fifo_name[MAX_FILE_NAME+1];
    CHARTYPE pid_name[MAX_FILE_NAME+1];
-#endif
 
-#if !defined(MULTIPLE_PSEUDO_FILES)
    CHARTYPE *rexxoutname = (CHARTYPE *)"REXX.$$$";
    CHARTYPE *keyfilename = (CHARTYPE *)"KEY$$$.$$$";
    CHARTYPE _THE_FAR rexx_pathname[MAX_FILE_NAME+1];
    CHARTYPE _THE_FAR rexx_filename[10];
    CHARTYPE *dirfilename = (CHARTYPE *)"DIR.DIR";
-#endif
 
 #if !defined(XTERM_PROGRAM)
 # define XTERM_PROGRAM "N/A"
@@ -134,12 +130,10 @@ static void init_signals(void);
    CHARTYPE _THE_FAR xterm_program[MAX_FILE_NAME+1]; /* default shell for XCURSES */
 
    CHARTYPE macro_suffix[12] = ".the";   /* default extension for macros */
-#if !defined(MULTIPLE_PSEUDO_FILES)
    CHARTYPE _THE_FAR dir_pathname[MAX_FILE_NAME+1];
    CHARTYPE dir_filename[10];
    CHARTYPE _THE_FAR key_pathname[MAX_FILE_NAME+1];
    CHARTYPE key_filename[15];
-#endif
    CHARTYPE _THE_FAR curr_path[MAX_FILE_NAME+1];
    CHARTYPE _THE_FAR sp_path[MAX_FILE_NAME+1];
    CHARTYPE _THE_FAR sp_fname[MAX_FILE_NAME+1];
@@ -181,9 +175,7 @@ static void init_signals(void);
    bool   _THE_FAR etmode_flag[256];
 
 
-#if defined(SIGWINCH)
    bool ncurses_screen_resized = FALSE;
-#endif
 
    int lastkeys[8];
    int lastkeys_is_mouse[8];
@@ -217,11 +209,7 @@ static void init_signals(void);
    int gotOutput = 0;
 
    CHARTYPE *linebuf; /* Buffer for one terminal line, at least 81 elems */
-#ifdef USE_UTF8
-   cchar_t *linebufch; /* Buffer for one terminal line in chtype-mode, >= 81 */
-#else
    chtype *linebufch; /* Buffer for one terminal line in chtype-mode, >= 81 */
-#endif
    LENGTHTYPE linebuf_size = 0;
    int max_slk_labels=0;
    int slk_format_switch=0;
@@ -264,9 +252,7 @@ int main(int argc, char *argv[])
    short c=0;
    int length;
    bool trap_signals=TRUE;
-#ifdef THE_SINGLE_INSTANCE_ENABLED
    bool run_single_instance=FALSE;
-#endif
    short rc=RC_OK;
    char *envptr=NULL;
    int slk_format=0;
@@ -422,9 +408,7 @@ int main(int argc, char *argv[])
     * Process the command line arguments.
     */
    strcpy( mygetopt_opts, "Rqk::sSbmnrl:c:p:w:a:u:h" );
-# if defined(THE_SINGLE_INSTANCE_ENABLED)
    strcat( mygetopt_opts, "1::" );
-#endif
    while ((c = my_getopt( my_argc, my_argv, mygetopt_opts ) ) != EOF )
    {
       switch((char)c)
@@ -594,7 +578,6 @@ int main(int argc, char *argv[])
             CLOSEDOWNCONSOLE();
             return(0);
             break;
-#ifdef THE_SINGLE_INSTANCE_ENABLED
          case '1':        /* allow single instances */
             run_single_instance = TRUE;
             /*
@@ -611,7 +594,6 @@ int main(int argc, char *argv[])
             }
             strcpy( (DEFCHAR *)fifo_name, (DEFCHAR *)optarg );
             break;
-#endif
          default:
             break;
          }
@@ -684,7 +666,6 @@ int main(int argc, char *argv[])
       CLOSEDOWNCONSOLE();
       return(30);
    }
-#ifdef THE_SINGLE_INSTANCE_ENABLED
    /*
     * If running under XCurses or SDL Curses, and running in single window mode, then
     * check if the FIFO $HOME/.thefifo exists.
@@ -700,7 +681,6 @@ int main(int argc, char *argv[])
          return(0);
       }
    }
-#endif
    /*
     * Check any command line conflicts...
     */
@@ -772,7 +752,6 @@ int main(int argc, char *argv[])
    }
    memset(pre_rec,' ',MAX_PREFIX_WIDTH+1);
    pre_rec_len = 0;
-#if !defined(MULTIPLE_PSEUDO_FILES)
    /*
     * Set up filename for directory temporary file (DIR.DIR).
     */
@@ -790,7 +769,6 @@ int main(int argc, char *argv[])
    strcpy((DEFCHAR *)dir_pathname,(DEFCHAR *)sp_path);
    strcpy((DEFCHAR *)dir_filename,(DEFCHAR *)sp_fname);
 
-#endif
    /*
     * Set up a temporary file name for output from PUT command to go...
     */
@@ -915,11 +893,7 @@ int main(int argc, char *argv[])
     */
    terminal_lines=LINES;
    terminal_cols=COLS;
-#ifdef USE_UTF8
-   if ((linebufch = (cchar_t *)(*the_malloc)(linebuf_size * sizeof(cchar_t))) == NULL)
-#else
    if ((linebufch = (chtype *)(*the_malloc)(linebuf_size * sizeof(chtype))) == NULL)
-#endif
    {
       cleanup();
       return(30);
@@ -948,9 +922,7 @@ int main(int argc, char *argv[])
    noecho();
    keypad( stdscr, TRUE );
    notimeout( stdscr, TRUE );
-#ifdef USE_PROG_MODE
    def_prog_mode();
-#endif
    (void)THETypeahead((CHARTYPE *)"OFF");
    /*
     * Set up mouse support if enabled in curses library.
@@ -1147,11 +1119,9 @@ static void init_signals(void)
 # if defined(SIGBUS)
    signal(SIGBUS,handle_signal);
 # endif
-# if defined(SIGWINCH)
    signal( SIGWINCH, handle_signal );
    signal( SIGWINCH, handle_signal );
    siginterrupt( SIGWINCH, 1 );
-# endif
 # if defined(SIGPIPE)
    signal(SIGPIPE,SIG_IGN);
 # endif
@@ -1397,18 +1367,11 @@ void cleanup(void)
       INSERTMODEx=FALSE;
 /*      draw_cursor(TRUE);*/
       endwin();
-/*
- * Causes double-free crash
-#ifdef USE_XCURSES
-      XCursesExit();
-#endif
-*/
       curses_started = FALSE;
    }
    if (!CLEARSCREENx
    && been_interactive)
       printf("\n");
-#ifdef THE_SINGLE_INSTANCE_ENABLED
    /*
     * If we are the initial instance of THE running in single instance
     * mode, remove the FIFO
@@ -1417,7 +1380,6 @@ void cleanup(void)
    {
       close_fifo();
    }
-#endif
    if (tempfilename)
    {
       if ( file_exists( tempfilename ) == THE_FILE_EXISTS )
@@ -1450,14 +1412,12 @@ static RETSIGTYPE handle_signal(int err)
     * If a SIGWINCH is caught, set a global flag to indicate that the screen has resized
     * Only do this for NCURSES.
     */
-# if defined(SIGWINCH)
    if (err == SIGWINCH)
    {
       ncurses_screen_resized = TRUE;
       signal(SIGWINCH,handle_signal);
       return;
    }
-#endif
   /*
    * For each file in the ring, execute an AUTOSAVE on it and then
    * die.

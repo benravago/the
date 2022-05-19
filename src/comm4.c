@@ -1185,18 +1185,14 @@ short ShowKey(CHARTYPE *params)
       {
          while(1)
          {
-#ifdef CAN_RESIZE
             if (is_termresized())
             {
                (void)THE_Resize(0,0);
                (void)THERefresh((CHARTYPE *)"");
             }
-#endif
             key = my_getch( CURRENT_WINDOW );
-#ifdef CAN_RESIZE
             if (is_termresized())
                continue;
-#endif
             if (key == KEY_MOUSE)
             {
                int b,ba,bm,w;
@@ -1398,22 +1394,18 @@ short Status(CHARTYPE *params)
          rc = show_status();
          while( 1 )
          {
-#ifdef CAN_RESIZE
             if ( is_termresized() )
             {
                (void)THE_Resize( 0, 0 );
                (void)show_status();
             }
-#endif
             key = my_getch( stdscr );
 #if defined(KEY_MOUSE)
             if ( key == KEY_MOUSE )
                continue;
 #endif
-#ifdef CAN_RESIZE
             if ( is_termresized() )
                continue;
-#endif
             break;
          }
          Redraw( (CHARTYPE *)"" );

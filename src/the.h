@@ -41,12 +41,7 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 # define CLOSEDOWNCONSOLE()
 
 
-# if defined(USE_UTF8)
-#  define _XOPEN_SOURCE_EXTENDED
-#  include <ncursesw/ncurses.h>
-# else
 #  include <ncurses.h>
-# endif
 # define CURSES_H_INCLUDED
 
 
@@ -110,9 +105,6 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 
 # include <stdlib.h>
 
-#ifdef USE_UTF8
-# include "utf8.h"
-#endif
 
 # include <alloca.h>
 
@@ -142,9 +134,6 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 
 
 
-#if defined(SIGWINCH)
-#  define CAN_RESIZE 1
-#endif
 
 #  define MAX_SLK    12
 #  define MAX_SLK_FORMAT 4
@@ -177,7 +166,6 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
  */
 
 
-# define THE_SINGLE_INSTANCE_ENABLED 1
 
 #if defined(A_COLOR)
 # define set_colour(attr) ((colour_support) ? (((attr)->pair) ? COLOR_PAIR((attr)->pair) | (attr)->mod : (attr)->mod) \
@@ -260,9 +248,7 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 # define getmaxyx(win,y,x)  ((y) = getmaxy(win), (x) = getmaxx(win))
 #endif
 
-#if defined(SIGWINCH)
 # define is_termresized()  (ncurses_screen_resized)
-#endif
 
 #define QUIT          (-127)
 #define SKIP          (-126)
@@ -1707,5 +1693,4 @@ extern void* (*the_realloc)(void *, unsigned long);
 /*
  * Don't call the *prog_mode functions when using PDCurses
  */
-#  define USE_PROG_MODE 1
 #include "directry.h"

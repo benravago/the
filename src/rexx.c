@@ -261,7 +261,6 @@ REH_RETURN_TYPE THE_Exit_Handler
                /*
                 * Free up the existing linked list (if any)
                 */
-#if !defined(MULTIPLE_PSEUDO_FILES)
                rexxout_first_line = rexxout_last_line = lll_free(rexxout_first_line);
                rexxout_number_lines = 0L;
                if ((found_view = find_file(rexx_pathname,rexx_filename)) != (VIEW_DETAILS *)NULL)
@@ -269,7 +268,6 @@ REH_RETURN_TYPE THE_Exit_Handler
                   found_view->file_for_view->first_line = found_view->file_for_view->last_line = NULL;
                   found_view->file_for_view->number_lines = 0L;
                }
-#endif
                /*
                 * first_line is set to "Top of File"
                 */
@@ -609,56 +607,17 @@ short finalise_rexx
     (void)
 {
    ULONG rc;
-#ifdef NO_NEED_TO_DEREGISTER_FUNCTIONS_ANYMORE
-   register short i=0,j=0;
-   int num_values=0;
-   char _THE_FAR buf[50];
-#endif
-
 
    rc = RexxDeregisterSubcom((RDS_ARG0_TYPE)"THE",
                            (RDS_ARG1_TYPE)NULL);
    rc = RexxDeregisterExit((RDE_ARG0_TYPE)"THE_EXIT",
                          (RDE_ARG1_TYPE)NULL);
 
-#ifdef NO_NEED_TO_DEREGISTER_FUNCTIONS_ANYMORE
    /*
     * MHES - 7-4-2001
     * Don't bother deregistering the external functions. As this is an EXE
-    * the function registrations will disappear when the process dies. The
-    * main reason for not deregistering is now that Object Rexxx for Linux
-    * v 2.2 now works with THE, it takes way too long to shut down, and
-    * Reiner Micke suggested it not be done.
+    * the function registrations will disappear when the process dies.
     */
-   /*
-    * Deregister all the builtin functions
-    */
-   for (i=0; i<number_function_item(); i++)
-   {
-      rc = MyRexxDeregisterFunction(function_item[i].name);
-   }
-   /*
-    * Deregister all the implied functions
-    */
-   for (i=0; i<number_query_item(); i++)
-   {
-      num_values = query_item[i].item_values + 1;
-      if ( num_values == 1 )
-      {
-         /*
-          * These are dynamic functions, so the number of values
-          * to deregister is based on the number of registered functions.
-          */
-         num_values = 1+get_number_dynamic_items( query_item[i].item_number );
-      }
-      for (j=0;j<num_values;j++)
-      {
-         sprintf(buf,"%s.%d",query_item[i].name,j);
-         rc = MyRexxDeregisterFunction(buf);
-      }
-   }
-#endif
-
 
    return((short)rc);
 }
@@ -752,13 +711,9 @@ short execute_macro_file
       rexx_output = FALSE;
       if (CAPREXXOUTx)
       {
-#if defined(MULTIPLE_PSEUDO_FILES)
-         Xedit((CHARTYPE *)"***REXXOUT***");
-#else
          strcpy((DEFCHAR *)temp_cmd,(DEFCHAR *)rexx_pathname);
          strcat((DEFCHAR *)temp_cmd,(DEFCHAR *)rexx_filename);
          Xedit(temp_cmd);
-#endif
       }
       else
       {
@@ -866,13 +821,9 @@ short execute_macro_instore
       rexx_output = FALSE;
       if (CAPREXXOUTx)
       {
-#if defined(MULTIPLE_PSEUDO_FILES)
-         Xedit((CHARTYPE *)"***REXXOUT***");
-#else
          strcpy((DEFCHAR *)temp_cmd,(DEFCHAR *)rexx_pathname);
          strcat((DEFCHAR *)temp_cmd,(DEFCHAR *)rexx_filename);
          Xedit(temp_cmd);
-#endif
       }
       else
       {
