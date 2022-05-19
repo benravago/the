@@ -1482,7 +1482,7 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE **first,PARSE_POSTC
    if ( curr->string )
       (*the_free)(curr->string);
    if ( curr->is_class_type )
-      the_regfree(&curr->pattern_buffer);
+      regfree(&curr->pattern_buffer);
    /*
     * Delete the only record
     */
@@ -1547,7 +1547,7 @@ PARSE_POSTCOMPARE *parse_postcomparell_free(PARSE_POSTCOMPARE *first)
       if ( curr->string )
          (*the_free)(curr->string);
       if ( curr->is_class_type )
-         the_regfree(&curr->pattern_buffer);
+         regfree(&curr->pattern_buffer);
       new_curr = curr->next;
       (*the_free)(curr);
       curr = new_curr;

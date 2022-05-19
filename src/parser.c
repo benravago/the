@@ -3426,7 +3426,8 @@ static short construct_identifier(CHARTYPE *line, int line_length, PARSER_DETAIL
    }
    /* The following memset() is not meant to use wide character */
    memset(&parser->body_pattern_buffer,0,sizeof(struct re_pattern_buffer));
-   ptr = (CHARTYPE *)re_compile_pattern((DEFCHAR *)pattern,0,strlen((DEFCHAR *)pattern),&parser->body_pattern_buffer);
+   re_set_syntax(0);
+   ptr = (CHARTYPE *)re_compile_pattern((DEFCHAR *)pattern,strlen((DEFCHAR *)pattern),&parser->body_pattern_buffer);
    if (ptr)
    {
       /*
@@ -3461,7 +3462,8 @@ static short construct_identifier(CHARTYPE *line, int line_length, PARSER_DETAIL
       strcat((DEFCHAR *)pattern,(DEFCHAR *)tmp);
       /* The following memset() is not meant to use wide character */
       memset( &parser->function_pattern_buffer, 0, sizeof(struct re_pattern_buffer) );
-      ptr = (CHARTYPE *)re_compile_pattern((DEFCHAR *)pattern,0,strlen((DEFCHAR *)pattern),&parser->function_pattern_buffer);
+      re_set_syntax(0);
+      ptr = (CHARTYPE *)re_compile_pattern((DEFCHAR *)pattern,strlen((DEFCHAR *)pattern),&parser->function_pattern_buffer);
       if (ptr)
       {
          /*
@@ -3746,7 +3748,8 @@ static short construct_postcompare(CHARTYPE *line, int line_length, PARSER_DETAI
       strcpy((DEFCHAR *)pattern,(DEFCHAR *)word[1]);
       /* The following memset() is not meant to use wide character */
       memset( &pattern_buffer, 0, sizeof(struct re_pattern_buffer) );
-      ptr = (CHARTYPE *)re_compile_pattern((DEFCHAR *)pattern,0,strlen((DEFCHAR *)pattern),&pattern_buffer);
+      re_set_syntax(0);
+      ptr = (CHARTYPE *)re_compile_pattern((DEFCHAR *)pattern,strlen((DEFCHAR *)pattern),&pattern_buffer);
       if (ptr)
       {
          /*
@@ -3858,7 +3861,8 @@ static short construct_number(CHARTYPE *line, int line_length, PARSER_DETAILS *p
     * Create the pattern buffer for the RE...
     */
    memset( &parser->number_pattern_buffer, 0, sizeof(struct re_pattern_buffer) );
-   ptr = (DEFCHAR *)re_compile_pattern( pattern, 0, strlen( pattern), &parser->number_pattern_buffer );
+   re_set_syntax(0);
+   ptr = (DEFCHAR *)re_compile_pattern( pattern,  strlen( pattern), &parser->number_pattern_buffer );
    if (ptr)
    {
       /*
@@ -4180,15 +4184,15 @@ short destroy_parser(PARSER_DETAILS *parser)
    }
    if (parser->have_body_pattern_buffer)
    {
-      the_regfree(&parser->body_pattern_buffer);
+      regfree(&parser->body_pattern_buffer);
    }
    if (parser->have_function_pattern_buffer)
    {
-      the_regfree(&parser->function_pattern_buffer);
+      regfree(&parser->function_pattern_buffer);
    }
    if ( parser->have_number_pattern_buffer )
    {
-      the_regfree( &parser->number_pattern_buffer );
+      regfree( &parser->number_pattern_buffer );
    }
    if (parser->have_postcompare)
    {

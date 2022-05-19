@@ -1075,7 +1075,8 @@ short parse_target(CHARTYPE *target_spec,LINETYPE true_line,TARGET *target,
              * Compile the RE
              */
             memset( &target->rt[i].pattern_buffer, 0, sizeof(struct re_pattern_buffer) );
-            ptr = (CHARTYPE *)re_compile_pattern( (DEFCHAR *)target->rt[i].string, REGEXPx, strlen( (DEFCHAR *)target->rt[i].string ), &target->rt[i].pattern_buffer );
+            re_set_syntax(REGEXPx);
+            ptr = (CHARTYPE *)re_compile_pattern( (DEFCHAR *)target->rt[i].string, strlen( (DEFCHAR *)target->rt[i].string ), &target->rt[i].pattern_buffer );
             if (ptr)
             {
                /*
@@ -1137,7 +1138,7 @@ void free_target(TARGET *target)
       if (target->rt[i].string != NULL)
          (*the_free)(target->rt[i].string);
       if (target->rt[i].have_compiled_re)
-         the_regfree(&target->rt[i].pattern_buffer);
+         regfree(&target->rt[i].pattern_buffer);
    }
    if (target->string != NULL)
       (*the_free)(target->string);

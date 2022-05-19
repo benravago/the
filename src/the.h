@@ -41,10 +41,11 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 # define CLOSEDOWNCONSOLE()
 
 
-#  include <ncurses.h>
-# define CURSES_H_INCLUDED
+#include <ncurses.h>
+#define CURSES_H_INCLUDED
 
-
+#define _GNU_SOURCE
+#include <regex.h>
 
 # define Args(a) a
 
@@ -129,10 +130,6 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 #  include <sys/time.h>
 
 #include <signal.h>
-
-#include "regex.h"
-
-
 
 
 #  define MAX_SLK    12
