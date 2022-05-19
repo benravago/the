@@ -120,7 +120,6 @@ short getfiles(CHARTYPE *path,CHARTYPE *files,struct dirfile **dpfirst,
           * is a symbolic link, go and get the filename the symbolic
           * link points to...
           */
-#if defined(S_ISLNK)
          if (S_ISLNK(dp->fattr))
          {
             char buf[MAX_FILE_NAME+1];
@@ -135,7 +134,6 @@ short getfiles(CHARTYPE *path,CHARTYPE *files,struct dirfile **dpfirst,
                dp->lname[rc] = '\0';
             }
          }
-#endif
          dp++;
          if (dp == *dplast)
          {
@@ -295,30 +293,18 @@ CHARTYPE *file_attrs(ATTR_TYPE attrs,CHARTYPE *str_attr,int facl)
    if (facl)
       str_attr[10] = '+';
    str_attr[0] = '-';
-#ifdef S_ISDIR
    if ( S_ISDIR( ftype) )
       str_attr[0] = 'd';
-#endif
-#ifdef S_ISCHR
    if ( S_ISCHR( ftype) )
       str_attr[0] = 'c';
-#endif
-#ifdef S_ISBLK
    if ( S_ISBLK( ftype) )
       str_attr[0] = 'b';
-#endif
-#ifdef S_ISFIFO
    if ( S_ISFIFO( ftype) )
       str_attr[0] = 'p';
-#endif
-#ifdef S_ISLNK
    if ( S_ISLNK( ftype) )
       str_attr[0] = 'l';
-#endif
-#ifdef S_ISSOCK
    if ( S_ISSOCK( ftype) )
       str_attr[0] = 's';
-#endif
    str_attr[1] = (attrs & S_IRUSR) ? 'r' : '-';
    str_attr[2] = (attrs & S_IWUSR) ? 'w' : '-';
    str_attr[3] = (attrs & S_IXUSR) ? 'x' : '-';

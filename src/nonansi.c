@@ -43,13 +43,6 @@
 /*
  * Replace non-ANSI defs with ANSI ones
  */
-#ifndef S_IFMT
-# if defined(__S_IFMT)
-#  define S_IFMT __S_IFMT
-# elif defined(_S_IFMT)
-#  define S_IFMT _S_IFMT
-# endif
-#endif
 
 short file_readable(CHARTYPE *filename)
 {
@@ -818,15 +811,10 @@ void draw_cursor(bool visible)
  */
 int is_a_dir_stat(ATTR_TYPE attrs)
 {
-#if defined(S_IFDIR)
    ATTR_TYPE ftype=(attrs & S_IFMT);
 
    if (ftype == S_IFDIR)
       return(1);
-#else
-   if ((attrs & F_DI) == F_DI)
-      return(1);
-#endif
    return(0);
 }
 
@@ -838,13 +826,10 @@ int is_a_dir_dir(ATTR_TYPE attrs)
 #if defined(_A_SUBDIR)
    if ( ( attrs & _A_SUBDIR) == _A_SUBDIR )
       return(1);
-#elif defined(S_IFDIR)
+#else
    ATTR_TYPE ftype=(attrs & S_IFMT);
 
    if (ftype == S_IFDIR)
-      return(1);
-#else
-   if ((attrs & F_DI) == F_DI)
       return(1);
 #endif
    return(0);

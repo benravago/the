@@ -167,20 +167,8 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 
 
 
-#if defined(A_COLOR)
 # define set_colour(attr) ((colour_support) ? (((attr)->pair) ? COLOR_PAIR((attr)->pair) | (attr)->mod : (attr)->mod) \
                                            : ((attr)->mono))
-#else
-# define set_colour(attr)     ((attr)->mono)
-# define COLOR_BLACK    0
-# define COLOR_BLUE     0
-# define COLOR_GREEN    0
-# define COLOR_CYAN     0
-# define COLOR_RED      0
-# define COLOR_MAGENTA  0
-# define COLOR_YELLOW   0
-# define COLOR_WHITE    0
-#endif
 
 #ifndef A_NORMAL
 /* Various video attributes */

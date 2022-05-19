@@ -904,14 +904,12 @@ int main(int argc, char *argv[])
    if (colour_support) /* if default setting not overridden on command line */
    {
       colour_support = FALSE;
-#ifdef A_COLOR
       if (has_colors())
       {
          start_color();
          colour_support = TRUE;
          init_colour_pairs();
       }
-#endif
    }
    /*
     * Set various terminal characteristics...
@@ -1131,7 +1129,6 @@ void init_colour_pairs(void)
 {
    short fg,bg;
 
-#ifdef A_COLOR
    /*
     * Force the use of 8 colours instead of using COLORS;
     * THE only knows about 8 basic colours. Change suggested
@@ -1147,7 +1144,6 @@ void init_colour_pairs(void)
          }
       }
    }
-#endif
    return;
 }
 int setup_profile_files(CHARTYPE *specified_prf)

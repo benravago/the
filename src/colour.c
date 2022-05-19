@@ -36,7 +36,6 @@
 #include <the.h>
 #include <proto.h>
 
-#ifdef A_COLOR
 static COLOUR_DEF _THE_FAR the_colours[ATTR_MAX] =
 {
    /* foreground   background   modifier  mono                     */
@@ -216,12 +215,6 @@ static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] =
    {COLOR_BLACK   ,COLOR_GREEN ,A_NORMAL ,A_REVERSE                }, /* POPUP         */
    {COLOR_CYAN    ,COLOR_BLACK ,A_NORMAL ,A_BOLD                   }, /* POP-DIVIDER   */
 };
-#else
-static COLOUR_DEF _THE_FAR the_colours[ATTR_MAX] =    { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };
-static COLOUR_DEF _THE_FAR kedit_colours[ATTR_MAX] =  { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };
-static COLOUR_DEF _THE_FAR keditw_colours[ATTR_MAX] = { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };
-static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] =  { {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0} };
-#endif
 
 /* A - comments */
 /* B - strings */
@@ -454,9 +447,7 @@ static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] =  { {0,0,0,0},{0,0,0,0},{0,0
     {(CHARTYPE *)"reverse",3,A_REVERSE,0,TRUE,TRUE,FALSE},
     {(CHARTYPE *)"underline",1,A_UNDERLINE,0,TRUE,TRUE,FALSE},
     {(CHARTYPE *)"dark",4,A_NORMAL,0,TRUE,TRUE,FALSE},
-#ifdef A_ITALIC
     {(CHARTYPE *)"italic",1,A_ITALIC,0,TRUE,TRUE,FALSE},
-#endif
 #ifdef A_RIGHTLINE
     {(CHARTYPE *)"rightline",5,A_RIGHTLINE,0,TRUE,TRUE,FALSE},
 #endif
@@ -698,15 +689,11 @@ chtype merge_curline_colour(COLOUR_ATTR *attr, COLOUR_ATTR *ecolour)
  */
    chtype bg,fg,mod,pair;
 
-#ifdef A_COLOR
    bg = BACKFROMPAIR(attr->pair);
    fg = FOREFROMPAIR(ecolour->pair);
    mod = attr->mod | ecolour->mod;
    pair = ATTR2PAIR(fg,bg);
    fg = (COLOR_PAIR(pair) | mod);
-#else
-   fg = attr->mod | ecolour->mod;
-#endif
    return fg;
 }
 
@@ -855,13 +842,11 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR *attr)
 
 
    start_with = GET_MOD;
-#ifdef A_COLOR
    if (colour_support)
    {
       start_with = GET_MOD;
       mod = attr->mod;
    }
-#endif
    attr_string = (CHARTYPE *)(*the_malloc)(sizeof(CHARTYPE)*70);
    if (attr_string == (CHARTYPE *)NULL)
    {

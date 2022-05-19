@@ -556,11 +556,7 @@ void show_statarea(void)
    /*
     * Display colour setting.
     */
-#ifdef A_COLOR
    linebuf[max(0,(COLS-7))] = (colour_support) ? 'C' : 'c';
-#else
-   linebuf[max(0,(COLS-7))] = 'M';
-#endif
    /*
     * Display REXX support character.
     */

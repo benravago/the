@@ -1368,11 +1368,7 @@ static int run_os_command
    }
    if (out)
    {
-#if defined(S_IWRITE) && defined(S_IREAD)
       if ((outfd = open(outfile, O_RDWR|O_CREAT|O_TRUNC, S_IWRITE|S_IREAD)) == (-1))
-#else
-      if ((outfd = open(outfile, O_RDWR|O_CREAT|O_TRUNC)) == (-1))
-#endif
       {
          return(RC_ACCESS_DENIED+1000);
       }

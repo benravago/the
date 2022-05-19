@@ -1053,11 +1053,7 @@ short Osredir(CHARTYPE *params)
    save_stdin  = dup( fileno( stdin ) );
 #endif
 
-#if defined(S_IWRITE) && defined(S_IREAD)
    fd = open( (DEFCHAR *)word[0], O_WRONLY|O_CREAT, S_IWRITE|S_IREAD );
-#else
-   fd = open( (DEFCHAR *)word[0], O_WRONLY|O_CREAT );
-#endif
    if ( fd == (-1) )
    {
       display_error( 8, word[0], FALSE );

@@ -125,7 +125,6 @@ short extract_modifiable_function(short number_variables,short itemno,CHARTYPE *
 }
 short extract_monitor(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
 {
-#ifdef A_COLOR
    if (colour_support)
    {
       item_values[1].value = (CHARTYPE *)"COLOR";
@@ -138,12 +137,6 @@ short extract_monitor(short number_variables,short itemno,CHARTYPE *itemargs,CHA
    }
    item_values[2].value = (CHARTYPE *)"COLOR";
    item_values[2].len = 5;
-#else
-   item_values[1].value = (CHARTYPE *)"MONO";
-   item_values[1].len = 4;
-   item_values[2].value = (CHARTYPE *)"MONO";
-   item_values[2].len = 4;
-#endif
    return number_variables;
 }
 short extract_mouse(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
