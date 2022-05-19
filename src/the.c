@@ -36,13 +36,10 @@
 #include <proto.h>
 #include <time.h>
 
-#include "mygetopt.h"
-
-
-
 static RETSIGTYPE handle_signal(int);
 static void display_info(CHARTYPE *);
 static void init_signals(void);
+
 /*--------------------------- global data -----------------------------*/
    WINDOW *statarea=NULL,*error_window=NULL,*divider=NULL,*filetabs=NULL;
    VIEW_DETAILS *vd_current=(VIEW_DETAILS *)NULL;
@@ -407,7 +404,7 @@ int main(int argc, char *argv[])
     */
    strcpy( mygetopt_opts, "Rqk::sSbmnrl:c:p:w:a:u:h" );
    strcat( mygetopt_opts, "1::" );
-   while ((c = my_getopt( my_argc, my_argv, mygetopt_opts ) ) != EOF )
+   while ((c = getopt( my_argc, my_argv, mygetopt_opts ) ) != EOF )
    {
       switch((char)c)
       {
