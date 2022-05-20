@@ -398,7 +398,6 @@ COMMAND command[] =
  {(CHARTYPE *)"word",        4,  (-1),            Word,             TRUE, TRUE, FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commset2.c */
  {(CHARTYPE *)"wrap",        2,  (-1),            Wrap,             TRUE, TRUE, FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commset2.c */
  {(CHARTYPE *)"wordwrap",    5,  (-1),            Wordwrap,         TRUE, TRUE, FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commset2.c */
- {(CHARTYPE *)"xterminal",   5,  (-1),            Xterminal,        TRUE, TRUE, FALSE,TRUE, FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commset2.c */
  {(CHARTYPE *)"edit",        1,  (-1),            Xedit,            TRUE, FALSE,FALSE,TRUE, TRUE, STRIP_BOTH,FALSE,FALSE,FALSE,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* comm5.c */
  {(CHARTYPE *)"xedit",       1,  (-1),            Xedit,            TRUE, FALSE,FALSE,TRUE, TRUE, STRIP_BOTH,FALSE,FALSE,FALSE,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* comm5.c */
  {(CHARTYPE *)"kedit",       1,  (-1),            Xedit,            TRUE, FALSE,FALSE,TRUE, TRUE, STRIP_BOTH,FALSE,FALSE,FALSE,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* comm5.c */

@@ -210,7 +210,6 @@ extern ExtractFunction extract_width;
 extern ExtractFunction extract_word;
 extern ExtractFunction extract_wordwrap;
 extern ExtractFunction extract_wrap;
-extern ExtractFunction extract_xterminal;
 extern ExtractFunction extract_zone;
 
 CHARTYPE query_num0[10]; /* DO NOT USE THIS FOR DATA !! */
@@ -379,7 +378,6 @@ QUERY_ITEM _THE_FAR query_item[] =
    {(CHARTYPE *)"word",            4, 4,ITEM_WORD,          1, 1,          LVL_VIEW,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_word                   },
    {(CHARTYPE *)"wordwrap",        8, 5,ITEM_WORDWRAP,      1, 1,          LVL_VIEW,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_wordwrap               },
    {(CHARTYPE *)"wrap",            4, 2,ITEM_WRAP,          1, 1,          LVL_VIEW,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_wrap                   },
-   {(CHARTYPE *)"xterminal",       9, 5,ITEM_XTERMINAL,     1, 1,          LVL_GLOB,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_xterminal              },
    {(CHARTYPE *)"zone",            4, 1,ITEM_ZONE,          2, 2,          LVL_VIEW,QUERY_QUERY|QUERY_STATUS|QUERY_EXTRACT|QUERY_MODIFY,extract_zone                   },
 };
 #define NUMBER_QUERY_ITEM ( sizeof( query_item ) / sizeof( QUERY_ITEM ) )

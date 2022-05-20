@@ -120,10 +120,6 @@ static void init_signals(void);
    CHARTYPE _THE_FAR rexx_filename[10];
    CHARTYPE *dirfilename = (CHARTYPE *)"DIR.DIR";
 
-#define XTERM_PROGRAM "xterm"
-
-   CHARTYPE _THE_FAR xterm_program[MAX_FILE_NAME+1]; /* default shell for XCURSES */
-
    CHARTYPE macro_suffix[12] = ".the";   /* default extension for macros */
    CHARTYPE _THE_FAR dir_pathname[MAX_FILE_NAME+1];
    CHARTYPE dir_filename[10];
@@ -325,7 +321,6 @@ int main(int argc, char *argv[])
       strcpy((DEFCHAR *)term_name,envptr);
    else
       strcpy((DEFCHAR *)term_name,"default");
-   strcpy((DEFCHAR *)xterm_program,XTERM_PROGRAM);
    /*
     * Get THE_HOME_DIR first (as all other paths rely on this value)
     */
@@ -436,10 +431,11 @@ int main(int argc, char *argv[])
             }
             if ( slk_format > MAX_SLK_FORMAT )
             {
+               char buf[MAX_FILE_NAME+1];
                cleanup();
-               sprintf((DEFCHAR *)xterm_program,"SLK format must be >= 1 and <= %d",MAX_SLK_FORMAT );
+               sprintf((DEFCHAR *)buf,"SLK format must be >= 1 and <= %d",MAX_SLK_FORMAT );
                STARTUPCONSOLE();
-               display_error(6,(CHARTYPE *)xterm_program,FALSE);
+               display_error(6,(CHARTYPE *)buf,FALSE);
                CLOSEDOWNCONSOLE();
                return(4);
             }

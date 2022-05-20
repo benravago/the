@@ -721,5 +721,4 @@ short Word Args((CHARTYPE *));
 short Wordwrap Args((CHARTYPE *));
 short Wrap Args((CHARTYPE *));
 short Xedit Args((CHARTYPE *));
-short Xterminal Args((CHARTYPE *));
 short Zone Args((CHARTYPE *));

@@ -221,8 +221,7 @@ extern CHARTYPE       *rexxoutname,
                       _THE_FAR rexx_pathname[MAX_FILE_NAME+1],
                       rexx_filename[10],
                       *dirfilename;
-extern CHARTYPE       _THE_FAR xterm_program[MAX_FILE_NAME+1],
-                      macro_suffix[12];
+extern CHARTYPE       macro_suffix[12];
 extern CHARTYPE       _THE_FAR dir_pathname[MAX_FILE_NAME+1],
                       dir_filename[10],
                       _THE_FAR key_pathname[MAX_FILE_NAME+1],

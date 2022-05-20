@@ -2813,21 +2813,6 @@ short Wrap(CHARTYPE *params)
    rc = execute_set_on_off(params,&CURRENT_VIEW->wrap,TRUE);
    return(rc);
 }
-short Xterminal(CHARTYPE *params)
-{
-   if (strcmp((DEFCHAR *)params,"") == 0)
-   {
-      display_error(1,params,FALSE);
-      return(RC_INVALID_OPERAND);
-   }
-   if (strlen((DEFCHAR *)params) > MAX_FILE_NAME)
-   {
-      display_error(37,params,FALSE);
-      return(RC_INVALID_OPERAND);
-   }
-   strcpy((DEFCHAR *)xterm_program,(DEFCHAR *)params);
-   return(RC_OK);
-}
 short Zone(CHARTYPE *params)
 {
 #define ZON_PARAMS  3

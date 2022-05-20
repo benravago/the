@@ -2017,12 +2017,6 @@ short extract_wrap(short number_variables,short itemno,CHARTYPE *itemargs,CHARTY
 {
    return set_on_off_value(CURRENT_VIEW->wrap,1);
 }
-short extract_xterminal(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
-{
-   item_values[1].value = xterm_program;
-   item_values[1].len = strlen((DEFCHAR *)xterm_program);
-   return number_variables;
-}
 short extract_zone(short number_variables,short itemno,CHARTYPE *itemargs,CHARTYPE query_type,LINETYPE argc,CHARTYPE *arg,LINETYPE arglen)
 {
    sprintf((DEFCHAR *)query_num1,"%ld",CURRENT_VIEW->zone_start);
