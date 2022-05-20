@@ -448,21 +448,6 @@ static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] =
     {(CHARTYPE *)"underline",1,A_UNDERLINE,0,TRUE,TRUE,FALSE},
     {(CHARTYPE *)"dark",4,A_NORMAL,0,TRUE,TRUE,FALSE},
     {(CHARTYPE *)"italic",1,A_ITALIC,0,TRUE,TRUE,FALSE},
-#ifdef A_RIGHTLINE
-    {(CHARTYPE *)"rightline",5,A_RIGHTLINE,0,TRUE,TRUE,FALSE},
-#endif
-#ifdef A_LEFTLINE
-    {(CHARTYPE *)"leftline",4,A_LEFTLINE,0,TRUE,TRUE,FALSE},
-#endif
-#ifdef A_TOPLINE
-    {(CHARTYPE *)"topline",3,A_TOPLINE,0,TRUE,TRUE,FALSE},
-#endif
-#ifdef A_OVERLINE
-    {(CHARTYPE *)"overline",4,A_OVERLINE,0,TRUE,TRUE,FALSE},
-#endif
-#ifdef A_STRIKEOUT
-    {(CHARTYPE *)"strikeout",5,A_STRIKEOUT,0,TRUE,TRUE,FALSE},
-#endif
     {(CHARTYPE *)",",1,8,0,FALSE,TRUE,FALSE},
     {(CHARTYPE *)NULL,0,0,0,FALSE,FALSE,FALSE},
  };

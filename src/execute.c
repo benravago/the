@@ -697,12 +697,7 @@ short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
    }
    if (strcmp((DEFCHAR *)cmd,"") == 0)
    {
-#if defined(XTERM_PROGRAM)
-      strcpy((DEFCHAR *)temp_cmd,(DEFCHAR *)xterm_program);
-      strcat((DEFCHAR *)temp_cmd," &");
-#else
       sprintf( (DEFCHAR *)temp_cmd, "\"%s\"", getenv( SHELL ) );
-#endif
       /*
        * If no command to execute then do not ask for "any key"
        */
@@ -720,18 +715,12 @@ short execute_os_command(CHARTYPE *cmd,bool quiet,bool pause)
    {
       strcat((DEFCHAR *)temp_cmd," > /dev/null");
    }
-#ifdef USE_PROG_MODE_NO_MORE
-   def_prog_mode();
-#endif
    rc = system((DEFCHAR *)temp_cmd);
    if (pause)
    {
       printf("\n\n%s",HIT_ANY_KEY);
       fflush(stdout);
    }
-#ifdef USE_PROG_MODE_NO_MORE
-   reset_prog_mode();
-#endif
 
    if (!quiet && curses_started)
    {
@@ -1408,24 +1397,6 @@ short rearrange_line_blocks(CHARTYPE command,CHARTYPE source,
          &&  CURRENT_VIEW->current_window == WINDOW_COMMAND
          &&  CURRENT_VIEW->stay)
              break;
-#if PRE_23_BEHAVIOUR
-         if (IN_VIEW(dst_view,dest_line))
-         {
-            dst_view->focus_line = dest_line+1L;
-         }
-         if (dst_view->current_window != WINDOW_COMMAND
-         &&  dst_view == CURRENT_SCREEN.screen_view)
-         {
-            if (y == CURRENT_SCREEN.rows[WINDOW_FILEAREA]-1)/* on bottom line of window */
-            {
-               dst_view->current_line = dst_view->focus_line;
-               y = dst_view->current_row;
-            }
-            else
-               y = get_row_for_focus_line(current_screen,dst_view->focus_line,
-                                          dst_view->current_row);
-         }
-#else
          if (command == COMMAND_DUPLICATE)
          {
             dst_view->focus_line = dest_line+1L;
@@ -1466,7 +1437,6 @@ short rearrange_line_blocks(CHARTYPE command,CHARTYPE source,
                                              dst_view->current_row);
             }
          }
-#endif
          break;
       case COMMAND_DELETE:
       case COMMAND_OVERLAY_DELETE:
@@ -3175,10 +3145,8 @@ short execute_editv(short editv_type,bool editv_file,CHARTYPE *params)
          while( 1 )
          {
             key = my_getch( stdscr );
-#if defined(KEY_MOUSE)
             if ( key == KEY_MOUSE )
                continue;
-#endif
             if ( is_termresized() )
                continue;
             break;
@@ -3860,7 +3828,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
          draw_cursor(FALSE);
          default_button = 0;
          editfield_col = -1;
-#if defined(KEY_MOUSE)
          if ( rc == RC_READV_TERM_MOUSE )
          {
             /*
@@ -3872,7 +3839,6 @@ short execute_dialog(CHARTYPE *prompt, CHARTYPE *title, CHARTYPE *initial, bool 
             key = KEY_MOUSE;
          }
          else
-#endif
          {
             continue;
          }
@@ -4829,9 +4795,7 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
          switch( key )
          {
             case 9:
-#if defined(KEY_DOWN)
             case KEY_DOWN:
-#endif
                /* increment highlighted line and check we haven't gone past the end of the list */
                if ( ++highlighted_line >= num_args )
                {
@@ -4874,7 +4838,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
                      y_offset += 1+scroll_lines;
                }
                break;
-#if defined(KEY_NPAGE)
             case KEY_NPAGE:
                /* advance a page full if we have plenty of lines remaining */
                highlighted_line += (height-2);
@@ -4908,8 +4871,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
                   }
                }
                break;
-#endif
-#if defined(KEY_UP)
             case KEY_UP:
                if (--highlighted_line < 0 )
                {
@@ -4936,8 +4897,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
                      y_offset -= 1+scroll_lines;
                }
                break;
-#endif
-#if defined(KEY_PPAGE)
             case KEY_PPAGE:
                /* retreat a page full if we have plenty of lines remaining */
                highlighted_line -= (height-2);
@@ -4973,8 +4932,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
                if ( y_offset < 0 )
                   y_offset = 0;
                break;
-#endif
-#if defined(KEY_RIGHT)
             case KEY_RIGHT:
                if ( x_overlap )
                {
@@ -4982,8 +4939,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
                      x_offset++;
                }
                break;
-#endif
-#if defined(KEY_LEFT)
             case KEY_LEFT:
                if ( x_overlap )
                {
@@ -4991,7 +4946,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
                      x_offset--;
                }
                break;
-#endif
             case 10:
             case 13:
                item_selected = highlighted_line;

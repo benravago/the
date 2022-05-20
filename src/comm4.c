@@ -1400,10 +1400,8 @@ short Status(CHARTYPE *params)
                (void)show_status();
             }
             key = my_getch( stdscr );
-#if defined(KEY_MOUSE)
             if ( key == KEY_MOUSE )
                continue;
-#endif
             if ( is_termresized() )
                continue;
             break;
