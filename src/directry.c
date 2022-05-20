@@ -35,7 +35,6 @@
 #include "the.h"
 #include "proto.h"
 
-#include "directry.h"
 #include <fnmatch.h>
 
 #define NUM_DIRTYPE 5

@@ -35,7 +35,6 @@
 #include "proto.h"
 
 #include <errno.h>
-#include "directry.h"
 
 
 static short write_line(CHARTYPE *,LENGTHTYPE,FILE *,short);

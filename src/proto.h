@@ -117,9 +117,6 @@ CHARTYPE find_unique_char Args((CHARTYPE *));
 RESERVED *add_reserved_line Args((CHARTYPE *,CHARTYPE *,short,short,COLOUR_ATTR *,bool));
 RESERVED *find_reserved_line Args((CHARTYPE,bool,ROWTYPE,short,short));
 short delete_reserved_line Args((short,short));
-#ifdef CTLCHAR
-chtype *apply_ctlchar_to_reserved_line Args((RESERVED *));
-#endif
                                                               /* box.c */
 void box_operations Args((short ,CHARTYPE ,bool ,CHARTYPE ));
 void box_paste_from_clipboard Args(( LINE *, LINETYPE, LINETYPE ));
@@ -320,10 +317,6 @@ int search_query_item_array Args((void *, size_t, size_t, const char *, int));
 int split_function_name Args((CHARTYPE *, int *));
 VIEW_DETAILS *find_filetab Args((int));
 VIEW_DETAILS *find_next_file Args((VIEW_DETAILS *,short));
-
-#if THIS_APPEARS_TO_NOT_BE_USED
-WINDOW *adjust_window Args((WINDOW *,short ,short ,short ,short ));
-#endif
 
 short my_wclrtoeol Args((WINDOW *));
 short my_wdelch Args((WINDOW *));

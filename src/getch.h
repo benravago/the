@@ -177,12 +177,7 @@ $Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
 #define KEY_PadPlus    0x357
 #define KEY_PadStar    0x358
 #define KEY_PadSlash   0x359
-
-#ifdef PAD0
-# define KEY_Pad0      PAD0
-#else
-# define KEY_Pad0      0x360
-#endif
+#define KEY_Pad0       0x360
 
 /* Mouse button definitions */
 

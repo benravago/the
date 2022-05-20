@@ -48,39 +48,6 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 
 # define Args(a) a
 
-/*
- * The following required because IBM AIX 4.3 defines curses colors
- * incorrectly :-(
- */
-#if defined(HAVE_BROKEN_COLORS)
-# undef COLOR_BLACK
-# undef COLOR_BLUE
-# undef COLOR_GREEN
-# undef COLOR_CYAN
-# undef COLOR_RED
-# undef COLOR_MAGENTA
-# undef COLOR_YELLOW
-# undef COLOR_WHITE
-# define COLOR_BLACK    0
-# define COLOR_BLUE     1
-# define COLOR_GREEN    2
-# define COLOR_CYAN     3
-# define COLOR_RED      4
-# define COLOR_MAGENTA  5
-# define COLOR_YELLOW   6
-# define COLOR_WHITE    7
-#endif
-
-
-
-
-
-
-
-#ifdef M_XENIX
-#endif
-
-
 #  define ESLASH '/'
 #  define ESTR_SLASH (CHARTYPE *)"/"
 #  define OSLASH '\\'
@@ -89,15 +56,9 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 #  define ISTR_SLASH ESTR_SLASH
 #  define CURRENT_DIR (CHARTYPE *)"."
 
-
-
 # include <errno.h>
 
 # include <ctype.h>
-
-#if defined(DUSE_WIDE_CHAR)
-# include <wctype.h>
-#endif
 
 # include <sys/types.h>
 
@@ -134,103 +95,19 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 #  define MAX_SLK    12
 #  define MAX_SLK_FORMAT 4
 
-#ifndef F_OK
-#  define         F_OK          00
-#endif
-#ifndef W_OK
-#  define         W_OK          02
-#endif
-#ifndef R_OK
-#  define         R_OK          04
-#endif
 /*---------------------------------------------------------------------*/
 /* End of OS-specific defines                                          */
 /*---------------------------------------------------------------------*/
-/*
- * This define ensures that any changes in the configure
- * cause the user to have to re-run configure.
- * This is set in defines.h or config.h
- */
-#ifndef BUILD3001
-# include "This release requires that you run configure again"
-#endif
-
-/*
- * This define ensures that any mismatching of version of
- * THE and PDCurses are picked up
- *
- */
-
-
 
 # define set_colour(attr) ((colour_support) ? (((attr)->pair) ? COLOR_PAIR((attr)->pair) | (attr)->mod : (attr)->mod) \
                                            : ((attr)->mono))
-
-#ifndef A_NORMAL
-/* Various video attributes */
-# define A_STANDOUT      BSD_STANDOUT /* for compatibility with BSD curses */
-# define A_REVERSE       BSD_STANDOUT /* for compatibility with BSD curses */
-# define A_UNDERLINE     0
-# define A_BLINK         0
-# define A_DIM           0
-# define A_BOLD          BSD_STANDOUT
-
-/* The next two are subject to change so don't depend on them */
-# define A_INVIS         0
-# define A_PROTECT       0
-
-# define A_NORMAL        0
-# define A_CHARTEXT      0x007F
-# define A_ATTRIBUTES    ~A_CHARTEXT
-# define A_ALTCHARSET    0
-#endif
-
-#if THE_FOLLOWING_REMOVED_IN_22
-#ifndef A_NORMAL
-/* Various video attributes */
-
-#  define A_STANDOUT      000000200000L
-#  define A_UNDERLINE     000000400000L
-#  define A_REVERSE       000001000000L
-#  define A_BLINK         000002000000L
-#  define A_DIM           000004000000L
-#  define A_BOLD          000010000000L
-#  define A_ALTCHARSET    000100000000L
-
-/* The next two are subject to change so don't depend on them */
-#  define A_INVIS         000020000000L
-#  define A_PROTECT       000040000000L
-
-#  define A_NORMAL        000000000000L
-#  define A_ATTRIBUTES    037777600000L   /* 0xFFFF0000 */
-#  define A_CHARTEXT      000000177777L   /* 0x0000FFFF */
-
-#endif
-#endif
 
 #define ATTR2PAIR(fg,bg) (bg|(fg<<3))
 #define FOREFROMPAIR(p)  (p>>3)
 #define BACKFROMPAIR(p)  (p&0x07)
 
-#ifndef max
-# define max(a,b)        (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
-# define min(a,b)        (((a) < (b)) ? (a) : (b))
-#endif
-
-#ifndef getmaxy
-#   define getmaxy(win)    ((win)->_maxy)
-#endif
-
-#ifndef getmaxx
-#   define getmaxx(win)    ((win)->_maxx)
-#endif
-
-#ifndef getmaxyx
-# define getmaxyx(win,y,x)  ((y) = getmaxy(win), (x) = getmaxx(win))
-#endif
+#define max(a,b)        (((a) > (b)) ? (a) : (b))
+#define min(a,b)        (((a) < (b)) ? (a) : (b))
 
 # define is_termresized()  (ncurses_screen_resized)
 
@@ -653,9 +530,6 @@ struct line
    THELIST *first_name;      /* pointer to first name for list of names */
    CHARTYPE *line;                       /* pointer to contents of line */
    LENGTHTYPE length;                   /* number of characters in line */
-#ifdef FILENAME_LENGTH
-   LENGTHTYPE filename_length;    /* length of filename in DIR.DIR file */
-#endif
    THE_PPC *pre;
    SELECTTYPE select;                     /* select level for each line */
    SELECTTYPE save_select;          /* saved select level (used by ALL) */
@@ -1418,17 +1292,9 @@ struct regexp_syntax
 #define EDITV_SETL   4
 #define EDITV_LIST   5
 
-#ifndef FILE_NORMAL
 #define FILE_NORMAL        0
-#endif
-
-#ifndef FILE_READONLY
 #define FILE_READONLY      1
-#endif
-
-#ifndef FILE_NEW
 #define FILE_NEW          99
-#endif
 
 #define COMMAND_ONLY_TRUE    TRUE
 #define COMMAND_ONLY_FALSE   FALSE
@@ -1537,25 +1403,11 @@ struct regexp_syntax
 /*
  * Following are used for determining the button action of the mouse
  */
-#if !defined(BUTTON_RELEASED)
-# define BUTTON_RELEASED 0
-#endif
-#if !defined(BUTTON_PRESSED)
-# define BUTTON_PRESSED 1
-#endif
-#if !defined(BUTTON_CLICKED)
-# define BUTTON_CLICKED 2
-#endif
-#if !defined(BUTTON_DOUBLE_CLICKED)
-# define BUTTON_DOUBLE_CLICKED 3
-#endif
-#if !defined(BUTTON_MOVED)
-# define BUTTON_MOVED 5
-#endif
-
-#ifndef getbegyx
-#  define getbegyx(win,y,x)       (y = (win)->_begy, x = (win)->_begx)
-#endif
+#define BUTTON_RELEASED 0
+#define BUTTON_PRESSED 1
+#define BUTTON_CLICKED 2
+#define BUTTON_DOUBLE_CLICKED 3
+#define BUTTON_MOVED 5
 
 # define HIT_ANY_KEY "Hit any key to continue..."
 
@@ -1672,7 +1524,5 @@ extern void* (*the_realloc)(void *, unsigned long);
 
 #define MAX_WIDTH_NUM  2000000000L
 
-/*
- * Don't call the *prog_mode functions when using PDCurses
- */
 #include "directry.h"
+

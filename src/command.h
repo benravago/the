@@ -338,17 +338,11 @@ COMMAND command[] =
  {(CHARTYPE *)"addline",     3,  KEY_F(4),        Sos_addline,      FALSE,FALSE,TRUE, FALSE,FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_RESET_ALL    ,(CHARTYPE *)""},  /* commsos.c */
  {(CHARTYPE *)"addline",     3,  KEY_PF4,         Sos_addline,      FALSE,FALSE,TRUE, FALSE,FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_RESET_ALL    ,(CHARTYPE *)""},  /* commsos.c */
  {(CHARTYPE *)"tabb",        4,  (-1),            Sos_tabb,         FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_NONE         ,(CHARTYPE *)""},  /* commsos.c */
-#ifdef OLD_DELBACK_DELCHAR
- {(CHARTYPE *)"delback",     4,  127,             Sos_delback,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
- {(CHARTYPE *)"delchar",     4,  8,               Sos_delchar,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
- {(CHARTYPE *)"delchar",     4,  KEY_DC,          Sos_delchar,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
-#else
  {(CHARTYPE *)"delback",     4,  KEY_C_h,         Sos_delback,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
  {(CHARTYPE *)"delback",     4,  KEY_BACKSPACE,   Sos_delback,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
  {(CHARTYPE *)"delchar",     4,  KEY_Remove,      Sos_delchar,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
  {(CHARTYPE *)"delchar",     4,  KEY_DELETE,      Sos_delchar,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
  {(CHARTYPE *)"delchar",     4,  KEY_DC,          Sos_delchar,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_NONE         ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
-#endif
  {(CHARTYPE *)"delend",      4,  KEY_C_e,         Sos_delend,       FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */
  {(CHARTYPE *)"delline",     4,  KEY_F(9),        Sos_delline,      FALSE,FALSE,TRUE, FALSE,FALSE,STRIP_BOTH,FALSE,FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_RESET_ALL    ,(CHARTYPE *)""},  /* commsos.c */
  {(CHARTYPE *)"delword",     4,  KEY_C_w,         Sos_delword,      FALSE,FALSE,TRUE, TRUE, FALSE,STRIP_BOTH,TRUE, FALSE,TRUE ,CUA_RESET_BLOCK  ,THIGHLIGHT_RESET_FOCUS  ,(CHARTYPE *)""},  /* commsos.c */

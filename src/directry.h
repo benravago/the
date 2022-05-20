@@ -32,8 +32,6 @@
 /*
 $Id: directry.h,v 1.8 2013/01/23 04:13:42 mark Exp $
 */
-#ifndef _DIRECTRY_H_INCLUDED
-#define _DIRECTRY_H_INCLUDED
 
 
 
@@ -111,4 +109,3 @@ CHARTYPE *file_date(struct dirfile *,CHARTYPE *);
 CHARTYPE *file_time(struct dirfile *,CHARTYPE *);
 short set_dirtype(CHARTYPE *);
 
-#endif
