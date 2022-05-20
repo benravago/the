@@ -1015,9 +1015,6 @@ short Osredir(CHARTYPE *params)
    CHARTYPE *word[OSR_PARAMS+1];
    unsigned short num_params=0;
    int save_stdout=0,save_stderr=0;
-#ifdef UNIX1
-   int save_stdin=0;
-#endif
    int fd=0;
 
    /*
@@ -1049,9 +1046,6 @@ short Osredir(CHARTYPE *params)
     */
    save_stdout = dup( fileno( stdout ) );
    save_stderr = dup( fileno( stderr ) );
-#ifdef UNIX1
-   save_stdin  = dup( fileno( stdin ) );
-#endif
 
    fd = open( (DEFCHAR *)word[0], O_WRONLY|O_CREAT, S_IWRITE|S_IREAD );
    if ( fd == (-1) )
@@ -1075,14 +1069,6 @@ short Osredir(CHARTYPE *params)
       strcat( (DEFCHAR *)err, strerror( errno ) );
       rc = RC_INVALID_OPERAND;
    }
-#ifdef UNIX1
-   if ( rc == RC_OK )
-   &&   dup2( fd, fileno( stdin ) ) == (-1) )
-   {
-      sprintf( err, "Error dup2() on stdin: %s", strerror( errno ) );
-      rc = RC_INVALID_OPERAND;
-   }
-#endif
    def_prog_mode();
    /*
     * Run the supplied OS command with stdout and stderr going to the
@@ -1115,10 +1101,6 @@ short Osredir(CHARTYPE *params)
       strcat( (DEFCHAR *)err, strerror( errno ) );
       rc = RC_INVALID_OPERAND;
    }
-#ifdef UNIX1
-   dup2( save_stdin, fileno( stdin ) );
-   close( save_stdin );
-#endif
 
    if ( close( save_stdout ) == (-1) )
    {

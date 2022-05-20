@@ -1312,25 +1312,12 @@ short Compat(CHARTYPE *params)
     */
    set_global_look_defaults();
 
-#ifdef FOR_ALL_VIEWS
-   /*
-    * Change the settings for all views.
-    */
-   viewp = vd_first;
-   while(viewp != NULL)
-   {
-      set_file_defaults(viewp->file_for_view);
-      set_view_defaults(viewp);
-      viewp = viewp->next;
-   }
-#else
    save_autosave_alt = CURRENT_FILE->autosave_alt;
    save_save_alt = CURRENT_FILE->save_alt;
    set_file_defaults(CURRENT_FILE);
    CURRENT_FILE->autosave_alt = save_autosave_alt;
    CURRENT_FILE->save_alt = save_save_alt;
    set_view_defaults(CURRENT_VIEW);
-#endif
    /*
     * Determine the size of each window in each screen in case any changes
     * in defaults caused some settings to include/exclude some windows...

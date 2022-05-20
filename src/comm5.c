@@ -370,9 +370,6 @@ short Text(CHARTYPE *params)
    LENGTHTYPE x=0;
    unsigned short y=0;
    LENGTHTYPE len_params=0L;
-#if defined(HAVE_BROKEN_COLORS)
-   int junky,newx;
-#endif
    chtype attr=0;
    bool need_to_build_screen=FALSE;
    bool save_in_macro=in_macro;
@@ -502,17 +499,13 @@ short Text(CHARTYPE *params)
             {
                cmd_rec = (CHARTYPE *)meminschr( (CHARTYPE *)cmd_rec, real_key, x+(cmd_verify_col-1), max_line_length, cmd_rec_len );
                put_char( CURRENT_WINDOW, chtype_key, INSCHAR );
-#ifndef OLD_CMD
                cmd_rec_len = max( x+cmd_verify_col, cmd_rec_len+1); /* GFUC3 */
-#endif
                THEcursor_right( TRUE, FALSE );
             }
             else
             {
                cmd_rec[x+(cmd_verify_col-1)] = real_key;
-#ifndef OLD_CMD
                cmd_rec_len = max( x+cmd_verify_col, cmd_rec_len );
-#endif
                if ( x == CURRENT_SCREEN.cols[WINDOW_COMMAND]-1 )
                {
                   put_char( CURRENT_WINDOW, chtype_key, INSCHAR );
@@ -521,13 +514,6 @@ short Text(CHARTYPE *params)
                else
                   put_char( CURRENT_WINDOW, chtype_key, ADDCHAR );
             }
-#ifdef OLD_CMD
-            new_len = memrevne( cmd_rec, ' ', max_line_length );
-            if ( new_len == (-1) )
-               cmd_rec_len = 0;
-            else
-               cmd_rec_len = new_len + 1;
-#endif
             /*
              * The cursor is now in the correct column for all cases and apart from
              * the case where we have just scrolled right, the contents is displayed correctly.

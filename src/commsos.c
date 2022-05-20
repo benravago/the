@@ -1122,9 +1122,6 @@ short Sos_tabb(CHARTYPE *params)
     */
    prev_tab_col--;                               /* zero base the column */
 
-#ifdef VERSHIFT
-   rc = execute_move_cursor( current_screen, CURRENT_VIEW, prev_tab_col );
-#else
    calculate_new_column( current_screen, CURRENT_VIEW, x, verify_col, prev_tab_col, &new_screen_col, &new_verify_col );
    if ( verify_col != new_verify_col )
    {
@@ -1142,7 +1139,6 @@ short Sos_tabb(CHARTYPE *params)
       }
    }
    wmove( CURRENT_WINDOW, y, new_screen_col );
-#endif
 
    return(rc);
 }
@@ -1215,9 +1211,6 @@ short Sos_tabf(CHARTYPE *params)
     */
    next_tab_col--;                               /* zero base the column */
 
-#ifdef VERSHIFT
-   rc = execute_move_cursor( current_screen, CURRENT_VIEW, next_tab_col );
-#else
    calculate_new_column( current_screen, CURRENT_VIEW, x, verify_col, next_tab_col, &new_screen_col, &new_verify_col );
    if ( verify_col != new_verify_col )
    {
@@ -1235,7 +1228,6 @@ short Sos_tabf(CHARTYPE *params)
       }
    }
    wmove( CURRENT_WINDOW, y, new_screen_col );
-#endif
 
    return(rc);
 }
@@ -1458,9 +1450,6 @@ short Sos_tabwordb(CHARTYPE *params)
    if (start_word_col == (-1))
       start_word_col = 0;
 
-#ifdef VERSHIFT
-   rc = execute_move_cursor( current_screen, CURRENT_VIEW, start_word_col );
-#else
    calculate_new_column( current_screen, CURRENT_VIEW, x, verify_col, start_word_col, &new_screen_col, &new_verify_col );
    if ( verify_col != new_verify_col )
    {
@@ -1478,7 +1467,6 @@ short Sos_tabwordb(CHARTYPE *params)
       }
    }
    wmove( CURRENT_WINDOW, y, new_screen_col );
-#endif
 
    return(rc);
 }
@@ -1595,9 +1583,6 @@ short Sos_tabwordf(CHARTYPE *params)
    if (start_word_col == (-1))
       start_word_col = temp_rec_len;
 
-#ifdef VERSHIFT
-   rc = execute_move_cursor( current_screen, CURRENT_VIEW, start_word_col );
-#else
    calculate_new_column( current_screen, CURRENT_VIEW, x, verify_col, start_word_col, &new_screen_col, &new_verify_col );
    if ( verify_col != new_verify_col )
    {
@@ -1615,7 +1600,6 @@ short Sos_tabwordf(CHARTYPE *params)
       }
    }
    wmove( CURRENT_WINDOW, y, new_screen_col );
-#endif
 
    return(rc);
 }
