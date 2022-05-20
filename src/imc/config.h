@@ -13,4 +13,3 @@
 
 /* Defines the kernel name */
 #define MH_KERNEL_NAME "Linux"
-

@@ -39,75 +39,24 @@ $Id: vars.h,v 1.47 2020/06/27 00:15:00 mark Exp $
 extern the_header_mapping thm[];
 
 /* commset2.c */
-extern bool           rexx_output;
+extern bool rexx_output;
 
 /* commutil.c */
-extern CHARTYPE       _THE_FAR *last_command_for_reexecute,
-                      _THE_FAR *last_command_for_repeat,
-                      _THE_FAR *last_command_for_repeat_in_macro,
-                      *temp_cmd;
-extern DEFINE         *first_define,
-                      *last_define,
-                      *first_mouse_define,
-                      *last_mouse_define,
-                      *first_synonym,
-                      *last_synonym;
-extern LINE           *key_first_line,
-                      *key_last_line;
-extern LINETYPE       key_number_lines;
-extern AREAS          valid_areas[ATTR_MAX];
+extern CHARTYPE _THE_FAR *last_command_for_reexecute, _THE_FAR * last_command_for_repeat, _THE_FAR * last_command_for_repeat_in_macro, *temp_cmd;
+extern DEFINE *first_define, *last_define, *first_mouse_define, *last_mouse_define, *first_synonym, *last_synonym;
+extern LINE *key_first_line, *key_last_line;
+extern LINETYPE key_number_lines;
+extern AREAS valid_areas[ATTR_MAX];
 
 /* default.c */
-extern bool           BEEPx,
-                      CAPREXXOUTx,
-                      ERROROUTPUTx,
-                      CLEARSCREENx,
-                      CLOCKx,
-                      HEXDISPLAYx,
-                      INSERTMODEx,
-                      LINEND_STATUSx,
-                      REPROFILEx,
-                      DONT_CALL_DEFSORTx,
-                      TYPEAHEADx,
-                      scroll_cursor_stay,
-                      MOUSEx,
-                      SLKx,
-                      SBx,
-                      UNTAAx,
-                      PAGEWRAPx,
-                      FILETABSx,
-                      CTLCHARx,
-                      save_for_repeat,
-                      inDIALOG;
-extern CHARTYPE       CMDARROWSTABCMDx,
-                      EOLx,
-                      INTERFACEx,
-                      LINEND_VALUEx,
-                      NONDISPx,
-                      PREFIXx,
-                      TABI_ONx,
-                      TABI_Nx,
-                      EQUIVCHARx,
-                      EQUIVCHARstr[2],
-                      BACKUP_SUFFIXx[101],
-                      ERRORFORMATx;
-extern LINETYPE       CAPREXXMAXx;
-extern ROWTYPE        STATUSLINEx;
-extern int            DEFSORTx,
-                      DIRORDERx,
-                      CLEARERRORKEYx,
-                      TARGETSAVEx,
-                      REGEXPx,
-                      READONLYx,
-                      COMMANDCALLSx,
-                      FUNCTIONCALLSx,
-                      popup_escape_key,
-                      popup_escape_keys[MAXIMUM_POPUP_KEYS],
-                      last_command_index;
-extern PARSER_DETAILS *first_parser,
-                      *last_parser;
-extern PARSER_MAPPING *first_parser_mapping,
-                      *last_parser_mapping;
+extern bool BEEPx, CAPREXXOUTx, ERROROUTPUTx, CLEARSCREENx, CLOCKx, HEXDISPLAYx, INSERTMODEx, LINEND_STATUSx, REPROFILEx, DONT_CALL_DEFSORTx, TYPEAHEADx, scroll_cursor_stay, MOUSEx, SLKx, SBx, UNTAAx, PAGEWRAPx, FILETABSx, CTLCHARx, save_for_repeat,
+    inDIALOG;
+extern CHARTYPE CMDARROWSTABCMDx, EOLx, INTERFACEx, LINEND_VALUEx, NONDISPx, PREFIXx, TABI_ONx, TABI_Nx, EQUIVCHARx, EQUIVCHARstr[2], BACKUP_SUFFIXx[101], ERRORFORMATx;
+extern LINETYPE CAPREXXMAXx;
+extern ROWTYPE STATUSLINEx;
+extern int DEFSORTx, DIRORDERx, CLEARERRORKEYx, TARGETSAVEx, REGEXPx, READONLYx, COMMANDCALLSx, FUNCTIONCALLSx, popup_escape_key, popup_escape_keys[MAXIMUM_POPUP_KEYS], last_command_index;
+extern PARSER_DETAILS *first_parser, *last_parser;
+extern PARSER_MAPPING *first_parser_mapping, *last_parser_mapping;
 extern CHARTYPE ctlchar_escape;
 extern COLOUR_ATTR ctlchar_attr[MAX_CTLCHARS];
 extern CHARTYPE ctlchar_char[MAX_CTLCHARS];
@@ -115,169 +64,95 @@ extern bool ctlchar_protect[MAX_CTLCHARS];
 extern struct regexp_syntax regexp_syntaxes[];
 
 /* edit.c */
-extern bool           prefix_changed;
+extern bool prefix_changed;
 
 /* error.c */
-extern CHARTYPE       *last_message;
-extern int            last_message_length;
+extern CHARTYPE *last_message;
+extern int last_message_length;
 
 /* mygetopt.c */
-extern char           *optarg;
-extern int            opterr,
-                      optind;
+extern char *optarg;
+extern int opterr, optind;
 
 /* prefix.c */
-extern LINE           *first_prefix_synonym;
-extern LINETYPE       prefix_current_line;
-extern bool           in_prefix_macro;
+extern LINE *first_prefix_synonym;
+extern LINETYPE prefix_current_line;
+extern bool in_prefix_macro;
 
 /* query.c */
-extern VALUE          item_values[MAX_VARIABLES_RETURNED];
+extern VALUE item_values[MAX_VARIABLES_RETURNED];
 
 /* mouse.c */
-extern MEVENT         ncurses_mouse_event;
+extern MEVENT ncurses_mouse_event;
 
 /* rexx.c */
-extern LINE           *rexxout_first_line,
-                      *rexxout_last_line,
-                      *rexxout_curr;
-extern LINETYPE       rexxout_number_lines;
+extern LINE *rexxout_first_line, *rexxout_last_line, *rexxout_curr;
+extern LINETYPE rexxout_number_lines;
 extern QUERY_ITEM _THE_FAR query_item[];
 extern QUERY_ITEM _THE_FAR function_item[];
 
 /* the.c */
 extern SCREEN_DETAILS screen[MAX_SCREENS];
-extern short          screen_rows[MAX_SCREENS];
-extern short          screen_cols[MAX_SCREENS];
-extern WINDOW         *statarea,
-                      *error_window,
-                      *divider,
-                      *filetabs;
-extern VIEW_DETAILS   *vd_current,
-                      *vd_first,
-                      *vd_last,
-                      *vd_mark,
-                      *filetabs_start_view;
-extern LINETYPE       number_of_files;
-extern CHARTYPE       number_of_views,
-                      display_screens,
-                      current_screen;
+extern short screen_rows[MAX_SCREENS];
+extern short screen_cols[MAX_SCREENS];
+extern WINDOW *statarea, *error_window, *divider, *filetabs;
+extern VIEW_DETAILS *vd_current, *vd_first, *vd_last, *vd_mark, *filetabs_start_view;
+extern LINETYPE number_of_files;
+extern CHARTYPE number_of_views, display_screens, current_screen;
 extern SCREEN_DETAILS screen[MAX_SCREENS];
-extern bool           rexx_support,
-                      batch_only,
-                      horizontal,
-                      first_screen_display;
-extern short          save_coord_x[VIEW_WINDOWS],
-                      save_coord_y[VIEW_WINDOWS];
-extern LINE           *next_line,
-                      *curr_line,
-                      *first_file_name,
-                      *current_file_name,
-                      *editv,
-                      *first_option,
-                      *last_option;
-extern bool           error_on_screen,
-                      colour_support,
-                      initial,
-                      been_interactive;
-extern CHARTYPE       *rec;
-extern LENGTHTYPE     rec_len;
-extern CHARTYPE       *trec;
-extern LENGTHTYPE     trec_len;
-extern LENGTHTYPE     max_trec_len;
-extern CHARTYPE       *brec;
-extern LENGTHTYPE     brec_len;
-extern CHARTYPE       *cmd_rec;
-extern LENGTHTYPE     cmd_rec_len;
-extern LENGTHTYPE     cmd_verify_col;
-extern CHARTYPE       *pre_rec;
-extern LENGTHTYPE     pre_rec_len;
-extern CHARTYPE       *profile_command_line,
-                      *target_buffer;
-extern LENGTHTYPE     target_buffer_len;
-extern bool           focus_changed,
-                      current_changed,
-                      in_profile,
-                      in_nomsg,
-                      in_reprofile;
-extern int            profile_file_executions;
-extern bool           execute_profile,
-                      in_macro,
-                      in_readv,
-                      file_read,
-                      curses_started,
-                      the_readonly,
-                      interactive_in_macro,
-                      be_quiet;
-extern CHARTYPE       *the_version,
-                      *the_release,
-                      *the_copyright,
-                      term_name[20];
-extern CHARTYPE       *tempfilename;
-extern short          colour_offset_bits;
-extern CHARTYPE       user_home_dir[MAX_FILE_NAME+1];
-extern CHARTYPE       *rexxoutname,
-                      *keyfilename,
-                      _THE_FAR rexx_pathname[MAX_FILE_NAME+1],
-                      rexx_filename[10],
-                      *dirfilename;
-extern CHARTYPE       macro_suffix[12];
-extern CHARTYPE       _THE_FAR dir_pathname[MAX_FILE_NAME+1],
-                      dir_filename[10],
-                      _THE_FAR key_pathname[MAX_FILE_NAME+1],
-                      key_filename[15];
-extern CHARTYPE       _THE_FAR curr_path[MAX_FILE_NAME+1],
-                      _THE_FAR sp_path[MAX_FILE_NAME+1],
-                      _THE_FAR sp_fname[MAX_FILE_NAME+1],
-                      _THE_FAR dir_path[MAX_FILE_NAME+1],
-                      _THE_FAR dir_files[MAX_FILE_NAME+1],
-                      _THE_FAR rexx_macro_name[MAX_FILE_NAME+1],
-                      _THE_FAR rexx_macro_parameters[MAX_FILE_NAME+1],
-                      _THE_FAR the_home_dir[MAX_FILE_NAME+1],
-                      _THE_FAR the_help_file[MAX_FILE_NAME+1],
-                      _THE_FAR the_macro_path[MAX_FILE_NAME+1],
-                      _THE_FAR the_macro_path_buf[MAX_FILE_NAME+1],
-                      **the_macro_dir;
-extern int            max_macro_dirs,
-                      total_macro_dirs;
-extern CHARTYPE       *prf_arg,
-                      *local_prf,
-                      *specified_prf;
-extern CHARTYPE       tabkey_insert,
-                      tabkey_overwrite;
-extern CHARTYPE       _THE_FAR spooler_name[MAX_FILE_NAME+1];
-extern struct stat    stat_buf;
-extern LENGTHTYPE     display_length;
-extern short          lastrc,
-                      compatible_look,
-                      compatible_feel,
-                      compatible_keys,
-                      prefix_width,
-                      prefix_gap;
-extern chtype         etmode_table[256];
-extern bool           etmode_flag[256];
-extern short          terminal_lines,
-                      terminal_cols;
-extern LINETYPE       original_screen_line,
-                      original_screen_column,
-                      original_file_line,
-                      original_file_column,
-                      startup_line;
-extern LENGTHTYPE     startup_column;
-extern CHARTYPE       *linebuf;
-extern chtype         *linebufch;
+extern bool rexx_support, batch_only, horizontal, first_screen_display;
+extern short save_coord_x[VIEW_WINDOWS], save_coord_y[VIEW_WINDOWS];
+extern LINE *next_line, *curr_line, *first_file_name, *current_file_name, *editv, *first_option, *last_option;
+extern bool error_on_screen, colour_support, initial, been_interactive;
+extern CHARTYPE *rec;
+extern LENGTHTYPE rec_len;
+extern CHARTYPE *trec;
+extern LENGTHTYPE trec_len;
+extern LENGTHTYPE max_trec_len;
+extern CHARTYPE *brec;
+extern LENGTHTYPE brec_len;
+extern CHARTYPE *cmd_rec;
+extern LENGTHTYPE cmd_rec_len;
+extern LENGTHTYPE cmd_verify_col;
+extern CHARTYPE *pre_rec;
+extern LENGTHTYPE pre_rec_len;
+extern CHARTYPE *profile_command_line, *target_buffer;
+extern LENGTHTYPE target_buffer_len;
+extern bool focus_changed, current_changed, in_profile, in_nomsg, in_reprofile;
+extern int profile_file_executions;
+extern bool execute_profile, in_macro, in_readv, file_read, curses_started, the_readonly, interactive_in_macro, be_quiet;
+extern CHARTYPE *the_version, *the_release, *the_copyright, term_name[20];
+extern CHARTYPE *tempfilename;
+extern short colour_offset_bits;
+extern CHARTYPE user_home_dir[MAX_FILE_NAME + 1];
+extern CHARTYPE *rexxoutname, *keyfilename, _THE_FAR rexx_pathname[MAX_FILE_NAME + 1], rexx_filename[10], *dirfilename;
+extern CHARTYPE macro_suffix[12];
+extern CHARTYPE _THE_FAR dir_pathname[MAX_FILE_NAME + 1], dir_filename[10], _THE_FAR key_pathname[MAX_FILE_NAME + 1], key_filename[15];
+extern CHARTYPE _THE_FAR curr_path[MAX_FILE_NAME + 1], _THE_FAR sp_path[MAX_FILE_NAME + 1], _THE_FAR sp_fname[MAX_FILE_NAME + 1], _THE_FAR dir_path[MAX_FILE_NAME + 1], _THE_FAR dir_files[MAX_FILE_NAME + 1], _THE_FAR rexx_macro_name[MAX_FILE_NAME + 1],
+    _THE_FAR rexx_macro_parameters[MAX_FILE_NAME + 1], _THE_FAR the_home_dir[MAX_FILE_NAME + 1], _THE_FAR the_help_file[MAX_FILE_NAME + 1], _THE_FAR the_macro_path[MAX_FILE_NAME + 1], _THE_FAR the_macro_path_buf[MAX_FILE_NAME + 1], **the_macro_dir;
+extern int max_macro_dirs, total_macro_dirs;
+extern CHARTYPE *prf_arg, *local_prf, *specified_prf;
+extern CHARTYPE tabkey_insert, tabkey_overwrite;
+extern CHARTYPE _THE_FAR spooler_name[MAX_FILE_NAME + 1];
+extern struct stat stat_buf;
+extern LENGTHTYPE display_length;
+extern short lastrc, compatible_look, compatible_feel, compatible_keys, prefix_width, prefix_gap;
+extern chtype etmode_table[256];
+extern bool etmode_flag[256];
+extern short terminal_lines, terminal_cols;
+extern LINETYPE original_screen_line, original_screen_column, original_file_line, original_file_column, startup_line;
+extern LENGTHTYPE startup_column;
+extern CHARTYPE *linebuf;
+extern chtype *linebufch;
 extern LENGTHTYPE linebuf_size;
-extern int            lastkeys[8],
-                      lastkeys_is_mouse[8],
-                      current_key;
+extern int lastkeys[8], lastkeys_is_mouse[8], current_key;
 
 extern bool ncurses_screen_resized;
-extern int            max_slk_labels,
-                      slk_format_switch;
-extern bool           single_instance_server;
-extern CHARTYPE       fifo_name[MAX_FILE_NAME+1];
-extern CHARTYPE       pid_name[MAX_FILE_NAME+1];
-extern LASTOP         lastop[LASTOP_MAX];
-extern FILE           *record_fp;
-extern int            record_key;
-extern CHARTYPE       *record_status;
+extern int max_slk_labels, slk_format_switch;
+extern bool single_instance_server;
+extern CHARTYPE fifo_name[MAX_FILE_NAME + 1];
+extern CHARTYPE pid_name[MAX_FILE_NAME + 1];
+extern LASTOP lastop[LASTOP_MAX];
+extern FILE *record_fp;
+extern int record_key;
+extern CHARTYPE *record_status;

@@ -34,10 +34,10 @@ $Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
 */
 
 // TODO: validate these mappings
-#define KEY_A2          0x198             /* Upper centre of keypad */
-#define KEY_B1          0x19a             /* Middle left of keypad */
-#define KEY_B3          0x19c             /* Middle right of keypad */
-#define KEY_C2          0x19e             /* Lower centre of keypad */
+#define KEY_A2          0x198   /* Upper centre of keypad */
+#define KEY_B1          0x19a   /* Middle left of keypad */
+#define KEY_B3          0x19c   /* Middle right of keypad */
+#define KEY_C2          0x19e   /* Lower centre of keypad */
 
 /* special definition for UNIX systems */
 
@@ -219,4 +219,3 @@ $Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
 #define KEY_A_DB1      0x429
 #define KEY_A_DB2      0x42a
 #define KEY_A_DB3      0x42b
-

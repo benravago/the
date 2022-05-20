@@ -35,7 +35,6 @@
 $Id: query.h,v 1.25 2016/12/24 05:46:30 mark Exp $
 */
 
-
 /*---------------------------------------------------------------------*/
 /* The order of these items determine the order they appear as a result*/
 /* of the STATUS command, so they should be in alphabetical order.     */
@@ -223,4 +222,3 @@ $Id: query.h,v 1.25 2016/12/24 05:46:30 mark Exp $
 /*---------------------------------------------------------------------*/
 /* The following are item number defines for the 'other' functions.    */
 /*---------------------------------------------------------------------*/
-

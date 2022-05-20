@@ -22,8 +22,8 @@ typedef char *PCH;
 typedef unsigned char *PUCHAR;
 
 typedef struct _RXSTRING {
-        ULONG strlength;
-        char *strptr;
+  ULONG strlength;
+  char *strptr;
 } RXSTRING;
 typedef RXSTRING *PRXSTRING;
 
@@ -35,9 +35,9 @@ typedef RXSTRING *PRXSTRING;
 #define RXZEROLENSTRING(x)    ((x).strptr && !(x).strlength)
 #define RXRESULTLEN           256
 
-#define APIRET ULONG     /* some apps use these to get correct */
-#define APIENTRY         /* function linkage */
-typedef ULONG (*PFN)();
+#define APIRET ULONG            /* some apps use these to get correct */
+#define APIENTRY                /* function linkage */
+typedef ULONG(*PFN) ();
 
 #define RXCOMMAND         1
 #define RXSUBROUTINE      2
@@ -60,7 +60,7 @@ typedef ULONG (*PFN)();
 #define RXTER        3
 #define RXTEREXT        1
 
-#define RXEXITNUM    4   /* number of  main exits */
+#define RXEXITNUM    4          /* number of  main exits */
 
 #define RXENDLST    100
 
@@ -74,118 +74,109 @@ typedef ULONG (*PFN)();
 #define RXEXIT_RAISE_ERROR (-1)
 
 typedef struct {
-   struct {
-      unsigned int rxfcfail:1;
-      unsigned int rxfcerr:1;
-   } rxcmd_flags;
-   char *rxcmd_address;
-   unsigned short rxcmd_addressl;
-   char *rxcmd_dll;
-   unsigned short rxcmd_dll_len;
-   RXSTRING rxcmd_command;
-   RXSTRING rxcmd_retc;
+  struct {
+    unsigned int rxfcfail:1;
+    unsigned int rxfcerr:1;
+  } rxcmd_flags;
+  char *rxcmd_address;
+  unsigned short rxcmd_addressl;
+  char *rxcmd_dll;
+  unsigned short rxcmd_dll_len;
+  RXSTRING rxcmd_command;
+  RXSTRING rxcmd_retc;
 } RXCMDHST_PARM;
 
 typedef struct {
-   RXSTRING rxsio_string;
+  RXSTRING rxsio_string;
 } RXSIOSAY_PARM;
 
 typedef struct {
-   RXSTRING rxsio_string;
+  RXSTRING rxsio_string;
 } RXSIOTRC_PARM;
 
 typedef struct {
-   RXSTRING rxsiotrd_retc;
+  RXSTRING rxsiotrd_retc;
 } RXSIOTRD_PARM;
 
 typedef struct {
-   RXSTRING rxsiodtr_retc;
+  RXSTRING rxsiodtr_retc;
 } RXSIODTR_PARM;
 
 typedef union {
-   RXCMDHST_PARM cmdhst;
-   RXSIOSAY_PARM siosay;
-   RXSIOTRC_PARM siotrc;
-   RXSIOTRD_PARM siotrd;
-   RXSIODTR_PARM siodtr;
+  RXCMDHST_PARM cmdhst;
+  RXSIOSAY_PARM siosay;
+  RXSIOTRC_PARM siotrc;
+  RXSIOTRD_PARM siotrd;
+  RXSIODTR_PARM siodtr;
 } EXIT_PARM;
 typedef EXIT_PARM *PEXIT;
 
 typedef struct {
-   char *sysexit_name;
-   short sysexit_code;
+  char *sysexit_name;
+  short sysexit_code;
 } RXSYSEXIT;
 typedef RXSYSEXIT *PRXSYSEXIT;
 
-typedef LONG (RexxExitHandler) (LONG,LONG,PEXIT);
+typedef LONG(RexxExitHandler) (LONG, LONG, PEXIT);
 
-ULONG RexxRegisterExitExe (PSZ EnvName,RexxExitHandler *EntryPoint,
-      PUCHAR UserArea);
+ULONG RexxRegisterExitExe(PSZ EnvName, RexxExitHandler * EntryPoint, PUCHAR UserArea);
 
-ULONG RexxDeregisterExit (PSZ EnvName,PSZ ModuleName);
+ULONG RexxDeregisterExit(PSZ EnvName, PSZ ModuleName);
 
-ULONG RexxQueryExit (PSZ EnvName,PSZ ModuleName,
-      unsigned short *flag, unsigned char *area);
+ULONG RexxQueryExit(PSZ EnvName, PSZ ModuleName, unsigned short *flag, unsigned char *area);
 
-#else  /* INCL_RXSYSEXIT */
+#else                           /* INCL_RXSYSEXIT */
 typedef void *PRXSYSEXIT;
-#endif /* INCL_RXSYSEXIT */
+#endif                          /* INCL_RXSYSEXIT */
 
 /* Now RXSYSEXIT is defined, we can declare RexxStart... */
-long RexxStart (long argc, PRXSTRING argv, char *name,
-     PRXSTRING instore, PSZ envname, long calltype, PRXSYSEXIT exits,
-     short *rc, PRXSTRING result);
+long RexxStart(long argc, PRXSTRING argv, char *name, PRXSTRING instore, PSZ envname, long calltype, PRXSYSEXIT exits, short *rc, PRXSTRING result);
 
-long RexxStartProgram (char *argv0, long argc, PRXSTRING argv, char *name,
-     char *callname, PRXSTRING instore, PSZ envname, long calltype,
-     int flags, PRXSYSEXIT exits, short *rc, PRXSTRING result);
+long RexxStartProgram(char *argv0, long argc, PRXSTRING argv, char *name, char *callname, PRXSTRING instore, PSZ envname, long calltype, int flags, PRXSYSEXIT exits, short *rc, PRXSTRING result);
 
 #ifdef INCL_RXSHV
 
-#define RXSHV_OK       0x00    /* OK */
-#define RXSHV_NEWV     0x01    /* New variable */
-#define RXSHV_LVAR     0x02    /* Last variable */
-#define RXSHV_TRUNC    0x04    /* Name or value has been truncated */
-#define RXSHV_BADN     0x08    /* Invalid name */
-#define RXSHV_MEMFL    0x10    /* Out of memory */
-#define RXSHV_BADF     0x20    /* Invalid function code */
+#define RXSHV_OK       0x00     /* OK */
+#define RXSHV_NEWV     0x01     /* New variable */
+#define RXSHV_LVAR     0x02     /* Last variable */
+#define RXSHV_TRUNC    0x04     /* Name or value has been truncated */
+#define RXSHV_BADN     0x08     /* Invalid name */
+#define RXSHV_MEMFL    0x10     /* Out of memory */
+#define RXSHV_BADF     0x20     /* Invalid function code */
 
-#define RXSHV_NOAVL    0x90    /* Interface not available */
+#define RXSHV_NOAVL    0x90     /* Interface not available */
 
-#define RXSHV_SET      0x00    /* Set direct variable */
-#define RXSHV_FETCH    0x01    /* Fetch direct variable */
-#define RXSHV_DROPV    0x02    /* Drop direct variable */
-#define RXSHV_SYSET    0x03    /* Set symbolic variable */
-#define RXSHV_SYFET    0x04    /* Fetch symbolic variable */
-#define RXSHV_SYDRO    0x05    /* Drop symbolic variable */
-#define RXSHV_NEXTV    0x06    /* Get next variable */
-#define RXSHV_PRIV     0x07    /* Get private information */
-#define RXSHV_EXIT     0x08    /* Set function exit value */
+#define RXSHV_SET      0x00     /* Set direct variable */
+#define RXSHV_FETCH    0x01     /* Fetch direct variable */
+#define RXSHV_DROPV    0x02     /* Drop direct variable */
+#define RXSHV_SYSET    0x03     /* Set symbolic variable */
+#define RXSHV_SYFET    0x04     /* Fetch symbolic variable */
+#define RXSHV_SYDRO    0x05     /* Drop symbolic variable */
+#define RXSHV_NEXTV    0x06     /* Get next variable */
+#define RXSHV_PRIV     0x07     /* Get private information */
+#define RXSHV_EXIT     0x08     /* Set function exit value */
 
-typedef struct shvnode
-{
-   struct shvnode *shvnext;
-   RXSTRING shvname, shvvalue;
-   ULONG shvnamelen, shvvaluelen;
-   UCHAR shvcode, shvret;
+typedef struct shvnode {
+  struct shvnode *shvnext;
+  RXSTRING shvname, shvvalue;
+  ULONG shvnamelen, shvvaluelen;
+  UCHAR shvcode, shvret;
 } SHVBLOCK;
 typedef struct shvnode *PSHVBLOCK;
 
-ULONG RexxVariablePool (PSHVBLOCK RequestBlockList);
+ULONG RexxVariablePool(PSHVBLOCK RequestBlockList);
 
-#endif /* INCL_RXSHV */
+#endif                          /* INCL_RXSHV */
 
 #ifdef INCL_RXSUBCOM
 
-typedef ULONG RexxSubcomHandler (PRXSTRING,PUSHORT,PRXSTRING);
+typedef ULONG RexxSubcomHandler(PRXSTRING, PUSHORT, PRXSTRING);
 
-ULONG RexxRegisterSubcomExe (PSZ EnvName,
-      RexxSubcomHandler *EntryPoint, PUCHAR UserArea);
+ULONG RexxRegisterSubcomExe(PSZ EnvName, RexxSubcomHandler * EntryPoint, PUCHAR UserArea);
 
-ULONG RexxDeregisterSubcom (PSZ EnvName, PSZ ModuleName);
+ULONG RexxDeregisterSubcom(PSZ EnvName, PSZ ModuleName);
 
-ULONG RexxQuerySubcom (PSZ Envname, PSZ ModuleName,
-      PUSHORT flag, PUCHAR UserArea);
+ULONG RexxQuerySubcom(PSZ Envname, PSZ ModuleName, PUSHORT flag, PUCHAR UserArea);
 
 #define RXSUBCOM_OK           0
 #define RXSUBCOM_DUP         10
@@ -197,23 +188,21 @@ ULONG RexxQuerySubcom (PSZ Envname, PSZ ModuleName,
 #define RXSUBCOM_ERROR        1
 #define RXSUBCOM_FAILURE      2
 
-#endif /* INCL_RXSUBCOM */
+#endif                          /* INCL_RXSUBCOM */
 
 #ifdef INCL_RXFUNC
 
-typedef ULONG (RexxFunctionHandler) (PSZ name, ULONG argc,
-        RXSTRING argv[], PSZ QueueName, PRXSTRING Retstr);
+typedef ULONG(RexxFunctionHandler) (PSZ name, ULONG argc, RXSTRING argv[], PSZ QueueName, PRXSTRING Retstr);
 
-ULONG RexxRegisterFunctionExe (PSZ name,
-      RexxFunctionHandler *EntryPoint);
+ULONG RexxRegisterFunctionExe(PSZ name, RexxFunctionHandler * EntryPoint);
 
-ULONG RexxDeregisterFunction (PSZ name);
+ULONG RexxDeregisterFunction(PSZ name);
 
-ULONG RexxQueryFunction (PSZ name);
+ULONG RexxQueryFunction(PSZ name);
 
 #define RXFUNC_OK         0
 #define RXFUNC_DEFINED   10
 #define RXFUNC_NOTREG    30
 #define RXFUNC_NOMEM     20
 
-#endif /* INCL_RXFUNC */
+#endif                          /* INCL_RXFUNC */
