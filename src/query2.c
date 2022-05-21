@@ -773,11 +773,7 @@ short extract_reserved(short number_variables, short itemno, CHARTYPE * itemargs
   }
   return number_variables;
 }
-short extract_rexx(short number_variables, short itemno, CHARTYPE * itemargs, CHARTYPE query_type, LINETYPE argc, CHARTYPE * arg, LINETYPE arglen) {
-  item_values[1].value = get_rexx_interpreter_version(query_rsrvd);
-  item_values[1].len = strlen((DEFCHAR *) query_rsrvd);
-  return number_variables;
-}
+
 short extract_rexxhalt(short number_variables, short itemno, CHARTYPE * itemargs, CHARTYPE query_type, LINETYPE argc, CHARTYPE * arg, LINETYPE arglen) {
   if (COMMANDCALLSx == 0) {
     item_values[1].value = (CHARTYPE *) "OFF";

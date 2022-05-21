@@ -1,9 +1,8 @@
-// SPDX-FileCopyrightText: Mark Hessling <mark@rexx.org>
+// SPDX-FileCopyrightText: 2013 Mark Hessling <mark@rexx.org>
 // SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * This file contains all functions relating to box operations.
- */
+/* This file contains all functions relating to box operations. */
 
 #include "the.h"
 #include "proto.h"
@@ -325,7 +324,7 @@ static short box_delete(BOXP * prm) {
   if ((prm->mark_type == M_STREAM || prm->mark_type == M_CUA) && prm->src_start_line != prm->src_end_line && !shadow_found) {
     curr = prm->curr_src;
     if (curr->next->length > 0) {
-      curr->line = (CHARTYPE *) (*the_realloc) ((void *) curr->line, (curr->length + curr->next->length) * sizeof(CHARTYPE));
+      curr->line = (CHARTYPE *) realloc((void *) curr->line, (curr->length + curr->next->length) * sizeof(CHARTYPE));
       if (curr->line == NULL) {
         display_error(30, (CHARTYPE *) "", FALSE);
         return (RC_OUT_OF_MEMORY);

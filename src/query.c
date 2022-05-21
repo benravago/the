@@ -161,7 +161,6 @@ extern ExtractFunction extract_reprofile;
 extern ExtractFunction extract_readonly;
 extern ExtractFunction extract_readv;
 extern ExtractFunction extract_reserved;
-extern ExtractFunction extract_rexx;
 extern ExtractFunction extract_rexxhalt;
 extern ExtractFunction extract_rexxoutput;
 extern ExtractFunction extract_rightedge_function;
@@ -333,7 +332,6 @@ QUERY_ITEM _THE_FAR query_item[] = {
   { (CHARTYPE *) "readv", 5, 5, ITEM_READV, 4, 1, LVL_GLOB, QUERY_READV, extract_readv },
   { (CHARTYPE *) "reprofile", 9, 6, ITEM_REPROFILE, 1, 1, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_reprofile },
   { (CHARTYPE *) "reserved", 8, 5, ITEM_RESERVED, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_reserved },
-  { (CHARTYPE *) "rexx", 4, 4, ITEM_REXX, 1, 1, LVL_GLOB, QUERY_QUERY, extract_rexx },
   { (CHARTYPE *) "rexxhalt", 5, 5, ITEM_REXXHALT, 2, 2, LVL_GLOB, QUERY_QUERY | QUERY_EXTRACT, extract_rexxhalt },
   { (CHARTYPE *) "rexxoutput", 10, 7, ITEM_REXXOUTPUT, 2, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_rexxoutput },
   { (CHARTYPE *) "ring", 4, 4, ITEM_RING, 1, 0, LVL_GLOB, QUERY_QUERY | QUERY_EXTRACT, extract_ring },
