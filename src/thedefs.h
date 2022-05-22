@@ -54,14 +54,21 @@ $Id: thedefs.h,v 1.20 2013/07/10 02:07:44 mark Exp $
 /* The following values should not be changed unless you know what you */
 /* are doing !                                                         */
 /*---------------------------------------------------------------------*/
-typedef unsigned short ROWTYPE;
-typedef unsigned short COLTYPE;
-typedef unsigned char CHARTYPE;
-typedef long LENGTHTYPE;        /* was unsigned short *//* MUST be signed!!! */
-typedef long LINETYPE;
-typedef unsigned char SELECTTYPE;
+typedef unsigned short row_t;
+typedef unsigned short col_t;
+typedef unsigned char char_t;
+typedef long length_t;        /* was unsigned short *//* MUST be signed!!! */
+typedef long line_t;
+typedef unsigned char select_t;
 
 /*---------------------------------------------------------------------*/
 /* A default char type to avoid compiler warnings.                     */
 /*---------------------------------------------------------------------*/
 typedef char DEFCHAR;
+
+typedef unsigned short ROWTYPE;
+typedef unsigned short COLTYPE;
+typedef unsigned char CHARTYPE;
+typedef long LENGTHTYPE;
+typedef long LINETYPE;
+typedef unsigned char SELECTTYPE;

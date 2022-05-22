@@ -27,10 +27,7 @@
  *
  */
 
-#include <config.h>
-
 #include <errno.h>
-
 #include <ncurses.h>
 
 /*
@@ -48,9 +45,9 @@ int my_getch(WINDOW * winptr) {
   short state = NORMAL;
   short fkeycount = 0;
 
-  while (1) {
+  for (;;) {
     c = wgetch(winptr);
-#if defined(EINTR) && defined(KEY_RESIZE)
+//#if defined(EINTR) && defined(KEY_RESIZE)
     if (c == ERR) {
       if (errno == EINTR)
         c = KEY_RESIZE;
@@ -59,11 +56,11 @@ int my_getch(WINDOW * winptr) {
           c = wgetch(winptr);
       }
     }
-#endif
+//#endif
     switch (state) {
+
       case BRACK:
-        switch (c) {
-            /* Linux f1 thru f5 are <esc>[[A <esc>[[B ... <esc>[[E */
+        switch (c) { /* Linux f1 thru f5 are <esc>[[A <esc>[[B ... <esc>[[E */
           case 'A':
           case 'B':
           case 'C':
@@ -77,8 +74,7 @@ int my_getch(WINDOW * winptr) {
         break;
 
       case FKEY:
-        switch (c) {
-            /* numeric function keys */
+        switch (c) { /* numeric function keys */
           case '0':
           case '1':
           case '2':
@@ -93,8 +89,7 @@ int my_getch(WINDOW * winptr) {
             break;
 
           case '~':
-            switch (fkeycount) {
-                /* Find, Insert Here, Remove, Select, Prev Screen, Next Screen */
+            switch (fkeycount) { /* Find, Insert Here, Remove, Select, Prev Screen, Next Screen */
               case 1:
                 return KEY_Find;
               case 2:
@@ -451,8 +446,9 @@ int my_getch(WINDOW * winptr) {
             nodelay(winptr, TRUE);
             tmp_c = wgetch(winptr);
             nodelay(winptr, FALSE);
-            if (tmp_c == ERR)
+            if (tmp_c == ERR) {
               return (c);
+            }
             ungetch(tmp_c);
             state = ESCAPE;
             break;

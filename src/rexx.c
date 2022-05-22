@@ -17,7 +17,7 @@
 LINE *rexxout_first_line = NULL;
 LINE *rexxout_last_line = NULL;
 LINE *rexxout_curr = NULL;
-LINETYPE rexxout_number_lines = 0L;
+line_t rexxout_number_lines = 0L;
 
 #define BUF_SIZE 512
 
@@ -25,23 +25,23 @@ RexxSubcomHandler THE_Commands;
 RexxExitHandler THE_Exit_Handler;
 RexxFunctionHandler THE_Function_Handler;
 
-static RXSTRING *get_compound_rexx_variable (CHARTYPE *, RXSTRING *, short);
+static RXSTRING *get_compound_rexx_variable (char_t *, RXSTRING *, short);
 static short valid_target_function (ULONG, RXSTRING[]);
 static short run_os_function (ULONG, RXSTRING[]);
-static int run_os_command (CHARTYPE *, CHARTYPE *, CHARTYPE *, CHARTYPE *);
-static CHARTYPE *MakeAscii (RXSTRING *);
+static int run_os_command (char_t *, char_t *, char_t *, char_t *);
+static char_t *MakeAscii (RXSTRING *);
 static char *get_a_line (FILE *, char *, int *, int *);
-static short set_rexx_variables_from_file (char *, CHARTYPE *);
+static short set_rexx_variables_from_file (char *, char_t *);
 
-static LINETYPE captured_lines;
+static line_t captured_lines;
 static bool rexx_halted;
-static CHARTYPE version_buffer[MAX_FILE_NAME + 1];
+static char_t version_buffer[MAX_FILE_NAME + 1];
 
 #define rexx_malloc(n) malloc(n)
 #define rexx_free(p)   free(p)
 
-unsigned long MyRexxDeregisterFunction(CHARTYPE * Name) {
-  CHARTYPE newname[80];
+unsigned long MyRexxDeregisterFunction(char_t * Name) {
+  char_t newname[80];
   ULONG rc;
 
   strcpy((DEFCHAR *) newname, (DEFCHAR *) Name);
@@ -50,8 +50,8 @@ unsigned long MyRexxDeregisterFunction(CHARTYPE * Name) {
   return rc;
 }
 
-unsigned long MyRexxRegisterFunctionExe(CHARTYPE * Name) {
-  CHARTYPE newname[256];
+unsigned long MyRexxRegisterFunctionExe(char_t * Name) {
+  char_t newname[256];
   ULONG rc;
 
   strcpy((DEFCHAR *) newname, (DEFCHAR *) Name);
@@ -68,7 +68,7 @@ ULONG THE_Commands(
   short rc = RC_OK;
 
   if (allocate_temp_space(Command->strlength, TEMP_TEMP_CMD) != RC_OK) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     *Flags = RXSUBCOM_ERROR;    /* raise an error condition   */
     sprintf((DEFCHAR *) Retstr->strptr, "%d", rc);      /* format return code string  */
     /* and set the correct length */
@@ -99,7 +99,7 @@ LONG THE_Exit_Handler(
   short errnum = 0;
   short macrorc;
   char rexxout_temp[60];
-  CHARTYPE *macroname = NULL;
+  char_t *macroname = NULL;
   VIEW_DETAILS *found_view = NULL;
   static bool first = TRUE;
   RXSYSEXIT exit_list[3];       /* system exit list           */
@@ -183,7 +183,7 @@ LONG THE_Exit_Handler(
        */
       if (CAPREXXOUTx) {
         rexxout_number_lines++;
-        if ((rexxout_curr = add_LINE(rexxout_first_line, rexxout_curr, (CHARTYPE *) trc_parm->rxsio_string.strptr, (trc_parm->rxsio_string.strlength == (-1)) ? 0 : trc_parm->rxsio_string.strlength, 0, FALSE)) == NULL) {
+        if ((rexxout_curr = add_LINE(rexxout_first_line, rexxout_curr, (char_t *) trc_parm->rxsio_string.strptr, (trc_parm->rxsio_string.strlength == (-1)) ? 0 : trc_parm->rxsio_string.strlength, 0, FALSE)) == NULL) {
           rc = RXEXIT_RAISE_ERROR;
         } else {
           rc = RXEXIT_HANDLED;
@@ -200,7 +200,7 @@ LONG THE_Exit_Handler(
         if (CAPREXXOUTx) {
           rexxout_number_lines++;
           sprintf(rexxout_temp, "THE: REXX macro halted - line limit (%ld) exceeded", CAPREXXMAXx);
-          rexxout_curr = add_LINE(rexxout_first_line, rexxout_curr, (CHARTYPE *) rexxout_temp, strlen((DEFCHAR *) rexxout_temp), 0, FALSE);
+          rexxout_curr = add_LINE(rexxout_first_line, rexxout_curr, (char_t *) rexxout_temp, strlen((DEFCHAR *) rexxout_temp), 0, FALSE);
         } else {
           printf("THE: REXX macro halted - line limit (%ld) exceeded\n", CAPREXXMAXx);
         }
@@ -225,7 +225,7 @@ ULONG THE_Function_Handler(
   int functionname_length = 0;
   int itemno = 0, item_index = 0, num_vars = 0, rc = 0;
 
-  itemno = split_function_name((CHARTYPE *) FunctionName, &functionname_length);
+  itemno = split_function_name((char_t *) FunctionName, &functionname_length);
   /*
    * If the tail is > maximum number of variables that we can
    * handle, exit with error.
@@ -247,7 +247,7 @@ ULONG THE_Function_Handler(
 
       case ITEM_VALID_TARGET_FUNCTION:
         if (number_of_files == 0) {
-          display_error(83, (CHARTYPE *) "", FALSE);
+          display_error(83, (char_t *) "", FALSE);
           return (1);
         }
         valid_target_function(Argc, Argv);
@@ -259,13 +259,13 @@ ULONG THE_Function_Handler(
 
       default:
         if (number_of_files == 0 && function_item[rc].level != LVL_GLOB) {
-          display_error(83, (CHARTYPE *) "", FALSE);
+          display_error(83, (char_t *) "", FALSE);
           return (1);
         }
         if ((Argv == NULL) || (Argc == 0)) {    /* FGC */
-          num_vars = get_item_values(0, function_item[rc].item_number, (CHARTYPE *) "", QUERY_FUNCTION, (LINETYPE) Argc, NULL, 0L);
+          num_vars = get_item_values(0, function_item[rc].item_number, (char_t *) "", QUERY_FUNCTION, (line_t) Argc, NULL, 0L);
         } else {
-          num_vars = get_item_values(0, function_item[rc].item_number, (CHARTYPE *) "", QUERY_FUNCTION, (LINETYPE) Argc, (CHARTYPE *) Argv[0].strptr, (LINETYPE) Argv[0].strlength);
+          num_vars = get_item_values(0, function_item[rc].item_number, (char_t *) "", QUERY_FUNCTION, (line_t) Argc, (char_t *) Argv[0].strptr, (line_t) Argv[0].strlength);
         }
         break;
     }
@@ -276,13 +276,13 @@ ULONG THE_Function_Handler(
     }
     item_index = itemno;
     if (number_of_files == 0 && query_item[rc].level != LVL_GLOB) {
-      display_error(83, (CHARTYPE *) "", FALSE);
+      display_error(83, (char_t *) "", FALSE);
       return (1);
     }
     if ((Argv == NULL) || (Argc == 0)) {        /* FGC */
-      num_vars = get_item_values(1, query_item[rc].item_number, (CHARTYPE *) "", QUERY_FUNCTION, (LINETYPE) Argc, NULL, 0L);
+      num_vars = get_item_values(1, query_item[rc].item_number, (char_t *) "", QUERY_FUNCTION, (line_t) Argc, NULL, 0L);
     } else {
-      num_vars = get_item_values(1, query_item[rc].item_number, (CHARTYPE *) "", QUERY_FUNCTION, (LINETYPE) Argc, (CHARTYPE *) Argv[0].strptr, (LINETYPE) Argv[0].strlength);
+      num_vars = get_item_values(1, query_item[rc].item_number, (char_t *) "", QUERY_FUNCTION, (line_t) Argc, (char_t *) Argv[0].strptr, (line_t) Argv[0].strlength);
     }
   }
 
@@ -290,7 +290,7 @@ ULONG THE_Function_Handler(
     /* this MUST use the appropriate memory allocation routine that the Rexx interpreter expects. */
     Retstr->strptr = (char*) rexx_malloc(item_values[item_index].len);
     if (Retstr->strptr == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       return (1);
     }
   }
@@ -329,7 +329,7 @@ short initialise_rexx(void) {
     num_values = query_item[i].item_values + 1;
     for (j = 0; j < num_values; j++) {
       sprintf(buf, "%s.%d", query_item[i].name, j);
-      rc = MyRexxRegisterFunctionExe((CHARTYPE *) buf);
+      rc = MyRexxRegisterFunctionExe((char_t *) buf);
       if (rc != RXFUNC_OK) {
         break;
       }
@@ -356,14 +356,14 @@ short finalise_rexx(void) {
   return ((short) rc);
 }
 
-short execute_macro_file(CHARTYPE * filename, CHARTYPE * params, short *macrorc, bool interactive) {
+short execute_macro_file(char_t * filename, char_t * params, short *macrorc, bool interactive) {
   SHORT rexxrc = 0L;
   RXSTRING retstr;
   RXSTRING argstr;
   ULONG rc = 0;
 
   LONG num_params = 0L;
-  CHARTYPE *rexx_args = NULL;
+  char_t *rexx_args = NULL;
   RXSYSEXIT exit_list[3];       /* system exit list           */
 
   /*
@@ -376,8 +376,8 @@ short execute_macro_file(CHARTYPE * filename, CHARTYPE * params, short *macrorc,
     strcpy((DEFCHAR *) rexx_macro_parameters, "");
   } else {
     num_params = 1;
-    if ((rexx_args = (CHARTYPE *) malloc(strlen((DEFCHAR *) params) + 1)) == (CHARTYPE *) NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+    if ((rexx_args = (char_t *) malloc(strlen((DEFCHAR *) params) + 1)) == (char_t *) NULL) {
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     strcpy((DEFCHAR *) rexx_macro_parameters, (DEFCHAR *) params);
@@ -397,7 +397,7 @@ short execute_macro_file(CHARTYPE * filename, CHARTYPE * params, short *macrorc,
   exit_list[1].sysexit_code = RXENDLST;
 
   if (interactive) {
-    execute_os_command((CHARTYPE *) "echo", TRUE, FALSE);
+    execute_os_command((char_t *) "echo", TRUE, FALSE);
   }
 
   captured_lines = 0L;
@@ -448,12 +448,12 @@ short execute_macro_file(CHARTYPE * filename, CHARTYPE * params, short *macrorc,
   return ((short) rc);
 }
 
-short execute_macro_instore(CHARTYPE * commands, short *macrorc, CHARTYPE ** pcode, int *pcode_len, int *tokenised, int macro_ident) {
+short execute_macro_instore(char_t * commands, short *macrorc, char_t ** pcode, int *pcode_len, int *tokenised, int macro_ident) {
   USHORT rexxrc = 0L;
   RXSTRING instore[2];
   RXSTRING retstr;
   CHAR retbuf[260];
-  CHARTYPE macro_name[20];
+  char_t macro_name[20];
   ULONG rc = 0;
   LONG num_params = 0L;
   RXSYSEXIT exit_list[2];       /* system exit list           */
@@ -486,7 +486,7 @@ short execute_macro_instore(CHARTYPE * commands, short *macrorc, CHARTYPE ** pco
   rc = RexxStart((long) num_params, (PRXSTRING) NULL, (char*) macro_name, (PRXSTRING) instore, (PSZ) "THE", (long) RXCOMMAND, (PRXSYSEXIT) exit_list, (short*) & rexxrc, (PRXSTRING) & retstr);
   if (instore[1].strptr) {
     if (pcode_len && pcode && *pcode == NULL) { /* first time an instore defined key is hit */
-      *pcode = (CHARTYPE *) malloc(instore[1].strlength);
+      *pcode = (char_t *) malloc(instore[1].strlength);
       if (*pcode != NULL) {
         *pcode_len = instore[1].strlength;
         memcpy((DEFCHAR *) * pcode, (DEFCHAR *) instore[1].strptr, *pcode_len);
@@ -497,7 +497,7 @@ short execute_macro_instore(CHARTYPE * commands, short *macrorc, CHARTYPE ** pco
      * If the pointer to the pcode returned by RexxStart() is NOT the
      * same as the pointer we already have, then free it.
      */
-    if (pcode_len && pcode && (CHARTYPE *) * pcode != (CHARTYPE *) instore[1].strptr) {
+    if (pcode_len && pcode && (char_t *) * pcode != (char_t *) instore[1].strptr) {
       rexx_free(instore[1].strptr);
     }
   }
@@ -533,7 +533,7 @@ short execute_macro_instore(CHARTYPE * commands, short *macrorc, CHARTYPE ** pco
   return ((short) rc);
 }
 
-short get_rexx_variable(CHARTYPE * name, CHARTYPE ** value, int *value_length) {
+short get_rexx_variable(char_t * name, char_t ** value, int *value_length) {
   RXSTRING retstr;
   short rc = RC_OK;
 
@@ -542,12 +542,12 @@ short get_rexx_variable(CHARTYPE * name, CHARTYPE ** value, int *value_length) {
   if (retstr.strptr == NULL) {
     rc = RC_INVALID_ENVIRON;
   }
-  *value = (CHARTYPE *) retstr.strptr;
+  *value = (char_t *) retstr.strptr;
   *value_length = retstr.strlength;
   return (rc);
 }
 
-short set_rexx_variable(CHARTYPE * name, CHARTYPE * value, LENGTHTYPE value_length, int suffix) {
+short set_rexx_variable(char_t * name, char_t * value, length_t value_length, int suffix) {
   SHVBLOCK shv;
   CHAR variable_name[250];
   short rc = 0;
@@ -563,7 +563,7 @@ short set_rexx_variable(CHARTYPE * name, CHARTYPE * value, LENGTHTYPE value_leng
   } else {
     sprintf(variable_name, "%s.%-d", name, suffix);
   }
-  (void) make_upper((CHARTYPE *) variable_name);        /* make variable name uppercase */
+  (void) make_upper((char_t *) variable_name);        /* make variable name uppercase */
   /*
    * Now (attempt to) set the REXX variable
    * Add name/value to SHVBLOCK 
@@ -578,7 +578,7 @@ short set_rexx_variable(CHARTYPE * name, CHARTYPE * value, LENGTHTYPE value_leng
 
   rc = RexxVariablePool(&shv);  /* Set the REXX variable */
   if (rc != RXSHV_OK && rc != RXSHV_NEWV) {
-    display_error(25, (CHARTYPE *) "", FALSE);
+    display_error(25, (char_t *) "", FALSE);
     rc = RC_SYSTEM_ERROR;
   } else {
     rc = RC_OK;
@@ -586,7 +586,7 @@ short set_rexx_variable(CHARTYPE * name, CHARTYPE * value, LENGTHTYPE value_leng
   return (rc);
 }
 
-static RXSTRING *get_compound_rexx_variable(CHARTYPE * name, RXSTRING * value, short suffix) {
+static RXSTRING *get_compound_rexx_variable(char_t * name, RXSTRING * value, short suffix) {
   static SHVBLOCK shv;
   CHAR variable_name[250];
   short rc = 0;
@@ -647,14 +647,14 @@ static RXSTRING *get_compound_rexx_variable(CHARTYPE * name, RXSTRING * value, s
 static short valid_target_function(ULONG Argc, RXSTRING Argv[]) {
   static TARGET target = { NULL, 0L, 0L, 0L, NULL, 0, 0, FALSE };
   short target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL;
-  LINETYPE true_line = 0L;
+  line_t true_line = 0L;
   short rc = 0;
 
   /* We use the switch(1) here to use the break; capability; a bit ugly... */
   switch (1) {
     case 1:
       if (Argc < 1 || Argc > 2) {       /* incorrect no of arguments - error */
-        item_values[1].value = (CHARTYPE *) "ERROR";
+        item_values[1].value = (char_t *) "ERROR";
         item_values[1].len = 5;
         break;
       }
@@ -663,16 +663,16 @@ static short valid_target_function(ULONG Argc, RXSTRING Argv[]) {
       }
       /* allocate sufficient space for the spare string and 2 longs */
       if (target_buffer == NULL) {
-        target_buffer = (CHARTYPE *) malloc(sizeof(CHARTYPE) * (Argv[0].strlength + 30));
+        target_buffer = (char_t *) malloc(sizeof(char_t) * (Argv[0].strlength + 30));
         target_buffer_len = Argv[0].strlength + 30;
       } else {
         if (target_buffer_len < Argv[0].strlength + 30) {
-          target_buffer = (CHARTYPE *) realloc(target_buffer, sizeof(CHARTYPE) * (Argv[0].strlength + 30));
+          target_buffer = (char_t *) realloc(target_buffer, sizeof(char_t) * (Argv[0].strlength + 30));
           target_buffer_len = Argv[0].strlength + 30;
         }
       }
-      if (target_buffer == (CHARTYPE *) NULL) {
-        item_values[1].value = (CHARTYPE *) "ERROR";
+      if (target_buffer == (char_t *) NULL) {
+        item_values[1].value = (char_t *) "ERROR";
         item_values[1].len = 5;
         free_target(&target);
         break;
@@ -687,13 +687,13 @@ static short valid_target_function(ULONG Argc, RXSTRING Argv[]) {
       initialise_target(&target);
       rc = validate_target(target_buffer, &target, target_type, true_line, FALSE, FALSE);
       if (rc == RC_TARGET_NOT_FOUND) {
-        item_values[1].value = (CHARTYPE *) "NOTFOUND";
+        item_values[1].value = (char_t *) "NOTFOUND";
         item_values[1].len = 8;
         free_target(&target);
         break;
       }
       if (rc != RC_OK) {
-        item_values[1].value = (CHARTYPE *) "ERROR";
+        item_values[1].value = (char_t *) "ERROR";
         item_values[1].len = 5;
         free_target(&target);
         break;
@@ -708,15 +708,15 @@ static short valid_target_function(ULONG Argc, RXSTRING Argv[]) {
       free_target(&target);
       break;
   }
-  item_values[0].value = (CHARTYPE *) "1";
+  item_values[0].value = (char_t *) "1";
   item_values[0].len = 1;
   return (rc);
 }
 
 static short run_os_function(ULONG Argc, RXSTRING Argv[]) {
   int rc = 0;
-  static CHARTYPE num0[5];      /* large enough for 1000+rc */
-  CHARTYPE *cmd = NULL, *instem = NULL, *outstem = NULL, *errstem = NULL;
+  static char_t num0[5];      /* large enough for 1000+rc */
+  char_t *cmd = NULL, *instem = NULL, *outstem = NULL, *errstem = NULL;
 
   switch (Argc) {
 
@@ -725,25 +725,25 @@ static short run_os_function(ULONG Argc, RXSTRING Argv[]) {
       break;
 
     case 4:
-      if ((errstem = (CHARTYPE *) MakeAscii(&Argv[3])) == NULL) {
+      if ((errstem = (char_t *) MakeAscii(&Argv[3])) == NULL) {
         sprintf((DEFCHAR *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
         break;
       }
 
     case 3:
-      if ((outstem = (CHARTYPE *) MakeAscii(&Argv[2])) == NULL) {
+      if ((outstem = (char_t *) MakeAscii(&Argv[2])) == NULL) {
         sprintf((DEFCHAR *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
         break;
       }
 
     case 2:
-      if ((instem = (CHARTYPE *) MakeAscii(&Argv[1])) == NULL) {
+      if ((instem = (char_t *) MakeAscii(&Argv[1])) == NULL) {
         sprintf((DEFCHAR *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
         break;
       }
 
     case 1:
-      if ((cmd = (CHARTYPE *) MakeAscii(&Argv[0])) == NULL) {
+      if ((cmd = (char_t *) MakeAscii(&Argv[0])) == NULL) {
         sprintf((DEFCHAR *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
         break;
       }
@@ -757,7 +757,7 @@ static short run_os_function(ULONG Argc, RXSTRING Argv[]) {
   }
   item_values[1].value = num0;
   item_values[1].len = strlen((DEFCHAR *) num0);
-  item_values[0].value = (CHARTYPE *) "1";
+  item_values[0].value = (char_t *) "1";
   item_values[0].len = 1;
   if (cmd) {
     free(cmd);
@@ -774,7 +774,7 @@ static short run_os_function(ULONG Argc, RXSTRING Argv[]) {
   return (RC_OK);
 }
 
-static int run_os_command(CHARTYPE * cmd, CHARTYPE * instem, CHARTYPE * outstem, CHARTYPE * errstem) {
+static int run_os_command(char_t * cmd, char_t * instem, char_t * outstem, char_t * errstem) {
   RXSTRING tmpstr;
   bool in = TRUE, out = TRUE, err = TRUE;
   bool out_and_err_same = FALSE;
@@ -851,7 +851,7 @@ static int run_os_command(CHARTYPE * cmd, CHARTYPE * instem, CHARTYPE * outstem,
     if (tmpstr.strptr == NULL) {
       return (RC_SYSTEM_ERROR + 1000);
     }
-    if (!valid_positive_integer((CHARTYPE *) tmpstr.strptr)) {
+    if (!valid_positive_integer((char_t *) tmpstr.strptr)) {
       return (RC_INVALID_OPERAND + 1000);
     }
     innum = atol((DEFCHAR *) tmpstr.strptr);
@@ -1038,10 +1038,10 @@ static int run_os_command(CHARTYPE * cmd, CHARTYPE * instem, CHARTYPE * outstem,
   }
 }
 
-static CHARTYPE *MakeAscii(RXSTRING * rxstring) {
-  CHARTYPE *string = NULL;
+static char_t *MakeAscii(RXSTRING * rxstring) {
+  char_t *string = NULL;
 
-  string = (CHARTYPE *) malloc((sizeof(CHARTYPE) * rxstring->strlength) + 1);
+  string = (char_t *) malloc((sizeof(char_t) * rxstring->strlength) + 1);
   if (string != NULL) {
     memcpy(string, rxstring->strptr, rxstring->strlength);
     *(string + (rxstring->strlength)) = '\0';
@@ -1104,7 +1104,7 @@ static char *get_a_line(FILE * fp, char *string, int *length, int *rcode) {
   return (string);
 }
 
-static short set_rexx_variables_from_file(char *filename, CHARTYPE * stem) {
+static short set_rexx_variables_from_file(char *filename, char_t * stem) {
   FILE *fp = NULL;
   register int i = 0;
   char *string = NULL;
@@ -1123,14 +1123,14 @@ static short set_rexx_variables_from_file(char *filename, CHARTYPE * stem) {
       free(string);
       break;
     }
-    rc = set_rexx_variable(stem, (CHARTYPE *) string, strlen(string), i + 1);
+    rc = set_rexx_variable(stem, (char_t *) string, strlen(string), i + 1);
     free(string);
     if (rcode == RC_TOF_EOF_REACHED) {
       break;
     }
   }
   sprintf(tmpnum, "%d", i);
-  rc = set_rexx_variable(stem, (CHARTYPE *) tmpnum, strlen(tmpnum), 0);
+  rc = set_rexx_variable(stem, (char_t *) tmpnum, strlen(tmpnum), 0);
   if (fclose(fp)) {
     rc = RC_ACCESS_DENIED;
   }

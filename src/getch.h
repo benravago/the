@@ -29,10 +29,6 @@
 
 /* System V curses key names and codes returned by getch */
 
-/*
-$Id: getch.h,v 1.6 2019/09/08 04:08:22 mark Exp $
-*/
-
 // TODO: validate these mappings
 #define KEY_A2          0x198   /* Upper centre of keypad */
 #define KEY_B1          0x19a   /* Middle left of keypad */

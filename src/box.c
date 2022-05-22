@@ -11,16 +11,16 @@
 struct _boxp {
   short action;
   short mark_type;
-  LENGTHTYPE src_start_col;
-  LENGTHTYPE dst_start_col;
-  LENGTHTYPE src_end_col;
-  LENGTHTYPE num_cols;
-  LINETYPE src_start_line;
-  LINETYPE dst_start_line;
-  LINETYPE src_end_line;
-  LINETYPE num_lines;
-  LINETYPE cursor_y;
-  LENGTHTYPE cursor_x;
+  length_t src_start_col;
+  length_t dst_start_col;
+  length_t src_end_col;
+  length_t num_cols;
+  line_t src_start_line;
+  line_t dst_start_line;
+  line_t src_end_line;
+  line_t num_lines;
+  line_t cursor_y;
+  length_t cursor_x;
   LINE *curr_src;
   LINE *curr_dst;
   VIEW_DETAILS *src_view;
@@ -33,12 +33,12 @@ static short box_copy_from_temp(BOXP *, bool);
 static short box_copy_stream_from_temp(BOXP *, bool);
 static short box_delete(BOXP *);
 static short box_move(BOXP *, bool, bool);
-static short box_fill(BOXP *, CHARTYPE);
+static short box_fill(BOXP *, char_t);
 
-void box_operations(short action, CHARTYPE reset, bool boverlay, CHARTYPE fillchar) {
+void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) {
   BOXP boxp;
   unsigned short y = 0, x = 0;
-  LENGTHTYPE offset = 0;
+  length_t offset = 0;
   short save_mark_type = MARK_VIEW->mark_type;
   bool same_view = FALSE;
 
@@ -141,8 +141,8 @@ void box_operations(short action, CHARTYPE reset, bool boverlay, CHARTYPE fillch
   MARK_VIEW->mark_type = M_NONE;
   MARK_VIEW = (VIEW_DETAILS *) NULL;
   if (!same_view && display_screens > 1) {
-    build_screen((CHARTYPE) (other_screen));
-    display_screen((CHARTYPE) (other_screen));
+    build_screen((char_t) (other_screen));
+    display_screen((char_t) (other_screen));
   }
 
   /*
@@ -172,7 +172,7 @@ void box_operations(short action, CHARTYPE reset, bool boverlay, CHARTYPE fillch
   return;
 }
 
-void box_paste_from_clipboard(LINE * curr_src, LINETYPE numlines, LINETYPE numcols) {
+void box_paste_from_clipboard(LINE * curr_src, line_t numlines, line_t numcols) {
   BOXP boxp;
   unsigned short x = 0;
 
@@ -253,9 +253,9 @@ void box_paste_from_clipboard(LINE * curr_src, LINETYPE numlines, LINETYPE numco
 }
 
 static short box_delete(BOXP * prm) {
-  LINETYPE i = 0L;
-  LENGTHTYPE j = 0;
-  LENGTHTYPE num_to_move = 0, length_diff = 0;
+  line_t i = 0L;
+  length_t j = 0;
+  length_t num_to_move = 0, length_diff = 0;
   short rc = 0;
   bool shadow_found = FALSE;
   bool advance_line_ptr = TRUE;
@@ -286,9 +286,9 @@ static short box_delete(BOXP * prm) {
           } else if (i + 1 == prm->num_lines) { /* last line of stream block */
             if (curr->length > 0) {
               add_to_recovery_list(curr->line, curr->length);
-              curr->length = (LENGTHTYPE) (prm->src_end_col < curr->length - 1) ? curr->length - prm->src_end_col - 1 : 0;
+              curr->length = (length_t) (prm->src_end_col < curr->length - 1) ? curr->length - prm->src_end_col - 1 : 0;
               for (j = 0; j < curr->length; j++) {
-                *(curr->line + (LENGTHTYPE) (LINETYPE) j) = *(curr->line + prm->src_end_col + j + 1);
+                *(curr->line + (length_t) (line_t) j) = *(curr->line + prm->src_end_col + j + 1);
               }
             }
           } else {
@@ -297,17 +297,17 @@ static short box_delete(BOXP * prm) {
             advance_line_ptr = FALSE;
           }
         } else {
-          if ((LINETYPE) curr->length >= (LINETYPE) MARK_VIEW->mark_start_col) {
-            num_to_move = (LENGTHTYPE) max((LINETYPE) curr->length - (LINETYPE) MARK_VIEW->mark_end_col, 0L);
-            length_diff = (LENGTHTYPE) min((LINETYPE) MARK_VIEW->mark_end_col - (LINETYPE) MARK_VIEW->mark_start_col + 1L, (LINETYPE) curr->length - (LINETYPE) MARK_VIEW->mark_start_col + 1L);
+          if ((line_t) curr->length >= (line_t) MARK_VIEW->mark_start_col) {
+            num_to_move = (length_t) max((line_t) curr->length - (line_t) MARK_VIEW->mark_end_col, 0L);
+            length_diff = (length_t) min((line_t) MARK_VIEW->mark_end_col - (line_t) MARK_VIEW->mark_start_col + 1L, (line_t) curr->length - (line_t) MARK_VIEW->mark_start_col + 1L);
           } else {
             num_to_move = length_diff = 0;
           }
           if (length_diff != 0) {
             add_to_recovery_list(curr->line, curr->length);
-            curr->length = (LENGTHTYPE) ((LINETYPE) curr->length - (LINETYPE) length_diff);
+            curr->length = (length_t) ((line_t) curr->length - (line_t) length_diff);
             for (j = 0; j < num_to_move; j++) {
-              *(curr->line + (LENGTHTYPE) ((LINETYPE) j + (LINETYPE) MARK_VIEW->mark_start_col - 1L)) = *(curr->line + prm->src_start_col + j + prm->num_cols);
+              *(curr->line + (length_t) ((line_t) j + (line_t) MARK_VIEW->mark_start_col - 1L)) = *(curr->line + prm->src_start_col + j + prm->num_cols);
             }
             *(curr->line + curr->length) = '\0';        /* null terminate */
           }
@@ -324,15 +324,15 @@ static short box_delete(BOXP * prm) {
   if ((prm->mark_type == M_STREAM || prm->mark_type == M_CUA) && prm->src_start_line != prm->src_end_line && !shadow_found) {
     curr = prm->curr_src;
     if (curr->next->length > 0) {
-      curr->line = (CHARTYPE *) realloc((void *) curr->line, (curr->length + curr->next->length) * sizeof(CHARTYPE));
+      curr->line = (char_t *) realloc((void *) curr->line, (curr->length + curr->next->length) * sizeof(char_t));
       if (curr->line == NULL) {
-        display_error(30, (CHARTYPE *) "", FALSE);
+        display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
       memcpy((DEFCHAR *) curr->line + curr->length, (DEFCHAR *) curr->next->line, curr->next->length);
       curr->length += curr->next->length;
       if (curr->length > max_line_length) {
-        display_error(0, (CHARTYPE *) "Truncated", FALSE);
+        display_error(0, (char_t *) "Truncated", FALSE);
         curr->length = max_line_length;
       }
       *(curr->line + curr->length) = '\0';      /* do we need to do this anymore ? */
@@ -345,8 +345,8 @@ static short box_delete(BOXP * prm) {
 
 static short box_move(BOXP * prm, bool boverlay, bool copy_to_temp) {
   LINE *save_src = NULL, *temp_src = NULL;
-  LINETYPE save_src_start_line = 0L;
-  LENGTHTYPE save_src_start_col = 0;
+  line_t save_src_start_line = 0L;
+  length_t save_src_start_col = 0;
 
   save_src_start_col = prm->src_start_col;
   save_src_start_line = prm->src_start_line;
@@ -387,7 +387,7 @@ static short box_move(BOXP * prm, bool boverlay, bool copy_to_temp) {
 
 static short box_copy_to_temp(BOXP * prm) {
   LINE *first_save = NULL, *save_src = NULL, *tmp = NULL;
-  LINETYPE i = 0L;
+  line_t i = 0L;
   short rc = RC_OK;
 
   tmp = prm->curr_src;
@@ -434,9 +434,9 @@ static short box_copy_to_temp(BOXP * prm) {
 }
 
 static short box_copy_from_temp(BOXP * prm, bool boverlay) {
-  LINETYPE dst_lineno = 0L;
-  LENGTHTYPE j = 0;
-  CHARTYPE chr = 0;
+  line_t dst_lineno = 0L;
+  length_t j = 0;
+  char_t chr = 0;
   short line_type = 0;
 
   dst_lineno = prm->dst_start_line;
@@ -447,7 +447,7 @@ static short box_copy_from_temp(BOXP * prm, bool boverlay) {
         break;
       }
       if (line_type == LINE_TOF || line_type == LINE_EOF) {
-        if ((prm->curr_dst = add_LINE(prm->dst_view->file_for_view->first_line, prm->curr_dst->prev, (CHARTYPE *) "", 0, 0, TRUE)) == (LINE *) NULL) {
+        if ((prm->curr_dst = add_LINE(prm->dst_view->file_for_view->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
         CURRENT_FILE->number_lines++;
@@ -460,9 +460,9 @@ static short box_copy_from_temp(BOXP * prm, bool boverlay) {
     pre_process_line(prm->dst_view, dst_lineno, prm->curr_dst); /* copy dest line into rec */
     for (j = 0; j < prm->num_cols; j++) {
       if (prm->src_start_col + j + 1 > prm->curr_src->length) {
-        chr = (CHARTYPE) ' ';
+        chr = (char_t) ' ';
       } else {
-        chr = (CHARTYPE) * (prm->curr_src->line + prm->src_start_col + j);
+        chr = (char_t) * (prm->curr_src->line + prm->src_start_col + j);
       }
       if (boverlay) {
         rec[prm->dst_start_col + j] = chr;
@@ -492,7 +492,7 @@ static short box_copy_from_temp(BOXP * prm, bool boverlay) {
 }
 
 static short box_copy_stream_from_temp(BOXP * prm, bool boverlay) {
-  LINETYPE dst_lineno = 0L, i = 0L;
+  line_t dst_lineno = 0L, i = 0L;
   short line_type = 0;
   int mystart = 0;
   bool full_line = TRUE;
@@ -511,7 +511,7 @@ static short box_copy_stream_from_temp(BOXP * prm, bool boverlay) {
           break;
         }
         if (line_type == LINE_TOF || line_type == LINE_EOF) {
-          if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (CHARTYPE *) "", 0, 0, TRUE)) == (LINE *) NULL) {
+          if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
             return (RC_OUT_OF_MEMORY);
           }
           CURRENT_FILE->number_lines++;
@@ -562,7 +562,7 @@ static short box_copy_stream_from_temp(BOXP * prm, bool boverlay) {
         break;
       }
       if (line_type == LINE_TOF || line_type == LINE_EOF) {
-        if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (CHARTYPE *) "", 0, 0, TRUE)) == (LINE *) NULL) {
+        if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
         CURRENT_FILE->number_lines++;
@@ -639,8 +639,8 @@ static short box_copy_stream_from_temp(BOXP * prm, bool boverlay) {
   return (RC_OK);
 }
 
-static short box_fill(BOXP * prm, CHARTYPE fillchar) {
-  LINETYPE i = 0L;
+static short box_fill(BOXP * prm, char_t fillchar) {
+  line_t i = 0L;
   int mystart, mynum;
 
   for (i = 0L; i < prm->num_lines; i++) {
