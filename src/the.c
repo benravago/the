@@ -35,7 +35,7 @@
 #include <proto.h>
 #include <time.h>
 
-static RETSIGTYPE handle_signal(int);
+static void handle_signal(int);
 static void display_info(CHARTYPE *);
 static void init_signals(void);
 
@@ -1279,7 +1279,7 @@ void cleanup(void) {
   return;
 }
 
-static RETSIGTYPE handle_signal(int err) {
+static void handle_signal(int err) {
   FILE_DETAILS *cf;
   VIEW_DETAILS *curr;
   bool process_view = FALSE;

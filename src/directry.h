@@ -16,7 +16,7 @@
 #define ATTR_TYPE mode_t
 #define SIZE_TYPE long
 #define TIME_TYPE time_t
-#define DATE_TYPE CHARTYPE
+#define DATE_TYPE char_t
 #define D_TYPE    struct tm *
 #define T_TYPE    struct tm *
 #define DONE_TYPE short
@@ -35,15 +35,15 @@
 #define YY_MASK(a) ((a->tm_year)+1900)
 
 struct dirfile {
-  CHARTYPE *fname;              /* file name */
-  CHARTYPE *lname;              /* link name */
+  char_t *fname;              /* file name */
+  char_t *lname;              /* link name */
   ATTR_TYPE fattr;              /* file attributes */
   SIZE_TYPE fsize;              /* size of file */
-  CHARTYPE f_hh;                /* hour */
-  CHARTYPE f_mi;                /* minute */
-  CHARTYPE f_ss;                /* second */
-  CHARTYPE f_dd;                /* day */
-  CHARTYPE f_mm;                /* month */
+  char_t f_hh;                /* hour */
+  char_t f_mi;                /* minute */
+  char_t f_ss;                /* second */
+  char_t f_dd;                /* day */
+  char_t f_mm;                /* month */
   int f_yy;                     /* year */
   int facl;                     /* acl */
   int fname_length;             /* length of filename */
@@ -53,15 +53,15 @@ int date_comp();
 int time_comp();
 int size_comp();
 int name_comp();
-int dir_comp(); 
+int dir_comp();
 
-CHARTYPE *make_full(CHARTYPE *, CHARTYPE *);
+char_t *make_full(char_t *, char_t *);
 
-short getfiles(CHARTYPE *, CHARTYPE *, struct dirfile **, struct dirfile **);
+short getfiles(char_t *, char_t *, struct dirfile **, struct dirfile **);
 
-CHARTYPE *file_attrs(ATTR_TYPE, CHARTYPE *, int);
-CHARTYPE *file_date(struct dirfile *, CHARTYPE *);
-CHARTYPE *file_time(struct dirfile *, CHARTYPE *);
+char_t *file_attrs(ATTR_TYPE, char_t *, int);
+char_t *file_date(struct dirfile *, char_t *);
+char_t *file_time(struct dirfile *, char_t *);
 
-short set_dirtype(CHARTYPE *);
+short set_dirtype(char_t *);
 

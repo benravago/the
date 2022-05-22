@@ -1,61 +1,36 @@
-/* COLUMN.C - Column commands                                          */
-/* This file contains all commands that can be assigned to function    */
-/* keys or typed on the command line.                                  */
+// SPDX-FileCopyrightText: 2013 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
+
 /*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2013 Mark Hessling
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling, mark@rexx.org  http://www.rexx.org/
+ * This file contains all commands that can be assigned to function
+ * keys or typed on the command line.
  */
 
-#include <the.h>
-#include <proto.h>
+#include "the.h"
+#include "proto.h"
 
-short column_command(CHARTYPE * cmd_text, int cmd_type) {
-  LENGTHTYPE i = 0;
-  LINETYPE true_line = 0L;
+short column_command(char_t * cmd_text, int cmd_type) {
+  length_t i = 0;
+  line_t true_line = 0L;
   short rc = RC_OK;
-  LENGTHTYPE len_params = 0;
+  length_t len_params = 0;
   unsigned short y = 0, x = 0;
 
   /*
    * All column commands under XEDIT compatibility refer to current line.
    * ******* At this stage, revert to THE behaviour at all times *******
    */
-  if (compatible_feel == COMPAT_XEDIT)
+  if (compatible_feel == COMPAT_XEDIT) {
     true_line = CURRENT_VIEW->current_line;
-  else
+  } else {
     true_line = get_true_line(TRUE);
+  }
   /*
    * If on TOF or BOF, exit with error.
    */
-  if (TOF(true_line)
-      || BOF(true_line)) {
-    display_error(36, (CHARTYPE *) "", FALSE);
+  if (TOF(true_line) || BOF(true_line)) {
+    display_error(36, (char_t *) "", FALSE);
     return (RC_NO_LINES_CHANGED);
   }
   /*
@@ -64,19 +39,23 @@ short column_command(CHARTYPE * cmd_text, int cmd_type) {
   if (CURRENT_VIEW->hex) {
     len_params = convert_hex_strings(cmd_text);
     switch (len_params) {
+
       case -1:                 /* invalid hex value */
         display_error(32, cmd_text, FALSE);
         return (RC_INVALID_OPERAND);
         break;
+
       case -2:                 /* memory exhausted */
-        display_error(30, (CHARTYPE *) "", FALSE);
+        display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
         break;
+
       default:
         break;
     }
-  } else
+  } else {
     len_params = strlen((DEFCHAR *) cmd_text);
+  }
   /*
    * If on command line, copy current line into rec
    */
@@ -87,30 +66,35 @@ short column_command(CHARTYPE * cmd_text, int cmd_type) {
   } else {
     if (CURRENT_VIEW->current_window == WINDOW_PREFIX) {
       if (cmd_type != COLUMN_CAPPEND) {
-        display_error(36, (CHARTYPE *) "", FALSE);
+        display_error(36, (char_t *) "", FALSE);
         return (RC_NO_LINES_CHANGED);
       }
     }
-    if (curses_started)
+    if (curses_started) {
       getyx(CURRENT_WINDOW, y, x);
+    }
     x = CURRENT_VIEW->verify_col - 1 + x;
   }
   switch (cmd_type) {
+
     case COLUMN_CAPPEND:
       CURRENT_VIEW->current_column = rec_len + 1;
       for (i = 0; i < len_params; i++) {
-        if (rec_len > max_line_length)
+        if (rec_len > max_line_length) {
           break;
+        }
         rec[rec_len] = *(cmd_text + i);
         rec_len++;
       }
       break;
+
     case COLUMN_CINSERT:
       if (x > rec_len) {
         rec_len = x;
         for (i = 0; i < len_params; i++) {
-          if (rec_len > max_line_length)
+          if (rec_len > max_line_length) {
             break;
+          }
           rec[rec_len] = *(cmd_text + i);
           rec_len++;
         }
@@ -119,16 +103,21 @@ short column_command(CHARTYPE * cmd_text, int cmd_type) {
         rec_len = min(max_line_length, rec_len + len_params);
       }
       break;
+
     case COLUMN_COVERLAY:
       for (i = 0; i < len_params; i++) {
-        if (x > max_line_length)
+        if (x > max_line_length) {
           break;
+        }
         switch (*(cmd_text + i)) {
+
           case '_':
             rec[x] = ' ';
             break;
+
           case ' ':
             break;
+
           default:
             rec[x] = *(cmd_text + i);
             break;
@@ -137,10 +126,12 @@ short column_command(CHARTYPE * cmd_text, int cmd_type) {
       }
       rec_len = max(rec_len, x + 1);
       break;
+
     case COLUMN_CREPLACE:
       for (i = 0; i < len_params; i++) {
-        if (x > max_line_length)
+        if (x > max_line_length) {
           break;
+        }
         rec[x] = *(cmd_text + i);
         x++;
       }
@@ -152,14 +143,17 @@ short column_command(CHARTYPE * cmd_text, int cmd_type) {
     pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   } else {
     switch (cmd_type) {
+
       case COLUMN_CAPPEND:
         if (CURRENT_VIEW->current_window == WINDOW_PREFIX) {
           CURRENT_VIEW->current_window = WINDOW_FILEAREA;
-          if (curses_started)
+          if (curses_started) {
             wmove(CURRENT_WINDOW, y, 0);
+          }
         }
         rc = execute_move_cursor(current_screen, CURRENT_VIEW, CURRENT_VIEW->current_column - 1);
         break;
+
       case COLUMN_CINSERT:
         break;
     }
@@ -168,3 +162,4 @@ short column_command(CHARTYPE * cmd_text, int cmd_type) {
   display_screen(current_screen);
   return (rc);
 }
+

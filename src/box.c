@@ -50,7 +50,7 @@ void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) 
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
 
   /*
-   * If the command was issued on the command line then 
+   * If the command was issued on the command line then
    * the destination line is the current line and the destination column is 0;
    */
   if (CURRENT_VIEW->current_window == WINDOW_COMMAND) {
@@ -266,11 +266,11 @@ static short box_delete(BOXP * prm) {
     advance_line_ptr = TRUE;
     rc = processable_line(prm->src_view, prm->src_start_line + i, curr);
     switch (rc) {
-      case LINE_SHADOW: 
-        shadow_found = TRUE; 
+      case LINE_SHADOW:
+        shadow_found = TRUE;
         break;
-      case LINE_TOF: 
-      case LINE_EOF: 
+      case LINE_TOF:
+      case LINE_EOF:
         break;
       default:
         if ((prm->mark_type == M_STREAM || prm->mark_type == M_CUA) && prm->src_start_line != prm->src_end_line) {
@@ -583,7 +583,7 @@ static short box_copy_stream_from_temp(BOXP * prm, bool boverlay) {
          */
 
         /*
-         * Create the new line 
+         * Create the new line
          */
         memset(rec, ' ', max_line_length);
         if (prm->dst_start_col < curr->length) {
@@ -617,7 +617,7 @@ static short box_copy_stream_from_temp(BOXP * prm, bool boverlay) {
         rec_len = min(max_line_length, rec_len + prm->curr_src->length);
         post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, last_line, FALSE);
 
-        /*               2
+        /*
          * Save the position at the end of the inserted stream block.
          */
         prm->cursor_x = prm->curr_src->length + 1;

@@ -555,8 +555,8 @@ short set_rexx_variable(char_t * name, char_t * value, length_t value_length, in
   shv.shvnext = NULL;           /* only one block */
   shv.shvcode = RXSHV_SET;      /* use direct set */
   /*
-   * This calls the RexxVariablePool() function for each value. This is 
-   * not the most efficient way of doing this.                          
+   * This calls the RexxVariablePool() function for each value. This is
+   * not the most efficient way of doing this.
    */
   if (suffix == (-1)) {
     strcpy(variable_name, (DEFCHAR *) name);
@@ -566,7 +566,7 @@ short set_rexx_variable(char_t * name, char_t * value, length_t value_length, in
   (void) make_upper((char_t *) variable_name);        /* make variable name uppercase */
   /*
    * Now (attempt to) set the REXX variable
-   * Add name/value to SHVBLOCK 
+   * Add name/value to SHVBLOCK
    */
   MAKERXSTRING(shv.shvname, variable_name, strlen(variable_name));
   MAKERXSTRING(shv.shvvalue, (DEFCHAR *) value, value_length);
