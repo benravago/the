@@ -26,7 +26,7 @@ int initialise_fifo(LINE * first_file_name, line_t startup_line, length_t startu
      * The FIFO exists, so we assume we are the client here...
      */
     if (file_writable(fifo_name)) {
-      fifo_fd = open((DEFCHAR *) fifo_name, O_WRONLY);
+      fifo_fd = open((char *) fifo_name, O_WRONLY);
       if (fifo_fd == (-1)) {
         display_error(0, (char_t *) "Warning: Unable to run in single instance mode: open() failed", FALSE);
         display_error(0, (char_t *) strerror(errno), FALSE);
@@ -48,9 +48,9 @@ int initialise_fifo(LINE * first_file_name, line_t startup_line, length_t startu
              * If line and/or column specified on command line, use them to reposition file...
              */
             if (startup_line != 0L || startup_column != 0) {
-              tmp_len = sprintf((DEFCHAR *) tmp_str, "x %s%s#cursor goto %ld %ld%s", sp_path, sp_fname, (startup_line) ? startup_line : 1, (startup_column) ? startup_column : 1, ronly);
+              tmp_len = sprintf((char *) tmp_str, "x %s%s#cursor goto %ld %ld%s", sp_path, sp_fname, (startup_line) ? startup_line : 1, (startup_column) ? startup_column : 1, ronly);
             } else {
-              tmp_len = sprintf((DEFCHAR *) tmp_str, "x %s%s%s", sp_path, sp_fname, ronly);
+              tmp_len = sprintf((char *) tmp_str, "x %s%s%s", sp_path, sp_fname, ronly);
             }
             if (write(fifo_fd, &tmp_len, sizeof(tmp_len)) == (-1)) {
               display_error(0, (char_t *) strerror(errno), FALSE);
@@ -75,11 +75,11 @@ int initialise_fifo(LINE * first_file_name, line_t startup_line, length_t startu
     /*
      * The FIFO doesn't exists, so we assume we are the server here...
      */
-    if (mkfifo((DEFCHAR *) fifo_name, S_IWUSR | S_IRUSR) == (-1)) {
+    if (mkfifo((char *) fifo_name, S_IWUSR | S_IRUSR) == (-1)) {
       display_error(0, (char_t *) "Warning: Unable to run in single instance mode: mkfifo() failed", FALSE);
       display_error(0, (char_t *) strerror(errno), FALSE);
     } else {
-      fifo_fd = open((DEFCHAR *) fifo_name, O_RDWR);
+      fifo_fd = open((char *) fifo_name, O_RDWR);
       if (fifo_fd == -1) {
         display_error(0, (char_t *) "Warning: Unable to run in single instance mode open() failed:", FALSE);
         display_error(0, (char_t *) strerror(errno), FALSE);

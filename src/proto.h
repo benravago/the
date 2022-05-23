@@ -411,10 +411,6 @@ int number_query_item Args((void));
 int number_function_item Args((void));
 void format_options Args((CHARTYPE *));
 
-                                                         /* directry.c */
-short set_dirtype Args((CHARTYPE *));
-CHARTYPE *get_dirtype Args((CHARTYPE *));
-
                                                              /* sort.c */
 short execute_sort Args((CHARTYPE *));
 
@@ -533,7 +529,6 @@ short Defsort Args((CHARTYPE *));
 short DeleteLine Args((CHARTYPE *));
 short Dialog Args((CHARTYPE *));
 short Directory Args((CHARTYPE *));
-short Dirinclude Args((CHARTYPE *));
 short Display Args((CHARTYPE *));
 short Duplicate Args((CHARTYPE *));
 short Ecolour Args((CHARTYPE *));

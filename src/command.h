@@ -156,7 +156,6 @@ COMMAND command[] = {
   { (CHARTYPE *) "delete", 0, KEY_C_g, DeleteLine, FALSE, FALSE, FALSE, FALSE, FALSE, STRIP_BOTH, FALSE, FALSE, TRUE, CUA_NONE, THIGHLIGHT_RESET_ALL, (CHARTYPE *) "block" },   /* comm2.c */
   { (CHARTYPE *) "dialog", 6, (-1), Dialog, FALSE, FALSE, FALSE, TRUE, FALSE, STRIP_BOTH, FALSE, FALSE, FALSE, CUA_RESET_BLOCK, THIGHLIGHT_NONE, (CHARTYPE *) "" },     /* comm2.c */
   { (CHARTYPE *) "directory", 3, (-1), Directory, FALSE, FALSE, FALSE, TRUE, FALSE, STRIP_BOTH, FALSE, FALSE, FALSE, CUA_RESET_BLOCK, THIGHLIGHT_NONE, (CHARTYPE *) "" },       /* comm2.c */
-  { (CHARTYPE *) "dirinclude", 4, (-1), Dirinclude, TRUE, TRUE, FALSE, TRUE, FALSE, STRIP_BOTH, FALSE, FALSE, TRUE, CUA_RESET_BLOCK, THIGHLIGHT_NONE, (CHARTYPE *) "*" },       /* commset1.c */
   { (CHARTYPE *) "ls", 2, (-1), Directory, FALSE, FALSE, FALSE, TRUE, FALSE, STRIP_BOTH, FALSE, FALSE, FALSE, CUA_RESET_BLOCK, THIGHLIGHT_NONE, (CHARTYPE *) "" },      /* comm2.c */
   { (CHARTYPE *) "defsort", 7, (-1), Defsort, TRUE, TRUE, FALSE, TRUE, FALSE, STRIP_BOTH, FALSE, FALSE, TRUE, CUA_RESET_BLOCK, THIGHLIGHT_NONE, (CHARTYPE *) "" },      /* commset1.c */
   { (CHARTYPE *) "display", 4, (-1), Display, TRUE, TRUE, FALSE, TRUE, FALSE, STRIP_BOTH, FALSE, FALSE, TRUE, CUA_RESET_BLOCK, THIGHLIGHT_NONE, (CHARTYPE *) "" },      /* commset1.c */

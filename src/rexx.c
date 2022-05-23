@@ -44,7 +44,7 @@ unsigned long MyRexxDeregisterFunction(char_t * Name) {
   char_t newname[80];
   ULONG rc;
 
-  strcpy((DEFCHAR *) newname, (DEFCHAR *) Name);
+  strcpy((char *) newname, (char *) Name);
   make_upper(newname);
   rc = RexxDeregisterFunction((PSZ) newname);
   return rc;
@@ -54,7 +54,7 @@ unsigned long MyRexxRegisterFunctionExe(char_t * Name) {
   char_t newname[256];
   ULONG rc;
 
-  strcpy((DEFCHAR *) newname, (DEFCHAR *) Name);
+  strcpy((char *) newname, (char *) Name);
   make_upper(newname);
   rc = RexxRegisterFunctionExe((PSZ) newname, (RexxFunctionHandler*) THE_Function_Handler);
   return rc;
@@ -70,9 +70,9 @@ ULONG THE_Commands(
   if (allocate_temp_space(Command->strlength, TEMP_TEMP_CMD) != RC_OK) {
     display_error(30, (char_t *) "", FALSE);
     *Flags = RXSUBCOM_ERROR;    /* raise an error condition   */
-    sprintf((DEFCHAR *) Retstr->strptr, "%d", rc);      /* format return code string  */
+    sprintf((char *) Retstr->strptr, "%d", rc);      /* format return code string  */
     /* and set the correct length */
-    Retstr->strlength = strlen((DEFCHAR *) Retstr->strptr);
+    Retstr->strlength = strlen((char *) Retstr->strptr);
     return 0L;                  /* processing completed       */
   }
   memcpy(temp_cmd, Command->strptr, Command->strlength);
@@ -83,9 +83,9 @@ ULONG THE_Commands(
   } else {
     *Flags = RXSUBCOM_OK;       /* not found is not an error  */
   }
-  sprintf((DEFCHAR *) Retstr->strptr, "%d", rc);        /* format return code string  */
+  sprintf((char *) Retstr->strptr, "%d", rc);        /* format return code string  */
   /* and set the correct length */
-  Retstr->strlength = strlen((DEFCHAR *) Retstr->strptr);
+  Retstr->strlength = strlen((char *) Retstr->strptr);
   return 0L;                    /* processing completed       */
 }
 
@@ -126,13 +126,13 @@ LONG THE_Exit_Handler(
            */
           if (first) {
             first = FALSE;
-            strcpy((DEFCHAR *) rexx_pathname, (DEFCHAR *) dir_pathname);
-            strcat((DEFCHAR *) rexx_pathname, (DEFCHAR *) rexxoutname);
+            strcpy((char *) rexx_pathname, (char *) dir_pathname);
+            strcat((char *) rexx_pathname, (char *) rexxoutname);
             if (splitpath(rexx_pathname) != RC_OK) {
               rc = RXEXIT_RAISE_ERROR;
             }
-            strcpy((DEFCHAR *) rexx_pathname, (DEFCHAR *) sp_path);
-            strcpy((DEFCHAR *) rexx_filename, (DEFCHAR *) sp_fname);
+            strcpy((char *) rexx_pathname, (char *) sp_path);
+            strcpy((char *) rexx_filename, (char *) sp_fname);
           }
           /*
            * Free up the existing linked list (if any)
@@ -146,12 +146,12 @@ LONG THE_Exit_Handler(
           /*
            * first_line is set to "Top of File"
            */
-          if ((rexxout_first_line = add_LINE(rexxout_first_line, NULL, TOP_OF_FILE, strlen((DEFCHAR *) TOP_OF_FILE), 0, FALSE)) == NULL)
+          if ((rexxout_first_line = add_LINE(rexxout_first_line, NULL, TOP_OF_FILE, strlen((char *) TOP_OF_FILE), 0, FALSE)) == NULL)
             rc = RXEXIT_RAISE_ERROR;
           /*
            * last line is set to "Bottom of File"
            */
-          if ((rexxout_last_line = add_LINE(rexxout_first_line, rexxout_first_line, BOTTOM_OF_FILE, strlen((DEFCHAR *) BOTTOM_OF_FILE), 0, FALSE)) == NULL) {
+          if ((rexxout_last_line = add_LINE(rexxout_first_line, rexxout_first_line, BOTTOM_OF_FILE, strlen((char *) BOTTOM_OF_FILE), 0, FALSE)) == NULL) {
             rc = RXEXIT_RAISE_ERROR;
           }
           rexxout_curr = rexxout_first_line;
@@ -200,7 +200,7 @@ LONG THE_Exit_Handler(
         if (CAPREXXOUTx) {
           rexxout_number_lines++;
           sprintf(rexxout_temp, "THE: REXX macro halted - line limit (%ld) exceeded", CAPREXXMAXx);
-          rexxout_curr = add_LINE(rexxout_first_line, rexxout_curr, (char_t *) rexxout_temp, strlen((DEFCHAR *) rexxout_temp), 0, FALSE);
+          rexxout_curr = add_LINE(rexxout_first_line, rexxout_curr, (char_t *) rexxout_temp, strlen((char *) rexxout_temp), 0, FALSE);
         } else {
           printf("THE: REXX macro halted - line limit (%ld) exceeded\n", CAPREXXMAXx);
         }
@@ -238,7 +238,7 @@ ULONG THE_Function_Handler(
    */
   set_compare_exact(TRUE);
   if (itemno == (-1)) {
-    rc = search_query_item_array(function_item, number_function_item(), sizeof(QUERY_ITEM), (DEFCHAR *) FunctionName, functionname_length);
+    rc = search_query_item_array(function_item, number_function_item(), sizeof(QUERY_ITEM), (char *) FunctionName, functionname_length);
     if (rc == (-1)) {
       return (1);
     }
@@ -270,7 +270,7 @@ ULONG THE_Function_Handler(
         break;
     }
   } else {
-    rc = search_query_item_array(query_item, number_query_item(), sizeof(QUERY_ITEM), (DEFCHAR *) FunctionName, functionname_length);
+    rc = search_query_item_array(query_item, number_query_item(), sizeof(QUERY_ITEM), (char *) FunctionName, functionname_length);
     if (rc == (-1)) {
       return (1);
     }
@@ -370,24 +370,24 @@ short execute_macro_file(char_t * filename, char_t * params, short *macrorc, boo
    * Determine how many parameters are to be passed to the interpreter.
    * Only 0 or 1 are valid values.
    */
-  if (params == NULL || strcmp((DEFCHAR *) params, "") == 0) {
+  if (params == NULL || strcmp((char *) params, "") == 0) {
     num_params = 0;
     MAKERXSTRING(argstr, "", 0);
-    strcpy((DEFCHAR *) rexx_macro_parameters, "");
+    strcpy((char *) rexx_macro_parameters, "");
   } else {
     num_params = 1;
-    if ((rexx_args = (char_t *) malloc(strlen((DEFCHAR *) params) + 1)) == (char_t *) NULL) {
+    if ((rexx_args = (char_t *) malloc(strlen((char *) params) + 1)) == (char_t *) NULL) {
       display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    strcpy((DEFCHAR *) rexx_macro_parameters, (DEFCHAR *) params);
-    strcpy((DEFCHAR *) rexx_args, (DEFCHAR *) params);
-    MAKERXSTRING(argstr, (DEFCHAR *) rexx_args, strlen((DEFCHAR *) rexx_args));
+    strcpy((char *) rexx_macro_parameters, (char *) params);
+    strcpy((char *) rexx_args, (char *) params);
+    MAKERXSTRING(argstr, (char *) rexx_args, strlen((char *) rexx_args));
   }
 
   MAKERXSTRING(retstr, NULL, 0);
 
-  strcpy((DEFCHAR *) rexx_macro_name, (DEFCHAR *) filename);
+  strcpy((char *) rexx_macro_name, (char *) filename);
   /*
    * Set up pointer to REXX Exit Handler.
    */
@@ -419,8 +419,8 @@ short execute_macro_file(char_t * filename, char_t * params, short *macrorc, boo
   if (rexx_output) {
     rexx_output = FALSE;
     if (CAPREXXOUTx) {
-      strcpy((DEFCHAR *) temp_cmd, (DEFCHAR *) rexx_pathname);
-      strcat((DEFCHAR *) temp_cmd, (DEFCHAR *) rexx_filename);
+      strcpy((char *) temp_cmd, (char *) rexx_pathname);
+      strcat((char *) temp_cmd, (char *) rexx_filename);
       Xedit(temp_cmd);
     } else {
       if (batch_only) {
@@ -460,7 +460,7 @@ short execute_macro_instore(char_t * commands, short *macrorc, char_t ** pcode, 
   bool save_in_macro = in_macro;
 
   in_macro = TRUE;
-  sprintf((DEFCHAR *) macro_name, "INSTORE%d", macro_ident);
+  sprintf((char *) macro_name, "INSTORE%d", macro_ident);
   /*
    * Set up pointer to REXX Exit Handler.
    */
@@ -472,7 +472,7 @@ short execute_macro_instore(char_t * commands, short *macrorc, char_t ** pcode, 
   rexx_output = FALSE;
   rexx_halted = FALSE;
   instore[0].strptr = (char*) commands;
-  instore[0].strlength = strlen((DEFCHAR *) commands);
+  instore[0].strlength = strlen((char *) commands);
   if (pcode) {
     instore[1].strptr = (char*) * pcode;
   } else {
@@ -489,7 +489,7 @@ short execute_macro_instore(char_t * commands, short *macrorc, char_t ** pcode, 
       *pcode = (char_t *) malloc(instore[1].strlength);
       if (*pcode != NULL) {
         *pcode_len = instore[1].strlength;
-        memcpy((DEFCHAR *) * pcode, (DEFCHAR *) instore[1].strptr, *pcode_len);
+        memcpy((char *) * pcode, (char *) instore[1].strptr, *pcode_len);
         *tokenised = 1;
       }
     }
@@ -507,8 +507,8 @@ short execute_macro_instore(char_t * commands, short *macrorc, char_t ** pcode, 
   if (rexx_output) {
     rexx_output = FALSE;
     if (CAPREXXOUTx) {
-      strcpy((DEFCHAR *) temp_cmd, (DEFCHAR *) rexx_pathname);
-      strcat((DEFCHAR *) temp_cmd, (DEFCHAR *) rexx_filename);
+      strcpy((char *) temp_cmd, (char *) rexx_pathname);
+      strcat((char *) temp_cmd, (char *) rexx_filename);
       Xedit(temp_cmd);
     } else {
       if (batch_only) {
@@ -559,7 +559,7 @@ short set_rexx_variable(char_t * name, char_t * value, length_t value_length, in
    * not the most efficient way of doing this.
    */
   if (suffix == (-1)) {
-    strcpy(variable_name, (DEFCHAR *) name);
+    strcpy(variable_name, (char *) name);
   } else {
     sprintf(variable_name, "%s.%-d", name, suffix);
   }
@@ -569,7 +569,7 @@ short set_rexx_variable(char_t * name, char_t * value, length_t value_length, in
    * Add name/value to SHVBLOCK
    */
   MAKERXSTRING(shv.shvname, variable_name, strlen(variable_name));
-  MAKERXSTRING(shv.shvvalue, (DEFCHAR *) value, value_length);
+  MAKERXSTRING(shv.shvvalue, (char *) value, value_length);
   /*
    * One or both of these is needed, too <sigh>
    */
@@ -598,7 +598,7 @@ static RXSTRING *get_compound_rexx_variable(char_t * name, RXSTRING * value, sho
    * not the most efficient way of doing this.
    */
   if (suffix == (-1)) {
-    strcpy(variable_name, (DEFCHAR *) name);
+    strcpy(variable_name, (char *) name);
   } else {
     sprintf(variable_name, "%s.%-d", name, suffix);
   }
@@ -699,12 +699,12 @@ static short valid_target_function(ULONG Argc, RXSTRING Argv[]) {
         break;
       }
       if (Argc == 2 && target.spare != (-1)) {
-        sprintf((DEFCHAR *) target_buffer, "%ld %ld %s", target.true_line, target.num_lines, target.rt[target.spare].string);
+        sprintf((char *) target_buffer, "%ld %ld %s", target.true_line, target.num_lines, target.rt[target.spare].string);
       } else {
-        sprintf((DEFCHAR *) target_buffer, "%ld %ld", target.true_line, target.num_lines);
+        sprintf((char *) target_buffer, "%ld %ld", target.true_line, target.num_lines);
       }
       item_values[1].value = target_buffer;
-      item_values[1].len = strlen((DEFCHAR *) target_buffer);
+      item_values[1].len = strlen((char *) target_buffer);
       free_target(&target);
       break;
   }
@@ -721,42 +721,42 @@ static short run_os_function(ULONG Argc, RXSTRING Argv[]) {
   switch (Argc) {
 
     case 0:
-      sprintf((DEFCHAR *) num0, "%d", RC_INVALID_OPERAND + 1000);
+      sprintf((char *) num0, "%d", RC_INVALID_OPERAND + 1000);
       break;
 
     case 4:
       if ((errstem = (char_t *) MakeAscii(&Argv[3])) == NULL) {
-        sprintf((DEFCHAR *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
+        sprintf((char *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
         break;
       }
 
     case 3:
       if ((outstem = (char_t *) MakeAscii(&Argv[2])) == NULL) {
-        sprintf((DEFCHAR *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
+        sprintf((char *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
         break;
       }
 
     case 2:
       if ((instem = (char_t *) MakeAscii(&Argv[1])) == NULL) {
-        sprintf((DEFCHAR *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
+        sprintf((char *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
         break;
       }
 
     case 1:
       if ((cmd = (char_t *) MakeAscii(&Argv[0])) == NULL) {
-        sprintf((DEFCHAR *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
+        sprintf((char *) num0, "%d", RC_OUT_OF_MEMORY + 1000);
         break;
       }
       rc = run_os_command(cmd, instem, outstem, errstem);
-      sprintf((DEFCHAR *) num0, "%d", rc);
+      sprintf((char *) num0, "%d", rc);
       break;
 
     default:
-      sprintf((DEFCHAR *) num0, "%d", RC_INVALID_OPERAND + 1000);
+      sprintf((char *) num0, "%d", RC_INVALID_OPERAND + 1000);
       break;
   }
   item_values[1].value = num0;
-  item_values[1].len = strlen((DEFCHAR *) num0);
+  item_values[1].len = strlen((char *) num0);
   item_values[0].value = (char_t *) "1";
   item_values[0].len = 1;
   if (cmd) {
@@ -791,30 +791,30 @@ static int run_os_command(char_t * cmd, char_t * instem, char_t * outstem, char_
    * Determine if we are redirecting stdin, stdout or both and if the
    * values passed as stem variables end in '.'.
    */
-  if (instem == NULL || strcmp((DEFCHAR *) instem, "") == 0) {
+  if (instem == NULL || strcmp((char *) instem, "") == 0) {
     in = FALSE;
   } else {
-    inlen = strlen((DEFCHAR *) instem);
+    inlen = strlen((char *) instem);
     if (*(instem + inlen - 1) == '.') {
       *(instem + inlen - 1) = '\0';
     } else {
       return (RC_INVALID_OPERAND + 1000);
     }
   }
-  if (outstem == NULL || strcmp((DEFCHAR *) outstem, "") == 0) {
+  if (outstem == NULL || strcmp((char *) outstem, "") == 0) {
     out = FALSE;
   } else {
-    outlen = strlen((DEFCHAR *) outstem);
+    outlen = strlen((char *) outstem);
     if (*(outstem + outlen - 1) == '.') {
       *(outstem + outlen - 1) = '\0';
     } else {
       return (RC_INVALID_OPERAND + 1000);
     }
   }
-  if (errstem == NULL || strcmp((DEFCHAR *) errstem, "") == 0) {
+  if (errstem == NULL || strcmp((char *) errstem, "") == 0) {
     err = FALSE;
   } else {
-    errlen = strlen((DEFCHAR *) errstem);
+    errlen = strlen((char *) errstem);
     if (*(errstem + errlen - 1) == '.') {
       *(errstem + errlen - 1) = '\0';
     } else {
@@ -825,10 +825,10 @@ static int run_os_command(char_t * cmd, char_t * instem, char_t * outstem, char_
    * Ensure that stdin stem is different to both stdout and stderr stems.
    */
   if (in) {
-    if (out && strcmp((DEFCHAR *) instem, (DEFCHAR *) outstem) == 0) {
+    if (out && strcmp((char *) instem, (char *) outstem) == 0) {
       return (RC_INVALID_OPERAND + 1000);
     }
-    if (err && strcmp((DEFCHAR *) instem, (DEFCHAR *) errstem) == 0) {
+    if (err && strcmp((char *) instem, (char *) errstem) == 0) {
       return (RC_INVALID_OPERAND + 1000);
     }
   }
@@ -837,7 +837,7 @@ static int run_os_command(char_t * cmd, char_t * instem, char_t * outstem, char_
    * redirected to the same place.
    */
   if (out && err) {
-    if (strcmp((DEFCHAR *) outstem, (DEFCHAR *) errstem) == 0) {
+    if (strcmp((char *) outstem, (char *) errstem) == 0) {
       out_and_err_same = TRUE;
     }
   }
@@ -854,7 +854,7 @@ static int run_os_command(char_t * cmd, char_t * instem, char_t * outstem, char_
     if (!valid_positive_integer((char_t *) tmpstr.strptr)) {
       return (RC_INVALID_OPERAND + 1000);
     }
-    innum = atol((DEFCHAR *) tmpstr.strptr);
+    innum = atol((char *) tmpstr.strptr);
     free(tmpstr.strptr);
     /*
      * Write the contents of the stdin stem to a temporary file...
@@ -875,7 +875,7 @@ static int run_os_command(char_t * cmd, char_t * instem, char_t * outstem, char_
       if (tmpstr.strptr == NULL) {
         return (RC_SYSTEM_ERROR + 1000);
       }
-      fputs((DEFCHAR *) tmpstr.strptr, infp);
+      fputs((char *) tmpstr.strptr, infp);
       fputs("\n", infp);
       free(tmpstr.strptr);
     }
@@ -975,7 +975,7 @@ static int run_os_command(char_t * cmd, char_t * instem, char_t * outstem, char_
   /*
    * Execute the OS command supplied.
    */
-  rcode = system((DEFCHAR *) cmd);
+  rcode = system((char *) cmd);
   if (rcode) {
     rcode = WEXITSTATUS(rcode);
   }

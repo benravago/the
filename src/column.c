@@ -54,7 +54,7 @@ short column_command(char_t * cmd_text, int cmd_type) {
         break;
     }
   } else {
-    len_params = strlen((DEFCHAR *) cmd_text);
+    len_params = strlen((char *) cmd_text);
   }
   /*
    * If on command line, copy current line into rec

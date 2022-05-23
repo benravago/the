@@ -36,7 +36,7 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
   }
 
   if (!spooler_open) {
-    pp = popen((DEFCHAR *) spooler_name, "w");
+    pp = popen((char *) spooler_name, "w");
     if (pp == NULL) {
       return;
     }
@@ -140,7 +140,7 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
             }
             break;
         }
-        fwrite((DEFCHAR *) ptr, sizeof(char_t), len, pp);
+        fwrite((char *) ptr, sizeof(char_t), len, pp);
         fprintf(pp, "%s", line_term);
         line_number++;
         if (line_number == pagesize && pagesize != 0) {
@@ -222,7 +222,7 @@ static void print_shadow_line(FILE * pp, char_t * line_term, line_t num_excluded
     width = min(sizeof(buf) - 1, CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
     make_shadow_line(buf, num_excluded, width);
     fwrite(buf, width, 1, pp);
-    fputs((DEFCHAR *) line_term, pp);
+    fputs((char *) line_term, pp);
   }
   return;
 }

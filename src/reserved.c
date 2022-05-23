@@ -24,19 +24,19 @@ RESERVED *add_reserved_line(char_t * spec, char_t * line, short base, short off,
   if (templine == NULL) {
     templine = (char_t *) "";
   }
-  if ((curr->line = (char_t *) malloc((strlen((DEFCHAR *) templine) + 1) * sizeof(char_t))) == NULL) {
+  if ((curr->line = (char_t *) malloc((strlen((char *) templine) + 1) * sizeof(char_t))) == NULL) {
     display_error(30, (char_t *) "", FALSE);
     return (NULL);
   }
-  if ((curr->disp = (char_t *) malloc((strlen((DEFCHAR *) templine) + 1) * sizeof(char_t))) == NULL) {
+  if ((curr->disp = (char_t *) malloc((strlen((char *) templine) + 1) * sizeof(char_t))) == NULL) {
     display_error(30, (char_t *) "", FALSE);
     return (NULL);
   }
-  if ((curr->highlighting = (chtype *) malloc((strlen((DEFCHAR *) templine) + 1) * sizeof(chtype))) == NULL) {
+  if ((curr->highlighting = (chtype *) malloc((strlen((char *) templine) + 1) * sizeof(chtype))) == NULL) {
     display_error(30, (char_t *) "", FALSE);
     return (NULL);
   }
-  if ((curr->spec = (char_t *) malloc((strlen((DEFCHAR *) spec) + 1) * sizeof(char_t))) == NULL) {
+  if ((curr->spec = (char_t *) malloc((strlen((char *) spec) + 1) * sizeof(char_t))) == NULL) {
     display_error(30, (char_t *) "", FALSE);
     return (NULL);
   }
@@ -44,9 +44,9 @@ RESERVED *add_reserved_line(char_t * spec, char_t * line, short base, short off,
     display_error(30, (char_t *) "", FALSE);
     return (NULL);
   }
-  strcpy((DEFCHAR *) curr->line, (DEFCHAR *) templine);
-  strcpy((DEFCHAR *) curr->spec, (DEFCHAR *) spec);
-  curr->length = strlen((DEFCHAR *) templine);
+  strcpy((char *) curr->line, (char *) templine);
+  strcpy((char *) curr->spec, (char *) spec);
+  curr->length = strlen((char *) templine);
   curr->base = base;
   curr->off = off;
   curr->autoscroll = autoscroll;

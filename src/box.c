@@ -329,7 +329,7 @@ static short box_delete(BOXP * prm) {
         display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
-      memcpy((DEFCHAR *) curr->line + curr->length, (DEFCHAR *) curr->next->line, curr->next->length);
+      memcpy((char *) curr->line + curr->length, (char *) curr->next->line, curr->next->length);
       curr->length += curr->next->length;
       if (curr->length > max_line_length) {
         display_error(0, (char_t *) "Truncated", FALSE);

@@ -1,46 +1,17 @@
-/* QUERY.H -                                                           */
-/* This file contains defines   related to QUERY,STATUS and EXTRACT    */
+// SPDX-FileCopyrightText: 2002 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
+
 /*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2002 Mark Hessling
+ * This file contains defines related to QUERY,STATUS and EXTRACT
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
+ * The order of these items determine the order they appear as a result
+ * of the STATUS command, so they should be in alphabetical order.     
  */
 
 /*
-$Id: query.h,v 1.25 2016/12/24 05:46:30 mark Exp $
-*/
-
-/*---------------------------------------------------------------------*/
-/* The order of these items determine the order they appear as a result*/
-/* of the STATUS command, so they should be in alphabetical order.     */
-/*---------------------------------------------------------------------*/
-/* The following are item number defines for EXTRACT/QUERY/STATUS.     */
-/*---------------------------------------------------------------------*/
+ * The following are item number defines for EXTRACT/QUERY/STATUS.
+ */
 #define ITEM_ALT                              0
 #define ITEM_ARBCHAR                          1
 #define ITEM_AUTOCOLOR                        2
@@ -183,9 +154,9 @@ $Id: query.h,v 1.25 2016/12/24 05:46:30 mark Exp $
 #define ITEM_XTERMINAL                      139
 #define ITEM_ZONE                           140
 
-/*---------------------------------------------------------------------*/
-/* The following are item number defines for the boolean functions.    */
-/*---------------------------------------------------------------------*/
+/*
+ * The following are item number defines for the boolean functions.
+ */
 #define ITEM_AFTER_FUNCTION                   0
 #define ITEM_ALT_FUNCTION                     1
 #define ITEM_ALTKEY_FUNCTION                  2
@@ -219,6 +190,4 @@ $Id: query.h,v 1.25 2016/12/24 05:46:30 mark Exp $
 #define ITEM_TOPEDGE_FUNCTION                30
 #define ITEM_VALID_TARGET_FUNCTION           31
 #define ITEM_VERONE_FUNCTION                 32
-/*---------------------------------------------------------------------*/
-/* The following are item number defines for the 'other' functions.    */
-/*---------------------------------------------------------------------*/
+

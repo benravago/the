@@ -81,7 +81,6 @@ extern ExtractFunction extract_define;
 extern ExtractFunction extract_defsort;
 extern ExtractFunction extract_dir_function;
 extern ExtractFunction extract_dirfileid;
-extern ExtractFunction extract_dirinclude;
 extern ExtractFunction extract_end_function;
 extern ExtractFunction extract_display;
 extern ExtractFunction extract_ecolor;
@@ -263,7 +262,6 @@ QUERY_ITEM _THE_FAR query_item[] = {
   { (CHARTYPE *) "define", 6, 6, ITEM_DEFINE, 1, 0, LVL_GLOB, QUERY_QUERY | QUERY_EXTRACT, extract_define },
   { (CHARTYPE *) "defsort", 7, 7, ITEM_DEFSORT, 2, 2, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_defsort },
   { (CHARTYPE *) "dirfileid", 9, 9, ITEM_DIRFILEID, 2, 2, LVL_FILE, QUERY_EXTRACT, extract_dirfileid },
-  { (CHARTYPE *) "dirinclude", 10, 4, ITEM_DIRINCLUDE, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_dirinclude },
   { (CHARTYPE *) "display", 7, 4, ITEM_DISPLAY, 2, 2, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_display },
   { (CHARTYPE *) "ecolor", 6, 6, ITEM_ECOLOR, 2, ECOLOUR_MAX, LVL_VIEW, QUERY_QUERY | QUERY_EXTRACT, extract_ecolor },
   { (CHARTYPE *) "ecolour", 7, 7, ITEM_ECOLOUR, 2, ECOLOUR_MAX, LVL_VIEW, QUERY_QUERY | QUERY_EXTRACT, extract_ecolour },

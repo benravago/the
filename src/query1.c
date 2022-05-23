@@ -858,11 +858,7 @@ short extract_dirfileid(short number_variables, short itemno, CHARTYPE * itemarg
   }
   return number_variables;
 }
-short extract_dirinclude(short number_variables, short itemno, CHARTYPE * itemargs, CHARTYPE query_type, LINETYPE argc, CHARTYPE * arg, LINETYPE arglen) {
-  item_values[1].value = get_dirtype(query_rsrvd);
-  item_values[1].len = strlen((DEFCHAR *) item_values[1].value);
-  return number_variables;
-}
+
 short extract_ecolor(short number_variables, short itemno, CHARTYPE * itemargs, CHARTYPE query_type, LINETYPE argc, CHARTYPE * arg, LINETYPE arglen) {
   return extract_colour_settings(itemno, query_rsrvd, query_type, itemargs, TRUE, TRUE);
 }

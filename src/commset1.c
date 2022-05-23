@@ -1549,12 +1549,7 @@ short Defsort(CHARTYPE * params) {
   }
   return (rc);
 }
-short Dirinclude(CHARTYPE * params) {
-  short rc = RC_OK;
 
-  rc = set_dirtype(params);
-  return (rc);
-}
 short Display(CHARTYPE * params) {
   short rc = RC_OK;
   short col1 = 0, col2 = 0;

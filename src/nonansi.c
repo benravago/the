@@ -1,72 +1,49 @@
-/* NONANSI.C -                                                         */
-/* This file contains all calls to non-ansi conforming routines.       */
+// SPDX-FileCopyrightText: 2013 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
+
 /*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2013 Mark Hessling
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling, mark@rexx.org  http://www.rexx.org/
+ * This file contains all calls to non-ansi conforming routines.
  */
 
-#include <the.h>
-#include <proto.h>
+#include "the.h"
+#include "proto.h"
 
 #include <pwd.h>
 #include <errno.h>
-
-/*#define DEBUG 1*/
 
 /*
  * Replace non-ANSI defs with ANSI ones
  */
 
-short file_readable(CHARTYPE * filename) {
-  if (access((DEFCHAR *) filename, R_OK) == (-1)) {
+short file_readable(char_t * filename) {
+  if (access((char *) filename, R_OK) == (-1)) {
     return (FALSE);
   }
   return (TRUE);
 }
-short file_writable(CHARTYPE * filename) {
+
+short file_writable(char_t * filename) {
   if (file_exists(filename) != THE_FILE_EXISTS) {
     return (TRUE);
   }
-  if (access((DEFCHAR *) filename, W_OK) == (-1)) {
+  if (access((char *) filename, W_OK) == (-1)) {
     return (FALSE);
   }
   return (TRUE);
 }
-short file_exists(CHARTYPE * filename) {
+
+short file_exists(char_t * filename) {
   int rc;
 
-  if (access((DEFCHAR *) filename, F_OK) == (-1)) {
+  if (access((char *) filename, F_OK) == (-1)) {
     rc = errno;
     switch (rc) {
+
       case ENAMETOOLONG:
         rc = THE_FILE_NAME_TOO_LONG;
         break;
+
       default:
         rc = THE_FILE_UNKNOWN;
         break;
@@ -76,19 +53,21 @@ short file_exists(CHARTYPE * filename) {
     return (THE_FILE_EXISTS);
   }
 }
-short remove_file(CHARTYPE * filename) {
+
+short remove_file(char_t * filename) {
   if (filename == NULL) {
     return (RC_OK);
   }
-  if (unlink((DEFCHAR *) filename) == (-1)) {
+  if (unlink((char *) filename) == (-1)) {
     return (RC_ACCESS_DENIED);
   }
   return (RC_OK);
 }
-void convert_equals_in_filename(CHARTYPE * outfilename, CHARTYPE * infilename) {
+
+void convert_equals_in_filename(char_t * outfilename, char_t * infilename) {
   /*
    * Support an = in the following circumstances:
-   *    In filename      Current           Current         Substitutes
+   *  In filename      Current           Current         Substitutes
    *                   \oldp\fred.c      \oldp\fred
    * ---------------------------------------------------------------
    * 1) =\abc.def      \oldp\abc.def     \oldp\abc.def     fpath
@@ -99,29 +78,28 @@ void convert_equals_in_filename(CHARTYPE * outfilename, CHARTYPE * infilename) {
    * 6) =              \oldp\fred.c      \oldp\fred        fpath, fname and ftype
    * 7) \apath\=       \apath\fred.c     \apath\fred       filename
    */
-/*--------------------------- local data ------------------------------*/
-  CHARTYPE _THE_FAR in_filename[MAX_FILE_NAME + 1];
-  CHARTYPE _THE_FAR current_filename[MAX_FILE_NAME + 1];
-  CHARTYPE *in_ftype, *in_fpath, *in_fname;
-  CHARTYPE *current_ftype, *current_fpath, *current_fname;
-  LINETYPE last_pos;
 
-/*--------------------------- processing ------------------------------*/
+  char_t _THE_FAR in_filename[MAX_FILE_NAME + 1];
+  char_t _THE_FAR current_filename[MAX_FILE_NAME + 1];
+  char_t *in_ftype, *in_fpath, *in_fname;
+  char_t *current_ftype, *current_fpath, *current_fname;
+  line_t last_pos;
+
   /*
    * If we don't have a current file, or there are no equivalence chars
    * just copy the incoming filename to the outgoing filename...
    */
-  if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL || strzreveq(infilename, (CHARTYPE) EQUIVCHARx) == (-1)) {
-    strcpy((DEFCHAR *) outfilename, (DEFCHAR *) infilename);
+  if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL || strzreveq(infilename, (char_t) EQUIVCHARx) == (-1)) {
+    strcpy((char *) outfilename, (char *) infilename);
     return;
   }
   /*
    * Split the incoming file name into 2 or 3 pieces; fpath/filename or
    * fpath/fname/ftype.
    */
-  strcpy((DEFCHAR *) in_filename, (DEFCHAR *) strrmdup(strtrans(infilename, OSLASH, ISLASH), EQUIVCHARx, TRUE));
+  strcpy((char *) in_filename, (char *) strrmdup(strtrans(infilename, OSLASH, ISLASH), EQUIVCHARx, TRUE));
   in_fpath = in_filename;
-  last_pos = strzreveq(in_fpath, (CHARTYPE) ISLASH);
+  last_pos = strzreveq(in_fpath, (char_t) ISLASH);
   if (last_pos == (-1)) {
     in_fpath = NULL;
     in_fname = in_filename;
@@ -129,20 +107,20 @@ void convert_equals_in_filename(CHARTYPE * outfilename, CHARTYPE * infilename) {
     in_fpath[last_pos] = '\0';
     in_fname = in_fpath + last_pos + 1;
   }
-  last_pos = strzreveq(in_fname, (CHARTYPE) '.');
-  if (last_pos == (-1))
+  last_pos = strzreveq(in_fname, (char_t) '.');
+  if (last_pos == (-1)) {
     in_ftype = NULL;
-  else {
+  } else {
     in_ftype = in_fname + last_pos + 1;
     in_fname[last_pos] = '\0';
   }
   /*
    * Split the current filename and path into its component parts
    */
-  strcpy((DEFCHAR *) current_filename, (DEFCHAR *) CURRENT_FILE->fpath);
-  strcat((DEFCHAR *) current_filename, (DEFCHAR *) CURRENT_FILE->fname);
+  strcpy((char *) current_filename, (char *) CURRENT_FILE->fpath);
+  strcat((char *) current_filename, (char *) CURRENT_FILE->fname);
   current_fpath = current_filename;
-  last_pos = strzreveq(current_fpath, (CHARTYPE) ISLASH);
+  last_pos = strzreveq(current_fpath, (char_t) ISLASH);
   if (last_pos == (-1)) {
     current_fpath = NULL;
     current_fname = current_filename;
@@ -150,68 +128,70 @@ void convert_equals_in_filename(CHARTYPE * outfilename, CHARTYPE * infilename) {
     current_fpath[last_pos] = '\0';
     current_fname = current_fpath + last_pos + 1;
   }
-  last_pos = strzreveq(current_fname, (CHARTYPE) '.');
-  if (last_pos == (-1))
+  last_pos = strzreveq(current_fname, (char_t) '.');
+  if (last_pos == (-1)) {
     current_ftype = NULL;
-  else {
+  } else {
     current_ftype = current_fname + last_pos + 1;
     current_fname[last_pos] = '\0';
   }
   /*
    * Now its time to put the new file name together
    */
-  strcpy((DEFCHAR *) outfilename, "");
-  if (in_fpath && !equal(in_fpath, EQUIVCHARstr, 1))
-    strcat((DEFCHAR *) outfilename, (DEFCHAR *) in_fpath);
-  else
-    strcat((DEFCHAR *) outfilename, (DEFCHAR *) current_fpath);
-  strcat((DEFCHAR *) outfilename, (DEFCHAR *) ISTR_SLASH);
-  if (in_fname && !equal(in_fname, EQUIVCHARstr, 1))
-    strcat((DEFCHAR *) outfilename, (DEFCHAR *) in_fname);
-  else
-    strcat((DEFCHAR *) outfilename, (DEFCHAR *) current_fname);
+  strcpy((char *) outfilename, "");
+  if (in_fpath && !equal(in_fpath, EQUIVCHARstr, 1)) {
+    strcat((char *) outfilename, (char *) in_fpath);
+  } else {
+    strcat((char *) outfilename, (char *) current_fpath);
+  }
+  strcat((char *) outfilename, (char *) ISTR_SLASH);
+  if (in_fname && !equal(in_fname, EQUIVCHARstr, 1)) {
+    strcat((char *) outfilename, (char *) in_fname);
+  } else {
+    strcat((char *) outfilename, (char *) current_fname);
+  }
   if (in_ftype && !equal(in_ftype, EQUIVCHARstr, 1)) {
-    strcat((DEFCHAR *) outfilename, ".");
-    strcat((DEFCHAR *) outfilename, (DEFCHAR *) in_ftype);
+    strcat((char *) outfilename, ".");
+    strcat((char *) outfilename, (char *) in_ftype);
   } else {
     if (current_ftype) {
-      strcat((DEFCHAR *) outfilename, ".");
-      strcat((DEFCHAR *) outfilename, (DEFCHAR *) current_ftype);
+      strcat((char *) outfilename, ".");
+      strcat((char *) outfilename, (char *) current_ftype);
     }
   }
   return;
 }
 
-short splitpath(CHARTYPE * filename) {
+short splitpath(char_t * filename) {
   short len = 0;
-  CHARTYPE _THE_FAR work_filename[MAX_FILE_NAME + 1];
-  CHARTYPE _THE_FAR conv_filename[MAX_FILE_NAME + 1];
+  char_t _THE_FAR work_filename[MAX_FILE_NAME + 1];
+  char_t _THE_FAR conv_filename[MAX_FILE_NAME + 1];
 
-  if (strlen((DEFCHAR *) filename) > MAX_FILE_NAME) {
+  if (strlen((char *) filename) > MAX_FILE_NAME) {
     return (RC_BAD_FILEID);
   }
   /*
    * Save the current directory.
    */
-  if (getcwd((DEFCHAR *) curr_path, MAX_FILE_NAME) == NULL) {
+  if (getcwd((char *) curr_path, MAX_FILE_NAME) == NULL) {
     return (RC_BAD_FILEID);
   }
-  strcpy((DEFCHAR *) sp_path, "");
-  strcpy((DEFCHAR *) sp_fname, "");
+  strcpy((char *) sp_path, "");
+  strcpy((char *) sp_fname, "");
   convert_equals_in_filename(conv_filename, filename);
-  if (strlen((DEFCHAR *) conv_filename) > MAX_FILE_NAME) {
+  if (strlen((char *) conv_filename) > MAX_FILE_NAME) {
     return (RC_BAD_FILEID);
   }
-  strcpy((DEFCHAR *) work_filename, (DEFCHAR *) conv_filename);
+  strcpy((char *) work_filename, (char *) conv_filename);
   /*
    * If the supplied filename is empty, set the path = cwd and filename
    * equal to blank.
    */
-  if (strcmp((DEFCHAR *) filename, "") == 0) {
-    if (getcwd((DEFCHAR *) sp_path, MAX_FILE_NAME) == NULL) {
+  if (strcmp((char *) filename, "") == 0) {
+    if (getcwd((char *) sp_path, MAX_FILE_NAME) == NULL) {
       return (RC_BAD_FILEID);
     }
-    strcpy((DEFCHAR *) sp_fname, "");
+    strcpy((char *) sp_fname, "");
   }
   /*
    * Check if the first character is tilde; translate HOME env variable
@@ -219,113 +199,116 @@ short splitpath(CHARTYPE * filename) {
    */
   if (*(conv_filename) == '~') {
     if (*(conv_filename + 1) == ISLASH || *(conv_filename + 1) == '\0') {
-      CHARTYPE *home = (CHARTYPE *) getenv("HOME");
+      char_t *home = (char_t *) getenv("HOME");
 
-      if (((home == NULL) ? 0 : strlen((DEFCHAR *) home)) + strlen((DEFCHAR *) conv_filename) > MAX_FILE_NAME) {
+      if (((home == NULL) ? 0 : strlen((char *) home)) + strlen((char *) conv_filename) > MAX_FILE_NAME) {
         return (RC_BAD_FILEID);
       }
-      strcpy((DEFCHAR *) work_filename, (DEFCHAR *) home);
-      strcat((DEFCHAR *) work_filename, (DEFCHAR *) (conv_filename + 1));
+      strcpy((char *) work_filename, (char *) home);
+      strcat((char *) work_filename, (char *) (conv_filename + 1));
     } else {
       struct passwd *pwd;
 
-      strcpy((DEFCHAR *) sp_path, (DEFCHAR *) conv_filename + 1);
-      if ((len = strzeq(sp_path, ISLASH)) != (-1))
+      strcpy((char *) sp_path, (char *) conv_filename + 1);
+      if ((len = strzeq(sp_path, ISLASH)) != (-1)) {
         sp_path[len] = '\0';
-      if ((pwd = getpwnam((DEFCHAR *) sp_path)) == NULL) {
+      }
+      if ((pwd = getpwnam((char *) sp_path)) == NULL) {
         return (RC_BAD_FILEID);
       }
-      strcpy((DEFCHAR *) work_filename, pwd->pw_dir);
-      if (len != (-1))
-        strcat((DEFCHAR *) work_filename, (DEFCHAR *) (conv_filename + 1 + len));
+      strcpy((char *) work_filename, pwd->pw_dir);
+      if (len != (-1)) {
+        strcat((char *) work_filename, (char *) (conv_filename + 1 + len));
+      }
     }
   }
   /*
    * First determine if the supplied filename is a directory.
    */
-  if ((stat((DEFCHAR *) work_filename, &stat_buf) == 0)
-      && (is_a_dir_stat(stat_buf.st_mode))) {
-    strcpy((DEFCHAR *) sp_path, (DEFCHAR *) work_filename);
-    strcpy((DEFCHAR *) sp_fname, "");
+  if ((stat((char *) work_filename, &stat_buf) == 0) && (is_a_dir_stat(stat_buf.st_mode))) {
+    strcpy((char *) sp_path, (char *) work_filename);
+    strcpy((char *) sp_fname, "");
   } else {                      /* here if the file doesn't exist or is not a directory */
     len = strzreveq(work_filename, ISLASH);
     switch (len) {
+
       case (-1):
-        if (getcwd((DEFCHAR *) sp_path, MAX_FILE_NAME) == NULL) {
+        if (getcwd((char *) sp_path, MAX_FILE_NAME) == NULL) {
           return (RC_BAD_FILEID);
         }
-        strcpy((DEFCHAR *) sp_fname, (DEFCHAR *) work_filename);
+        strcpy((char *) sp_fname, (char *) work_filename);
         break;
+
       case 0:
-        strcpy((DEFCHAR *) sp_path, (DEFCHAR *) work_filename);
+        strcpy((char *) sp_path, (char *) work_filename);
         sp_path[1] = '\0';
-        strcpy((DEFCHAR *) sp_fname, (DEFCHAR *) work_filename + 1 + len);
+        strcpy((char *) sp_fname, (char *) work_filename + 1 + len);
         break;
+
       default:
-        strcpy((DEFCHAR *) sp_path, (DEFCHAR *) work_filename);
+        strcpy((char *) sp_path, (char *) work_filename);
         sp_path[len] = '\0';
-        strcpy((DEFCHAR *) sp_fname, (DEFCHAR *) work_filename + 1 + len);
+        strcpy((char *) sp_fname, (char *) work_filename + 1 + len);
         break;
     }
   }
   /*
-   * Change directory to the supplied path, if possible and store the
-   * expanded path.
+   * Change directory to the supplied path, if possible and store the expanded path.
    * If an error, restore the current path.
    */
-  if (chdir((DEFCHAR *) sp_path) != 0) {
-    chdir((DEFCHAR *) curr_path);
+  if (chdir((char *) sp_path) != 0) {
+    chdir((char *) curr_path);
     return (RC_FILE_NOT_FOUND);
   }
-  if (getcwd((DEFCHAR *) sp_path, MAX_FILE_NAME) == NULL) {
+  if (getcwd((char *) sp_path, MAX_FILE_NAME) == NULL) {
     return (RC_BAD_FILEID);
   }
-  chdir((DEFCHAR *) curr_path);
+  chdir((char *) curr_path);
   /*
-   * Append the OS directory character to the path if it doesn't already
-   * end in the character.
+   * Append the OS directory character to the path if it doesn't already end in the character.
    */
-  len = strlen((DEFCHAR *) sp_path);
-  if (len > 0 && sp_path[len - 1] != ISLASH)
-    strcat((DEFCHAR *) sp_path, (DEFCHAR *) ISTR_SLASH);
+  len = strlen((char *) sp_path);
+  if (len > 0 && sp_path[len - 1] != ISLASH) {
+    strcat((char *) sp_path, (char *) ISTR_SLASH);
+  }
   return (RC_OK);
 }
 
-LINE *getclipboard(LINE * now, int from_get)
 /*
  * Function  : Reads the contents of the clipboard into the file.
  * Parameters: pointer to line after which lines are to be added
  * Return    : 0 on success.
  */
-{
+LINE *getclipboard(LINE * now, int from_get) {
   LINE *curr = now;
-
-  display_error(82, (CHARTYPE *) "CLIP:", FALSE);
+  /* !!! seems to be only for PDCurses */
+  display_error(82, (char_t *) "CLIP:", FALSE);
   curr = NULL;
   return curr;
 }
-short setclipboard(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in_lines, LINETYPE start_line_in, LINETYPE end_line_in, LINETYPE * num_file_lines, bool append, LENGTHTYPE start_col_in, LENGTHTYPE end_col_in, bool ignore_scope,
-                   bool lines_based_on_scope, int target_type) {
+
 #define CLIP_TYPE_LINE   1
 #define CLIP_TYPE_BOX    2
 #define CLIP_TYPE_STREAM 3
-  LINETYPE i = 0L;
-  LINETYPE abs_num_lines = (in_lines < 0L ? -in_lines : in_lines);
-  LINETYPE num_actual_lines = 0L;
-  LINETYPE my_num_file_lines = 0L;
-  LINETYPE current_line;
+
+short setclipboard(FILE_DETAILS * cf, char_t * new_fname, bool force, line_t in_lines, line_t start_line_in, line_t end_line_in, line_t * num_file_lines, bool append, length_t start_col_in, length_t end_col_in, bool ignore_scope, bool lines_based_on_scope, int target_type) {
+  line_t i = 0L;
+  line_t abs_num_lines = (in_lines < 0L ? -in_lines : in_lines);
+  line_t num_actual_lines = 0L;
+  line_t my_num_file_lines = 0L;
+  line_t current_line;
   short direction = (in_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
   LINE *curr = NULL;
   short rc = RC_OK;
   bool save_scope_all = CURRENT_VIEW->scope_all;
-  CHARTYPE *eol = (CHARTYPE *) "\n";
+  char_t *eol = (char_t *) "\n";
   int eol_len = 1;
   long clip_size = 1024;
-  CHARTYPE *ptr = NULL;
+  char_t *ptr = NULL;
   long len = 0, pos = 0;
   int clip_type;
-  LENGTHTYPE start_col = start_col_in, end_col = end_col_in;
-  LINETYPE start_line = start_line_in, end_line = end_line_in;
+  length_t start_col = start_col_in, end_col = end_col_in;
+  line_t start_line = start_line_in, end_line = end_line_in;
 
   /*
    * CUA block can have start position after end position, so fix this up so
@@ -357,15 +340,16 @@ short setclipboard(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE
    * Save the setting of scope_all if we are ignoring scope. ie full file
    * is being written...
    */
-  if (ignore_scope)
+  if (ignore_scope) {
     CURRENT_VIEW->scope_all = TRUE;
+  }
   /*
    * Allocate an initial amount of memory for the clipboard buffer.
    * It will be increased later if required.
    */
-  ptr = (CHARTYPE *) (*the_malloc) (clip_size);
+  ptr = (char_t *) malloc(clip_size);
   if (!ptr) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
 
@@ -407,23 +391,28 @@ short setclipboard(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE
    */
   for (i = 0L, num_actual_lines = 0L;; i++) {
     if (lines_based_on_scope) {
-      if (num_actual_lines == abs_num_lines)
+      if (num_actual_lines == abs_num_lines) {
         break;
+      }
     } else {
-      if (abs_num_lines == i)
+      if (abs_num_lines == i) {
         break;
+      }
     }
-    current_line = start_line + (LINETYPE) (i * direction);
+    current_line = start_line + (line_t) (i * direction);
     rc = processable_line(CURRENT_VIEW, current_line, curr);
     switch (rc) {
+
       case LINE_SHADOW:
         rc = 0;
         break;
+
       case LINE_TOF:
       case LINE_EOF:
         rc = 0;
         num_actual_lines++;
         break;
+
       default:
         rc = 0;
         /*
@@ -431,10 +420,13 @@ short setclipboard(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE
          * which columns to copy...
          */
         switch (clip_type) {
+
           case CLIP_TYPE_LINE:
             break;
+
           case CLIP_TYPE_BOX:
             break;
+
           case CLIP_TYPE_STREAM:
             if (current_line == start_line) {
               start_col = start_col_in;
@@ -451,21 +443,21 @@ short setclipboard(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE
         if (start_col < curr->length) {
           len = min(curr->length - start_col, (end_col - start_col) + 1);
           if (pos + len > clip_size) {
-            ptr = (CHARTYPE *) (*the_realloc) ((DEFCHAR *) ptr, clip_size * 2);
+            ptr = (char_t *) realloc((char *) ptr, clip_size * 2);
             clip_size *= 2;
           }
-          memcpy((DEFCHAR *) ptr + pos, (DEFCHAR *) curr->line + start_col, len);
+          memcpy((char *) ptr + pos, (char *) curr->line + start_col, len);
           pos += len;
         }
         if (pos + 1 + eol_len > clip_size) {
-          ptr = (CHARTYPE *) (*the_realloc) ((DEFCHAR *) ptr, clip_size * 2);
+          ptr = (char_t *) realloc((char *) ptr, clip_size * 2);
           if (!ptr) {
-            display_error(30, (CHARTYPE *) "", FALSE);
+            display_error(30, (char_t *) "", FALSE);
             return (RC_OUT_OF_MEMORY);
           }
           clip_size *= 2;
         }
-        memcpy((DEFCHAR *) ptr + pos, (DEFCHAR *) eol, eol_len);
+        memcpy((char *) ptr + pos, (char *) eol, eol_len);
         pos += eol_len;
         num_actual_lines++;
         break;
@@ -473,15 +465,18 @@ short setclipboard(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE
     /*
      * Proceed to the next record, even if the current record not in scope.
      */
-    if (rc)
+    if (rc) {
       break;
-    if (direction == DIRECTION_BACKWARD)
+    }
+    if (direction == DIRECTION_BACKWARD) {
       curr = curr->prev;
-    else
+    } else {
       curr = curr->next;
-    my_num_file_lines += (LINETYPE) direction;
-    if (curr == NULL)
+    }
+    my_num_file_lines += (line_t) direction;
+    if (curr == NULL) {
       break;
+    }
   }
   /*
    * Nul terminate the string.
@@ -490,13 +485,13 @@ short setclipboard(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE
   /*
    * Restore the setting of scope_all if we changed it before...
    */
-  if (ignore_scope)
+  if (ignore_scope) {
     CURRENT_VIEW->scope_all = save_scope_all;
-
-  display_error(82, (CHARTYPE *) "CLIP:", FALSE);
+  }
+  display_error(82, (char_t *) "CLIP:", FALSE);
   rc = RC_INVALID_ENVIRON;
 
-  (*the_free) ((void *) ptr);
+  free((void *) ptr);
   return (rc);
 }
 
@@ -524,21 +519,23 @@ void draw_cursor(bool visible) {
 /*
  * is_a_dir_stat() used when the attributes are obtained from stat()
  */
-int is_a_dir_stat(ATTR_TYPE attrs) {
-  ATTR_TYPE ftype = (attrs & S_IFMT);
+int is_a_dir_stat(mode_t attrs) {
+  mode_t ftype = (attrs & S_IFMT);
 
-  if (ftype == S_IFDIR)
+  if (ftype == S_IFDIR) {
     return (1);
+  }
   return (0);
 }
 
 /*
  * is_a_dir_dir() used when the attributes are obtained from _findfirst() on Windows
  */
-int is_a_dir_dir(ATTR_TYPE attrs) {
-  ATTR_TYPE ftype = (attrs & S_IFMT);
+int is_a_dir_dir(mode_t attrs) {
+  mode_t ftype = (attrs & S_IFMT);
 
-  if (ftype == S_IFDIR)
+  if (ftype == S_IFDIR) {
     return (1);
+  }
   return (0);
 }
