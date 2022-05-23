@@ -43,8 +43,6 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 #include <ncurses.h>
 #define CURSES_H_INCLUDED
 
-#include <regex.h>
-
 #define Args(a) a
 
 #define ESLASH '/'
@@ -87,6 +85,10 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 #include <sys/time.h>
 
 #include <signal.h>
+
+/* NOTE: try to limit _GNU_SOURCE for regex.h */
+#define _GNU_SOURCE
+#include <regex.h>
 
 #define MAX_SLK    12
 #define MAX_SLK_FORMAT 4
