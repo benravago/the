@@ -6,7 +6,7 @@
  * This file contains defines related to QUERY,STATUS and EXTRACT
  *
  * The order of these items determine the order they appear as a result
- * of the STATUS command, so they should be in alphabetical order.     
+ * of the STATUS command, so they should be in alphabetical order.
  */
 
 /*

@@ -67,15 +67,15 @@
 #define C_NUMBER_RE      "-?\\(\\([0-9]+\\.\\|\\.?[0-9]\\)[0-9]*\\|[0][0-7]+\\|0[xX][0-9a-fA-F]+\\)\\([dDeE][-+]?[0-9]+\\)?[uU]?[lL]?"
 
 static int number_blanks = 0;
-static CHARTYPE *work;
-static CHARTYPE tmp[1000];
+static char_t *work;
+static char_t tmp[1000];
 
-static CHARTYPE THE_CHAR_SPACE = ' ';
-static CHARTYPE THE_CHAR_STAR = '*';
-static CHARTYPE THE_CHAR_COLON = ':';
-static CHARTYPE THE_CHAR_BANG = '!';
-static CHARTYPE THE_CHAR_SLASH = '/';
-static CHARTYPE THE_CHAR_HASH = '#';
+static char_t THE_CHAR_SPACE = ' ';
+static char_t THE_CHAR_STAR = '*';
+static char_t THE_CHAR_COLON = ':';
+static char_t THE_CHAR_BANG = '!';
+static char_t THE_CHAR_SLASH = '/';
+static char_t THE_CHAR_HASH = '#';
 
 typedef struct {
   int start_search_row;
@@ -87,7 +87,7 @@ typedef struct {
   int type;
 } comment_loc;
 
-static int get_alternate(CHARTYPE * alt, CHARTYPE * alternate) {
+static int get_alternate(char_t * alt, char_t * alternate) {
   int rc = 0;
 
   if (alt[0] >= '1' && alt[0] <= '9')
@@ -106,10 +106,10 @@ static int get_alternate(CHARTYPE * alt, CHARTYPE * alternate) {
  * Only look for delimiters if there is no syntax highlighting already
  * or the syntax highlighting is for an incomplete string
  */
-static long find_comment(CHARTYPE scrno, SHOW_LINE * scurr, FILE_DETAILS * fd, LENGTHTYPE start, LENGTHTYPE length, CHARTYPE * ptr, CHARTYPE * start_delim, CHARTYPE * end_delim, int *type) {
+static long find_comment(char_t scrno, SHOW_LINE * scurr, FILE_DETAILS * fd, length_t start, length_t length, char_t * ptr, char_t * start_delim, char_t * end_delim, int *type) {
   int i, j;
-  CHARTYPE *ptr_start = start_delim, *ptr_end = end_delim;
-  CHARTYPE ch1, ch2, ch3;
+  char_t *ptr_start = start_delim, *ptr_end = end_delim;
+  char_t ch1, ch2, ch3;
 
   for (i = start; i < length; i++) {
     if (scurr->highlight_type[i] == THE_SYNTAX_NONE || scurr->highlight_type[i] == THE_SYNTAX_INCOMPLETESTRING || scurr->highlight_type[i] == THE_SYNTAX_COMMENT || scurr->highlight_type[i] == THE_SYNTAX_POSTCOMPARE
@@ -180,12 +180,12 @@ static long find_comment(CHARTYPE scrno, SHOW_LINE * scurr, FILE_DETAILS * fd, L
   return -1;
 }
 
-static long find_line_comments(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   PARSE_COMMENTS *curr = fd->parser->first_comments;
-  LENGTHTYPE i, pos = 0, len = scurr->length;
-  CHARTYPE *ptr;
+  length_t i, pos = 0, len = scurr->length;
+  char_t *ptr;
   int state;
-  CHARTYPE ch1, ch2;
+  char_t ch1, ch2;
 
   for (; curr != NULL; curr = curr->next) {
     /* this loop is executed for each defined single line comment */
@@ -302,9 +302,9 @@ static long find_line_comments(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * sc
   return -1L;
 }
 
-static short parse_line_comments(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
-  LENGTHTYPE i, len = scurr->length;
-  LENGTHTYPE vcol = SCREEN_VIEW(scrno)->verify_col - 1;
+static short parse_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+  length_t i, len = scurr->length;
+  length_t vcol = SCREEN_VIEW(scrno)->verify_col - 1;
   long start_line_comment = -1;
   chtype comment_colour;
 
@@ -334,8 +334,8 @@ static short parse_line_comments(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * 
 /*
  * Sets the starting location to search for the next paired comment delimiter
  */
-static int reset_paired_comments_locations(CHARTYPE scrno, FILE_DETAILS * fd, comment_loc * locations, int type) {
-  LENGTHTYPE col;
+static int reset_paired_comments_locations(char_t scrno, FILE_DETAILS * fd, comment_loc * locations, int type) {
+  length_t col;
   int row;
   SHOW_LINE *scurr;
 
@@ -371,12 +371,12 @@ static int reset_paired_comments_locations(CHARTYPE scrno, FILE_DETAILS * fd, co
  * Using the location of the start and end of the paired comments, set the syntax highlighting to all
  * characters within that range
  */
-static int set_paired_comments(CHARTYPE scrno, FILE_DETAILS * fd, comment_loc * locations) {
+static int set_paired_comments(char_t scrno, FILE_DETAILS * fd, comment_loc * locations) {
   int i;
-  LENGTHTYPE start, end, j;
+  length_t start, end, j;
   SHOW_LINE *scurr;
   chtype comment_colour;
-  LENGTHTYPE vcol = SCREEN_VIEW(scrno)->verify_col - 1;
+  length_t vcol = SCREEN_VIEW(scrno)->verify_col - 1;
 
   for (i = locations->start_row; i <= locations->end_row; i++) {
     scurr = screen[scrno].sl + i;
@@ -425,9 +425,9 @@ static int set_paired_comments(CHARTYPE scrno, FILE_DETAILS * fd, comment_loc * 
  * Based on the supplied starting location, look for a paired comment delimiter from the
  * current location to the end of the displayed portion of the file
  */
-static int find_paired_comment_delim(CHARTYPE scrno, FILE_DETAILS * fd, int state, comment_loc * locations, CHARTYPE * start_delim, CHARTYPE * end_delim) {
-  CHARTYPE *starter = NULL, *ender = NULL;
-  LENGTHTYPE i;
+static int find_paired_comment_delim(char_t scrno, FILE_DETAILS * fd, int state, comment_loc * locations, char_t * start_delim, char_t * end_delim) {
+  char_t *starter = NULL, *ender = NULL;
+  length_t i;
   long pos = 0;
   int type = 0;
   SHOW_LINE *scurr;
@@ -475,7 +475,7 @@ static int find_paired_comment_delim(CHARTYPE scrno, FILE_DETAILS * fd, int stat
           locations->start_column = pos;
         } else {
           locations->end_row = i;
-          locations->end_column = pos + strlen((DEFCHAR *) end_delim) - 1;
+          locations->end_column = pos + strlen((char *) end_delim) - 1;
         }
         return type;
       }
@@ -484,7 +484,7 @@ static int find_paired_comment_delim(CHARTYPE scrno, FILE_DETAILS * fd, int stat
   return STATE_IGNORE;
 }
 
-short parse_paired_comments(CHARTYPE scrno, FILE_DETAILS * fd) {
+short parse_paired_comments(char_t scrno, FILE_DETAILS * fd) {
   PARSE_COMMENTS *curr_comments = fd->parser->first_comments;
   int type = 0;
   comment_loc locations;
@@ -569,15 +569,15 @@ short parse_paired_comments(CHARTYPE scrno, FILE_DETAILS * fd) {
   return RC_OK;
 }
 
-static short parse_strings(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_strings(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   int i;
-  LENGTHTYPE first_quote, len = scurr->length;
-  LENGTHTYPE vcol, off = 0;
+  length_t first_quote, len = scurr->length;
+  length_t vcol, off = 0;
   chtype string_colour, incomplete_string_colour;
-  CHARTYPE single_quote = '\'';
-  CHARTYPE double_quote = '\"';
-  CHARTYPE backslash = '\\';
-  CHARTYPE tab_character = '\t';
+  char_t single_quote = '\'';
+  char_t double_quote = '\"';
+  char_t backslash = '\\';
+  char_t tab_character = '\t';
   int state;
   bool check_single_quote = FALSE;
   bool check_double_quote = FALSE;
@@ -704,11 +704,11 @@ static short parse_strings(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
   return RC_OK;
 }
 
-static short parse_delimiters(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, CHARTYPE * start, CHARTYPE * end, chtype colour, CHARTYPE highlight_type) {
+static short parse_delimiters(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, char_t * start, char_t * end, chtype colour, char_t highlight_type) {
   int i, j, state;
-  LENGTHTYPE len = scurr->length, pos = 0, len_plus_one;
-  LENGTHTYPE vcol;
-  CHARTYPE *ptr_start = start, *ptr_end = end;
+  length_t len = scurr->length, pos = 0, len_plus_one;
+  length_t vcol;
+  char_t *ptr_start = start, *ptr_end = end;
 
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
   state = STATE_START;
@@ -779,7 +779,7 @@ static short parse_delimiters(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scu
   return RC_OK;
 }
 
-static short parse_markup_tag(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_markup_tag(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   chtype colour;
   short rc;
 
@@ -793,7 +793,7 @@ static short parse_markup_tag(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scu
   return rc;
 }
 
-static short parse_markup_reference(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_markup_reference(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   chtype colour;
   short rc;
 
@@ -806,10 +806,10 @@ static short parse_markup_reference(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE
   rc = parse_delimiters(scrno, fd, scurr, fd->parser->markup_reference_start_delim, fd->parser->markup_reference_end_delim, colour, THE_SYNTAX_MARKUP);
   return rc;
 }
-static short parse_headers(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   PARSE_HEADERS *curr = fd->parser->first_header;
-  LENGTHTYPE i, j, k, vcol, pos = 0, len = scurr->length;
-  CHARTYPE *ptr;
+  length_t i, j, k, vcol, pos = 0, len = scurr->length;
+  char_t *ptr;
   int state;
   bool found = FALSE;
   chtype header_colour, original_header_colour;
@@ -952,10 +952,10 @@ static short parse_headers(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
   }
   return RC_OK;
 }
-static short parse_labels(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
-  LENGTHTYPE vcol, pos = 0, end = 0, len = scurr->length, len_label;
+static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+  length_t vcol, pos = 0, end = 0, len = scurr->length, len_label;
   long i, j, k;
-  CHARTYPE *ptr;
+  char_t *ptr;
   int state;
   chtype label_colour;
 
@@ -1122,10 +1122,10 @@ static short parse_labels(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) 
   return RC_OK;
 }
 
-static short parse_match(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_match(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   int i;
-  LENGTHTYPE len = scurr->length;
-  LENGTHTYPE vcol, off = 0;
+  length_t len = scurr->length;
+  length_t vcol, off = 0;
   chtype paren_colour;
 
   /*
@@ -1154,12 +1154,12 @@ static short parse_match(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   }
   return RC_OK;
 }
-static short parse_directory(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_directory(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   PARSE_EXTENSION *curr;
-  LENGTHTYPE i, vcol, len = scurr->length, start;
+  length_t i, vcol, len = scurr->length, start;
   bool found = FALSE;
   chtype directory_colour;
-  CHARTYPE alternate, type;
+  char_t alternate, type;
 
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
 
@@ -1268,9 +1268,9 @@ static short parse_directory(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scur
   }
   return RC_OK;
 }
-static short parse_postcompare(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_postcompare(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   PARSE_POSTCOMPARE *curr;
-  LENGTHTYPE i, j, vcol, len = scurr->length;
+  length_t i, j, vcol, len = scurr->length;
   bool found_for_column, individual_found;
   chtype postcompare_colour, original_postcompare_colour;
   long re_len;
@@ -1298,14 +1298,14 @@ static short parse_postcompare(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * sc
       individual_found = FALSE;
       if (curr->is_class_type == TRUE) {
         /* CLASS TYPE */
-        re_len = re_match(&curr->pattern_buffer, (DEFCHAR *) work + i, len - i, 0, 0);
+        re_len = re_match(&curr->pattern_buffer, (char *) work + i, len - i, 0, 0);
         if (re_len > 0) {
           individual_found = TRUE;
         }
       } else {
         /* STRING type */
-        re_len = strlen((DEFCHAR *) curr->string);
-        if (re_len <= len - i && memcmp((DEFCHAR *) curr->string, (DEFCHAR *) work + i, re_len) == 0) {
+        re_len = strlen((char *) curr->string);
+        if (re_len <= len - i && memcmp((char *) curr->string, (char *) work + i, re_len) == 0) {
           individual_found = TRUE;
         }
       }
@@ -1339,8 +1339,8 @@ static short parse_postcompare(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * sc
   return RC_OK;
 }
 
-static short parse_columns(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
-  LENGTHTYPE i, j, vcol, len = scurr->length;
+static short parse_columns(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+  length_t i, j, vcol, len = scurr->length;
   chtype column_colour, original_column_colour;
 
   if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
@@ -1375,9 +1375,9 @@ static short parse_columns(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
   return RC_OK;
 }
 
-short find_preprocessor(FILE_DETAILS * fd, CHARTYPE * word, int len, int *alternate_colour) {
+short find_preprocessor(FILE_DETAILS * fd, char_t * word, int len, int *alternate_colour) {
   PARSE_KEYWORDS *curr = fd->parser->first_keyword;
-  CHARTYPE preprocessor_char = fd->parser->preprocessor_char;
+  char_t preprocessor_char = fd->parser->preprocessor_char;
   bool found;
 
   for (; curr != NULL; curr = curr->next) {
@@ -1400,7 +1400,7 @@ short find_preprocessor(FILE_DETAILS * fd, CHARTYPE * word, int len, int *altern
   }
   return 0;
 }
-bool find_keyword(FILE_DETAILS * fd, CHARTYPE * word, int len, int *alternate_colour) {
+bool find_keyword(FILE_DETAILS * fd, char_t * word, int len, int *alternate_colour) {
   PARSE_KEYWORDS *curr = fd->parser->first_keyword;
   bool found = FALSE;
 
@@ -1421,10 +1421,10 @@ bool find_keyword(FILE_DETAILS * fd, CHARTYPE * word, int len, int *alternate_co
   }
   return found;
 }
-static short parse_keywords(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   int i, j, alt = 0;
-  LENGTHTYPE len = scurr->length;
-  LENGTHTYPE vcol;
+  length_t len = scurr->length;
+  length_t vcol;
   long re_len, save_re_len;
   chtype keyword_colour, original_keyword_colour;
   chtype number_colour;
@@ -1452,13 +1452,13 @@ static short parse_keywords(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
       /*
        * Find an identfier
        */
-      re_len = re_match(&fd->parser->body_pattern_buffer, (DEFCHAR *) work + i, len - i, 0, 0);
+      re_len = re_match(&fd->parser->body_pattern_buffer, (char *) work + i, len - i, 0, 0);
       if (re_len < 0) {
         /*
          * No identifier, is it a number ??
          */
         if (fd->parser->have_number_pattern_buffer && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
-          re_len = re_match(&fd->parser->number_pattern_buffer, (DEFCHAR *) work + i, len - i, 0, 0);
+          re_len = re_match(&fd->parser->number_pattern_buffer, (char *) work + i, len - i, 0, 0);
           if (re_len > 0) {
             for (j = 0; j < re_len; j++, i++) {
               if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
@@ -1512,7 +1512,7 @@ static short parse_keywords(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
            * token types.
            */
           if (fd->parser->have_number_pattern_buffer && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
-            re_len = re_match(&fd->parser->number_pattern_buffer, (DEFCHAR *) work + i, len - i, 0, 0);
+            re_len = re_match(&fd->parser->number_pattern_buffer, (char *) work + i, len - i, 0, 0);
             if (re_len > 0) {
               for (j = 0; j < re_len; j++, i++) {
                 if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
@@ -1547,7 +1547,7 @@ static short parse_keywords(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
   return RC_OK;
 }
 
-bool find_function(FILE_DETAILS * fd, CHARTYPE * word, int len, int *alternate_colour) {
+bool find_function(FILE_DETAILS * fd, char_t * word, int len, int *alternate_colour) {
   PARSE_FUNCTIONS *curr = fd->parser->first_function;
   bool found = FALSE;
 
@@ -1569,13 +1569,13 @@ bool find_function(FILE_DETAILS * fd, CHARTYPE * word, int len, int *alternate_c
   return found;
 }
 
-static short parse_functions(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   int i, j, alt = 0;
-  LENGTHTYPE len = scurr->length;
-  LENGTHTYPE vcol, function_len;
+  length_t len = scurr->length;
+  length_t vcol, function_len;
   long re_len;
   chtype function_colour, original_function_colour;
-  CHARTYPE *word = NULL;
+  char_t *word = NULL;
   int k, word_start, word_end, state;
 
   if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
@@ -1597,7 +1597,7 @@ static short parse_functions(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scur
       /*
        * We have an indentfier
        */
-      re_len = re_match(&fd->parser->function_pattern_buffer, (DEFCHAR *) work + i, len - i, 0, 0);
+      re_len = re_match(&fd->parser->function_pattern_buffer, (char *) work + i, len - i, 0, 0);
       if (re_len < 0) {
         /*
          * If we have the option REXX setting, then the identifier
@@ -1607,7 +1607,7 @@ static short parse_functions(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scur
          * the possible function.
          */
         if (fd->parser->rexx_option) {
-          re_len = re_match(&fd->parser->body_pattern_buffer, (DEFCHAR *) work + i, len - i, 0, 0);
+          re_len = re_match(&fd->parser->body_pattern_buffer, (char *) work + i, len - i, 0, 0);
           if (re_len < 0) {
             /*
              * No identifier found, try the next char...
@@ -1637,7 +1637,7 @@ static short parse_functions(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scur
               if (state == STATE_END_TAG)
                 break;
             }
-            if (word_end - word_start == 3 && memcmpi(work + word_start, (CHARTYPE *) "call", 4) == 0 && word_end + 1 != i) {
+            if (word_end - word_start == 3 && memcmpi(work + word_start, (char_t *) "call", 4) == 0 && word_end + 1 != i) {
               /*
                * We have found the CALL keyword. Process it here so
                * that subsequent words on this line do not get set
@@ -1651,7 +1651,7 @@ static short parse_functions(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scur
                 original_keyword_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_KEYWORDS);
               else
                 original_keyword_colour = set_colour(fd->ecolour + ECOLOUR_KEYWORDS);
-              if (find_keyword(fd, (CHARTYPE *) "call", 4, &alt)) {
+              if (find_keyword(fd, (char_t *) "call", 4, &alt)) {
                 if (alt != 255) {       /* was an alternate colour specified for this keyword */
                   if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
                     keyword_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + alt);
@@ -1759,12 +1759,12 @@ static short parse_functions(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scur
   return RC_OK;
 }
 
-static short parse_preprocessor(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_preprocessor(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   int i, j, k, len_plus_one, state, alt = 0;
-  LENGTHTYPE len = scurr->length, preprocessor_char_start_pos = 0;
-  LENGTHTYPE vcol, keyword_length, keyword_start_pos = 0, re_len;
+  length_t len = scurr->length, preprocessor_char_start_pos = 0;
+  length_t vcol, keyword_length, keyword_start_pos = 0, re_len;
   chtype keyword_colour, original_keyword_colour;
-  CHARTYPE *word = NULL;
+  char_t *word = NULL;
 
   if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
     original_keyword_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_PREDIR);
@@ -1845,9 +1845,9 @@ static short parse_preprocessor(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * s
   return RC_OK;
 }
 
-short parse_line(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short start_row) {
+short parse_line(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short start_row) {
   int i;
-  LENGTHTYPE len = scurr->length;
+  length_t len = scurr->length;
   chtype normal_colour;
 
   /*
@@ -1874,7 +1874,7 @@ short parse_line(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short sta
   if (scurr->highlight_type == NULL) {
     return RC_OK;
   }
-  memcpy((DEFCHAR *) brec, scurr->contents, len);
+  memcpy((char *) brec, scurr->contents, len);
   brec[len] = THE_CHAR_SPACE;
   work = brec;
   number_blanks = 0;
@@ -2008,26 +2008,26 @@ short parse_line(CHARTYPE scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short sta
   return RC_OK;
 }
 
-static short construct_case(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_case(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
   short rc = RC_OK;
 
-  if (memcmpi(line, (CHARTYPE *) "ignore", line_length) == 0)
+  if (memcmpi(line, (char_t *) "ignore", line_length) == 0)
     parser->case_sensitive = FALSE;
-  else if (memcmpi(line, (CHARTYPE *) "respect", line_length) == 0)
+  else if (memcmpi(line, (char_t *) "respect", line_length) == 0)
     parser->case_sensitive = TRUE;
   else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", line, lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", line, lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     rc = RC_INVALID_OPERAND;
   }
   return rc;
 }
 
-static short construct_markup(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_markup(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONMAR_PARAMS  3
   short rc = RC_OK;
-  CHARTYPE *word[CONMAR_PARAMS + 1];
-  CHARTYPE strip[CONMAR_PARAMS];
+  char_t *word[CONMAR_PARAMS + 1];
+  char_t strip[CONMAR_PARAMS];
   unsigned short num_params = 0;
   short option = 0;
 
@@ -2036,50 +2036,50 @@ static short construct_markup(CHARTYPE * line, int line_length, PARSER_DETAILS *
   strip[2] = STRIP_BOTH;
   num_params = param_split(line, word, CONMAR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params != 3) {
-    sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  if (equal((CHARTYPE *) "tag", word[0], 3))
+  if (equal((char_t *) "tag", word[0], 3))
     option = 1;
-  else if (equal((CHARTYPE *) "reference", word[0], 9))
+  else if (equal((char_t *) "reference", word[0], 9))
     option = 2;
   else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  if (strlen((DEFCHAR *) word[1]) > MAX_DELIMITER_LENGTH) {
-    sprintf((DEFCHAR *) tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *) word[1], lineno, MAX_DELIMITER_LENGTH);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+  if (strlen((char *) word[1]) > MAX_DELIMITER_LENGTH) {
+    sprintf((char *) tmp, "Token too long '%s', line %d. Length should be <= %d", (char *) word[1], lineno, MAX_DELIMITER_LENGTH);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  if (strlen((DEFCHAR *) word[2]) > MAX_DELIMITER_LENGTH) {
-    sprintf((DEFCHAR *) tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *) word[2], lineno, MAX_DELIMITER_LENGTH);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+  if (strlen((char *) word[2]) > MAX_DELIMITER_LENGTH) {
+    sprintf((char *) tmp, "Token too long '%s', line %d. Length should be <= %d", (char *) word[2], lineno, MAX_DELIMITER_LENGTH);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   if (option == 1) {
     parser->have_markup_tag = TRUE;
-    strcpy((DEFCHAR *) parser->markup_tag_start_delim, (DEFCHAR *) word[1]);
-    parser->len_markup_tag_start_delim = strlen((DEFCHAR *) word[1]);
-    strcpy((DEFCHAR *) parser->markup_tag_end_delim, (DEFCHAR *) word[2]);
-    parser->len_markup_tag_end_delim = strlen((DEFCHAR *) word[2]);
+    strcpy((char *) parser->markup_tag_start_delim, (char *) word[1]);
+    parser->len_markup_tag_start_delim = strlen((char *) word[1]);
+    strcpy((char *) parser->markup_tag_end_delim, (char *) word[2]);
+    parser->len_markup_tag_end_delim = strlen((char *) word[2]);
   } else {
     parser->have_markup_reference = TRUE;
-    strcpy((DEFCHAR *) parser->markup_reference_start_delim, (DEFCHAR *) word[1]);
-    parser->len_markup_reference_start_delim = strlen((DEFCHAR *) word[1]);
-    strcpy((DEFCHAR *) parser->markup_reference_end_delim, (DEFCHAR *) word[2]);
-    parser->len_markup_reference_end_delim = strlen((DEFCHAR *) word[2]);
+    strcpy((char *) parser->markup_reference_start_delim, (char *) word[1]);
+    parser->len_markup_reference_start_delim = strlen((char *) word[1]);
+    strcpy((char *) parser->markup_reference_end_delim, (char *) word[2]);
+    parser->len_markup_reference_end_delim = strlen((char *) word[2]);
   }
   return rc;
 }
 
-static short construct_string(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_string(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONSTR_PARAMS  3
   short rc = RC_OK;
-  CHARTYPE *word[CONSTR_PARAMS + 1];
-  CHARTYPE strip[CONSTR_PARAMS];
+  char_t *word[CONSTR_PARAMS + 1];
+  char_t strip[CONSTR_PARAMS];
   unsigned short num_params = 0;
   short option = 0;
 
@@ -2088,15 +2088,15 @@ static short construct_string(CHARTYPE * line, int line_length, PARSER_DETAILS *
   strip[2] = STRIP_BOTH;
   num_params = param_split(line, word, CONSTR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
 
-  if (equal((CHARTYPE *) "single", word[0], 6))
+  if (equal((char_t *) "single", word[0], 6))
     option = STATE_SINGLE_QUOTE;
-  else if (equal((CHARTYPE *) "double", word[0], 6))
+  else if (equal((char_t *) "double", word[0], 6))
     option = STATE_DOUBLE_QUOTE;
-  else if (equal((CHARTYPE *) "delimiter", word[0], 9))
+  else if (equal((char_t *) "delimiter", word[0], 9))
     option = STATE_DELIMITER;
   else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   if (num_params == 1) {
@@ -2105,31 +2105,31 @@ static short construct_string(CHARTYPE * line, int line_length, PARSER_DETAILS *
     else if (option == STATE_DOUBLE_QUOTE)
       parser->check_double_quote = TRUE;
     else {
-      sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
   }
   if (num_params == 2) {
-    if (option == STATE_SINGLE_QUOTE && !equal((CHARTYPE *) "backslash", word[1], 9)) {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+    if (option == STATE_SINGLE_QUOTE && !equal((char_t *) "backslash", word[1], 9)) {
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     } else {
       parser->check_single_quote = TRUE;
       parser->backslash_single_quote = TRUE;
     }
-    if (option == STATE_DOUBLE_QUOTE && !equal((CHARTYPE *) "backslash", word[1], 9)) {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+    if (option == STATE_DOUBLE_QUOTE && !equal((char_t *) "backslash", word[1], 9)) {
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     } else {
       parser->check_double_quote = TRUE;
       parser->backslash_double_quote = TRUE;
     }
-    if (option == STATE_DELIMITER && strlen((DEFCHAR *) word[1]) != 1) {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+    if (option == STATE_DELIMITER && strlen((char *) word[1]) != 1) {
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     } else {
       parser->string_delimiter = word[1][0];
@@ -2137,16 +2137,16 @@ static short construct_string(CHARTYPE * line, int line_length, PARSER_DETAILS *
   }
   if (num_params == 3) {
     if (option != STATE_DELIMITER) {
-      sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
-    if (equal((CHARTYPE *) "backslash", word[2], 9)) {
+    if (equal((char_t *) "backslash", word[2], 9)) {
       parser->string_delimiter = word[1][0];
       parser->backslash_delimiter = TRUE;
     } else {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
   }
@@ -2154,7 +2154,7 @@ static short construct_string(CHARTYPE * line, int line_length, PARSER_DETAILS *
   return rc;
 }
 
-static short construct_comment(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno)
+static short construct_comment(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         line x [column n | any | firstnonblank] [multiple | single]
  *         paired x y [nest | nonest] [multiple | single]
@@ -2162,8 +2162,8 @@ static short construct_comment(CHARTYPE * line, int line_length, PARSER_DETAILS 
 {
 #define CONCOM_PARAMS  5
   short rc = RC_OK;
-  CHARTYPE *word[CONCOM_PARAMS + 1];
-  CHARTYPE strip[CONCOM_PARAMS];
+  char_t *word[CONCOM_PARAMS + 1];
+  char_t strip[CONCOM_PARAMS];
   unsigned short num_params = 0;
   short option = 0, where = 0;
   bool nested = FALSE;
@@ -2175,89 +2175,89 @@ static short construct_comment(CHARTYPE * line, int line_length, PARSER_DETAILS 
   strip[4] = STRIP_BOTH;
   num_params = param_split(line, word, CONCOM_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
 
-  if (equal((CHARTYPE *) "line", word[0], 4))
+  if (equal((char_t *) "line", word[0], 4))
     option = 1;
-  else if (equal((CHARTYPE *) "paired", word[0], 6))
+  else if (equal((char_t *) "paired", word[0], 6))
     option = 2;
   else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   if (option == 1) {
     if (num_params < 3) {
-      sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
-    if (strlen((DEFCHAR *) word[1]) > MAX_DELIMITER_LENGTH) {
-      sprintf((DEFCHAR *) tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *) word[1], lineno, MAX_DELIMITER_LENGTH);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+    if (strlen((char *) word[1]) > MAX_DELIMITER_LENGTH) {
+      sprintf((char *) tmp, "Token too long '%s', line %d. Length should be <= %d", (char *) word[1], lineno, MAX_DELIMITER_LENGTH);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
-    if (equal((CHARTYPE *) "any", word[2], 3)) {
+    if (equal((char_t *) "any", word[2], 3)) {
       if (num_params > 4) {
-        sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       where = 0;
-    } else if (equal((CHARTYPE *) "column", word[2], 3)) {
+    } else if (equal((char_t *) "column", word[2], 3)) {
       if (!valid_positive_integer(word[3])) {
-        sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[3], lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Invalid operand '%s', line %d", word[3], lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
-      where = atoi((DEFCHAR *) word[3]);
-    } else if (equal((CHARTYPE *) "firstnonblank", word[2], 13)) {
+      where = atoi((char *) word[3]);
+    } else if (equal((char_t *) "firstnonblank", word[2], 13)) {
       if (num_params > 4) {
-        sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       where = MAX_INT;
     } else {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", (DEFCHAR *) word[2], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", (char *) word[2], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
     parser->current_comments = parse_commentsll_add(parser->first_comments, parser->current_comments, sizeof(PARSE_COMMENTS));
     if (parser->first_comments == NULL)
       parser->first_comments = parser->current_comments;
-    parser->current_comments->len_start_delim = strlen((DEFCHAR *) word[1]);
-    strcpy((DEFCHAR *) parser->current_comments->start_delim, (DEFCHAR *) word[1]);
+    parser->current_comments->len_start_delim = strlen((char *) word[1]);
+    strcpy((char *) parser->current_comments->start_delim, (char *) word[1]);
     parser->current_comments->column = where;
     parser->current_comments->line_comment = TRUE;
     parser->have_line_comments = TRUE;
   } else {
     if (num_params < 3) {
-      sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
     switch (num_params) {
       case 4:
-        if (equal((CHARTYPE *) "nest", word[3], 4)) {
+        if (equal((char_t *) "nest", word[3], 4)) {
           nested = TRUE;
-        } else if (equal((CHARTYPE *) "nonest", word[3], 6)) {
+        } else if (equal((char_t *) "nonest", word[3], 6)) {
           nested = FALSE;
         } else {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         /*
          * Fall through and setup the delimiters
          */
       case 3:
-        if (strlen((DEFCHAR *) word[1]) > MAX_DELIMITER_LENGTH) {
-          sprintf((DEFCHAR *) tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *) word[1], lineno, MAX_DELIMITER_LENGTH);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+        if (strlen((char *) word[1]) > MAX_DELIMITER_LENGTH) {
+          sprintf((char *) tmp, "Token too long '%s', line %d. Length should be <= %d", (char *) word[1], lineno, MAX_DELIMITER_LENGTH);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
-        if (strlen((DEFCHAR *) word[2]) > MAX_DELIMITER_LENGTH) {
-          sprintf((DEFCHAR *) tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *) word[2], lineno, MAX_DELIMITER_LENGTH);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+        if (strlen((char *) word[2]) > MAX_DELIMITER_LENGTH) {
+          sprintf((char *) tmp, "Token too long '%s', line %d. Length should be <= %d", (char *) word[2], lineno, MAX_DELIMITER_LENGTH);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         /*
@@ -2266,10 +2266,10 @@ static short construct_comment(CHARTYPE * line, int line_length, PARSER_DETAILS 
         parser->current_comments = parse_commentsll_add(parser->first_comments, parser->current_comments, sizeof(PARSE_COMMENTS));
         if (parser->first_comments == NULL)
           parser->first_comments = parser->current_comments;
-        parser->current_comments->len_start_delim = strlen((DEFCHAR *) word[1]);
-        strcpy((DEFCHAR *) parser->current_comments->start_delim, (DEFCHAR *) word[1]);
-        parser->current_comments->len_end_delim = strlen((DEFCHAR *) word[2]);
-        strcpy((DEFCHAR *) parser->current_comments->end_delim, (DEFCHAR *) word[2]);
+        parser->current_comments->len_start_delim = strlen((char *) word[1]);
+        strcpy((char *) parser->current_comments->start_delim, (char *) word[1]);
+        parser->current_comments->len_end_delim = strlen((char *) word[2]);
+        strcpy((char *) parser->current_comments->end_delim, (char *) word[2]);
         parser->current_comments->nested = nested;
         parser->current_comments->line_comment = FALSE;
         parser->have_paired_comments = TRUE;
@@ -2281,19 +2281,19 @@ static short construct_comment(CHARTYPE * line, int line_length, PARSER_DETAILS 
   return rc;
 }
 
-static short construct_header(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno)
+static short construct_header(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         line x column n | any | firstnonblank [alt x]
  */
 {
 #define CONHEA_PARAMS  6
   short rc = RC_OK;
-  CHARTYPE *word[CONHEA_PARAMS + 1];
-  CHARTYPE strip[CONHEA_PARAMS];
+  char_t *word[CONHEA_PARAMS + 1];
+  char_t strip[CONHEA_PARAMS];
   unsigned short num_params = 0;
   short where = 0;
   short alt_start, value_idx;
-  CHARTYPE alternate = 255;
+  char_t alternate = 255;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
@@ -2303,53 +2303,53 @@ static short construct_header(CHARTYPE * line, int line_length, PARSER_DETAILS *
   strip[5] = STRIP_BOTH;
   num_params = param_split(line, word, CONHEA_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
 
-  if (!equal((CHARTYPE *) "line", word[0], 4)) {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+  if (!equal((char_t *) "line", word[0], 4)) {
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   if (num_params < 3) {
-    sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  if (strlen((DEFCHAR *) word[1]) > MAX_DELIMITER_LENGTH) {
-    sprintf((DEFCHAR *) tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *) word[1], lineno, MAX_DELIMITER_LENGTH);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+  if (strlen((char *) word[1]) > MAX_DELIMITER_LENGTH) {
+    sprintf((char *) tmp, "Token too long '%s', line %d. Length should be <= %d", (char *) word[1], lineno, MAX_DELIMITER_LENGTH);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  if (equal((CHARTYPE *) "any", word[2], 3)) {
+  if (equal((char_t *) "any", word[2], 3)) {
     if (num_params > 3 && num_params != 5) {
-      sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
     alt_start = 3;
     where = 0;
-  } else if (equal((CHARTYPE *) "column", word[2], 3)) {
+  } else if (equal((char_t *) "column", word[2], 3)) {
     if (num_params > 4 && num_params != 6) {
-      sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
     if (!valid_positive_integer(word[3])) {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[3], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", word[3], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
     alt_start = 4;
-    where = atoi((DEFCHAR *) word[3]);
-  } else if (equal((CHARTYPE *) "firstnonblank", word[2], 13)) {
+    where = atoi((char *) word[3]);
+  } else if (equal((char_t *) "firstnonblank", word[2], 13)) {
     if (num_params > 3 && num_params != 5) {
-      sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
     alt_start = 3;
     where = MAX_INT;
   } else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", (DEFCHAR *) word[2], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", (char *) word[2], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   /*
@@ -2357,35 +2357,35 @@ static short construct_header(CHARTYPE * line, int line_length, PARSER_DETAILS *
    */
   if (num_params == alt_start + 2) {
     value_idx = alt_start + 1;
-    if (equal((CHARTYPE *) "alternate", word[alt_start], 3)) {
-      if (strlen((DEFCHAR *) word[value_idx]) > 1) {
-        sprintf((DEFCHAR *) tmp, "ALTernate must be followed by a single character, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+    if (equal((char_t *) "alternate", word[alt_start], 3)) {
+      if (strlen((char *) word[value_idx]) > 1) {
+        sprintf((char *) tmp, "ALTernate must be followed by a single character, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       if (get_alternate(word[value_idx], &alternate)) {
-        sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[value_idx], lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Invalid operand '%s', line %d", word[value_idx], lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return (RC_INVALID_OPERAND);
       }
     } else {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[alt_start], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", word[alt_start], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return (RC_INVALID_OPERAND);
     }
   }
   parser->current_header = parse_headerll_add(parser->first_header, parser->current_header, sizeof(PARSE_HEADERS));
   if (parser->first_header == NULL)
     parser->first_header = parser->current_header;
-  parser->current_header->len_header_delim = strlen((DEFCHAR *) word[1]);
-  strcpy((DEFCHAR *) parser->current_header->header_delim, (DEFCHAR *) word[1]);
+  parser->current_header->len_header_delim = strlen((char *) word[1]);
+  strcpy((char *) parser->current_header->header_delim, (char *) word[1]);
   parser->current_header->header_column = where;
   parser->current_header->alternate = alternate;
   parser->have_headers = TRUE;
   return rc;
 }
 
-static short construct_label(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno)
+static short construct_label(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         delimiter x [column n | any | firstnonblank]
  *         column n
@@ -2393,8 +2393,8 @@ static short construct_label(CHARTYPE * line, int line_length, PARSER_DETAILS * 
 {
 #define CONLAB_PARAMS  4
   short rc = RC_OK;
-  CHARTYPE *word[CONLAB_PARAMS + 1];
-  CHARTYPE strip[CONLAB_PARAMS];
+  char_t *word[CONLAB_PARAMS + 1];
+  char_t strip[CONLAB_PARAMS];
   unsigned short num_params = 0;
   short where = 0;
 
@@ -2405,71 +2405,71 @@ static short construct_label(CHARTYPE * line, int line_length, PARSER_DETAILS * 
   num_params = param_split(line, word, CONLAB_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
 
   if (num_params < 2) {
-    sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   /*
    * column n
    */
-  if (equal((CHARTYPE *) "column", word[0], 6)) {
+  if (equal((char_t *) "column", word[0], 6)) {
     if (!valid_positive_integer(word[1])) {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", (DEFCHAR *) word[1], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", (char *) word[1], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
-    where = atoi((DEFCHAR *) word[1]);
+    where = atoi((char *) word[1]);
     parser->len_label_delim = 0;
-    strcpy((DEFCHAR *) parser->label_delim, (DEFCHAR *) "");
-  } else if (equal((CHARTYPE *) "delimiter", word[0], 9)) {
+    strcpy((char *) parser->label_delim, (char *) "");
+  } else if (equal((char_t *) "delimiter", word[0], 9)) {
     if (num_params < 3) {
-      sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
-    if (strlen((DEFCHAR *) word[1]) > MAX_DELIMITER_LENGTH) {
-      sprintf((DEFCHAR *) tmp, "Token too long '%s', line %d. Length should be <= %d", (DEFCHAR *) word[1], lineno, MAX_DELIMITER_LENGTH);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+    if (strlen((char *) word[1]) > MAX_DELIMITER_LENGTH) {
+      sprintf((char *) tmp, "Token too long '%s', line %d. Length should be <= %d", (char *) word[1], lineno, MAX_DELIMITER_LENGTH);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
-    if (equal((CHARTYPE *) "any", word[2], 3)) {
+    if (equal((char_t *) "any", word[2], 3)) {
       if (num_params > 4) {
-        sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       where = 0;
-    } else if (equal((CHARTYPE *) "column", word[2], 3)) {
+    } else if (equal((char_t *) "column", word[2], 3)) {
       if (!valid_positive_integer(word[3])) {
-        sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", (DEFCHAR *) word[3], lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Invalid operand '%s', line %d", (char *) word[3], lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
-      where = atoi((DEFCHAR *) word[3]);
-    } else if (equal((CHARTYPE *) "firstnonblank", word[2], 13)) {
+      where = atoi((char *) word[3]);
+    } else if (equal((char_t *) "firstnonblank", word[2], 13)) {
       if (num_params > 4) {
-        sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       where = MAX_INT;
     } else {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", (DEFCHAR *) word[2], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", (char *) word[2], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
-    parser->len_label_delim = strlen((DEFCHAR *) word[1]);
-    strcpy((DEFCHAR *) parser->label_delim, (DEFCHAR *) word[1]);
+    parser->len_label_delim = strlen((char *) word[1]);
+    strcpy((char *) parser->label_delim, (char *) word[1]);
   } else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   parser->label_column = where;
   return rc;
 }
 
-static short construct_match(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno)
+static short construct_match(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         ( )
  *         left,left right,right [middle,middle]
@@ -2484,7 +2484,7 @@ static short construct_match(CHARTYPE * line, int line_length, PARSER_DETAILS * 
   return rc;
 }
 
-static short construct_keyword(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno)
+static short construct_keyword(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         keyword [TYPE n [ALTernate x]]
  *         keyword [ALTernate x [TYPE n]]
@@ -2492,10 +2492,10 @@ static short construct_keyword(CHARTYPE * line, int line_length, PARSER_DETAILS 
 {
 #define CONKEY_PARAMS  5
   short rc = RC_OK;
-  CHARTYPE *word[CONKEY_PARAMS + 1];
-  CHARTYPE strip[CONKEY_PARAMS];
+  char_t *word[CONKEY_PARAMS + 1];
+  char_t strip[CONKEY_PARAMS];
   unsigned short num_params = 0;
-  CHARTYPE alternate = 255;
+  char_t alternate = 255;
   int i, num_pairs, keyword_idx, value_idx;
 
   strip[0] = STRIP_BOTH;
@@ -2510,30 +2510,30 @@ static short construct_keyword(CHARTYPE * line, int line_length, PARSER_DETAILS 
      * Total parameters must be a multiple of 2
      */
     if ((num_params - 1) % 2 != 0) {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", line, lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", line, lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return (RC_INVALID_OPERAND);
     }
     num_pairs = (num_params - 1) / 2;
     for (i = 0; i < num_pairs; i++) {
       keyword_idx = 1 + (i * 2);
       value_idx = 2 + (i * 2);
-      if (equal((CHARTYPE *) "alternate", word[keyword_idx], 3)) {
-        if (strlen((DEFCHAR *) word[value_idx]) > 1) {
-          sprintf((DEFCHAR *) tmp, "ALTernate must be followed by a single character, line %d", lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+      if (equal((char_t *) "alternate", word[keyword_idx], 3)) {
+        if (strlen((char *) word[value_idx]) > 1) {
+          sprintf((char *) tmp, "ALTernate must be followed by a single character, line %d", lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         if (get_alternate(word[value_idx], &alternate)) {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[value_idx], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[value_idx], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return (RC_INVALID_OPERAND);
         }
-      } else if (equal((CHARTYPE *) "type", word[keyword_idx], 3)) {
+      } else if (equal((char_t *) "type", word[keyword_idx], 3)) {
         /* TODO */
       } else {
-        sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[keyword_idx], lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Invalid operand '%s', line %d", word[keyword_idx], lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return (RC_INVALID_OPERAND);
       }
     }
@@ -2541,13 +2541,13 @@ static short construct_keyword(CHARTYPE * line, int line_length, PARSER_DETAILS 
   parser->current_keyword = parse_keywordll_add(parser->first_keyword, parser->current_keyword, sizeof(PARSE_KEYWORDS));
   if (parser->first_keyword == NULL)
     parser->first_keyword = parser->current_keyword;
-  parser->current_keyword->keyword_length = strlen((DEFCHAR *) word[0]);
-  parser->current_keyword->keyword = (CHARTYPE *) (*the_malloc) ((1 + parser->current_keyword->keyword_length) * sizeof(CHARTYPE));
+  parser->current_keyword->keyword_length = strlen((char *) word[0]);
+  parser->current_keyword->keyword = (char_t *) malloc((1 + parser->current_keyword->keyword_length) * sizeof(char_t));
   if (parser->current_keyword->keyword == NULL) {
-    display_error(216, (CHARTYPE *) "out of memory", FALSE);
+    display_error(216, (char_t *) "out of memory", FALSE);
     return RC_OUT_OF_MEMORY;
   }
-  strcpy((DEFCHAR *) parser->current_keyword->keyword, (DEFCHAR *) word[0]);
+  strcpy((char *) parser->current_keyword->keyword, (char *) word[0]);
   parser->current_keyword->alternate = alternate;
   /*
    * Put keyword into hashtable - TBD
@@ -2558,13 +2558,13 @@ static short construct_keyword(CHARTYPE * line, int line_length, PARSER_DETAILS 
   return rc;
 }
 
-static short construct_function(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_function(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONFUN_PARAMS  5
   short rc = RC_OK;
-  CHARTYPE *word[CONFUN_PARAMS + 1];
-  CHARTYPE strip[CONFUN_PARAMS + 1];
+  char_t *word[CONFUN_PARAMS + 1];
+  char_t strip[CONFUN_PARAMS + 1];
   unsigned short num_params = 0;
-  CHARTYPE alternate = 255;
+  char_t alternate = 255;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
@@ -2573,21 +2573,21 @@ static short construct_function(CHARTYPE * line, int line_length, PARSER_DETAILS
   strip[4] = STRIP_BOTH;
   num_params = param_split(line, word, CONFUN_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params > 1) {
-    if (equal((CHARTYPE *) "alternate", word[1], 3)) {
+    if (equal((char_t *) "alternate", word[1], 3)) {
       if (num_params > 2) {
-        if (strlen((DEFCHAR *) word[2]) > 1) {
-          sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+        if (strlen((char *) word[2]) > 1) {
+          sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         if (get_alternate(word[2], &alternate)) {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return (RC_INVALID_OPERAND);
         }
       } else {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
     }
@@ -2596,13 +2596,13 @@ static short construct_function(CHARTYPE * line, int line_length, PARSER_DETAILS
   parser->current_function = parse_functionll_add(parser->first_function, parser->current_function, sizeof(PARSE_FUNCTIONS));
   if (parser->first_function == NULL)
     parser->first_function = parser->current_function;
-  parser->current_function->function_length = strlen((DEFCHAR *) word[0]);
-  parser->current_function->function = (CHARTYPE *) (*the_malloc) ((1 + parser->current_function->function_length) * sizeof(CHARTYPE));
+  parser->current_function->function_length = strlen((char *) word[0]);
+  parser->current_function->function = (char_t *) malloc((1 + parser->current_function->function_length) * sizeof(char_t));
   if (parser->current_function->function == NULL) {
-    display_error(216, (CHARTYPE *) "out of memory", FALSE);
+    display_error(216, (char_t *) "out of memory", FALSE);
     return RC_OUT_OF_MEMORY;
   }
-  strcpy((DEFCHAR *) parser->current_function->function, (DEFCHAR *) word[0]);
+  strcpy((char *) parser->current_function->function, (char *) word[0]);
   parser->current_function->alternate = alternate;
   /*
    * Put function into hashtable - TBD
@@ -2613,7 +2613,7 @@ static short construct_function(CHARTYPE * line, int line_length, PARSER_DETAILS
   return rc;
 }
 
-static short construct_option(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno)
+static short construct_option(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         REXX
  *         PREPROCESSOR char
@@ -2622,9 +2622,9 @@ static short construct_option(CHARTYPE * line, int line_length, PARSER_DETAILS *
 {
 #define CONOPT_PARAMS  6
   short rc = RC_OK;
-  CHARTYPE *word[CONOPT_PARAMS + 1];
-  CHARTYPE strip[CONOPT_PARAMS];
-  CHARTYPE alternate;
+  char_t *word[CONOPT_PARAMS + 1];
+  char_t strip[CONOPT_PARAMS];
+  char_t alternate;
   unsigned short num_params = 0;
   bool rexx_option = FALSE, preprocessor_option = FALSE, function_option = FALSE;
 
@@ -2636,59 +2636,59 @@ static short construct_option(CHARTYPE * line, int line_length, PARSER_DETAILS *
   strip[5] = STRIP_BOTH;
   num_params = param_split(line, word, CONOPT_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
 
-  if (equal((CHARTYPE *) "rexx", word[0], 4))
+  if (equal((char_t *) "rexx", word[0], 4))
     rexx_option = TRUE;
-  else if (equal((CHARTYPE *) "preprocessor", word[0], 12))
+  else if (equal((char_t *) "preprocessor", word[0], 12))
     preprocessor_option = TRUE;
-  else if (equal((CHARTYPE *) "function", word[0], 8))
+  else if (equal((char_t *) "function", word[0], 8))
     function_option = TRUE;
   else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   if (num_params == 1) {
     if (preprocessor_option || function_option) {
-      sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     }
   } else {
     if (rexx_option) {
-      sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
     } else if (preprocessor_option) {
       if (num_params > 2) {
-        sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       } else {
-        if (strlen((DEFCHAR *) word[1]) != 1) {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+        if (strlen((char *) word[1]) != 1) {
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         parser->preprocessor_char = word[1][0];
       }
     } else if (function_option) {
       if (num_params < 3) {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       } else {
-        if (strlen((DEFCHAR *) word[1]) != 1) {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+        if (strlen((char *) word[1]) != 1) {
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
-        if (equal((CHARTYPE *) "blank", word[2], 5)) {
+        if (equal((char_t *) "blank", word[2], 5)) {
           parser->function_blank = TRUE;
-        } else if (equal((CHARTYPE *) "noblank", word[2], 7)) {
+        } else if (equal((char_t *) "noblank", word[2], 7)) {
           parser->function_blank = FALSE;
         } else {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         parser->function_char = word[1][0];
@@ -2698,34 +2698,34 @@ static short construct_option(CHARTYPE * line, int line_length, PARSER_DETAILS *
          */
         if (num_params > 3) {
           if (num_params != 6) {
-            sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-            display_error(216, (CHARTYPE *) tmp, FALSE);
+            sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+            display_error(216, (char_t *) tmp, FALSE);
             return RC_INVALID_OPERAND;
           }
           /*
            * Must have "DEFAULT ALTernate x"
            */
-          if (!equal((CHARTYPE *) "default", word[3], 7)) {
-            sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[3], lineno);
-            display_error(216, (CHARTYPE *) tmp, FALSE);
+          if (!equal((char_t *) "default", word[3], 7)) {
+            sprintf((char *) tmp, "Invalid operand '%s', line %d", word[3], lineno);
+            display_error(216, (char_t *) tmp, FALSE);
             return RC_INVALID_OPERAND;
           }
-          if (equal((CHARTYPE *) "alternate", word[4], 3)) {
-            if (strlen((DEFCHAR *) word[5]) > 1) {
-              sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[5], lineno);
-              display_error(216, (CHARTYPE *) tmp, FALSE);
+          if (equal((char_t *) "alternate", word[4], 3)) {
+            if (strlen((char *) word[5]) > 1) {
+              sprintf((char *) tmp, "Invalid operand '%s', line %d", word[5], lineno);
+              display_error(216, (char_t *) tmp, FALSE);
               return RC_INVALID_OPERAND;
             }
             if (get_alternate(word[5], &alternate)) {
-              sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[5], lineno);
-              display_error(216, (CHARTYPE *) tmp, FALSE);
+              sprintf((char *) tmp, "Invalid operand '%s', line %d", word[5], lineno);
+              display_error(216, (char_t *) tmp, FALSE);
               return (RC_INVALID_OPERAND);
             }
             parser->function_option_alternate = alternate;
             parser->have_function_option_alternate = TRUE;
           } else {
-            sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[4], lineno);
-            display_error(216, (CHARTYPE *) tmp, FALSE);
+            sprintf((char *) tmp, "Invalid operand '%s', line %d", word[4], lineno);
+            display_error(216, (char_t *) tmp, FALSE);
             return RC_INVALID_OPERAND;
           }
         }
@@ -2741,52 +2741,52 @@ static short construct_option(CHARTYPE * line, int line_length, PARSER_DETAILS *
   return rc;
 }
 
-static short construct_identifier(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONID_PARAMS  3
   short rc = RC_OK;
-  CHARTYPE *word[CONID_PARAMS + 1];
-  CHARTYPE strip[CONID_PARAMS];
+  char_t *word[CONID_PARAMS + 1];
+  char_t strip[CONID_PARAMS];
   unsigned short num_params = 0;
-  CHARTYPE *pattern = NULL, *ptr;
+  char_t *pattern = NULL, *ptr;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
   strip[2] = STRIP_BOTH;
   num_params = param_split(line, word, CONID_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params < 2) {
-    sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  pattern = (CHARTYPE *) (*the_malloc) ((20 + line_length) * sizeof(CHARTYPE));
+  pattern = (char_t *) malloc((20 + line_length) * sizeof(char_t));
   if (pattern == NULL) {
-    display_error(216, (CHARTYPE *) "out of memory", FALSE);
+    display_error(216, (char_t *) "out of memory", FALSE);
     return RC_OUT_OF_MEMORY;
   }
   /*
    * Create the pattern buffer for keywords...
    */
-  strcpy((DEFCHAR *) pattern, (DEFCHAR *) word[0]);
-  strcat((DEFCHAR *) pattern, (DEFCHAR *) word[1]);
-  strcat((DEFCHAR *) pattern, "*");
+  strcpy((char *) pattern, (char *) word[0]);
+  strcat((char *) pattern, (char *) word[1]);
+  strcat((char *) pattern, "*");
   if (num_params == 3) {
     /*
      * Append the optional last character RE to the end of the
      * body RE
      */
-    strcat((DEFCHAR *) pattern, (DEFCHAR *) word[2]);
-/*      strcat((DEFCHAR *)pattern,"."); */
+    strcat((char *) pattern, (char *) word[2]);
+/*      strcat((char *)pattern,"."); */
   }
   /* The following memset() is not meant to use wide character */
   memset(&parser->body_pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-  ptr = (CHARTYPE *) re_compile_pattern((DEFCHAR *) pattern, strlen((DEFCHAR *) pattern), &parser->body_pattern_buffer);
+  ptr = (char_t *) re_compile_pattern((char *) pattern, strlen((char *) pattern), &parser->body_pattern_buffer);
   if (ptr) {
     /*
      * If ptr returns something, it is an error string
      */
-    sprintf((DEFCHAR *) tmp, "%s in %s", ptr, pattern);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
-    (*the_free) (pattern);
+    sprintf((char *) tmp, "%s in %s", ptr, pattern);
+    display_error(216, (char_t *) tmp, FALSE);
+    free(pattern);
     return RC_INVALID_OPERAND;
   }
   parser->have_body_pattern_buffer = TRUE;
@@ -2795,69 +2795,69 @@ static short construct_identifier(CHARTYPE * line, int line_length, PARSER_DETAI
    * If we said to in :option section
    */
   if (parser->function_option) {
-    strcpy((DEFCHAR *) pattern, (DEFCHAR *) word[0]);
-    strcat((DEFCHAR *) pattern, (DEFCHAR *) word[1]);
-    strcat((DEFCHAR *) pattern, "*");
+    strcpy((char *) pattern, (char *) word[0]);
+    strcat((char *) pattern, (char *) word[1]);
+    strcat((char *) pattern, "*");
     if (parser->function_blank) {
-      strcat((DEFCHAR *) pattern, " *");
+      strcat((char *) pattern, " *");
     }
     if (num_params == 3) {
-      strcat((DEFCHAR *) pattern, (DEFCHAR *) word[2]);
-      strcat((DEFCHAR *) pattern, "?");
+      strcat((char *) pattern, (char *) word[2]);
+      strcat((char *) pattern, "?");
     }
     tmp[0] = parser->function_char;
     tmp[1] = '\0';
-    strcat((DEFCHAR *) pattern, (DEFCHAR *) tmp);
+    strcat((char *) pattern, (char *) tmp);
     /* The following memset() is not meant to use wide character */
     memset(&parser->function_pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-    ptr = (CHARTYPE *) re_compile_pattern((DEFCHAR *) pattern, strlen((DEFCHAR *) pattern), &parser->function_pattern_buffer);
+    ptr = (char_t *) re_compile_pattern((char *) pattern, strlen((char *) pattern), &parser->function_pattern_buffer);
     if (ptr) {
       /*
        * If ptr returns something, it is an error string
        */
-      sprintf((DEFCHAR *) tmp, "%s in %s", ptr, pattern);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
-      (*the_free) (pattern);
+      sprintf((char *) tmp, "%s in %s", ptr, pattern);
+      display_error(216, (char_t *) tmp, FALSE);
+      free(pattern);
       return RC_INVALID_OPERAND;
     }
-    (*the_free) (pattern);
+    free(pattern);
     parser->have_function_pattern_buffer = TRUE;
   }
   return rc;
 }
 
-static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_directory(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONDIR_MAX_EXT 10
 #define CONDIR_PARAMS  CONDIR_MAX_EXT+3
   PARSE_EXTENSION *curr;
   short rc = RC_OK;
-  CHARTYPE *word[CONDIR_PARAMS + 1];
-  CHARTYPE strip[CONDIR_PARAMS];
+  char_t *word[CONDIR_PARAMS + 1];
+  char_t strip[CONDIR_PARAMS];
   unsigned short num_params, num_ext = 0;
   short option = 0, alt_word;
   int i;
-  CHARTYPE alternate = 255;
+  char_t alternate = 255;
 
   for (i = 0; i < CONDIR_PARAMS; i++) {
     strip[i] = STRIP_BOTH;
   }
   num_params = param_split(line, word, CONDIR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params < 1) {
-    sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  if (equal((CHARTYPE *) "directory", word[0], 3))
+  if (equal((char_t *) "directory", word[0], 3))
     option = 1;
-  else if (equal((CHARTYPE *) "link", word[0], 4))
+  else if (equal((char_t *) "link", word[0], 4))
     option = 2;
-  else if (equal((CHARTYPE *) "executable", word[0], 3))
+  else if (equal((char_t *) "executable", word[0], 3))
     option = 3;
-  else if (equal((CHARTYPE *) "extensions", word[0], 3))
+  else if (equal((char_t *) "extensions", word[0], 3))
     option = 4;
   else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   /*
@@ -2869,12 +2869,12 @@ static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAIL
       if (num_params == 1) {
         alternate = ECOLOUR_DIRECTORY;
       } else if (num_params < 3) {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       } else if (num_params > 3) {
-        sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       /* we have 3; last 2 must be alternate */
@@ -2884,12 +2884,12 @@ static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAIL
       if (num_params == 1) {
         alternate = ECOLOUR_LINK;
       } else if (num_params < 3) {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       } else if (num_params > 3) {
-        sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       /* we have 3; last 2 must be alternate */
@@ -2899,12 +2899,12 @@ static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAIL
       if (num_params == 1) {
         alternate = ECOLOUR_EXECUTABLE;
       } else if (num_params < 3) {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       } else if (num_params > 3) {
-        sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       /* we have 3; last 2 must be alternate */
@@ -2912,8 +2912,8 @@ static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAIL
       break;
     case 4:                    /* extensions */
       if (num_params < 4) {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
       /*
@@ -2927,21 +2927,21 @@ static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAIL
    * Check the optional alternate colour parameters if we haven't defaulted
    */
   if (alternate == 255) {
-    if (equal((CHARTYPE *) "alternate", word[alt_word], 3)) {
+    if (equal((char_t *) "alternate", word[alt_word], 3)) {
       if (num_params > 2) {
-        if (strlen((DEFCHAR *) word[alt_word + 1]) > 1) {
-          sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+        if (strlen((char *) word[alt_word + 1]) > 1) {
+          sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         if (get_alternate(word[alt_word + 1], &alternate)) {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[alt_word + 1], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[alt_word + 1], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return (RC_INVALID_OPERAND);
         }
       } else {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
     }
@@ -2966,7 +2966,7 @@ static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAIL
       for (i = 1; i < num_ext + 1; i++) {
         curr = parse_extensionll_add(parser->first_extension, parser->current_extension, sizeof(PARSE_EXTENSION));
         if (curr == NULL) {
-          display_error(216, (CHARTYPE *) "out of memory", FALSE);
+          display_error(216, (char_t *) "out of memory", FALSE);
           return RC_OUT_OF_MEMORY;
         }
         parser->current_extension = curr;
@@ -2974,13 +2974,13 @@ static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAIL
         if (parser->first_extension == NULL)
           parser->first_extension = parser->current_extension;
 
-        parser->current_extension->extension_length = strlen((DEFCHAR *) word[i]);
-        parser->current_extension->extension = (CHARTYPE *) (*the_malloc) ((1 + parser->current_extension->extension_length) * sizeof(CHARTYPE));
+        parser->current_extension->extension_length = strlen((char *) word[i]);
+        parser->current_extension->extension = (char_t *) malloc((1 + parser->current_extension->extension_length) * sizeof(char_t));
         if (parser->current_extension->extension == NULL) {
-          display_error(216, (CHARTYPE *) "out of memory", FALSE);
+          display_error(216, (char_t *) "out of memory", FALSE);
           return RC_OUT_OF_MEMORY;
         }
-        strcpy((DEFCHAR *) parser->current_extension->extension, (DEFCHAR *) word[i]);
+        strcpy((char *) parser->current_extension->extension, (char *) word[i]);
         parser->current_extension->alternate = alternate;
       }
       parser->have_extensions = TRUE;
@@ -2989,14 +2989,14 @@ static short construct_directory(CHARTYPE * line, int line_length, PARSER_DETAIL
   return rc;
 }
 
-static short construct_postcompare(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_postcompare(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONPOST_PARAMS  4
-  CHARTYPE *word[CONPOST_PARAMS + 1];
-  CHARTYPE strip[CONPOST_PARAMS + 1];
+  char_t *word[CONPOST_PARAMS + 1];
+  char_t strip[CONPOST_PARAMS + 1];
   unsigned short num_params = 0;
-  CHARTYPE *pattern = NULL, *ptr;
+  char_t *pattern = NULL, *ptr;
   PARSE_POSTCOMPARE *curr;
-  CHARTYPE alternate = 255;
+  char_t alternate = 255;
   struct re_pattern_buffer pattern_buffer;
   bool is_class_type;
 
@@ -3006,29 +3006,29 @@ static short construct_postcompare(CHARTYPE * line, int line_length, PARSER_DETA
   strip[3] = STRIP_BOTH;
   num_params = param_split(line, word, CONPOST_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params < 2) {
-    sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   /*
    * Check the optional alternate colour parameters first.
    */
   if (num_params > 2) {
-    if (equal((CHARTYPE *) "alternate", word[2], 3)) {
+    if (equal((char_t *) "alternate", word[2], 3)) {
       if (num_params > 3) {
-        if (strlen((DEFCHAR *) word[3]) > 1) {
-          sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+        if (strlen((char *) word[3]) > 1) {
+          sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         if (get_alternate(word[3], &alternate)) {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[3], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[3], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return (RC_INVALID_OPERAND);
         }
       } else {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
     }
@@ -3036,47 +3036,47 @@ static short construct_postcompare(CHARTYPE * line, int line_length, PARSER_DETA
   /*
    * Now determine if the type is CLASS or STRING...
    */
-  if (equal((CHARTYPE *) "class", word[0], 5)) {
+  if (equal((char_t *) "class", word[0], 5)) {
     /*
      * CLASS type - word[1] is RE
      */
-    pattern = (CHARTYPE *) (*the_malloc) ((20 + line_length) * sizeof(CHARTYPE));
+    pattern = (char_t *) malloc((20 + line_length) * sizeof(char_t));
     if (pattern == NULL) {
-      display_error(216, (CHARTYPE *) "out of memory", FALSE);
+      display_error(216, (char_t *) "out of memory", FALSE);
       return RC_OUT_OF_MEMORY;
     }
     /*
      * Create the pattern buffer for the RE...
      */
-    strcpy((DEFCHAR *) pattern, (DEFCHAR *) word[1]);
+    strcpy((char *) pattern, (char *) word[1]);
     /* The following memset() is not meant to use wide character */
     memset(&pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-    ptr = (CHARTYPE *) re_compile_pattern((DEFCHAR *) pattern, strlen((DEFCHAR *) pattern), &pattern_buffer);
+    ptr = (char_t *) re_compile_pattern((char *) pattern, strlen((char *) pattern), &pattern_buffer);
     if (ptr) {
       /*
        * If ptr returns something, it is an error string
        */
-      sprintf((DEFCHAR *) tmp, "%s in %s", ptr, pattern);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
-      (*the_free) (pattern);
+      sprintf((char *) tmp, "%s in %s", ptr, pattern);
+      display_error(216, (char_t *) tmp, FALSE);
+      free(pattern);
       return RC_INVALID_OPERAND;
     }
-    (*the_free) (pattern);
+    free(pattern);
     is_class_type = TRUE;
-  } else if (equal((CHARTYPE *) "text", word[0], 4)) {
+  } else if (equal((char_t *) "text", word[0], 4)) {
     /*
      * TEXT type - word[1] is string
      */
     is_class_type = FALSE;
   } else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return (RC_INVALID_OPERAND);
   }
 
   curr = parse_postcomparell_add(parser->first_postcompare, parser->current_postcompare, sizeof(PARSE_POSTCOMPARE));
   if (curr == NULL) {
-    display_error(216, (CHARTYPE *) "out of memory", FALSE);
+    display_error(216, (char_t *) "out of memory", FALSE);
     return RC_OUT_OF_MEMORY;
   }
   parser->current_postcompare = curr;
@@ -3089,13 +3089,13 @@ static short construct_postcompare(CHARTYPE * line, int line_length, PARSER_DETA
   if (is_class_type) {
     parser->current_postcompare->pattern_buffer = pattern_buffer;
   } else {
-    parser->current_postcompare->string_length = strlen((DEFCHAR *) word[1]);
-    parser->current_postcompare->string = (CHARTYPE *) (*the_malloc) ((1 + parser->current_postcompare->string_length) * sizeof(CHARTYPE));
+    parser->current_postcompare->string_length = strlen((char *) word[1]);
+    parser->current_postcompare->string = (char_t *) malloc((1 + parser->current_postcompare->string_length) * sizeof(char_t));
     if (parser->current_postcompare->string == NULL) {
-      display_error(216, (CHARTYPE *) "out of memory", FALSE);
+      display_error(216, (char_t *) "out of memory", FALSE);
       return RC_OUT_OF_MEMORY;
     }
-    strcpy((DEFCHAR *) parser->current_postcompare->string, (DEFCHAR *) word[1]);
+    strcpy((char *) parser->current_postcompare->string, (char *) word[1]);
   }
 
   parser->current_postcompare->alternate = alternate;
@@ -3104,52 +3104,52 @@ static short construct_postcompare(CHARTYPE * line, int line_length, PARSER_DETA
   return (RC_OK);
 }
 
-static short construct_number(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_number(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONNUM_PARAMS  1
-  CHARTYPE *word[CONNUM_PARAMS + 1];
-  CHARTYPE strip[CONNUM_PARAMS + 1];
+  char_t *word[CONNUM_PARAMS + 1];
+  char_t strip[CONNUM_PARAMS + 1];
   unsigned short num_params = 0;
-  DEFCHAR *pattern;
+  char *pattern;
   char *ptr;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
   num_params = param_split(line, word, CONNUM_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params == 0) {
-    sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   if (num_params > 1) {
-    sprintf((DEFCHAR *) tmp, "Too many tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too many tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   /*
    * Get number type
    */
-  if (equal((CHARTYPE *) "rexx", word[0], 4)) {
+  if (equal((char_t *) "rexx", word[0], 4)) {
     pattern = REXX_NUMBER_RE;
-  } else if (equal((CHARTYPE *) "cobol", word[0], 5)) {
+  } else if (equal((char_t *) "cobol", word[0], 5)) {
     pattern = COBOL_NUMBER_RE;
-  } else if (equal((CHARTYPE *) "c", word[0], 1)) {
+  } else if (equal((char_t *) "c", word[0], 1)) {
     pattern = C_NUMBER_RE;
   } else {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * Create the pattern buffer for the RE...
    */
   memset(&parser->number_pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-  ptr = (DEFCHAR *) re_compile_pattern(pattern, strlen(pattern), &parser->number_pattern_buffer);
+  ptr = (char *) re_compile_pattern(pattern, strlen(pattern), &parser->number_pattern_buffer);
   if (ptr) {
     /*
      * If ptr returns something, it is an error string
      */
-    sprintf((DEFCHAR *) tmp, "%s in %s", ptr, pattern);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "%s in %s", ptr, pattern);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
 
@@ -3157,13 +3157,13 @@ static short construct_number(CHARTYPE * line, int line_length, PARSER_DETAILS *
   return (RC_OK);
 }
 
-static short construct_column(CHARTYPE * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_column(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONCOL_PARAMS  5
-  CHARTYPE *word[CONCOL_PARAMS + 1];
-  CHARTYPE strip[CONCOL_PARAMS + 1];
+  char_t *word[CONCOL_PARAMS + 1];
+  char_t strip[CONCOL_PARAMS + 1];
   unsigned short num_params = 0;
-  CHARTYPE alternate = 255;
-  LINETYPE col1 = 0L, col2 = 0L;
+  char_t alternate = 255;
+  line_t col1 = 0L, col2 = 0L;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
@@ -3173,29 +3173,29 @@ static short construct_column(CHARTYPE * line, int line_length, PARSER_DETAILS *
   strip[5] = STRIP_BOTH;
   num_params = param_split(line, word, CONCOL_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params < 3) {
-    sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   /*
    * Check the optional alternate colour parameters first.
    */
   if (num_params > 3) {
-    if (equal((CHARTYPE *) "alternate", word[3], 3)) {
+    if (equal((char_t *) "alternate", word[3], 3)) {
       if (num_params > 3) {
-        if (strlen((DEFCHAR *) word[4]) > 1) {
-          sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+        if (strlen((char *) word[4]) > 1) {
+          sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return RC_INVALID_OPERAND;
         }
         if (get_alternate(word[4], &alternate)) {
-          sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[4], lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+          sprintf((char *) tmp, "Invalid operand '%s', line %d", word[4], lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           return (RC_INVALID_OPERAND);
         }
       } else {
-        sprintf((DEFCHAR *) tmp, "Too few tokens, line %d", lineno);
-        display_error(216, (CHARTYPE *) tmp, FALSE);
+        sprintf((char *) tmp, "Too few tokens, line %d", lineno);
+        display_error(216, (char_t *) tmp, FALSE);
         return RC_INVALID_OPERAND;
       }
     }
@@ -3203,44 +3203,44 @@ static short construct_column(CHARTYPE * line, int line_length, PARSER_DETAILS *
   /*
    * 'EXCLUDE' is only valid option at this stage
    */
-  if (!equal((CHARTYPE *) "exclude", word[0], 7)) {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+  if (!equal((char_t *) "exclude", word[0], 7)) {
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * Now obtain the start and end columns.
    */
   if (!valid_positive_integer(word[1])) {
-    sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Invalid operand '%s', line %d", word[1], lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return (RC_INVALID_OPERAND);
   }
-  col1 = atol((DEFCHAR *) word[1]);
+  col1 = atol((char *) word[1]);
   /*
    * Second parameter must be positive integer or *
    */
-  if (strcmp((DEFCHAR *) word[2], "*") == 0)
+  if (strcmp((char *) word[2], "*") == 0)
     col2 = max_line_length;
   else {
     if (!valid_positive_integer(word[2])) {
-      sprintf((DEFCHAR *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
-      display_error(216, (CHARTYPE *) tmp, FALSE);
+      sprintf((char *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
+      display_error(216, (char_t *) tmp, FALSE);
       return (RC_INVALID_OPERAND);
     }
-    col2 = atol((DEFCHAR *) word[2]);
+    col2 = atol((char *) word[2]);
   }
 
   if (col2 > max_line_length)
     col2 = max_line_length;
   if (col1 > col2) {
-    sprintf((DEFCHAR *) tmp, "First column(%ld) must be < last column(%ld), line %d", col1, col2, lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "First column(%ld) must be < last column(%ld), line %d", col1, col2, lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (parser->number_columns == MAX_PARSER_COLUMNS) {
-    sprintf((DEFCHAR *) tmp, "Maximum number of :column options (%d) exceeded, line %d", MAX_PARSER_COLUMNS, lineno);
-    display_error(216, (CHARTYPE *) tmp, FALSE);
+    sprintf((char *) tmp, "Maximum number of :column options (%d) exceeded, line %d", MAX_PARSER_COLUMNS, lineno);
+    display_error(216, (char_t *) tmp, FALSE);
     return (RC_INVALID_OPERAND);
   }
   parser->first_column[parser->number_columns] = col1;
@@ -3252,18 +3252,18 @@ static short construct_column(CHARTYPE * line, int line_length, PARSER_DETAILS *
   return (RC_OK);
 }
 
-short construct_parser(CHARTYPE * contents, int contents_length, PARSER_DETAILS ** parser, CHARTYPE * parser_name, CHARTYPE * filename) {
+short construct_parser(char_t * contents, int contents_length, PARSER_DETAILS ** parser, char_t * parser_name, char_t * filename) {
   int i, j, line_len;
   int state = 0;
-  CHARTYPE _THE_FAR line[250];
+  char_t line[250];
   short rc = RC_OK;
   int lineno = 0;
 
   last_parser = parserll_add(first_parser, last_parser, sizeof(PARSER_DETAILS));
   if (first_parser == NULL)
     first_parser = last_parser;
-  strcpy((DEFCHAR *) last_parser->parser_name, (DEFCHAR *) parser_name);
-  strcpy((DEFCHAR *) last_parser->filename, (DEFCHAR *) filename);
+  strcpy((char *) last_parser->parser_name, (char *) parser_name);
+  strcpy((char *) last_parser->filename, (char *) filename);
   last_parser->min_keyword_length = MAX_INT;
   last_parser->min_function_length = MAX_INT;
   *parser = last_parser;
@@ -3276,7 +3276,7 @@ short construct_parser(CHARTYPE * contents, int contents_length, PARSER_DETAILS 
       line[j] = '\0';
       j = 0;
       strtrunc(line);
-      line_len = strlen((DEFCHAR *) line);
+      line_len = strlen((char *) line);
       /*
        * Ignore blank lines and comments
        */
@@ -3286,68 +3286,68 @@ short construct_parser(CHARTYPE * contents, int contents_length, PARSER_DETAILS 
         state = STATE_FILE_HEADER;
       switch (state) {
         case STATE_FILE_HEADER:
-          if (memcmpi(line, (CHARTYPE *) ":case", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":case", line_len) == 0) {
             state = STATE_CASE;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":option", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":option", line_len) == 0) {
             state = STATE_OPTION;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":number", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":number", line_len) == 0) {
             state = STATE_NUMBER;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":identifier", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":identifier", line_len) == 0) {
             state = STATE_IDENTIFIER;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":string", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":string", line_len) == 0) {
             state = STATE_STRING;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":comment", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":comment", line_len) == 0) {
             state = STATE_COMMENT;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":header", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":header", line_len) == 0) {
             state = STATE_HEADER;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":label", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":label", line_len) == 0) {
             state = STATE_LABEL;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":match", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":match", line_len) == 0) {
             state = STATE_MATCH;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":keyword", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":keyword", line_len) == 0) {
             state = STATE_KEYWORD;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":function", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":function", line_len) == 0) {
             state = STATE_FUNCTION;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":postcompare", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":postcompare", line_len) == 0) {
             state = STATE_POSTCOMPARE;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":column", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":column", line_len) == 0) {
             state = STATE_COLUMN;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":markup", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":markup", line_len) == 0) {
             state = STATE_MARKUP;
             break;
           }
-          if (memcmpi(line, (CHARTYPE *) ":directory", line_len) == 0) {
+          if (memcmpi(line, (char_t *) ":directory", line_len) == 0) {
             state = STATE_DIRECTORY;
             break;
           }
-          sprintf((DEFCHAR *) tmp, "Invalid header '%s', line %d", line, lineno);
-          display_error(216, (CHARTYPE *) tmp, FALSE);
+          sprintf((char *) tmp, "Invalid header '%s', line %d", line, lineno);
+          display_error(216, (char_t *) tmp, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         case STATE_CASE:
@@ -3441,7 +3441,7 @@ short destroy_parser(PARSER_DETAILS * parser) {
 
 bool find_parser_mapping(FILE_DETAILS * fd, PARSER_MAPPING * curr_mapping) {
   if (curr_mapping->filemask) {
-    if (fnmatch((DEFCHAR *) curr_mapping->filemask, (DEFCHAR *) fd->fname, 0) == 0) {
+    if (fnmatch((char *) curr_mapping->filemask, (char *) fd->fname, 0) == 0) {
       return TRUE;
     }
   } else {
@@ -3453,7 +3453,7 @@ bool find_parser_mapping(FILE_DETAILS * fd, PARSER_MAPPING * curr_mapping) {
      */
     if (fd && fd->first_line && fd->first_line->next) {
       LINE *curr = fd->first_line->next;
-      CHARTYPE *ptr = curr->line;
+      char_t *ptr = curr->line;
       int i, state = STATE_START, start = 0, len;
 
       if (curr->length > 3 && *(curr->line) == THE_CHAR_HASH && *(curr->line + 1) == THE_CHAR_BANG) {
@@ -3509,8 +3509,8 @@ short parse_reserved_line(RESERVED * rsrvd) {
   int i = 0, j = 0, k = 0;
   chtype current_colour, default_colour;
   int state = STATE_START;
-  CHARTYPE *line = rsrvd->line;
-  CHARTYPE *disp = rsrvd->disp;
+  char_t *line = rsrvd->line;
+  char_t *disp = rsrvd->disp;
 
   current_colour = default_colour = set_colour(rsrvd->attr);
   if (CTLCHARx) {
@@ -3573,10 +3573,10 @@ short parse_reserved_line(RESERVED * rsrvd) {
   return (RC_OK);
 }
 
-CHARTYPE get_syntax_element(CHARTYPE scrno, int row, int col) {
+char_t get_syntax_element(char_t scrno, int row, int col) {
   SHOW_LINE *scurr;
-  CHARTYPE syntax_element;
-  LENGTHTYPE vcol = SCREEN_VIEW(scrno)->verify_col - 1;
+  char_t syntax_element;
+  length_t vcol = SCREEN_VIEW(scrno)->verify_col - 1;
 
   scurr = screen[scrno].sl;
   if (row > screen[scrno].rows[WINDOW_FILEAREA]

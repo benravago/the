@@ -865,7 +865,7 @@
                                           current line containing "string"
                               -/string/ - the first line above the
                                           current line containing "string"
- 
+
   Targets may be separated by the boolean operators '&' or '|'.
   eg.  /string1/ | /string2/
   Targets may also be prefixed with '~' to signify boolean NOT.

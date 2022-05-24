@@ -40,30 +40,30 @@
 static short sosdelback Args((bool));
 static short sosdelchar Args((bool));
 
-short Sos_addline(CHARTYPE * params) {
+short Sos_addline(char_t * params) {
   short rc = RC_OK;
 
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
-  insert_new_line(current_screen, CURRENT_VIEW, (CHARTYPE *) "", 0, 1, get_true_line(FALSE), FALSE, FALSE, TRUE, CURRENT_VIEW->display_low, TRUE, TRUE);
+  insert_new_line(current_screen, CURRENT_VIEW, (char_t *) "", 0, 1, get_true_line(FALSE), FALSE, FALSE, TRUE, CURRENT_VIEW->display_low, TRUE, TRUE);
   if (compatible_feel == COMPAT_XEDIT)
     advance_current_line(1L);
   if (curses_started && CURRENT_VIEW->current_window == WINDOW_COMMAND) {
     THEcursor_home(current_screen, CURRENT_VIEW, FALSE);
-    rc = Sos_firstcol((CHARTYPE *) "");
+    rc = Sos_firstcol((char_t *) "");
   }
   return (rc);
 }
-short Sos_blockend(CHARTYPE * params) {
+short Sos_blockend(char_t * params) {
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
   LINE *curr = NULL;
-  LENGTHTYPE col = 0;
-  LINETYPE line = 0L;
+  length_t col = 0;
+  line_t line = 0L;
   short save_compat = 0;
-  CHARTYPE cmd[20];
+  char_t cmd[20];
 
   if (MARK_VIEW != CURRENT_VIEW) {
-    display_error(45, (CHARTYPE *) "", FALSE);
+    display_error(45, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   switch (MARK_VIEW->mark_type) {
@@ -82,18 +82,18 @@ short Sos_blockend(CHARTYPE * params) {
   /* work out if block boundary is not excluded */
   curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, line, CURRENT_FILE->number_lines);
   if (!IN_SCOPE(CURRENT_VIEW, curr)) {
-    display_error(46, (CHARTYPE *) "", FALSE);
+    display_error(46, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (CURRENT_VIEW->current_window == WINDOW_PREFIX)
-    Sos_leftedge((CHARTYPE *) "");
+    Sos_leftedge((char_t *) "");
   getyx(CURRENT_WINDOW, y, x);
   /*
    * Move to the line
    */
   save_compat = compatible_feel;
   compatible_feel = COMPAT_THE;
-  sprintf((DEFCHAR *) cmd, ":%ld", (long) line);
+  sprintf((char *) cmd, ":%ld", (long) line);
   rc = command_line(cmd, COMMAND_ONLY_FALSE);
   compatible_feel = save_compat;;
   /*
@@ -104,17 +104,17 @@ short Sos_blockend(CHARTYPE * params) {
     execute_move_cursor(current_screen, CURRENT_VIEW, col - 1);
   return (rc);
 }
-short Sos_blockstart(CHARTYPE * params) {
+short Sos_blockstart(char_t * params) {
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
   LINE *curr = NULL;
-  LENGTHTYPE col = 0;
-  LINETYPE line = 0L;
+  length_t col = 0;
+  line_t line = 0L;
   short save_compat = 0;
-  CHARTYPE cmd[20];
+  char_t cmd[20];
 
   if (MARK_VIEW != CURRENT_VIEW) {
-    display_error(45, (CHARTYPE *) "", FALSE);
+    display_error(45, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   switch (MARK_VIEW->mark_type) {
@@ -133,18 +133,18 @@ short Sos_blockstart(CHARTYPE * params) {
   /* work out if block boundary is not excluded */
   curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, line, CURRENT_FILE->number_lines);
   if (!IN_SCOPE(CURRENT_VIEW, curr)) {
-    display_error(46, (CHARTYPE *) "", FALSE);
+    display_error(46, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (CURRENT_VIEW->current_window == WINDOW_PREFIX)
-    Sos_leftedge((CHARTYPE *) "");
+    Sos_leftedge((char_t *) "");
   getyx(CURRENT_WINDOW, y, x);
   /*
    * Move to the line first
    */
   save_compat = compatible_feel;
   compatible_feel = COMPAT_THE;
-  sprintf((DEFCHAR *) cmd, ":%ld", (long) line);
+  sprintf((char *) cmd, ":%ld", (long) line);
   rc = command_line(cmd, COMMAND_ONLY_FALSE);
   compatible_feel = save_compat;;
   /*
@@ -155,7 +155,7 @@ short Sos_blockstart(CHARTYPE * params) {
     execute_move_cursor(current_screen, CURRENT_VIEW, col - 1);
   return (rc);
 }
-short Sos_bottomedge(CHARTYPE * params) {
+short Sos_bottomedge(char_t * params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0, row = 0;
 
@@ -190,22 +190,22 @@ short Sos_bottomedge(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_cuadelback(CHARTYPE * params) {
+short Sos_cuadelback(char_t * params) {
   short rc;
 
   rc = sosdelback(TRUE);
   return (rc);
 }
-short Sos_cuadelchar(CHARTYPE * params) {
+short Sos_cuadelchar(char_t * params) {
   short rc = RC_OK;
 
   rc = sosdelchar(TRUE);
   return (rc);
 }
-short Sos_current(CHARTYPE * params) {
+short Sos_current(char_t * params) {
   return do_Sos_current(params, current_screen, CURRENT_VIEW);
 }
-short do_Sos_current(CHARTYPE * params, CHARTYPE curr_screen, VIEW_DETAILS * curr_view) {
+short do_Sos_current(char_t * params, char_t curr_screen, VIEW_DETAILS * curr_view) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
   bool same_line = TRUE;
@@ -236,8 +236,8 @@ short do_Sos_current(CHARTYPE * params, CHARTYPE curr_screen, VIEW_DETAILS * cur
   }
   return (rc);
 }
-short Sos_cursoradj(CHARTYPE * params) {
-  LENGTHTYPE num_cols = 0, first_non_blank_col = 0, col = 0;
+short Sos_cursoradj(char_t * params) {
+  length_t num_cols = 0, first_non_blank_col = 0, col = 0;
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
 
@@ -245,7 +245,7 @@ short Sos_cursoradj(CHARTYPE * params) {
   switch (CURRENT_VIEW->current_window) {
     case WINDOW_FILEAREA:
       if (FOCUS_TOF || FOCUS_BOF) {
-        display_error(38, (CHARTYPE *) "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       col = x + CURRENT_VIEW->verify_col - 1;
@@ -265,16 +265,16 @@ short Sos_cursoradj(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_cursorshift(CHARTYPE * params) {
+short Sos_cursorshift(char_t * params) {
   short rc = RC_OK;
-  LENGTHTYPE num_cols = 0, first_non_blank_col = 0, col = 0;
+  length_t num_cols = 0, first_non_blank_col = 0, col = 0;
   unsigned short x = 0, y = 0;
 
   getyx(CURRENT_WINDOW, y, x);
   switch (CURRENT_VIEW->current_window) {
     case WINDOW_FILEAREA:
       if (FOCUS_TOF || FOCUS_BOF) {
-        display_error(38, (CHARTYPE *) "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       col = x + CURRENT_VIEW->verify_col - 1;
@@ -297,20 +297,20 @@ short Sos_cursorshift(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_delback(CHARTYPE * params) {
+short Sos_delback(char_t * params) {
   short rc;
 
   rc = sosdelback(FALSE);
   return (rc);
 }
-short Sos_delchar(CHARTYPE * params) {
+short Sos_delchar(char_t * params) {
   short rc = RC_OK;
 
   rc = sosdelchar(FALSE);
   return (rc);
 }
-short Sos_delend(CHARTYPE * params) {
-  LENGTHTYPE i, col;
+short Sos_delend(char_t * params) {
+  length_t i, col;
   unsigned short x = 0, y = 0;
 
   getyx(CURRENT_WINDOW, y, x);
@@ -321,11 +321,11 @@ short Sos_delend(CHARTYPE * params) {
        * command in the MAIN window, then error...
        */
       if (ISREADONLY(CURRENT_FILE)) {
-        display_error(56, (CHARTYPE *) "", FALSE);
+        display_error(56, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-        display_error(38, (CHARTYPE *) "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       col = x + CURRENT_VIEW->verify_col - 1;
@@ -372,15 +372,15 @@ short Sos_delend(CHARTYPE * params) {
   }
   return (RC_OK);
 }
-short Sos_delline(CHARTYPE * params) {
+short Sos_delline(char_t * params) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
-  LINETYPE true_line = 0L, lines_affected = 0L;
+  line_t true_line = 0L, lines_affected = 0L;
 
   if (CURRENT_VIEW->current_window == WINDOW_FILEAREA || CURRENT_VIEW->current_window == WINDOW_PREFIX) {
     getyx(CURRENT_WINDOW, y, x);
     if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE && !CURRENT_VIEW->scope_all) {
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
     }
   }
@@ -398,12 +398,12 @@ short Sos_delline(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_delword(CHARTYPE * params) {
+short Sos_delword(char_t * params) {
   short rc = RC_OK;
-  LENGTHTYPE first_col = 0, last_col = 0;
+  length_t first_col = 0, last_col = 0;
   unsigned short x = 0, y = 0;
-  LENGTHTYPE num_cols = 0, left_col = 0, temp_rec_len = 0;
-  CHARTYPE *temp_rec = NULL;
+  length_t num_cols = 0, left_col = 0, temp_rec_len = 0;
+  char_t *temp_rec = NULL;
 
   /*
    * This function is not applicable to the PREFIX window.
@@ -411,7 +411,7 @@ short Sos_delword(CHARTYPE * params) {
   getyx(CURRENT_WINDOW, y, x);
   switch (CURRENT_VIEW->current_window) {
     case WINDOW_PREFIX:
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
       break;
     case WINDOW_FILEAREA:
@@ -420,11 +420,11 @@ short Sos_delword(CHARTYPE * params) {
        * command in the MAIN window, then error...
        */
       if (ISREADONLY(CURRENT_FILE)) {
-        display_error(56, (CHARTYPE *) "", FALSE);
+        display_error(56, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-        display_error(38, (CHARTYPE *) "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       temp_rec = rec;
@@ -432,7 +432,7 @@ short Sos_delword(CHARTYPE * params) {
       left_col = CURRENT_VIEW->verify_col - 1;
       break;
     case WINDOW_COMMAND:
-      temp_rec = (CHARTYPE *) cmd_rec;
+      temp_rec = (char_t *) cmd_rec;
       temp_rec_len = cmd_rec_len;
       left_col = cmd_verify_col;
       break;
@@ -460,19 +460,19 @@ short Sos_delword(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_doprefix(CHARTYPE * params) {
+short Sos_doprefix(char_t * params) {
   short rc = RC_OK;
 
   rc = execute_prefix_commands();
   return (rc);
 }
-short Sos_edit(CHARTYPE * params) {
+short Sos_edit(char_t * params) {
   LINE *curr = NULL;
-  CHARTYPE edit_fname[MAX_FILE_NAME];
+  char_t edit_fname[MAX_FILE_NAME];
   unsigned short y = 0, x = 0;
   short rc = RC_OK;
-  LINETYPE true_line = 0L;
-  CHARTYPE *lname = NULL, *fname = NULL;
+  line_t true_line = 0L;
+  char_t *lname = NULL, *fname = NULL;
   VIEW_DETAILS *dir = NULL;
   PRESERVED_VIEW_DETAILS *preserved_view_details = NULL;
   PRESERVED_FILE_DETAILS *preserved_file_details = NULL;
@@ -514,34 +514,34 @@ short Sos_edit(CHARTYPE * params) {
   /*
    * Validate that the supplied file is valid.
    */
-  strcpy((DEFCHAR *) edit_fname, (DEFCHAR *) dir_path);
+  strcpy((char *) edit_fname, (char *) dir_path);
   fname = curr->line + FILE_START;
   if (*(curr->line) == 'l') {
     /*
      * We have a symbolic link.  Get the "real" file if there is one
      * i.e. the string AFTER "->" is the "real" file name.
      */
-    lname = (CHARTYPE *) strstr((DEFCHAR *) fname, " -> ");
+    lname = (char_t *) strstr((char *) fname, " -> ");
     if (lname != NULL) {
-      if (strlen((DEFCHAR *) lname) > 4) {
-        fname = lname + 4 * sizeof(CHARTYPE);
+      if (strlen((char *) lname) > 4) {
+        fname = lname + 4 * sizeof(char_t);
         if (*fname == '/')      /* symbolic link is absolute... */
-          strcpy((DEFCHAR *) edit_fname, "");
+          strcpy((char *) edit_fname, "");
       }
     }
   }
-  strcat((DEFCHAR *) edit_fname, (DEFCHAR *) fname);
+  strcat((char *) edit_fname, (char *) fname);
 
   if ((rc = splitpath(edit_fname)) != RC_OK) {
     display_error(10, edit_fname, FALSE);
     return (rc);
   }
-  strcpy((DEFCHAR *) edit_fname, (DEFCHAR *) sp_path);
-  strcat((DEFCHAR *) edit_fname, (DEFCHAR *) sp_fname);
+  strcpy((char *) edit_fname, (char *) sp_path);
+  strcat((char *) edit_fname, (char *) sp_fname);
   /*
    * If we are editing a directory and have a DIR.DIR file in the ring, find it...
    */
-  if (strlen((DEFCHAR *) sp_fname) == 0) {
+  if (strlen((char *) sp_fname) == 0) {
     dir = find_pseudo_file(PSEUDO_DIR);
     if (dir) {
       /* ... and preserve the settings so we can apply them to the new DIR.DIR */
@@ -568,10 +568,10 @@ short Sos_edit(CHARTYPE * params) {
   pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   return (rc);
 }
-short Sos_endchar(CHARTYPE * params) {
+short Sos_endchar(char_t * params) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
-  LENGTHTYPE charnum;
+  length_t charnum;
 
   getyx(CURRENT_WINDOW, y, x);
   switch (CURRENT_VIEW->current_window) {
@@ -591,8 +591,8 @@ short Sos_endchar(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_execute(CHARTYPE * params) {
-  LENGTHTYPE i;
+short Sos_execute(char_t * params) {
+  length_t i;
   short rc = RC_OK;
   bool save_in_macro;
 
@@ -613,9 +613,9 @@ short Sos_execute(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_firstchar(CHARTYPE * params) {
+short Sos_firstchar(char_t * params) {
   short rc = RC_OK;
-  LENGTHTYPE new_col = 0;
+  length_t new_col = 0;
   unsigned short y = 0, x = 0;
   LINE *curr = NULL;
 
@@ -643,7 +643,7 @@ short Sos_firstchar(CHARTYPE * params) {
   rc = execute_move_cursor(current_screen, CURRENT_VIEW, new_col);
   return (rc);
 }
-short Sos_firstcol(CHARTYPE * params) {
+short Sos_firstcol(char_t * params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0;
 
@@ -665,10 +665,10 @@ short Sos_firstcol(CHARTYPE * params) {
   wmove(CURRENT_WINDOW, y, 0);
   return (rc);
 }
-short Sos_instab(CHARTYPE * params) {
+short Sos_instab(char_t * params) {
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
-  LENGTHTYPE col = 0, tabcol = 0, i;
+  length_t col = 0, tabcol = 0, i;
 
   if (CURRENT_VIEW->current_window != WINDOW_FILEAREA) {
     return (rc);
@@ -689,12 +689,12 @@ short Sos_instab(CHARTYPE * params) {
   }
   rec_len = min(max_line_length, rec_len);
 
-  Sos_tabf((CHARTYPE *) "nochar");
+  Sos_tabf((char_t *) "nochar");
   build_screen(current_screen);
   display_screen(current_screen);
   return (rc);
 }
-short Sos_lastcol(CHARTYPE * params) {
+short Sos_lastcol(char_t * params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0;
 
@@ -703,7 +703,7 @@ short Sos_lastcol(CHARTYPE * params) {
   wmove(CURRENT_WINDOW, y, x);
   return (rc);
 }
-short Sos_leftedge(CHARTYPE * params) {
+short Sos_leftedge(char_t * params) {
   unsigned short y = 0, x = 0;
 
   getyx(CURRENT_WINDOW, y, x);
@@ -713,59 +713,59 @@ short Sos_leftedge(CHARTYPE * params) {
   return (RC_OK);
 }
 
-short Sos_makecurr(CHARTYPE * params) {
+short Sos_makecurr(char_t * params) {
   short rc = RC_OK;
 
   if (CURRENT_VIEW->current_window != WINDOW_COMMAND)
     rc = execute_makecurr(current_screen, CURRENT_VIEW, CURRENT_VIEW->focus_line);
   return (rc);
 }
-short Sos_marginl(CHARTYPE * params) {
+short Sos_marginl(char_t * params) {
   short rc = RC_OK;
 
-  if (Sos_leftedge((CHARTYPE *) "") == RC_OK)
+  if (Sos_leftedge((char_t *) "") == RC_OK)
     rc = execute_move_cursor(current_screen, CURRENT_VIEW, CURRENT_VIEW->margin_left - 1);
   return (rc);
 }
-short Sos_marginr(CHARTYPE * params) {
+short Sos_marginr(char_t * params) {
   short rc = RC_OK;
 
-  if (Sos_leftedge((CHARTYPE *) "") == RC_OK)
+  if (Sos_leftedge((char_t *) "") == RC_OK)
     rc = execute_move_cursor(current_screen, CURRENT_VIEW, CURRENT_VIEW->margin_right - 1);
   return (rc);
 }
-short Sos_parindent(CHARTYPE * params) {
+short Sos_parindent(char_t * params) {
   short rc = RC_OK;
-  LENGTHTYPE parindent = 0;
+  length_t parindent = 0;
 
   if (CURRENT_VIEW->margin_indent_offset_status)
     parindent = CURRENT_VIEW->margin_left + CURRENT_VIEW->margin_indent - 1;
   else
     parindent = CURRENT_VIEW->margin_indent - 1;
-  if (Sos_leftedge((CHARTYPE *) "") == RC_OK)
+  if (Sos_leftedge((char_t *) "") == RC_OK)
     rc = execute_move_cursor(current_screen, CURRENT_VIEW, parindent);
   return (rc);
 }
-short Sos_pastecmdline(CHARTYPE * params) {
+short Sos_pastecmdline(char_t * params) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
   LINE *curr = NULL;
-  LENGTHTYPE start_col = 0, end_col = 0;
-  LENGTHTYPE cursor_location = 0;
-  LENGTHTYPE new_verify_col = 0;
-  COLTYPE new_screen_col = 0;
-  LENGTHTYPE verify_col = 0;
+  length_t start_col = 0, end_col = 0;
+  length_t cursor_location = 0;
+  length_t new_verify_col = 0;
+  col_t new_screen_col = 0;
+  length_t verify_col = 0;
 
   if (CURRENT_VIEW->current_window != WINDOW_COMMAND) {
-    display_error(38, (CHARTYPE *) "", FALSE);
+    display_error(38, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (MARK_VIEW == NULL) {
-    display_error(44, (CHARTYPE *) "", FALSE);
+    display_error(44, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (MARK_VIEW->mark_start_line != MARK_VIEW->mark_end_line) {
-    display_error(81, (CHARTYPE *) "", FALSE);
+    display_error(81, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   curr = lll_find(MARK_FILE->first_line, MARK_FILE->last_line, MARK_VIEW->mark_start_line, MARK_FILE->number_lines);
@@ -796,10 +796,10 @@ short Sos_pastecmdline(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_prefix(CHARTYPE * params) {
+short Sos_prefix(char_t * params) {
   return do_Sos_prefix(params, current_screen, CURRENT_VIEW);
 }
-short do_Sos_prefix(CHARTYPE * params, CHARTYPE curr_screen, VIEW_DETAILS * curr_view) {
+short do_Sos_prefix(char_t * params, char_t curr_screen, VIEW_DETAILS * curr_view) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0;
 
@@ -817,7 +817,7 @@ short do_Sos_prefix(CHARTYPE * params, CHARTYPE curr_screen, VIEW_DETAILS * curr
   wmove(SCREEN_WINDOW(curr_screen), y, x);
   return (rc);
 }
-short Sos_qcmnd(CHARTYPE * params) {
+short Sos_qcmnd(char_t * params) {
   short rc = RC_OK;
 
   if ((rc = THEcursor_cmdline(current_screen, CURRENT_VIEW, 1)) == RC_OK) {
@@ -830,7 +830,7 @@ short Sos_qcmnd(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_rightedge(CHARTYPE * params) {
+short Sos_rightedge(char_t * params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0;
 
@@ -841,14 +841,14 @@ short Sos_rightedge(CHARTYPE * params) {
   wmove(CURRENT_WINDOW, y, x);
   return (rc);
 }
-short Sos_settab(CHARTYPE * params) {
+short Sos_settab(char_t * params) {
 #define SETTAB_INSERT 0
 #define SETTAB_APPEND 1
 #define SETTAB_REMOVE 2
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
-  LENGTHTYPE col = 0;
-  LENGTHTYPE max_tab_col = 0;
+  length_t col = 0;
+  length_t max_tab_col = 0;
   int action = SETTAB_INSERT;
   int i = 0, j = 0;
 
@@ -885,7 +885,7 @@ short Sos_settab(CHARTYPE * params) {
         CURRENT_VIEW->numtabs++;
         CURRENT_VIEW->tabsinc = 0;
       } else {
-        display_error(79, (CHARTYPE *) "", FALSE);
+        display_error(79, (char_t *) "", FALSE);
         rc = RC_INVALID_ENVIRON;
       }
       break;
@@ -902,7 +902,7 @@ short Sos_settab(CHARTYPE * params) {
         CURRENT_VIEW->numtabs++;
         CURRENT_VIEW->tabsinc = 0;
       } else {
-        display_error(79, (CHARTYPE *) "", FALSE);
+        display_error(79, (char_t *) "", FALSE);
         rc = RC_INVALID_ENVIRON;
       }
       break;
@@ -911,10 +911,10 @@ short Sos_settab(CHARTYPE * params) {
   display_screen(current_screen);
   return (rc);
 }
-short Sos_startendchar(CHARTYPE * params) {
+short Sos_startendchar(char_t * params) {
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
-  LENGTHTYPE charnum;
+  length_t charnum;
 
   getyx(CURRENT_WINDOW, y, x);
   switch (CURRENT_VIEW->current_window) {
@@ -928,26 +928,26 @@ short Sos_startendchar(CHARTYPE * params) {
     case WINDOW_COMMAND:
       charnum = cmd_rec_len;
       if (x + cmd_verify_col > charnum)
-        rc = Sos_firstcol((CHARTYPE *) "");
+        rc = Sos_firstcol((char_t *) "");
       else
-        rc = Sos_endchar((CHARTYPE *) "");
+        rc = Sos_endchar((char_t *) "");
       break;
     case WINDOW_FILEAREA:
       charnum = rec_len;
       if (x + CURRENT_VIEW->verify_col > min(charnum, CURRENT_VIEW->verify_end))
-        rc = Sos_firstcol((CHARTYPE *) "");
+        rc = Sos_firstcol((char_t *) "");
       else
-        rc = Sos_endchar((CHARTYPE *) "");
+        rc = Sos_endchar((char_t *) "");
       break;
   }
   return (rc);
 }
-short Sos_tabb(CHARTYPE * params) {
+short Sos_tabb(char_t * params) {
   unsigned short x = 0, y = 0;
-  LENGTHTYPE prev_tab_col = 0, current_col = 0;
-  COLTYPE new_screen_col = 0;
-  LENGTHTYPE new_verify_col = 0;
-  LENGTHTYPE verify_col = 0;
+  length_t prev_tab_col = 0, current_col = 0;
+  col_t new_screen_col = 0;
+  length_t new_verify_col = 0;
+  length_t verify_col = 0;
   short rc = RC_OK;
 
   getyx(CURRENT_WINDOW, y, x);
@@ -1001,12 +1001,12 @@ short Sos_tabb(CHARTYPE * params) {
 
   return (rc);
 }
-short Sos_tabf(CHARTYPE * params) {
+short Sos_tabf(char_t * params) {
   unsigned short x = 0, y = 0;
-  LENGTHTYPE next_tab_col = 0, current_col = 0;
-  COLTYPE new_screen_col = 0;
-  LENGTHTYPE new_verify_col = 0;
-  LENGTHTYPE verify_col = 0;
+  length_t next_tab_col = 0, current_col = 0;
+  col_t new_screen_col = 0;
+  length_t new_verify_col = 0;
+  length_t verify_col = 0;
   short rc = RC_OK;
 
   /*
@@ -1016,7 +1016,7 @@ short Sos_tabf(CHARTYPE * params) {
    * SOS INSTAB is the only way that 'nochar' can be passed; you cannot
    * "DEFINE akey SOS TABF NOCHAR"!!
    */
-  if (strcmp((DEFCHAR *) params, "nochar") != 0) {
+  if (strcmp((char *) params, "nochar") != 0) {
     if (INSERTMODEx && tabkey_insert == 'C') {
       return (RAW_KEY);
     }
@@ -1081,7 +1081,7 @@ short Sos_tabf(CHARTYPE * params) {
 
   return (rc);
 }
-short Sos_tabfieldb(CHARTYPE * params) {
+short Sos_tabfieldb(char_t * params) {
   short rc = RC_OK;
   long save_where = 0L, where = 0L, what_current = 0L, what_other = 0L;
   unsigned short y = 0, x = 0;
@@ -1120,7 +1120,7 @@ short Sos_tabfieldb(CHARTYPE * params) {
   pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   return (rc);
 }
-short Sos_tabfieldf(CHARTYPE * params) {
+short Sos_tabfieldf(char_t * params) {
   short rc = RC_OK;
   long save_where = 0L, where = 0L, what_current = 0L, what_other = 0L;
 
@@ -1145,19 +1145,19 @@ short Sos_tabfieldf(CHARTYPE * params) {
   pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   return (rc);
 }
-short Sos_tabwordb(CHARTYPE * params) {
+short Sos_tabwordb(char_t * params) {
   unsigned short x = 0, y = 0;
-  LENGTHTYPE start_word_col = 0;
+  length_t start_word_col = 0;
   unsigned short word_break = 0;
-  CHARTYPE *temp_rec = NULL;
-  LENGTHTYPE i = 0;
+  char_t *temp_rec = NULL;
+  length_t i = 0;
   bool blank_found = FALSE;
-  LENGTHTYPE left_col = 0;
-  LENGTHTYPE verify_col = 0;
-  COLTYPE new_screen_col = 0;
-  LENGTHTYPE new_verify_col = 0;
+  length_t left_col = 0;
+  length_t verify_col = 0;
+  col_t new_screen_col = 0;
+  length_t new_verify_col = 0;
   short current_char_type = 0;
-  CHARTYPE this_char = 0;
+  char_t this_char = 0;
   short rc = RC_OK;
 
   /*
@@ -1166,7 +1166,7 @@ short Sos_tabwordb(CHARTYPE * params) {
   getyx(CURRENT_WINDOW, y, x);
   switch (CURRENT_VIEW->current_window) {
     case WINDOW_PREFIX:
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
       break;
     case WINDOW_FILEAREA:
@@ -1174,7 +1174,7 @@ short Sos_tabwordb(CHARTYPE * params) {
       verify_col = CURRENT_VIEW->verify_col;
       break;
     case WINDOW_COMMAND:
-      temp_rec = (CHARTYPE *) cmd_rec;
+      temp_rec = (char_t *) cmd_rec;
       verify_col = cmd_verify_col;
       break;
   }
@@ -1286,18 +1286,18 @@ short Sos_tabwordb(CHARTYPE * params) {
 
   return (rc);
 }
-short Sos_tabwordf(CHARTYPE * params) {
+short Sos_tabwordf(char_t * params) {
   unsigned short x = 0, y = 0;
-  LENGTHTYPE temp_rec_len = 0;
-  LENGTHTYPE start_word_col = 0, left_col = 0;
-  LENGTHTYPE verify_col = 0;
+  length_t temp_rec_len = 0;
+  length_t start_word_col = 0, left_col = 0;
+  length_t verify_col = 0;
   bool word_break = FALSE;
   short current_char_type = 0;
-  CHARTYPE *temp_rec = NULL;
-  CHARTYPE this_char = 0;
-  LENGTHTYPE i = 0;
-  COLTYPE new_screen_col = 0;
-  LENGTHTYPE new_verify_col = 0;
+  char_t *temp_rec = NULL;
+  char_t this_char = 0;
+  length_t i = 0;
+  col_t new_screen_col = 0;
+  length_t new_verify_col = 0;
   short rc = RC_OK;
 
   /*
@@ -1306,7 +1306,7 @@ short Sos_tabwordf(CHARTYPE * params) {
   getyx(CURRENT_WINDOW, y, x);
   switch (CURRENT_VIEW->current_window) {
     case WINDOW_PREFIX:
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
       break;
     case WINDOW_FILEAREA:
@@ -1315,7 +1315,7 @@ short Sos_tabwordf(CHARTYPE * params) {
       verify_col = CURRENT_VIEW->verify_col;
       break;
     case WINDOW_COMMAND:
-      temp_rec = (CHARTYPE *) cmd_rec;
+      temp_rec = (char_t *) cmd_rec;
       temp_rec_len = cmd_rec_len;
       verify_col = cmd_verify_col;
       break;
@@ -1402,7 +1402,7 @@ short Sos_tabwordf(CHARTYPE * params) {
 
   return (rc);
 }
-short Sos_topedge(CHARTYPE * params) {
+short Sos_topedge(char_t * params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0, row = 0;
 
@@ -1437,14 +1437,14 @@ short Sos_topedge(CHARTYPE * params) {
   }
   return (rc);
 }
-short Sos_undo(CHARTYPE * params) {
+short Sos_undo(char_t * params) {
   unsigned short x = 0, y = 0;
 
   /*
    * No arguments are allowed; error if any are present.
    */
-  if (strcmp((DEFCHAR *) params, "") != 0) {
-    display_error(1, (CHARTYPE *) params, FALSE);
+  if (strcmp((char *) params, "") != 0) {
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   switch (CURRENT_VIEW->current_window) {
@@ -1488,11 +1488,11 @@ static short sosdelback(bool cua) {
        * command in the MAIN window, then error...
        */
       if (ISREADONLY(CURRENT_FILE)) {
-        display_error(56, (CHARTYPE *) "", FALSE);
+        display_error(56, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-        display_error(38, (CHARTYPE *) "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       break;
@@ -1509,8 +1509,8 @@ static short sosdelback(bool cua) {
          * so we will need to move the cursor somewhere to the right and
          * scroll the CMDLINE to the left.
          */
-        COLTYPE new_screen_col = 0;
-        LENGTHTYPE new_verify_col = 0;
+        col_t new_screen_col = 0;
+        length_t new_verify_col = 0;
 
         if (x + cmd_verify_col - 1 <= cmd_rec_len) {
           memdeln(cmd_rec, x - 1 + cmd_verify_col - 1, cmd_rec_len, 1);
@@ -1581,7 +1581,7 @@ static short sosdelback(bool cua) {
        */
       if (1) {
         advance_focus_line(-1);
-        Sos_endchar((CHARTYPE *) "");
+        Sos_endchar((char_t *) "");
         rc = execute_split_join(SPLTJOIN_JOIN, TRUE, TRUE);
         return (rc);
       } else {
@@ -1659,7 +1659,7 @@ static short sosdelchar(bool cua) {
        * command in the MAIN window, then error...
        */
       if (ISREADONLY(CURRENT_FILE)) {
-        display_error(56, (CHARTYPE *) "", FALSE);
+        display_error(56, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       /*
@@ -1667,7 +1667,7 @@ static short sosdelchar(bool cua) {
        * shadow lines.
        */
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-        display_error(38, (CHARTYPE *) "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       break;

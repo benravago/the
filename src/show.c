@@ -56,8 +56,8 @@
  *       Be careful, no overflow checking of the buffers are performed.
  *       Pseudo prototypes of the macros:
  *       void INIT_LINE_OUTPUT(WINDOW *window,int line);
- *       void ADD_LINE_OUTPUT(CHARTYPE *string,int stringlength,chtype colour);
- *       void FILL_LINE_OUTPUT(CHARTYPE c,int filllength,chtype colour);
+ *       void ADD_LINE_OUTPUT(char_t *string,int stringlength,chtype colour);
+ *       void FILL_LINE_OUTPUT(char_t c,int filllength,chtype colour);
  *       void END_LINE_OUTPUT(void);
  *
  *       In case of doubt about your modifications try:
@@ -73,13 +73,13 @@
 #include <time.h>
 
 /*------------------------ function definitions -----------------------*/
-static void build_lines(CHARTYPE, short, LINE *, short, short);
-static void build_lines_for_display(CHARTYPE, short, short, short);
-static void show_lines(CHARTYPE);
-static void show_a_line(CHARTYPE, short, SHOW_LINE *);
-static void set_prefix_contents(CHARTYPE, LINE *, short, LINETYPE, bool);
-static void show_hex_line(CHARTYPE, short);
-static LINETYPE displayed_max_line_length = 0;  /* max length of displayed line */
+static void build_lines(char_t, short, LINE *, short, short);
+static void build_lines_for_display(char_t, short, short, short);
+static void show_lines(char_t);
+static void show_a_line(char_t, short, SHOW_LINE *);
+static void set_prefix_contents(char_t, LINE *, short, line_t, bool);
+static void show_hex_line(char_t, short);
+static line_t displayed_max_line_length = 0;  /* max length of displayed line */
 static LINE *hexshow_curr = NULL;       /* module global for historical reasons? */
 
 #define SHOW_HIGHLIGHTED_LINE(x,y,z) {}
@@ -106,8 +106,8 @@ static WINDOW *_fast_win;       /* buffered for waddchnstr */
                         wmove(_fast_win,line,0);     \
                         }
 #define ADD_LINE_OUTPUT(line,length,colour) {                  \
-                       LENGTHTYPE l = length;                  \
-                       CHARTYPE *src;                          \
+                       length_t l = length;                  \
+                       char_t *src;                          \
                        chtype color, /* beware of slow arg! */ \
                               *dest;                           \
                        dest = linebufch + _fast_col;           \
@@ -119,8 +119,8 @@ static WINDOW *_fast_win;       /* buffered for waddchnstr */
                           src++;                               \
                        } }
 #define ADD_SYNTAX_LINE_OUTPUT(line,length,highlight) {        \
-                       LENGTHTYPE l = length;                  \
-                       CHARTYPE *src;                          \
+                       length_t l = length;                  \
+                       char_t *src;                          \
                        chtype *dest,*highl;            \
                        dest = linebufch + _fast_col;           \
                        _fast_col += l;                         \
@@ -133,7 +133,7 @@ static WINDOW *_fast_win;       /* buffered for waddchnstr */
                        } }
 #define FILL_LINE_OUTPUT(c,length,colour) {                      \
                         chtype *dest,C = make_chtype(c,colour);  \
-                        LENGTHTYPE l = length;                   \
+                        length_t l = length;                   \
                         dest = linebufch + _fast_col;            \
                         _fast_col += l;                          \
                         while (l--)                              \
@@ -147,7 +147,7 @@ static WINDOW *_fast_win;       /* buffered for waddchnstr */
 #define REXX_INT_CHAR         'I'
 
 /* small helper routines *****************************************************/
-static void display_line_left(WINDOW * win, chtype colour, CHARTYPE * str, int lenstr, int line, int width) {
+static void display_line_left(WINDOW * win, chtype colour, char_t * str, int lenstr, int line, int width) {
   int linelength;
 
   if ((linelength = lenstr) > width)
@@ -161,10 +161,10 @@ static void display_line_left(WINDOW * win, chtype colour, CHARTYPE * str, int l
   END_LINE_OUTPUT();
 }
 
-static void display_syntax_line_left(WINDOW * win, chtype colour, CHARTYPE * str, chtype * high, int line, int width) {
+static void display_syntax_line_left(WINDOW * win, chtype colour, char_t * str, chtype * high, int line, int width) {
   int linelength;
 
-  if ((linelength = strlen((DEFCHAR *) str)) > width)
+  if ((linelength = strlen((char *) str)) > width)
     linelength = width;
 
   INIT_LINE_OUTPUT(win, line);
@@ -175,10 +175,10 @@ static void display_syntax_line_left(WINDOW * win, chtype colour, CHARTYPE * str
   END_LINE_OUTPUT();
 }
 
-static void display_line_center(WINDOW * win, chtype colour, CHARTYPE * str, int line, int width, int fillchar) {
+static void display_line_center(WINDOW * win, chtype colour, char_t * str, int line, int width, int fillchar) {
   int linelength, first;
 
-  if ((linelength = strlen((DEFCHAR *) str)) > width)
+  if ((linelength = strlen((char *) str)) > width)
     linelength = width;
   first = (width - linelength) >> 1;
 
@@ -195,13 +195,13 @@ static void display_line_center(WINDOW * win, chtype colour, CHARTYPE * str, int
 
 /* real stuff ****************************************************************/
 
-void prepare_idline(CHARTYPE scrno) {
+void prepare_idline(char_t scrno) {
   short fpath_len = 0, max_name = 0;
-  LENGTHTYPE x = 0;
-  LINETYPE line_number = 0L;
-  CHARTYPE _THE_FAR buffer[120];        /* should be large enough for very long values */
-  CHARTYPE _THE_FAR display_path[MAX_FILE_NAME + 1];
-  CHARTYPE *fpath = display_path;
+  length_t x = 0;
+  line_t line_number = 0L;
+  char_t buffer[120];        /* should be large enough for very long values */
+  char_t display_path[MAX_FILE_NAME + 1];
+  char_t *fpath = display_path;
   short num_to_delete = 0, num_to_start = 0;
   VIEW_DETAILS *screen_view = SCREEN_VIEW(scrno);
   FILE_DETAILS *screen_file = SCREEN_FILE(scrno);
@@ -213,23 +213,23 @@ void prepare_idline(CHARTYPE scrno) {
    */
   switch (screen_file->pseudo_file) {
     case PSEUDO_DIR:
-      strcpy((DEFCHAR *) display_path, "DIR: ");
-      strcat((DEFCHAR *) display_path, (DEFCHAR *) dir_path);
-      strcat((DEFCHAR *) display_path, (DEFCHAR *) dir_files);
+      strcpy((char *) display_path, "DIR: ");
+      strcat((char *) display_path, (char *) dir_path);
+      strcat((char *) display_path, (char *) dir_files);
       break;
     case PSEUDO_REXX:
-      strcpy((DEFCHAR *) display_path, "Output from: ");
-      strcat((DEFCHAR *) display_path, (DEFCHAR *) rexx_macro_name);
+      strcpy((char *) display_path, "Output from: ");
+      strcat((char *) display_path, (char *) rexx_macro_name);
       break;
     case PSEUDO_KEY:
-      strcpy((DEFCHAR *) display_path, "Key definitions:");
+      strcpy((char *) display_path, "Key definitions:");
       break;
     default:
       if (screen_file->display_actual_filename) {
-        strcpy((DEFCHAR *) display_path, (DEFCHAR *) screen_file->fpath);
-        strcat((DEFCHAR *) display_path, (DEFCHAR *) screen_file->fname);
+        strcpy((char *) display_path, (char *) screen_file->fpath);
+        strcat((char *) display_path, (char *) screen_file->fname);
       } else {
-        strcpy((DEFCHAR *) display_path, (DEFCHAR *) screen_file->fname);
+        strcpy((char *) display_path, (char *) screen_file->fname);
       }
       break;
   }
@@ -245,48 +245,48 @@ void prepare_idline(CHARTYPE scrno) {
     if (screen_view->position_status) {
       switch (compatible_look) {
         case COMPAT_XEDIT:
-          sprintf((DEFCHAR *) buffer, "S=%lu L=%lu C=%lu A=%u,%u", screen_file->number_lines, line_number, x, screen_file->autosave_alt, screen_file->save_alt);
+          sprintf((char *) buffer, "S=%lu L=%lu C=%lu A=%u,%u", screen_file->number_lines, line_number, x, screen_file->autosave_alt, screen_file->save_alt);
           break;
         case COMPAT_ISPF:
           if (pos_string == NULL) {
-            sprintf((DEFCHAR *) buffer, "S=%lu L=%lu C=%lu A=%u,%u", screen_file->number_lines, line_number, x, screen_file->autosave_alt, screen_file->save_alt);
+            sprintf((char *) buffer, "S=%lu L=%lu C=%lu A=%u,%u", screen_file->number_lines, line_number, x, screen_file->autosave_alt, screen_file->save_alt);
           } else {
-            sprintf((DEFCHAR *) buffer, "S=%lu L=%s C=%lu A=%u,%u", screen_file->number_lines, pos_string, x, screen_file->autosave_alt, screen_file->save_alt);
+            sprintf((char *) buffer, "S=%lu L=%s C=%lu A=%u,%u", screen_file->number_lines, pos_string, x, screen_file->autosave_alt, screen_file->save_alt);
           }
           break;
         default:
-          sprintf((DEFCHAR *) buffer, "L=%lu C=%lu S=%lu A=%u,%u", line_number, x, screen_file->number_lines, screen_file->autosave_alt, screen_file->save_alt);
+          sprintf((char *) buffer, "L=%lu C=%lu S=%lu A=%u,%u", line_number, x, screen_file->number_lines, screen_file->autosave_alt, screen_file->save_alt);
           break;
       }
     } else {
-      sprintf((DEFCHAR *) buffer, "S=%lu A=%u,%u", screen_file->number_lines, screen_file->autosave_alt, screen_file->save_alt);
+      sprintf((char *) buffer, "S=%lu A=%u,%u", screen_file->number_lines, screen_file->autosave_alt, screen_file->save_alt);
     }
-    max_name = max(0, (screen[scrno].screen_cols - 1) - strlen((DEFCHAR *) buffer));
+    max_name = max(0, (screen[scrno].screen_cols - 1) - strlen((char *) buffer));
   } else {
     if (screen_view->position_status) {
       switch (compatible_look) {
         case COMPAT_XEDIT:
-          sprintf((DEFCHAR *) buffer, "Size=%-6lu Line=%-6lu Col=%-3lu Alt=%u,%u", screen_file->number_lines, line_number, x, screen_file->autosave_alt, screen_file->save_alt);
+          sprintf((char *) buffer, "Size=%-6lu Line=%-6lu Col=%-3lu Alt=%u,%u", screen_file->number_lines, line_number, x, screen_file->autosave_alt, screen_file->save_alt);
           break;
         case COMPAT_ISPF:
           if (pos_string == NULL) {
-            sprintf((DEFCHAR *) buffer, "Size=%-6lu Line=%-6lu Col=%-3lu Alt=%u,%u", screen_file->number_lines, line_number, x, screen_file->autosave_alt, screen_file->save_alt);
+            sprintf((char *) buffer, "Size=%-6lu Line=%-6lu Col=%-3lu Alt=%u,%u", screen_file->number_lines, line_number, x, screen_file->autosave_alt, screen_file->save_alt);
           } else {
-            sprintf((DEFCHAR *) buffer, "Size=%-6lu Line=%s Col=%-3lu Alt=%u,%u", screen_file->number_lines, pos_string, x, screen_file->autosave_alt, screen_file->save_alt);
+            sprintf((char *) buffer, "Size=%-6lu Line=%s Col=%-3lu Alt=%u,%u", screen_file->number_lines, pos_string, x, screen_file->autosave_alt, screen_file->save_alt);
           }
           break;
         default:
-          sprintf((DEFCHAR *) buffer, "Line=%-6lu Col=%-4lu Size=%-5lu Alt=%u,%u", line_number, x, screen_file->number_lines, screen_file->autosave_alt, screen_file->save_alt);
+          sprintf((char *) buffer, "Line=%-6lu Col=%-4lu Size=%-5lu Alt=%u,%u", line_number, x, screen_file->number_lines, screen_file->autosave_alt, screen_file->save_alt);
           break;
       }
       max_name = max(0, (screen[scrno].screen_cols - 47));
     } else {
       if (compatible_look == COMPAT_XEDIT) {
-        sprintf((DEFCHAR *) buffer, "Size=%-9lu%sAlt=%u,%u", screen_file->number_lines, "                  ",   /* speed up! */
+        sprintf((char *) buffer, "Size=%-9lu%sAlt=%u,%u", screen_file->number_lines, "                  ",   /* speed up! */
                 screen_file->autosave_alt, screen_file->save_alt);
         max_name = max(0, (screen[scrno].screen_cols - 47));
       } else {
-        sprintf((DEFCHAR *) buffer, "Size=%-5lu Alt=%u,%u", screen_file->number_lines, screen_file->autosave_alt, screen_file->save_alt);
+        sprintf((char *) buffer, "Size=%-5lu Alt=%u,%u", screen_file->number_lines, screen_file->autosave_alt, screen_file->save_alt);
         max_name = max(0, (screen[scrno].screen_cols - 26));
       }
     }
@@ -296,23 +296,23 @@ void prepare_idline(CHARTYPE scrno) {
    */
   /* fpath = strrmdup(strtrans(display_path,ISLASH,ESLASH),ESLASH,TRUE); */
   fpath = strtrans(display_path, ISLASH, ESLASH);
-  fpath_len = strlen((DEFCHAR *) fpath);
+  fpath_len = strlen((char *) fpath);
   if (fpath_len > max_name) {
     num_to_delete = fpath_len - max_name + 2;
-    num_to_start = max(0, (long) ((strlen((DEFCHAR *) fpath) / 2) - (num_to_delete / 2)));
+    num_to_start = max(0, (long) ((strlen((char *) fpath) / 2) - (num_to_delete / 2)));
     memcpy(linebuf, fpath, num_to_start);
-    strcpy((DEFCHAR *) linebuf + num_to_start, "<>");
-    strcat((DEFCHAR *) linebuf + num_to_start + 2, (DEFCHAR *) fpath + num_to_start + num_to_delete);
+    strcpy((char *) linebuf + num_to_start, "<>");
+    strcat((char *) linebuf + num_to_start + 2, (char *) fpath + num_to_start + num_to_delete);
   } else {
-    strcpy((DEFCHAR *) linebuf, (DEFCHAR *) fpath);
+    strcpy((char *) linebuf, (char *) fpath);
     memset(linebuf + fpath_len, ' ', max_name - fpath_len);
   }
   buflen = screen[scrno].screen_cols - max_name - 1;
-  sprintf((DEFCHAR *) linebuf + max_name, " %-*.*s", buflen, buflen, buffer);
+  sprintf((char *) linebuf + max_name, " %-*.*s", buflen, buflen, buffer);
   return;
 }
 
-void show_heading(CHARTYPE scrno) {
+void show_heading(char_t scrno) {
   FILE_DETAILS *screen_file = SCREEN_FILE(scrno);
   WINDOW *screen_window_idline = SCREEN_WINDOW_IDLINE(scrno);
 
@@ -320,7 +320,7 @@ void show_heading(CHARTYPE scrno) {
 
   /* display the stuff */
   INIT_LINE_OUTPUT(screen_window_idline, 0);
-  ADD_LINE_OUTPUT(linebuf, strlen((DEFCHAR *) linebuf), set_colour(screen_file->attr + ATTR_IDLINE));
+  ADD_LINE_OUTPUT(linebuf, strlen((char *) linebuf), set_colour(screen_file->attr + ATTR_IDLINE));
   END_LINE_OUTPUT();
 
   wnoutrefresh(screen_window_idline);
@@ -332,7 +332,7 @@ void show_statarea(void) {
   time_t timer;
   struct tm *tblock = NULL;
   int length;
-  char _THE_FAR buffer[THE_MAX_SCREEN_WIDTH + 10];
+  char buffer[THE_MAX_SCREEN_WIDTH + 10];
 
   /*
    * If the status line is off, just exit...
@@ -349,14 +349,14 @@ void show_statarea(void) {
   /*
    * Display THE version.
    */
-  sprintf((DEFCHAR *) linebuf, "THE %-9s", the_version);
-  memset((DEFCHAR *) linebuf + 10, ' ', max(0, COLS - 9));
+  sprintf((char *) linebuf, "THE %-9s", the_version);
+  memset((char *) linebuf + 10, ' ', max(0, COLS - 9));
   /*
    * Display number of files or copyright on startup.
    */
   if (initial) {
-    strcpy((DEFCHAR *) buffer, "   ");
-    strcat((DEFCHAR *) buffer, (DEFCHAR *) the_copyright);
+    strcpy((char *) buffer, "   ");
+    strcat((char *) buffer, (char *) the_copyright);
   } else {
     /*
      * Display any pending prefix command warning
@@ -365,25 +365,25 @@ void show_statarea(void) {
         && CURRENT_FILE->first_ppc->ppc_cmd_idx != (-2)) {
       sprintf(buffer, "'%s' pending...", get_prefix_command(CURRENT_FILE->first_ppc->ppc_cmd_idx));
     } else if (record_fp) {
-      strcpy(buffer, (DEFCHAR *) record_status);
+      strcpy(buffer, (char *) record_status);
     } else {
       memset(buffer, ' ', min(COLS, sizeof(buffer)));
-      format_options((CHARTYPE *) buffer);
+      format_options((char_t *) buffer);
     }
   }
   length = strlen(buffer);
   if (STATAREA_OFFSET + length < max(0, COLS - 27))
-    memset((DEFCHAR *) linebuf + STATAREA_OFFSET + length, ' ', max(0, (COLS - 27) - STATAREA_OFFSET + length));
-  memcpy((DEFCHAR *) linebuf + STATAREA_OFFSET, buffer, length);
+    memset((char *) linebuf + STATAREA_OFFSET + length, ' ', max(0, (COLS - 27) - STATAREA_OFFSET + length));
+  memcpy((char *) linebuf + STATAREA_OFFSET, buffer, length);
   /*
    * Display CLOCK.
    */
   if (CLOCKx) {
     timer = time(NULL);
     tblock = localtime(&timer);
-    sprintf((DEFCHAR *) linebuf + max(0, (COLS - 27)), "%2d:%02d%s ", (tblock->tm_hour > 12) ? (tblock->tm_hour - 12) : (tblock->tm_hour), tblock->tm_min, (tblock->tm_hour >= 12) ? ("pm") : ("am"));
+    sprintf((char *) linebuf + max(0, (COLS - 27)), "%2d:%02d%s ", (tblock->tm_hour > 12) ? (tblock->tm_hour - 12) : (tblock->tm_hour), tblock->tm_min, (tblock->tm_hour >= 12) ? ("pm") : ("am"));
   } else
-    strcpy((DEFCHAR *) linebuf + max(0, (COLS - 27)), "        ");
+    strcpy((char *) linebuf + max(0, (COLS - 27)), "        ");
   /*
    * Display HEXDISPLAY.
    */
@@ -401,10 +401,10 @@ void show_statarea(void) {
         break;
     }
     {
-      sprintf((DEFCHAR *) linebuf + max(0, (COLS - 19)), "'%c'=%02X/%03d  ", (unsigned char) ((key == 0) ? ' ' : key), key, key);
+      sprintf((char *) linebuf + max(0, (COLS - 19)), "'%c'=%02X/%03d  ", (unsigned char) ((key == 0) ? ' ' : key), key, key);
     }
   } else
-    strcpy((DEFCHAR *) linebuf + max(0, (COLS - 19)), "            ");
+    strcpy((char *) linebuf + max(0, (COLS - 19)), "            ");
   /*
    * Display colour setting.
    */
@@ -416,12 +416,12 @@ void show_statarea(void) {
   /*
    * Display INSERTMODE toggle.
    */
-  strcpy((DEFCHAR *) linebuf + max(0, (COLS - 5)), (INSERTMODEx) ? " Ins" : "    ");
+  strcpy((char *) linebuf + max(0, (COLS - 5)), (INSERTMODEx) ? " Ins" : "    ");
   /*
    * Refresh the STATUS LINE.
    */
   INIT_LINE_OUTPUT(statarea, 0);
-  ADD_LINE_OUTPUT(linebuf, strlen((DEFCHAR *) linebuf), set_colour(CURRENT_FILE->attr + ATTR_STATAREA));
+  ADD_LINE_OUTPUT(linebuf, strlen((char *) linebuf), set_colour(CURRENT_FILE->attr + ATTR_STATAREA));
   END_LINE_OUTPUT();
   wnoutrefresh(statarea);
   return;
@@ -480,7 +480,7 @@ void display_filetabs(VIEW_DETAILS * start) {
         if (process_view) {
           j++;
           if (curr != CURRENT_VIEW && curr->file_for_view) {
-            fname_len = strlen((DEFCHAR *) curr->file_for_view->fname);
+            fname_len = strlen((char *) curr->file_for_view->fname);
             if (fname_len + 2 + DEFAULT_FILETABS_GAP_WIDTH > fill_len) {
               more = TRUE;
               break;
@@ -494,7 +494,7 @@ void display_filetabs(VIEW_DETAILS * start) {
 
               buf[0] = '|';
               buf[1] = '\0';
-              ADD_LINE_OUTPUT((CHARTYPE *) buf, DEFAULT_FILETABS_GAP_WIDTH, high);
+              ADD_LINE_OUTPUT((char_t *) buf, DEFAULT_FILETABS_GAP_WIDTH, high);
               extras = DEFAULT_FILETABS_GAP_WIDTH;
             }
 
@@ -509,9 +509,9 @@ void display_filetabs(VIEW_DETAILS * start) {
     }
     FILL_LINE_OUTPUT(' ', fill_len, normal);
     if (more) {
-      ADD_LINE_OUTPUT((CHARTYPE *) "<>", 2, normal);
+      ADD_LINE_OUTPUT((char_t *) "<>", 2, normal);
     } else {
-      ADD_LINE_OUTPUT((CHARTYPE *) "  ", 2, normal);
+      ADD_LINE_OUTPUT((char_t *) "  ", 2, normal);
     }
     END_LINE_OUTPUT();
     wnoutrefresh(filetabs);
@@ -535,11 +535,11 @@ void redraw_window(WINDOW * win) {
   return;
 }
 
-void build_screen(CHARTYPE scrno) {
+void build_screen(char_t scrno) {
   LINE *curr = NULL;
   LINE *save_curr = NULL;
   short crow = SCREEN_VIEW(scrno)->current_row;
-  LINETYPE cline = SCREEN_VIEW(scrno)->current_line;
+  line_t cline = SCREEN_VIEW(scrno)->current_line;
 
   hexshow_curr = save_curr = curr = lll_find(SCREEN_FILE(scrno)->first_line, SCREEN_FILE(scrno)->last_line, cline, SCREEN_FILE(scrno)->number_lines);
   displayed_max_line_length = 0;
@@ -556,7 +556,7 @@ void build_screen(CHARTYPE scrno) {
   build_lines(scrno, DIRECTION_BACKWARD, curr, crow, (short) (crow - 1));
   return;
 }
-void display_screen(CHARTYPE scrno) {
+void display_screen(char_t scrno) {
   unsigned short x = 0, y = 0;
   unsigned short savex = 0, savey = 0;
   short crow;
@@ -641,7 +641,7 @@ void display_screen(CHARTYPE scrno) {
   wmove(SCREEN_WINDOW(scrno), y, x);
   return;
 }
-void display_cmdline(CHARTYPE curr_screen, VIEW_DETAILS * curr_view) {
+void display_cmdline(char_t curr_screen, VIEW_DETAILS * curr_view) {
   unsigned short x = 0, y = 0;
 
   if (batch_only || !curses_started) {
@@ -663,7 +663,7 @@ void display_cmdline(CHARTYPE curr_screen, VIEW_DETAILS * curr_view) {
   /* TODO */
   return;
 }
-static void build_lines(CHARTYPE scrno, short direction, LINE * curr, short rows, short start_row) {
+static void build_lines(char_t scrno, short direction, LINE * curr, short rows, short start_row) {
   /* BE CAREFUL! This function and his friend build_lines_for_display below
    * should always be changed in conjunction. EVER!
    * This function is been called by build_screen, an often called function.
@@ -673,13 +673,13 @@ static void build_lines(CHARTYPE scrno, short direction, LINE * curr, short rows
    * computed here.
    */
   RESERVED *curr_rsrvd;
-  LINETYPE num_shadow_lines = 0;
+  line_t num_shadow_lines = 0;
   short tab_actual_row;
   short scale_actual_row;
   short hexshow_actual_start_row = 0;
   SHOW_LINE *scurr;
   VIEW_DETAILS *screen_view;
-  LINETYPE cline;
+  line_t cline;
   FILE_DETAILS *screen_file;
   int display_rec, isTOForEOF, is_hexshow_on, has_reserveds, is_shadow, is_tab_on, is_scale_on;
 
@@ -766,7 +766,7 @@ static void build_lines(CHARTYPE scrno, short direction, LINE * curr, short rows
      */
     if (has_reserveds) {        /* at least one reserved line */
       if ((curr_rsrvd = find_reserved_line(scrno, TRUE, start_row, 0, 0)) != NULL) {
-        scurr->other_start_col = scurr->other_end_col = (LENGTHTYPE) - 1;
+        scurr->other_start_col = scurr->other_end_col = (length_t) - 1;
         scurr->line_type = LINE_RESERVED;
         scurr->line_number = (-1L);
         scurr->current = (LINE *) NULL;
@@ -842,7 +842,7 @@ static void build_lines(CHARTYPE scrno, short direction, LINE * curr, short rows
           scurr->current = curr;
         }
         num_shadow_lines++;
-        cline += (LINETYPE) direction;
+        cline += (line_t) direction;
         isTOForEOF = 0;
         /* At this point we may reduce the runtime to about 60%
          * if we use a fast loop. This will prevent MUCH if any
@@ -976,7 +976,7 @@ static void build_lines(CHARTYPE scrno, short direction, LINE * curr, short rows
     scurr += direction;
     rows--;
 
-    cline += (LINETYPE) direction;
+    cline += (line_t) direction;
     if (direction == DIRECTION_FORWARD)
       curr = curr->next;
     else
@@ -984,7 +984,7 @@ static void build_lines(CHARTYPE scrno, short direction, LINE * curr, short rows
   }
   return;
 }
-static void build_lines_for_display(CHARTYPE scrno, short direction, short rows, short start_row) {
+static void build_lines_for_display(char_t scrno, short direction, short rows, short start_row) {
   /*
    * should always be changed in conjunction. EVER!
    * This function is been called by display_screen only before a true screen
@@ -999,13 +999,13 @@ static void build_lines_for_display(CHARTYPE scrno, short direction, short rows,
   VIEW_DETAILS *screen_view;
   FILE_DETAILS *screen_file;
   int is_prefix_on;
-  LINETYPE cline, off = 0;
+  line_t cline, off = 0;
   chtype attr_block, attr_cblock, attr_filearea, attr_gap, attr_highlight, attr_chighlight, attr_prefix, attr_shadow, attr_curline, attr_cursor;
   bool line_parseable = FALSE;
-  LINETYPE mark_start_line = 0L;
-  LINETYPE mark_end_line = 0L;
-  LENGTHTYPE mark_start_col = 0;
-  LENGTHTYPE mark_end_col = 0;
+  line_t mark_start_line = 0L;
+  line_t mark_end_line = 0L;
+  length_t mark_start_col = 0;
+  length_t mark_end_col = 0;
 
   /*
    * Determine the row that is the focus line.
@@ -1042,7 +1042,7 @@ static void build_lines_for_display(CHARTYPE scrno, short direction, short rows,
      * Remove the highlight_type memory
      */
     if (scurr->highlight_type) {
-      (*the_free) (scurr->highlight_type);
+      free(scurr->highlight_type);
       scurr->highlight_type = NULL;
     }
     /*
@@ -1144,7 +1144,7 @@ static void build_lines_for_display(CHARTYPE scrno, short direction, short rows,
     if (scurr->line_type & LINE_SCALE) {
       if (is_prefix_on) {
         if (compatible_look == COMPAT_ISPF) {
-          strcpy((DEFCHAR *) scurr->prefix, "=COLS>");
+          strcpy((char *) scurr->prefix, "=COLS>");
         } else
           scurr->prefix[0] = '\0';
         scurr->prefix_colour = attr_prefix;
@@ -1163,7 +1163,7 @@ static void build_lines_for_display(CHARTYPE scrno, short direction, short rows,
     if (scurr->line_type & LINE_TABLINE) {
       if (is_prefix_on) {
         if (compatible_look == COMPAT_ISPF) {
-          strcpy((DEFCHAR *) scurr->prefix, "=TABS>");
+          strcpy((char *) scurr->prefix, "=TABS>");
         } else
           scurr->prefix[0] = '\0';
         scurr->prefix_colour = attr_prefix;
@@ -1276,7 +1276,7 @@ static void build_lines_for_display(CHARTYPE scrno, short direction, short rows,
       /*
        * We have a LINE_LINE, so allocate space for our highlight_type
        */
-      scurr->highlight_type = (unsigned char *) (*the_malloc) (scurr->length);
+      scurr->highlight_type = (unsigned char *) malloc(scurr->length);
       if (scurr->highlight_type)
         memset(scurr->highlight_type, THE_SYNTAX_NONE, scurr->length);
       if (marked) {
@@ -1353,7 +1353,7 @@ static void build_lines_for_display(CHARTYPE scrno, short direction, short rows,
             break;
         }
       } else {
-        scurr->other_start_col = scurr->other_end_col = (LENGTHTYPE) - 1;
+        scurr->other_start_col = scurr->other_end_col = (length_t) - 1;
         if (scurr->highlight) {
           scurr->normal_colour = (!current) ? attr_highlight : attr_chighlight;
           scurr->other_colour = scurr->normal_colour;
@@ -1383,19 +1383,19 @@ static void build_lines_for_display(CHARTYPE scrno, short direction, short rows,
   }
   return;
 }
-static void show_lines(CHARTYPE scrno) {
+static void show_lines(char_t scrno) {
   short i = 0;
-  LENGTHTYPE j = 0;
-  LENGTHTYPE true_col = 0;
-  LENGTHTYPE off = 0, num_tens = 0;
-  CHARTYPE tens[15];
+  length_t j = 0;
+  length_t true_col = 0;
+  length_t off = 0, num_tens = 0;
+  char_t tens[15];
   int gap = SCREEN_VIEW(scrno)->prefix_gap;
   int width = SCREEN_VIEW(scrno)->prefix_width - gap;
-  LENGTHTYPE filearea_cols = screen[scrno].cols[WINDOW_FILEAREA];
-  LENGTHTYPE max_cols = min(filearea_cols, SCREEN_VIEW(scrno)->verify_end - SCREEN_VIEW(scrno)->verify_start + 1);
+  length_t filearea_cols = screen[scrno].cols[WINDOW_FILEAREA];
+  length_t max_cols = min(filearea_cols, SCREEN_VIEW(scrno)->verify_end - SCREEN_VIEW(scrno)->verify_start + 1);
   WINDOW *screen_window_filearea = SCREEN_WINDOW_FILEAREA(scrno);
-  char _THE_FAR buffer[60];
-  CHARTYPE *ptr;
+  char buffer[60];
+  char_t *ptr;
   SHOW_LINE *scurr = screen[scrno].sl;
 
   for (i = 0, scurr = screen[scrno].sl; i < screen[scrno].rows[WINDOW_FILEAREA]; i++, scurr++) {
@@ -1409,7 +1409,7 @@ static void show_lines(CHARTYPE scrno) {
           display_syntax_line_left(SCREEN_WINDOW_GAP(scrno), scurr->gap_colour, scurr->gap, scurr->gap_highlighting, i, gap);
       } else {
         /* not a reserved line */
-        display_line_left(SCREEN_WINDOW_PREFIX(scrno), scurr->prefix_colour, scurr->prefix, strlen((DEFCHAR *) scurr->prefix), i, width);
+        display_line_left(SCREEN_WINDOW_PREFIX(scrno), scurr->prefix_colour, scurr->prefix, strlen((char *) scurr->prefix), i, width);
         if (SCREEN_VIEW(scrno)->prefix_gap) {
           char tmp_gap[21];
 
@@ -1418,7 +1418,7 @@ static void show_lines(CHARTYPE scrno) {
           /* no need to use UTF-8 length here */
           memset(tmp_gap, ' ', SCREEN_VIEW(scrno)->prefix_gap);
           tmp_gap[SCREEN_VIEW(scrno)->prefix_gap] = '\0';
-          display_line_left(SCREEN_WINDOW_GAP(scrno), (SCREEN_VIEW(scrno)->prefix_gap_line ? scurr->gap_colour | A_ALTCHARSET | ACS_VLINE : scurr->gap_colour), (CHARTYPE *) tmp_gap, SCREEN_VIEW(scrno)->prefix_gap, i, gap);
+          display_line_left(SCREEN_WINDOW_GAP(scrno), (SCREEN_VIEW(scrno)->prefix_gap_line ? scurr->gap_colour | A_ALTCHARSET | ACS_VLINE : scurr->gap_colour), (char_t *) tmp_gap, SCREEN_VIEW(scrno)->prefix_gap, i, gap);
         }
       }
     }
@@ -1434,7 +1434,7 @@ static void show_lines(CHARTYPE scrno) {
       sprintf(buffer, " %lu", (unsigned long) scurr->number_lines_excluded);
       strcat(buffer + 2 /* at least */ , " line(s) not displayed ");
       /* no need to use UTF-8 length here */
-      display_line_center(screen_window_filearea, scurr->normal_colour, (CHARTYPE *) buffer, i, filearea_cols, '-');
+      display_line_center(screen_window_filearea, scurr->normal_colour, (char_t *) buffer, i, filearea_cols, '-');
       continue;
     }
     /*
@@ -1492,8 +1492,8 @@ static void show_lines(CHARTYPE scrno) {
             /* this is still not perfect, see "marg 1 100" with
              * "verify 40 110". We should build the scale first.
              */
-            sprintf((DEFCHAR *) tens, "%ld", (true_col / 10) + 1);
-            num_tens = strlen((DEFCHAR *) tens);
+            sprintf((char *) tens, "%ld", (true_col / 10) + 1);
+            num_tens = strlen((char *) tens);
             for (off = num_tens - 1; off >= 0; off--) {
               if (ptr - off < linebuf)
                 continue;
@@ -1533,12 +1533,12 @@ static void show_lines(CHARTYPE scrno) {
      */
     if (scurr->line_type == LINE_TOF) {
       /* no need to use UTF-8 length here */
-      display_line_left(screen_window_filearea, scurr->normal_colour, (SCREEN_VIEW(scrno)->tofeof) ? TOP_OF_FILE : (CHARTYPE *) "", (SCREEN_VIEW(scrno)->tofeof) ? strlen((DEFCHAR *) TOP_OF_FILE) : 0, i, filearea_cols);
+      display_line_left(screen_window_filearea, scurr->normal_colour, (SCREEN_VIEW(scrno)->tofeof) ? TOP_OF_FILE : (char_t *) "", (SCREEN_VIEW(scrno)->tofeof) ? strlen((char *) TOP_OF_FILE) : 0, i, filearea_cols);
       continue;
     }
     if (scurr->line_type == LINE_EOF) {
       /* no need to use UTF-8 length here */
-      display_line_left(screen_window_filearea, scurr->normal_colour, (SCREEN_VIEW(scrno)->tofeof) ? BOTTOM_OF_FILE : (CHARTYPE *) "", (SCREEN_VIEW(scrno)->tofeof) ? strlen((DEFCHAR *) BOTTOM_OF_FILE) : 0, i, filearea_cols);
+      display_line_left(screen_window_filearea, scurr->normal_colour, (SCREEN_VIEW(scrno)->tofeof) ? BOTTOM_OF_FILE : (char_t *) "", (SCREEN_VIEW(scrno)->tofeof) ? strlen((char *) BOTTOM_OF_FILE) : 0, i, filearea_cols);
       continue;
     }
     /*
@@ -1555,14 +1555,14 @@ static void show_lines(CHARTYPE scrno) {
 }
 
 #define TMP_EXTRA 1
-static void show_a_line(CHARTYPE scrno, short row, SHOW_LINE * scurr) {
-  LENGTHTYPE vend, vlen, blanks_after_length;
-  LENGTHTYPE blength, clength;
-  LENGTHTYPE bvcol, cvcol;
-  COLTYPE bcols, ccols;
-  LENGTHTYPE bother_start_col, bother_end_col;
-  LENGTHTYPE cother_start_col, cother_end_col;
-  CHARTYPE *line;
+static void show_a_line(char_t scrno, short row, SHOW_LINE * scurr) {
+  length_t vend, vlen, blanks_after_length;
+  length_t blength, clength;
+  length_t bvcol, cvcol;
+  col_t bcols, ccols;
+  length_t bother_start_col, bother_end_col;
+  length_t cother_start_col, cother_end_col;
+  char_t *line;
   SHOW_LINE *current;
   int fillverify;
   chtype normal, other, *high;
@@ -1756,8 +1756,8 @@ static void show_a_line(CHARTYPE scrno, short row, SHOW_LINE * scurr) {
   END_LINE_OUTPUT();
   return;
 }
-static void set_prefix_contents(CHARTYPE scrno, LINE * curr, short start_row, LINETYPE cline, bool is_current) {
-  CHARTYPE *ptr = NULL;
+static void set_prefix_contents(char_t scrno, LINE * curr, short start_row, line_t cline, bool is_current) {
+  char_t *ptr = NULL;
   VIEW_DETAILS *screen_view = SCREEN_VIEW(scrno);
   FILE_DETAILS *screen_file;
   SHOW_LINE *scurr;
@@ -1771,16 +1771,16 @@ static void set_prefix_contents(CHARTYPE scrno, LINE * curr, short start_row, LI
     if (curr->pre != NULL) {    /* prefix command pending... */
       /*  && !blank_field(curr->pre->ppc_command)) */
       /* ... and not blank */
-      strcpy((DEFCHAR *) ptr, (DEFCHAR *) curr->pre->ppc_orig_command);
+      strcpy((char *) ptr, (char *) curr->pre->ppc_orig_command);
       scurr->prefix_colour = set_colour(screen_file->attr + ATTR_PENDING);
     } else {                    /* no prefix command on this line */
       scurr->prefix_colour = (is_current) ? set_colour(screen_file->attr + ATTR_CPREFIX)
           : set_colour(screen_file->attr + ATTR_PREFIX);
       if (screen_view->number) {
         if ((screen_view->prefix & PREFIX_STATUS_MASK) == PREFIX_ON)
-          sprintf((DEFCHAR *) ptr, "%*.*ld", width, width, cline);
+          sprintf((char *) ptr, "%*.*ld", width, width, cline);
         else
-          sprintf((DEFCHAR *) ptr, "%*ld", width, cline);
+          sprintf((char *) ptr, "%*ld", width, cline);
       } else if ((screen_view->prefix & PREFIX_STATUS_MASK) == PREFIX_ON) {
         memset(ptr, '=', width);
         scurr->prefix[width] = '\0';
@@ -1796,13 +1796,13 @@ static void set_prefix_contents(CHARTYPE scrno, LINE * curr, short start_row, LI
   }
   return;
 }
-static void show_hex_line(CHARTYPE scrno, short row) {
+static void show_hex_line(char_t scrno, short row) {
   register short i = 0;
-  LENGTHTYPE vcol = 0, vlen = 0;
-  LENGTHTYPE length = 0;
-  CHARTYPE *line = NULL, *lptr;
+  length_t vcol = 0, vlen = 0;
+  length_t length = 0;
+  char_t *line = NULL, *lptr;
   int upper_nibble = screen[scrno].sl[row].other_start_col == 0;
-  COLTYPE cols;
+  col_t cols;
   chtype normal;
   unsigned char c;
   SHOW_LINE *current;
@@ -1851,7 +1851,7 @@ static void show_hex_line(CHARTYPE scrno, short row) {
   return;
 }
 
-void touch_screen(CHARTYPE scrno) {
+void touch_screen(char_t scrno) {
   register int i = 0;
   WINDOW *win;
 
@@ -1862,7 +1862,7 @@ void touch_screen(CHARTYPE scrno) {
   }
   return;
 }
-void refresh_screen(CHARTYPE scrno) {
+void refresh_screen(char_t scrno) {
   /*
    * Turn off the cursor.
    */
@@ -1885,7 +1885,7 @@ void refresh_screen(CHARTYPE scrno) {
    */
   return;
 }
-void redraw_screen(CHARTYPE scrno) {
+void redraw_screen(char_t scrno) {
   if (curses_started) {
     /*
      * Turn off the cursor. - no MH
@@ -1924,7 +1924,7 @@ void redraw_screen(CHARTYPE scrno) {
   return;
 }
 
-bool line_in_view(CHARTYPE scrno, LINETYPE line_number) {
+bool line_in_view(char_t scrno, line_t line_number) {
   register short i, max = screen[scrno].rows[WINDOW_FILEAREA];
   bool result = FALSE;
   SHOW_LINE *scurr;
@@ -1938,9 +1938,9 @@ bool line_in_view(CHARTYPE scrno, LINETYPE line_number) {
   }
   return (result);
 }
-bool column_in_view(CHARTYPE scrno, LENGTHTYPE column_number) {
+bool column_in_view(char_t scrno, length_t column_number) {
   bool result = FALSE;
-  LENGTHTYPE min_file_col = 0, max_file_col = 0;
+  length_t min_file_col = 0, max_file_col = 0;
 
   /*
    * This function is only valid in FILEAREA or CMDLINE
@@ -1957,9 +1957,9 @@ bool column_in_view(CHARTYPE scrno, LENGTHTYPE column_number) {
     result = TRUE;
   return (result);
 }
-LINETYPE find_next_current_line(LINETYPE num_pages, short direction) {
+line_t find_next_current_line(line_t num_pages, short direction) {
   register short i = 0;
-  LINETYPE cline = CURRENT_VIEW->current_line;
+  line_t cline = CURRENT_VIEW->current_line;
   short rows = 0, num_display_lines = 0, num_shadow_lines = 0;
   LINE *curr = NULL;
   RESERVED *curr_reserved = CURRENT_FILE->first_reserved;
@@ -2002,7 +2002,7 @@ LINETYPE find_next_current_line(LINETYPE num_pages, short direction) {
           && curr->prev != NULL) {      /* Top of file */
         if (!IN_SCOPE(CURRENT_VIEW, curr)) {
           num_shadow_lines++;
-          cline += (LINETYPE) direction;
+          cline += (line_t) direction;
           if (direction == DIRECTION_FORWARD)
             curr = curr->next;
           else
@@ -2020,7 +2020,7 @@ LINETYPE find_next_current_line(LINETYPE num_pages, short direction) {
         continue;
       }
       rows--;
-      cline += (LINETYPE) direction;
+      cline += (line_t) direction;
       if (direction == DIRECTION_FORWARD)
         curr = curr->next;
       else
@@ -2035,7 +2035,7 @@ LINETYPE find_next_current_line(LINETYPE num_pages, short direction) {
   cline = find_next_in_scope(CURRENT_VIEW, (LINE *) NULL, cline, direction);
   return (cline);
 }
-short get_row_for_focus_line(CHARTYPE scrno, LINETYPE fl, short cr) {
+short get_row_for_focus_line(char_t scrno, line_t fl, short cr) {
   /*
    * Returns the row within the main window where the focus line is
    * placed. If the focus line is off the screen, or out of bounds of the
@@ -2053,12 +2053,12 @@ short get_row_for_focus_line(CHARTYPE scrno, LINETYPE fl, short cr) {
   }
   return (cr);
 }
-LINETYPE get_focus_line_in_view(CHARTYPE scrno, LINETYPE fl, ROWTYPE row) {
+line_t get_focus_line_in_view(char_t scrno, line_t fl, row_t row) {
   /*
    * Returns a new focus line if the specified focus line is no longer
    * in view, or the same line number if that line is still in view.
    */
-  ROWTYPE i, max = screen[scrno].rows[WINDOW_FILEAREA];
+  row_t i, max = screen[scrno].rows[WINDOW_FILEAREA];
   SHOW_LINE *scurr;
 
   scurr = screen[scrno].sl + row;
@@ -2078,14 +2078,14 @@ LINETYPE get_focus_line_in_view(CHARTYPE scrno, LINETYPE fl, ROWTYPE row) {
    */
   return (fl);
 }
-LINETYPE calculate_focus_line(LINETYPE fl, LINETYPE cl) {
+line_t calculate_focus_line(line_t fl, line_t cl) {
   /*
    * Returns the new focus line. If the focus line is still in the
    * window, it stays as is. If not,the focus   line becomes the current
    * line.
    */
-  LINETYPE new_fl = (-1L);
-  ROWTYPE i, max = CURRENT_SCREEN.rows[WINDOW_FILEAREA];
+  line_t new_fl = (-1L);
+  row_t i, max = CURRENT_SCREEN.rows[WINDOW_FILEAREA];
   SHOW_LINE *scurr;
 
   scurr = CURRENT_SCREEN.sl;
@@ -2100,7 +2100,7 @@ LINETYPE calculate_focus_line(LINETYPE fl, LINETYPE cl) {
     new_fl = cl;
   return (new_fl);
 }
-char *get_current_position(CHARTYPE scrno, LINETYPE * line, LENGTHTYPE * col) {
+char *get_current_position(char_t scrno, line_t * line, length_t * col) {
   short y = 0, x = 0;
   char *ret = NULL;
   SHOW_LINE *scurr;
@@ -2111,11 +2111,11 @@ char *get_current_position(CHARTYPE scrno, LINETYPE * line, LENGTHTYPE * col) {
   switch (SCREEN_VIEW(scrno)->current_window) {
     case WINDOW_COMMAND:
       *line = SCREEN_VIEW(scrno)->current_line;
-      *col = (LENGTHTYPE) (x + 1 + cmd_verify_col - 1);
+      *col = (length_t) (x + 1 + cmd_verify_col - 1);
       break;
     case WINDOW_FILEAREA:
       *line = SCREEN_VIEW(scrno)->focus_line;
-      *col = (LENGTHTYPE) x + SCREEN_VIEW(scrno)->verify_col;
+      *col = (length_t) x + SCREEN_VIEW(scrno)->verify_col;
       if (compatible_look == COMPAT_ISPF) {
         if (scurr->line_type & LINE_TABLINE)
           ret = "TABS";
@@ -2127,7 +2127,7 @@ char *get_current_position(CHARTYPE scrno, LINETYPE * line, LENGTHTYPE * col) {
       break;
     case WINDOW_PREFIX:
       *line = SCREEN_VIEW(scrno)->focus_line;
-      *col = (LENGTHTYPE) (x + 1);
+      *col = (length_t) (x + 1);
       if (compatible_look == COMPAT_ISPF) {
         if (scurr->line_type & LINE_TABLINE)
           ret = "TABS";
@@ -2140,11 +2140,11 @@ char *get_current_position(CHARTYPE scrno, LINETYPE * line, LENGTHTYPE * col) {
   }
   return ret;
 }
-void calculate_new_column(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, COLTYPE current_screen_col, LENGTHTYPE current_verify_col, LENGTHTYPE new_file_col, COLTYPE * new_screen_col, LENGTHTYPE * new_verify_col) {
-  LINETYPE x = 0;
+void calculate_new_column(char_t curr_screen, VIEW_DETAILS * curr_view, col_t current_screen_col, length_t current_verify_col, length_t new_file_col, col_t * new_screen_col, length_t * new_verify_col) {
+  line_t x = 0;
 
   if (column_in_view(curr_screen, new_file_col)) {
-    *new_screen_col = (LENGTHTYPE) (new_file_col - (current_verify_col - 1));
+    *new_screen_col = (length_t) (new_file_col - (current_verify_col - 1));
     *new_verify_col = current_verify_col;
     return;
   }
@@ -2152,11 +2152,11 @@ void calculate_new_column(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, COLTYP
    * To get here, we have new verify column...
    */
   x = screen[curr_screen].cols[curr_view->current_window] / 2;
-  *new_verify_col = (LENGTHTYPE) max(1L, (LINETYPE) new_file_col - x + 2L);
-  *new_screen_col = (LENGTHTYPE) ((*new_verify_col == 1) ? new_file_col : x - 1);
+  *new_verify_col = (length_t) max(1L, (line_t) new_file_col - x + 2L);
+  *new_screen_col = (length_t) ((*new_verify_col == 1) ? new_file_col : x - 1);
   return;
 }
-short prepare_view(CHARTYPE scrn) {
+short prepare_view(char_t scrn) {
   int y = 0, x = 0;
   VIEW_DETAILS *screen_view = SCREEN_VIEW(scrn);
 
@@ -2178,8 +2178,8 @@ short prepare_view(CHARTYPE scrn) {
 }
 short advance_view(VIEW_DETAILS * next_view, short direction) {
   VIEW_DETAILS *save_current_view = next_view;  /* point to passed view */
-  CHARTYPE save_prefix = 0;
-  ROWTYPE save_cmd_line = 0;
+  char_t save_prefix = 0;
+  row_t save_cmd_line = 0;
   short save_gap = 0, save_prefix_width = 0;
   bool save_id_line = 0;
   int y = 0, x = 0;
@@ -2352,11 +2352,11 @@ short THE_Resize(int rows, int cols) {
   if (length > linebuf_size) {
     /* only resize linebuf and linebufch if the new terminal width is > the current size */
     linebuf_size = length;
-    if ((linebuf = (CHARTYPE *) (*the_realloc) (linebuf, linebuf_size)) == NULL) {
+    if ((linebuf = (char_t *) realloc(linebuf, linebuf_size)) == NULL) {
       cleanup();
       return (30);
     }
-    if ((linebufch = (chtype *) (*the_realloc) (linebufch, (linebuf_size * sizeof(chtype)))) == NULL) {
+    if ((linebufch = (chtype *) realloc(linebufch, (linebuf_size * sizeof(chtype)))) == NULL) {
       cleanup();
       return (30);
     }

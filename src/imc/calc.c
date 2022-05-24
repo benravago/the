@@ -1171,7 +1171,7 @@ int isnull() {                  /* Tell whether the top value on the stack is nu
 void stacknum(num, len, exp, minus)
 char *num;
 int exp, len, minus;
-{                               /* stack the number given by sequence of digits `num' of length `len' 
+{                               /* stack the number given by sequence of digits `num' of length `len'
                                    and exponent `exp'. minus=0 if the number is positive, 1 if negative. */
   char *ptr1;
   int len1 = 0;

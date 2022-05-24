@@ -35,30 +35,30 @@
 #include <the.h>
 #include <proto.h>
 
-short Left(CHARTYPE * params) {
+short Left(char_t * params) {
   short rc = RC_OK;
-  LINETYPE shift_val;
-  CHARTYPE _THE_FAR buffer[100];
+  line_t shift_val;
+  char_t buffer[100];
 
   /*
    * Validate only parameter, HALF or positive integer. 1 if no argument.
    */
-  if (equal((CHARTYPE *) "half", params, 4))
+  if (equal((char_t *) "half", params, 4))
     shift_val = CURRENT_SCREEN.cols[WINDOW_FILEAREA] / 2;
-  else if (equal((CHARTYPE *) "full", params, 4))
+  else if (equal((char_t *) "full", params, 4))
     shift_val = CURRENT_SCREEN.cols[WINDOW_FILEAREA];
   else if (blank_field(params))
     shift_val = 1L;
   else {
     if ((rc = valid_positive_integer_against_maximum(params, MAX_WIDTH_NUM)) != 0) {
       if (rc == 4)
-        sprintf((DEFCHAR *) buffer, "%s", params);
+        sprintf((char *) buffer, "%s", params);
       else
-        sprintf((DEFCHAR *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
+        sprintf((char *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
       display_error(rc, buffer, FALSE);
       return (RC_INVALID_OPERAND);
     }
-    shift_val = atol((DEFCHAR *) params);
+    shift_val = atol((char *) params);
   }
   /*
    * If the argument is 0, set verify column to 1
@@ -72,7 +72,7 @@ short Left(CHARTYPE * params) {
   display_screen(current_screen);
   return (rc);
 }
-short Locate(CHARTYPE * params) {
+short Locate(char_t * params) {
   short rc = RC_OK;
 
   /*
@@ -81,7 +81,7 @@ short Locate(CHARTYPE * params) {
    */
   if (blank_field(params)) {
     if (blank_field(lastop[LASTOP_LOCATE].value)) {
-      display_error(39, (CHARTYPE *) "", FALSE);
+      display_error(39, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     rc = execute_locate(lastop[LASTOP_LOCATE].value, TRUE, THE_NOT_SEARCH_SEMANTICS, NULL);
@@ -93,21 +93,21 @@ short Locate(CHARTYPE * params) {
   rc = execute_locate(params, TRUE, THE_NOT_SEARCH_SEMANTICS, NULL);
   return (rc);
 }
-short Lowercase(CHARTYPE * params) {
+short Lowercase(char_t * params) {
   short rc = RC_OK;
 
   rc = execute_change_case(params, CASE_LOWER);
   return (rc);
 }
 
-short Macro(CHARTYPE * params) {
+short Macro(char_t * params) {
   short rc = RC_OK;
   short macrorc = 0;
 
   rc = execute_macro(params, TRUE, &macrorc);
   return ((rc == RC_SYSTEM_ERROR) ? rc : macrorc);
 }
-short Mark(CHARTYPE * params) {
+short Mark(char_t * params) {
 #define MAR_PARAMS    5
 #define CUA_NONE      0
 #define CUA_LEFT      1
@@ -121,26 +121,26 @@ short Mark(CHARTYPE * params) {
 #define CUA_FORWARD   9
 #define CUA_BACKWARD 10
 #define CUA_MOUSE    11
-  LINETYPE true_line = 0L;
+  line_t true_line = 0L;
   unsigned short y = 0, x = 0;
-  LENGTHTYPE real_col = 0;
-  CHARTYPE *word[MAR_PARAMS + 1];
-  CHARTYPE strip[MAR_PARAMS];
+  length_t real_col = 0;
+  char_t *word[MAR_PARAMS + 1];
+  char_t strip[MAR_PARAMS];
   register short i = 0;
   short num_params = 0;
   short mark_type = 0;
   short cua_type = CUA_NONE;
   short rc;
-  LINETYPE tmp_line;
-  LENGTHTYPE tmp_col;
+  line_t tmp_line;
+  length_t tmp_col;
   int numparms[7];
-  LINETYPE nummax[7][5];
-  LENGTHTYPE first_col = 0, last_col = 0;
+  line_t nummax[7][5];
+  length_t first_col = 0, last_col = 0;
   LINE *curr = NULL;
-  CHARTYPE *cont = NULL;
-  LENGTHTYPE cont_len = 0;
+  char_t *cont = NULL;
+  length_t cont_len = 0;
   int num[5];                   /* must be at least as big as maximum number of args */
-  CHARTYPE _THE_FAR buffer[100];
+  char_t buffer[100];
 
   /*
    * Do this rather than define numparams[6] = {0,3,5,5,3,3} so that
@@ -195,50 +195,50 @@ short Mark(CHARTYPE * params) {
   /*
    * Validate the first parameter: must be Box, Line, Stream, Column, Word
    */
-  if (equal((CHARTYPE *) "box", word[0], 1))
+  if (equal((char_t *) "box", word[0], 1))
     mark_type = M_BOX;
-  else if (equal((CHARTYPE *) "line", word[0], 1))
+  else if (equal((char_t *) "line", word[0], 1))
     mark_type = M_LINE;
-  else if (equal((CHARTYPE *) "stream", word[0], 1))
+  else if (equal((char_t *) "stream", word[0], 1))
     mark_type = M_STREAM;
-  else if (equal((CHARTYPE *) "column", word[0], 1))
+  else if (equal((char_t *) "column", word[0], 1))
     mark_type = M_COLUMN;
-  else if (equal((CHARTYPE *) "word", word[0], 1))
+  else if (equal((char_t *) "word", word[0], 1))
     mark_type = M_WORD;
-  else if (equal((CHARTYPE *) "cua", word[0], 3))
+  else if (equal((char_t *) "cua", word[0], 3))
     mark_type = M_CUA;
   else {
-    display_error(1, (CHARTYPE *) word[0], FALSE);
+    display_error(1, (char_t *) word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * For CUA, validate the optional parameter...
    */
   if (mark_type == M_CUA && num_params == 2) {
-    if (equal((CHARTYPE *) "left", word[1], 4))
+    if (equal((char_t *) "left", word[1], 4))
       cua_type = CUA_LEFT;
-    else if (equal((CHARTYPE *) "right", word[1], 5))
+    else if (equal((char_t *) "right", word[1], 5))
       cua_type = CUA_RIGHT;
-    else if (equal((CHARTYPE *) "up", word[1], 2))
+    else if (equal((char_t *) "up", word[1], 2))
       cua_type = CUA_UP;
-    else if (equal((CHARTYPE *) "down", word[1], 4))
+    else if (equal((char_t *) "down", word[1], 4))
       cua_type = CUA_DOWN;
-    else if (equal((CHARTYPE *) "top", word[1], 3))
+    else if (equal((char_t *) "top", word[1], 3))
       cua_type = CUA_TOP;
-    else if (equal((CHARTYPE *) "bottom", word[1], 1))
+    else if (equal((char_t *) "bottom", word[1], 1))
       cua_type = CUA_BOTTOM;
-    else if (equal((CHARTYPE *) "forward", word[1], 2))
+    else if (equal((char_t *) "forward", word[1], 2))
       cua_type = CUA_FORWARD;
-    else if (equal((CHARTYPE *) "backward", word[1], 2))
+    else if (equal((char_t *) "backward", word[1], 2))
       cua_type = CUA_BACKWARD;
-    else if (equal((CHARTYPE *) "start", word[1], 5))
+    else if (equal((char_t *) "start", word[1], 5))
       cua_type = CUA_START;
-    else if (equal((CHARTYPE *) "end", word[1], 3))
+    else if (equal((char_t *) "end", word[1], 3))
       cua_type = CUA_END;
-    else if (equal((CHARTYPE *) "mouse", word[1], 5))
+    else if (equal((char_t *) "mouse", word[1], 5))
       cua_type = CUA_MOUSE;
     else {
-      display_error(1, (CHARTYPE *) word[1], FALSE);
+      display_error(1, (char_t *) word[1], FALSE);
       return (RC_INVALID_OPERAND);
     }
     /*
@@ -248,8 +248,8 @@ short Mark(CHARTYPE * params) {
       MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
       if (display_screens > 1 && MARK_VIEW == OTHER_VIEW) {
         MARK_VIEW = (VIEW_DETAILS *) NULL;
-        build_screen((CHARTYPE) (other_screen));
-        display_screen((CHARTYPE) (other_screen));
+        build_screen((char_t) (other_screen));
+        display_screen((char_t) (other_screen));
       }
     }
     MARK_VIEW = CURRENT_VIEW;
@@ -261,7 +261,7 @@ short Mark(CHARTYPE * params) {
      */
     if (CURRENT_VIEW->mark_type != M_CUA) {
       MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
-      Mark((CHARTYPE *) "CUA");
+      Mark((char_t *) "CUA");
     }
     /*
      * We can now move the cursor (if required) and then mark the end
@@ -287,16 +287,16 @@ short Mark(CHARTYPE * params) {
         rc = scroll_page(DIRECTION_BACKWARD, 1, FALSE);
         break;
       case CUA_TOP:
-        rc = Top((CHARTYPE *) "");
+        rc = Top((char_t *) "");
         break;
       case CUA_BOTTOM:
-        rc = Bottom((CHARTYPE *) "");
+        rc = Bottom((char_t *) "");
         break;
       case CUA_END:
-        rc = Sos_endchar((CHARTYPE *) "");
+        rc = Sos_endchar((char_t *) "");
         break;
       case CUA_START:
-        rc = Sos_firstchar((CHARTYPE *) "");
+        rc = Sos_firstchar((char_t *) "");
         break;
       case CUA_MOUSE:
         rc = THEcursor_mouse();
@@ -309,7 +309,7 @@ short Mark(CHARTYPE * params) {
      * If we are on 'Top of File' or 'Bottom of File' lines, error.
      */
     if (TOF(true_line) || BOF(true_line)) {
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
     }
     /*
@@ -319,7 +319,7 @@ short Mark(CHARTYPE * params) {
     getyx(CURRENT_WINDOW, y, x);
     if (CURRENT_VIEW->current_window == WINDOW_FILEAREA || CURRENT_VIEW->current_window == WINDOW_PREFIX) {
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-        display_error(38, (CHARTYPE *) "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
     }
@@ -341,7 +341,7 @@ short Mark(CHARTYPE * params) {
      * If we are on 'Top of File' or 'Bottom of File' lines, error.
      */
     if (TOF(true_line) || BOF(true_line)) {
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
     }
     /*
@@ -351,7 +351,7 @@ short Mark(CHARTYPE * params) {
     getyx(CURRENT_WINDOW, y, x);
     if (CURRENT_VIEW->current_window == WINDOW_FILEAREA || CURRENT_VIEW->current_window == WINDOW_PREFIX) {
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-        display_error(38, (CHARTYPE *) "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
     }
@@ -362,8 +362,8 @@ short Mark(CHARTYPE * params) {
       MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
       if (display_screens > 1 && MARK_VIEW == OTHER_VIEW) {
         MARK_VIEW = (VIEW_DETAILS *) NULL;
-        build_screen((CHARTYPE) (other_screen));
-        display_screen((CHARTYPE) (other_screen));
+        build_screen((char_t) (other_screen));
+        display_screen((char_t) (other_screen));
       }
     }
     MARK_VIEW = CURRENT_VIEW;
@@ -471,11 +471,11 @@ short Mark(CHARTYPE * params) {
      * Validate the number of parameters...
      */
     if (num_params < numparms[mark_type]) {
-      display_error(3, (CHARTYPE *) "", FALSE);
+      display_error(3, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     if (num_params > numparms[mark_type]) {
-      display_error(2, (CHARTYPE *) "", FALSE);
+      display_error(2, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     /*
@@ -483,12 +483,12 @@ short Mark(CHARTYPE * params) {
      */
     for (i = 1; i < numparms[mark_type]; i++) {
       if ((rc = valid_positive_integer_against_maximum(word[i], nummax[mark_type][i])) == 0) {
-        num[i] = atol((DEFCHAR *) word[i]);
+        num[i] = atol((char *) word[i]);
       } else {
         if (rc == 4)
-          sprintf((DEFCHAR *) buffer, "%s", word[i]);
+          sprintf((char *) buffer, "%s", word[i]);
         else
-          sprintf((DEFCHAR *) buffer, "- MUST be <= %ld", nummax[mark_type][i]);
+          sprintf((char *) buffer, "- MUST be <= %ld", nummax[mark_type][i]);
         display_error(rc, buffer, FALSE);
         return (RC_INVALID_OPERAND);
       }
@@ -500,8 +500,8 @@ short Mark(CHARTYPE * params) {
       MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
       if (display_screens > 1 && MARK_VIEW == OTHER_VIEW) {
         MARK_VIEW = (VIEW_DETAILS *) NULL;
-        build_screen((CHARTYPE) (other_screen));
-        display_screen((CHARTYPE) (other_screen));
+        build_screen((char_t) (other_screen));
+        display_screen((char_t) (other_screen));
       }
     }
     /*
@@ -514,8 +514,8 @@ short Mark(CHARTYPE * params) {
       case M_STREAM:
         CURRENT_VIEW->mark_start_line = num[1];
         CURRENT_VIEW->mark_end_line = num[3];
-        CURRENT_VIEW->mark_start_col = (LENGTHTYPE) num[2];
-        CURRENT_VIEW->mark_end_col = (LENGTHTYPE) num[4];
+        CURRENT_VIEW->mark_start_col = (length_t) num[2];
+        CURRENT_VIEW->mark_end_col = (length_t) num[4];
         CURRENT_VIEW->marked_line = TRUE;
         CURRENT_VIEW->marked_col = TRUE;
         if (CURRENT_VIEW->mark_start_line > CURRENT_VIEW->mark_end_line) {
@@ -544,8 +544,8 @@ short Mark(CHARTYPE * params) {
         }
         break;
       case M_COLUMN:
-        CURRENT_VIEW->mark_start_col = (LENGTHTYPE) num[1];
-        CURRENT_VIEW->mark_end_col = (LENGTHTYPE) num[2];
+        CURRENT_VIEW->mark_start_col = (length_t) num[1];
+        CURRENT_VIEW->mark_end_col = (length_t) num[2];
         CURRENT_VIEW->marked_line = FALSE;
         CURRENT_VIEW->marked_col = TRUE;
         CURRENT_VIEW->mark_start_line = 1;
@@ -584,7 +584,7 @@ short Mark(CHARTYPE * params) {
   }
   return (RC_OK);
 }
-short Modify(CHARTYPE * params) {
+short Modify(char_t * params) {
   short rc = RC_OK;
 
   if ((rc = execute_modify_command(params)) == RC_OK) {
@@ -592,48 +592,48 @@ short Modify(CHARTYPE * params) {
   }
   return (rc);
 }
-short THEMove(CHARTYPE * params) {
+short THEMove(char_t * params) {
 #define MOV_PARAMS 2
-  CHARTYPE *word[MOV_PARAMS + 1];
-  CHARTYPE strip[MOV_PARAMS];
+  char_t *word[MOV_PARAMS + 1];
+  char_t strip[MOV_PARAMS];
   unsigned short num_params = 0;
   unsigned short y = 0, x = 0;
-  LINETYPE true_line = 0L;
-  CHARTYPE reset_block = SOURCE_UNKNOWN;
-  CHARTYPE copy_command = 0, delete_command = 0;
+  line_t true_line = 0L;
+  char_t reset_block = SOURCE_UNKNOWN;
+  char_t copy_command = 0, delete_command = 0;
   short rc = RC_OK;
-  LINETYPE start_line = 0L, end_line = 0L, num_lines = 0L, dest_line = 0L, lines_affected = 0L;
+  line_t start_line = 0L, end_line = 0L, num_lines = 0L, dest_line = 0L, lines_affected = 0L;
   VIEW_DETAILS *old_mark_view = NULL;
 
   /*
    * This command invalid if source file is readonly...
    */
   if (!MARK_VIEW) {
-    display_error(44, (CHARTYPE *) "", FALSE);
+    display_error(44, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (ISREADONLY(MARK_FILE)) {
-    display_error(56, (CHARTYPE *) "", FALSE);
+    display_error(56, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
   num_params = param_split(params, word, MOV_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params == 0) {
-    display_error(3, (CHARTYPE *) "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (num_params > 2) {
-    display_error(2, (CHARTYPE *) "", FALSE);
+    display_error(2, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * Test for valid parameters...
    */
-  if (num_params == 1 && equal((CHARTYPE *) "block", word[0], 5))
+  if (num_params == 1 && equal((char_t *) "block", word[0], 5))
     reset_block = SOURCE_BLOCK;
-  if (num_params == 2 && equal((CHARTYPE *) "block", word[0], 5)
-      && equal((CHARTYPE *) "reset", word[1], 5))
+  if (num_params == 2 && equal((char_t *) "block", word[0], 5)
+      && equal((char_t *) "reset", word[1], 5))
     reset_block = SOURCE_BLOCK_RESET;
   if (reset_block == SOURCE_UNKNOWN) {
     display_error(1, params, FALSE);
@@ -660,7 +660,7 @@ short THEMove(CHARTYPE * params) {
             && (CURRENT_VIEW->focus_line <= MARK_VIEW->mark_end_line)
             && (x + CURRENT_VIEW->verify_col >= MARK_VIEW->mark_start_col)
             && (x + CURRENT_VIEW->verify_col <= MARK_VIEW->mark_end_col)) {
-          display_error(50, (CHARTYPE *) "", FALSE);
+          display_error(50, (char_t *) "", FALSE);
           return (RC_INVALID_ENVIRON);
         }
         break;
@@ -714,28 +714,28 @@ short THEMove(CHARTYPE * params) {
   }
   return (rc);
 }
-short Msg(CHARTYPE * params) {
+short Msg(char_t * params) {
   int rc;
 
   rc = display_error(0, params, TRUE);
   return rc;
 }
-short THENext(CHARTYPE * params) {
+short THENext(char_t * params) {
   short rc = RC_OK;
-  LINETYPE num_lines = 0L, true_line = 0L;
+  line_t num_lines = 0L, true_line = 0L;
 
   params = MyStrip(params, STRIP_BOTH, ' ');
-  if (strcmp("", (DEFCHAR *) params) == 0)
-    params = (CHARTYPE *) "1";
+  if (strcmp("", (char *) params) == 0)
+    params = (char_t *) "1";
   true_line = get_true_line(TRUE);
-  if (strcmp("*", (DEFCHAR *) params) == 0)
+  if (strcmp("*", (char *) params) == 0)
     num_lines = CURRENT_FILE->number_lines - true_line + 1L;
   else {
     if (!valid_integer(params)) {
       display_error(4, params, FALSE);
       return (RC_INVALID_OPERAND);
     }
-    num_lines = atol((DEFCHAR *) params);
+    num_lines = atol((char *) params);
     if (num_lines < 0L) {
       display_error(5, params, FALSE);
       return (RC_INVALID_OPERAND);
@@ -744,15 +744,15 @@ short THENext(CHARTYPE * params) {
   rc = advance_current_or_focus_line(num_lines);
   return (rc);
 }
-short Nextwindow(CHARTYPE * params) {
+short Nextwindow(char_t * params) {
   short rc = RC_OK;
 
-  if (strcmp((DEFCHAR *) params, "") != 0) {
+  if (strcmp((char *) params, "") != 0) {
     display_error(1, params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (display_screens == 1) {
-    rc = Xedit((CHARTYPE *) "");
+    rc = Xedit((char_t *) "");
     return (rc);
   }
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
@@ -795,20 +795,20 @@ short Nextwindow(CHARTYPE * params) {
 
   return (RC_OK);
 }
-short Nfind(CHARTYPE * params) {
+short Nfind(char_t * params) {
   short rc = RC_OK;
 
   rc = execute_find_command(params, TARGET_NFIND);
   return (rc);
 }
-short Nfindup(CHARTYPE * params) {
+short Nfindup(char_t * params) {
   short rc = RC_OK;
 
   rc = execute_find_command(params, TARGET_NFINDUP);
   return (rc);
 }
 
-short Nomsg(CHARTYPE * params) {
+short Nomsg(char_t * params) {
   short rc = RC_OK;
 
   in_nomsg = TRUE;
@@ -816,17 +816,17 @@ short Nomsg(CHARTYPE * params) {
   in_nomsg = FALSE;
   return (rc);
 }
-short Nop(CHARTYPE * params) {
+short Nop(char_t * params) {
   /*
    * No arguments are allowed; error if any are present.
    */
-  if (strcmp((DEFCHAR *) params, "") != 0) {
-    display_error(1, (CHARTYPE *) params, FALSE);
+  if (strcmp((char *) params, "") != 0) {
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   return (RC_OK);
 }
-short Os(CHARTYPE * params) {
+short Os(char_t * params) {
   short rc = RC_OK;
 
   /*
@@ -836,42 +836,42 @@ short Os(CHARTYPE * params) {
   rc = execute_os_command(params, FALSE, TRUE);
   return (rc);
 }
-short Osnowait(CHARTYPE * params) {
+short Osnowait(char_t * params) {
   short rc = RC_OK;
 
   /*
    * Execute the supplied parameters as OS commands. Run with output
    * displayed but no pause before redrawing the windows.
    */
-  if (strcmp((DEFCHAR *) params, "") == 0) {    /* no params....error */
-    display_error(3, (CHARTYPE *) "", FALSE);
+  if (strcmp((char *) params, "") == 0) {    /* no params....error */
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   rc = execute_os_command(params, FALSE, FALSE);
   return (rc);
 }
-short Osquiet(CHARTYPE * params) {
+short Osquiet(char_t * params) {
   short rc = RC_OK;
 
   /*
    * Execute the supplied parameters as OS commands. Run with no output
    * displayed and no pause before redrawing the windows.
    */
-  if (strcmp((DEFCHAR *) params, "") == 0) {    /* no params....error */
-    display_error(3, (CHARTYPE *) "", FALSE);
+  if (strcmp((char *) params, "") == 0) {    /* no params....error */
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   rc = execute_os_command(params, TRUE, FALSE);
   return (rc);
 }
-short Osredir(CHARTYPE * params) {
+short Osredir(char_t * params) {
   short rc = RC_OK, rrc = 0;
 
 #define OSR_PARAMS 2
-  CHARTYPE err[1000];
-  CHARTYPE strip[OSR_PARAMS];
-  CHARTYPE quoted[OSR_PARAMS];
-  CHARTYPE *word[OSR_PARAMS + 1];
+  char_t err[1000];
+  char_t strip[OSR_PARAMS];
+  char_t quoted[OSR_PARAMS];
+  char_t *word[OSR_PARAMS + 1];
   unsigned short num_params = 0;
   int save_stdout = 0, save_stderr = 0;
   int fd = 0;
@@ -887,11 +887,11 @@ short Osredir(CHARTYPE * params) {
   quoted[1] = '\0';
   num_params = quoted_param_split(params, word, OSR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE, quoted);
   if (num_params == 0) {
-    display_error(3, (CHARTYPE *) "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (num_params > 2) {
-    display_error(2, (CHARTYPE *) "", FALSE);
+    display_error(2, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -904,23 +904,23 @@ short Osredir(CHARTYPE * params) {
   save_stdout = dup(fileno(stdout));
   save_stderr = dup(fileno(stderr));
 
-  fd = open((DEFCHAR *) word[0], O_WRONLY | O_CREAT, S_IWRITE | S_IREAD);
+  fd = open((char *) word[0], O_WRONLY | O_CREAT, S_IWRITE | S_IREAD);
   if (fd == (-1)) {
     display_error(8, word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
-  chmod((DEFCHAR *) word[0], S_IRUSR | S_IWUSR);
+  chmod((char *) word[0], S_IRUSR | S_IWUSR);
   /*
    * Redirect stdout and stderr to the supplied file handle
    */
   if (dup2(fd, fileno(stdout)) == (-1)) {
-    strcat((DEFCHAR *) err, "Error dup2() on stdout: ");
-    strcat((DEFCHAR *) err, strerror(errno));
+    strcat((char *) err, "Error dup2() on stdout: ");
+    strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
   if (dup2(fd, fileno(stderr)) == (-1)) {
-    strcat((DEFCHAR *) err, "Error dup2() on stderr: ");
-    strcat((DEFCHAR *) err, strerror(errno));
+    strcat((char *) err, "Error dup2() on stderr: ");
+    strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
   def_prog_mode();
@@ -929,38 +929,38 @@ short Osredir(CHARTYPE * params) {
    * supplied redirection file
    */
   if (rc == RC_OK)
-    rrc = system((DEFCHAR *) word[1]);
+    rrc = system((char *) word[1]);
   reset_prog_mode();
   /*
    * Close the redirected file
    */
   if (close(fd) == (-1)) {
-    strcat((DEFCHAR *) err, "Error closing fd: ");
-    strcat((DEFCHAR *) err, strerror(errno));
+    strcat((char *) err, "Error closing fd: ");
+    strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
   /*
    * Reset the stdout and stderr handles to the "real" handles.
    */
   if (dup2(save_stdout, fileno(stdout)) == (-1)) {
-    strcat((DEFCHAR *) err, "Error resetting stdout: ");
-    strcat((DEFCHAR *) err, strerror(errno));
+    strcat((char *) err, "Error resetting stdout: ");
+    strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
   if (dup2(save_stderr, fileno(stderr)) == (-1)) {
-    strcat((DEFCHAR *) err, "Error resetting stderr: ");
-    strcat((DEFCHAR *) err, strerror(errno));
+    strcat((char *) err, "Error resetting stderr: ");
+    strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
 
   if (close(save_stdout) == (-1)) {
-    strcat((DEFCHAR *) err, "Error closing save_stdout: ");
-    strcat((DEFCHAR *) err, strerror(errno));
+    strcat((char *) err, "Error closing save_stdout: ");
+    strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
   if (close(save_stderr) == (-1)) {
-    strcat((DEFCHAR *) err, "Error closing save_stderr: ");
-    strcat((DEFCHAR *) err, strerror(errno));
+    strcat((char *) err, "Error closing save_stderr: ");
+    strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
 
@@ -971,18 +971,18 @@ short Osredir(CHARTYPE * params) {
     return (rc);
   }
 }
-short Overlaybox(CHARTYPE * params) {
+short Overlaybox(char_t * params) {
   unsigned short y = 0, x = 0;
-  LINETYPE true_line = 0L, start_line = 0L, end_line = 0L, dest_line = 0L, lines_affected = 0L;
+  line_t true_line = 0L, start_line = 0L, end_line = 0L, dest_line = 0L, lines_affected = 0L;
   VIEW_DETAILS *old_mark_view = NULL;
   short rc = RC_OK;
   LINE *curr = NULL;
-  LINETYPE save_current_line = CURRENT_VIEW->current_line;
+  line_t save_current_line = CURRENT_VIEW->current_line;
 
   /*
    * Ensure there are no parameters.
    */
-  if (strcmp((DEFCHAR *) params, "") != 0) {
+  if (strcmp((char *) params, "") != 0) {
     display_error(1, params, FALSE);
     return (RC_INVALID_OPERAND);
   }
@@ -996,7 +996,7 @@ short Overlaybox(CHARTYPE * params) {
    * Don't allow for multi-line STREAM blocks.
    */
   if (MARK_VIEW->mark_type == M_STREAM && MARK_VIEW->mark_start_line != MARK_VIEW->mark_end_line) {
-    display_error(62, (CHARTYPE *) "", FALSE);
+    display_error(62, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   /*
@@ -1008,7 +1008,7 @@ short Overlaybox(CHARTYPE * params) {
       getyx(CURRENT_WINDOW, y, x);
       if (!IN_SCOPE(CURRENT_VIEW, CURRENT_SCREEN.sl[y].current)
           && !CURRENT_VIEW->scope_all) {
-        display_error(87, (CHARTYPE *) "", FALSE);
+        display_error(87, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
     }

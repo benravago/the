@@ -34,8 +34,8 @@
 #include "proto.h"
 
 /*--------------------------- common data -----------------------------*/
-static CHARTYPE *rcvry[MAX_RECV];
-static LENGTHTYPE rcvry_len[MAX_RECV];
+static char_t *rcvry[MAX_RECV];
+static length_t rcvry_len[MAX_RECV];
 static short add_rcvry = (-1);
 static short retr_rcvry = (-1);
 static short num_rcvry = 0;
@@ -46,7 +46,7 @@ static bool CompareExact;
 /*
  * ASCII to EBCDIC
  */
-static unsigned char _THE_FAR asc2ebc_table[256] = {
+static unsigned char asc2ebc_table[256] = {
   0x00, 0x01, 0x02, 0x03, 0x37, 0x2D, 0x2E, 0x2F,       /* 00 - 07 */
   0x16, 0x05, 0x25, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,       /* 08 - 0f */
   0x10, 0x11, 0x12, 0x13, 0x3C, 0x3D, 0x32, 0x26,       /* 10 - 17 */
@@ -84,7 +84,7 @@ static unsigned char _THE_FAR asc2ebc_table[256] = {
 /*
  * EBCDIC to ASCII
  */
-static unsigned char _THE_FAR ebc2asc_table[256] = {
+static unsigned char ebc2asc_table[256] = {
   0x00, 0x01, 0x02, 0x03, 0xCF, 0x09, 0xD3, 0x7F,       /* 00 - 07 */
   0xD4, 0xD5, 0xC3, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,       /* 08 - 0f */
   0x10, 0x11, 0x12, 0x13, 0xC7, 0xB4, 0x08, 0xC9,       /* 10 - 17 */
@@ -119,7 +119,7 @@ static unsigned char _THE_FAR ebc2asc_table[256] = {
   0x38, 0x39, 0xB3, 0xF7, 0xF0, 0xFA, 0xA7, 0xFF
 };
 
-CHARTYPE *asc2ebc(CHARTYPE * str, int len, int start, int end)
+char_t *asc2ebc(char_t * str, int len, int start, int end)
 /* Function  : Converts an ASCII string to an EBCDIC string.           */
 /* Parameters: str      - ASCII string                                 */
 /*             len      - length of string to convert                  */
@@ -132,7 +132,7 @@ CHARTYPE *asc2ebc(CHARTYPE * str, int len, int start, int end)
   return (str);
 }
 
-CHARTYPE *ebc2asc(CHARTYPE * str, int len, int start, int end)
+char_t *ebc2asc(char_t * str, int len, int start, int end)
 /* Function  : Converts an EBCDIC string to an ASCII string.           */
 /* Parameters: str      - EBCDIC string                                */
 /*             len      - length of string to convert                  */
@@ -150,10 +150,10 @@ NAME
      memreveq - search buffer reversed for character
 
 SYNOPSIS
-     LENGTHTYPE memreveq(buffer,chr,max_length)
-     CHARTYPE *buffer;
-     CHARTYPE ch;
-     LENGTHTYPE max_length;
+     length_t memreveq(buffer,chr,max_length)
+     char_t *buffer;
+     char_t ch;
+     length_t max_length;
 
 DESCRIPTION
      The memreveq function searches the buffer from the right for the
@@ -166,8 +166,8 @@ RETURN VALUE
 SEE ALSO
      strzreveq, memrevne
 *******************************************************************************/
-LENGTHTYPE memreveq(CHARTYPE * buffer, CHARTYPE ch, LENGTHTYPE max_len) {
-  LENGTHTYPE len = max_len;
+length_t memreveq(char_t * buffer, char_t ch, length_t max_len) {
+  length_t len = max_len;
 
   for (--len; len >= 0 && buffer[len] != ch; len--);
   return (len);
@@ -178,10 +178,10 @@ NAME
      memrevne - search buffer reversed for NOT character
 
 SYNOPSIS
-     LENGTHTYPE memrevne(buffer,known_char,max_len)
-     CHARTYPE *buffer;
-     CHARTYPE known_char;
-     LENGTHTYPE max_len;
+     length_t memrevne(buffer,known_char,max_len)
+     char_t *buffer;
+     char_t known_char;
+     length_t max_len;
 
 DESCRIPTION
      The memrevne function searches the buffer from the right for first
@@ -194,8 +194,8 @@ RETURN VALUE
 SEE ALSO
      strzrevne, strzne
 *******************************************************************************/
-LENGTHTYPE memrevne(CHARTYPE * buffer, CHARTYPE known_char, LENGTHTYPE max_len) {
-  LENGTHTYPE len = max_len;
+length_t memrevne(char_t * buffer, char_t known_char, length_t max_len) {
+  length_t len = max_len;
 
   for (--len; len >= 0 && buffer[len] == known_char; len--);
   return (len);
@@ -206,10 +206,10 @@ NAME
      meminschr - insert character into buffer
 
 SYNOPSIS
-     CHARTYPE *meminschr(buffer,chr,location,max_length,curr_length)
-     CHARTYPE *buffer;
-     CHARTYPE chr;
-     LENGTHTYPE location,max_length,curr_length;
+     char_t *meminschr(buffer,chr,location,max_length,curr_length)
+     char_t *buffer;
+     char_t chr;
+     length_t location,max_length,curr_length;
 
 DESCRIPTION
      The meminschr inserts the supplied 'chr' into the buffer 'buffer'
@@ -227,8 +227,8 @@ SEE ALSO
     meminsstr, memdeln
 
 *******************************************************************************/
-CHARTYPE *meminschr(CHARTYPE * buffer, CHARTYPE chr, LENGTHTYPE location, LENGTHTYPE max_length, LENGTHTYPE curr_length) {
-  LENGTHTYPE i = 0;
+char_t *meminschr(char_t * buffer, char_t chr, length_t location, length_t max_length, length_t curr_length) {
+  length_t i = 0;
 
   for (i = curr_length; i > location; i--) {
     if (i < max_length)
@@ -246,10 +246,10 @@ NAME
 SYNOPSIS
      #include "the.h"
 
-     CHARTYPE *meminsmem(buffer,str,len,location,max_length,curr_length)
-     CHARTYPE *buffer;
-     CHARTYPE *str;
-     LENGTHTYPE len,location,max_length,curr_length;
+     char_t *meminsmem(buffer,str,len,location,max_length,curr_length)
+     char_t *buffer;
+     char_t *str;
+     length_t len,location,max_length,curr_length;
 
 DESCRIPTION
      The meminsmem function inserts the supplied 'str' into the buffer 'buffer'
@@ -267,8 +267,8 @@ SEE ALSO
     meminschr
 
 *******************************************************************************/
-CHARTYPE *meminsmem(CHARTYPE * buffer, CHARTYPE * str, LENGTHTYPE len, LENGTHTYPE location, LENGTHTYPE max_length, LENGTHTYPE curr_length) {
-  LENGTHTYPE i = 0;
+char_t *meminsmem(char_t * buffer, char_t * str, length_t len, length_t location, length_t max_length, length_t curr_length) {
+  length_t i = 0;
 
   for (i = curr_length; i > location; i--) {
     if (i + len - 1 < max_length)
@@ -286,9 +286,9 @@ NAME
      memdeln - delete a number of character(s) from buffer
 
 SYNOPSIS
-     CHARTYPE *memdeln(buffer,location,curr_length,num_chars)
-     CHARTYPE *buffer;
-     LENGTHTYPE location,curr_length,num_chars;
+     char_t *memdeln(buffer,location,curr_length,num_chars)
+     char_t *buffer;
+     length_t location,curr_length,num_chars;
 
 DESCRIPTION
      The memdeln deletes the supplied number of characters from the
@@ -304,8 +304,8 @@ SEE ALSO
     meminschr, strdelchr
 
 *******************************************************************************/
-CHARTYPE *memdeln(CHARTYPE * buffer, LENGTHTYPE location, LENGTHTYPE curr_length, LENGTHTYPE num_chars) {
-  LENGTHTYPE i = 0;
+char_t *memdeln(char_t * buffer, length_t location, length_t curr_length, length_t num_chars) {
+  length_t i = 0;
 
   for (i = location; i < curr_length; i++) {
     if (i + num_chars >= curr_length)
@@ -321,9 +321,9 @@ NAME
      strdelchr - delete all supplied character from buffer
 
 SYNOPSIS
-     CHARTYPE *memdeln(buffer,chr)
-     CHARTYPE *buffer;
-     CHARTYPE chr;
+     char_t *memdeln(buffer,chr)
+     char_t *buffer;
+     char_t chr;
 
 DESCRIPTION
      The memdeln deletes all occurrences of chr from the ASCIIZ buffer.
@@ -335,15 +335,15 @@ SEE ALSO
     meminschr, memdeln
 
 *******************************************************************************/
-CHARTYPE *strdelchr(CHARTYPE * buffer, CHARTYPE chr) {
-  LENGTHTYPE i = 0, j = 0;
-  LENGTHTYPE len = strlen((DEFCHAR *) buffer);
+char_t *strdelchr(char_t * buffer, char_t chr) {
+  length_t i = 0, j = 0;
+  length_t len = strlen((char *) buffer);
 
   for (i = 0; i < len; i++) {
     if (buffer[i] != chr)
       buffer[j++] = buffer[i];
   }
-  buffer[j] = (CHARTYPE) '\0';
+  buffer[j] = (char_t) '\0';
   return (buffer);
 }
 
@@ -352,10 +352,10 @@ NAME
      memrmdup - remove duplicate, contiguous characters
 
 SYNOPSIS
-     CHARTYPE *memrmdup(buf,len,chr)
-     CHARTYPE *buf;
-     LENGTHTYPE *len;
-     CHARTYPE ch;
+     char_t *memrmdup(buf,len,chr)
+     char_t *buf;
+     length_t *len;
+     char_t ch;
 
 DESCRIPTION
      The memrmdup function removes all duplicate, contiguous characters
@@ -367,9 +367,9 @@ DESCRIPTION
 RETURN VALUE
      Returns the new buf.
 *******************************************************************************/
-CHARTYPE *memrmdup(CHARTYPE * buf, LENGTHTYPE * len, CHARTYPE ch) {
-  LENGTHTYPE i = 0, num_dups = 0, newlen = *len;
-  CHARTYPE *src = buf, *dst = buf;
+char_t *memrmdup(char_t * buf, length_t * len, char_t ch) {
+  length_t i = 0, num_dups = 0, newlen = *len;
+  char_t *src = buf, *dst = buf;
   bool dup = FALSE;
 
   for (; i < newlen; i++, src++) {
@@ -393,9 +393,9 @@ NAME
      strrmdup - remove duplicate, contiguous characters
 
 SYNOPSIS
-     CHARTYPE *strrmdup(buf,chr)
-     CHARTYPE *buf;
-     CHARTYPE ch;
+     char_t *strrmdup(buf,chr)
+     char_t *buf;
+     char_t ch;
      bool exclude_leading;
 
 DESCRIPTION
@@ -408,8 +408,8 @@ DESCRIPTION
 RETURN VALUE
      Returns the new buf.
 *******************************************************************************/
-CHARTYPE *strrmdup(CHARTYPE * buf, CHARTYPE ch, bool exclude_leading) {
-  CHARTYPE *src = buf, *dst = buf;
+char_t *strrmdup(char_t * buf, char_t ch, bool exclude_leading) {
+  char_t *src = buf, *dst = buf;
   bool dup = FALSE;
 
   if (exclude_leading) {
@@ -436,9 +436,9 @@ NAME
      strzne - search string for NOT character
 
 SYNOPSIS
-     LENGTHTYPE strzne(str,chr)
-     CHARTYPE *str;
-     CHARTYPE ch;
+     length_t strzne(str,chr)
+     char_t *str;
+     char_t ch;
 
 DESCRIPTION
      The strzne function searches the string from the left for the first
@@ -451,11 +451,11 @@ RETURN VALUE
 SEE ALSO
      strzrevne, memrevne
 *******************************************************************************/
-LENGTHTYPE strzne(CHARTYPE * str, CHARTYPE ch) {
-  LENGTHTYPE len = 0;
-  LENGTHTYPE i = 0;
+length_t strzne(char_t * str, char_t ch) {
+  length_t len = 0;
+  length_t i = 0;
 
-  len = strlen((DEFCHAR *) str);
+  len = strlen((char *) str);
   for (; i < len && str[i] == ch; i++);
   if (i >= len)
     i = (-1);
@@ -467,8 +467,8 @@ NAME
      my_strdup - equivalent to strdup
 
 SYNOPSIS
-     CHARTYPE *my_strdup(str)
-     CHARTYPE *str;
+     char_t *my_strdup(str)
+     char_t *str;
 
 DESCRIPTION
      The my_strdup function duplicates the supplied string.
@@ -477,14 +477,14 @@ RETURN VALUE
      If successful, returns a pointer to the copy of the supplied string
      or NULL if unsuccessful.
 *******************************************************************************/
-CHARTYPE *my_strdup(CHARTYPE * str) {
-  LENGTHTYPE len = 0;
-  CHARTYPE *tmp = NULL;
+char_t *my_strdup(char_t * str) {
+  length_t len = 0;
+  char_t *tmp = NULL;
 
-  len = strlen((DEFCHAR *) str);
-  if ((tmp = (CHARTYPE *) (*the_malloc) ((len + 1) * sizeof(CHARTYPE))) == (CHARTYPE *) NULL)
-    return ((CHARTYPE *) NULL);
-  strcpy((DEFCHAR *) tmp, (DEFCHAR *) str);
+  len = strlen((char *) str);
+  if ((tmp = (char_t *) malloc((len + 1) * sizeof(char_t))) == (char_t *) NULL)
+    return ((char_t *) NULL);
+  strcpy((char *) tmp, (char *) str);
   return (tmp);
 }
 
@@ -495,10 +495,10 @@ NAME
 SYNOPSIS
      #include "the.h"
 
-     LENGTHTYPE memne(buffer,chr,length)
-     CHARTYPE *buffer;
-     CHARTYPE chr;
-     LENGTHTYPE length;
+     length_t memne(buffer,chr,length)
+     char_t *buffer;
+     char_t chr;
+     length_t length;
 
 DESCRIPTION
      The memne function searches the buffer from the left for the first
@@ -511,8 +511,8 @@ RETURN VALUE
 SEE ALSO
      strzrevne, memrevne, strzne
 *******************************************************************************/
-LENGTHTYPE memne(CHARTYPE * buffer, CHARTYPE chr, LENGTHTYPE length) {
-  LENGTHTYPE i = 0;
+length_t memne(char_t * buffer, char_t chr, length_t length) {
+  length_t i = 0;
 
   for (; i < length && buffer[i] == chr; i++);
   if (i >= length)
@@ -527,9 +527,9 @@ NAME
 SYNOPSIS
      #include "the.h"
 
-     LENGTHTYPE strzrevne(str,chr)
-     CHARTYPE *str;
-     CHARTYPE ch;
+     length_t strzrevne(str,chr)
+     char_t *str;
+     char_t ch;
 
 DESCRIPTION
      The strzrevne function searches the string from the right for the
@@ -542,10 +542,10 @@ RETURN VALUE
 SEE ALSO
      strzne, memrevne
 *******************************************************************************/
-LENGTHTYPE strzrevne(CHARTYPE * str, CHARTYPE ch) {
-  LENGTHTYPE len = 0;
+length_t strzrevne(char_t * str, char_t ch) {
+  length_t len = 0;
 
-  len = strlen((DEFCHAR *) str);
+  len = strlen((char *) str);
   for (--len; len >= 0 && str[len] == ch; len--);
   return (len);
 }
@@ -555,9 +555,9 @@ NAME
      strzreveq - search string reversed for character
 
 SYNOPSIS
-     LENGTHTYPE strzreveq(str,chr)
-     CHARTYPE *str;
-     CHARTYPE ch;
+     length_t strzreveq(str,chr)
+     char_t *str;
+     char_t ch;
 
 DESCRIPTION
      The strzreveq function searches the string from the right for the
@@ -570,10 +570,10 @@ RETURN VALUE
 SEE ALSO
      strzrevne
 *******************************************************************************/
-LENGTHTYPE strzreveq(CHARTYPE * str, CHARTYPE ch) {
-  LENGTHTYPE len = 0;
+length_t strzreveq(char_t * str, char_t ch) {
+  length_t len = 0;
 
-  len = strlen((DEFCHAR *) str);
+  len = strlen((char *) str);
   for (--len; len >= 0 && str[len] != ch; len--);
   return (len);
 }
@@ -585,8 +585,8 @@ NAME
 SYNOPSIS
      #include "the.h"
 
-     CHARTYPE *strtrunc(string)
-     CHARTYPE *string;
+     char_t *strtrunc(string)
+     char_t *string;
 
 DESCRIPTION
      The strtrunc function truncates all leading and trailing spaces
@@ -598,7 +598,7 @@ RETURN VALUE
 SEE ALSO
 
 *******************************************************************************/
-CHARTYPE *strtrunc(CHARTYPE * string) {
+char_t *strtrunc(char_t * string) {
   return (MyStrip(string, STRIP_BOTH, ' '));
 }
 
@@ -609,8 +609,8 @@ NAME
 SYNOPSIS
      #include "the.h"
 
-     CHARTYPE *MyStrip(string,option,ch)
-     CHARTYPE *string;
+     char_t *MyStrip(string,option,ch)
+     char_t *string;
      char option;
      char ch;
 
@@ -637,11 +637,11 @@ RETURN VALUE
 SEE ALSO
 
 *******************************************************************************/
-CHARTYPE *MyStrip(CHARTYPE * string, char option, char ch) {
-  LENGTHTYPE i = 0;
-  LENGTHTYPE pos = 0;
+char_t *MyStrip(char_t * string, char option, char ch) {
+  length_t i = 0;
+  length_t pos = 0;
 
-  if (strlen((DEFCHAR *) string) == 0)
+  if (strlen((char *) string) == 0)
     return (string);
   if (option & STRIP_TRAILING) {
     pos = strzrevne(string, ch);
@@ -672,16 +672,16 @@ NAME
                characters if set.
 
 SYNOPSIS
-     LENGTHTYPE memfind(haystack,needle,hay_len,nee_len,case_ignore,arbsts,arb)
-     CHARTYPE *haystack;                            string to be searched
-     CHARTYPE *needle;        string to search for - may contain arbchars
-     LENGTHTYPE hay_len;                               length of haystack
-     LENGTHTYPE nee_len;                                 length of needle
+     length_t memfind(haystack,needle,hay_len,nee_len,case_ignore,arbsts,arb)
+     char_t *haystack;                            string to be searched
+     char_t *needle;        string to search for - may contain arbchars
+     length_t hay_len;                               length of haystack
+     length_t nee_len;                                 length of needle
      bool case_ignore;                      TRUE if search to ignore case
      bool arbsts;          TRUE if need to check for arbitrary characters
-     CHARTYPE single                       the single arbitrary character
-     CHARTYPE multiple                   the multiple arbitrary character
-     LENGTHTYPE *target_len       return the length of the matched string
+     char_t single                       the single arbitrary character
+     char_t multiple                   the multiple arbitrary character
+     length_t *target_len       return the length of the matched string
 
 DESCRIPTION
      The memfind function locates a needle in a haystack. Both the needle
@@ -695,12 +695,12 @@ RETURN VALUE
      the needle does not appear in the haystack. The length of the matched
      string is returned in target_len
 *******************************************************************************/
-LENGTHTYPE memfind(CHARTYPE * haystack, CHARTYPE * needle, LENGTHTYPE hay_len, LENGTHTYPE nee_len, bool case_ignore, bool arbsts, CHARTYPE arb_single, CHARTYPE arb_multiple, LENGTHTYPE * target_len) {
-  register CHARTYPE c1 = 0, c2 = 0;
-  register CHARTYPE *buf1 = NULL, *buf2 = NULL;
-  LENGTHTYPE i = 0, j = 0;
-  LENGTHTYPE matches = 0;
-  CHARTYPE *new_needle = needle;
+length_t memfind(char_t * haystack, char_t * needle, length_t hay_len, length_t nee_len, bool case_ignore, bool arbsts, char_t arb_single, char_t arb_multiple, length_t * target_len) {
+  register char_t c1 = 0, c2 = 0;
+  register char_t *buf1 = NULL, *buf2 = NULL;
+  length_t i = 0, j = 0;
+  length_t matches = 0;
+  char_t *new_needle = needle;
   bool need_free = FALSE;
 
   /*
@@ -708,8 +708,8 @@ LENGTHTYPE memfind(CHARTYPE * haystack, CHARTYPE * needle, LENGTHTYPE hay_len, L
    * we are handling arbchars.
    */
   if (arbsts && strzeq(needle, arb_multiple) != (-1)) {
-    if ((new_needle = (CHARTYPE *) my_strdup(needle)) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+    if ((new_needle = (char_t *) my_strdup(needle)) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
       return (-1);
     }
     need_free = TRUE;
@@ -740,17 +740,17 @@ LENGTHTYPE memfind(CHARTYPE * haystack, CHARTYPE * needle, LENGTHTYPE hay_len, L
           /*
            *
            */
-          LENGTHTYPE new_hay_len = hay_len - (buf1 - haystack);
-          LENGTHTYPE new_nee_len = nee_len - (buf2 + 1 - new_needle);
-          LENGTHTYPE new_tar = 0;
-          LENGTHTYPE new_start;
+          length_t new_hay_len = hay_len - (buf1 - haystack);
+          length_t new_nee_len = nee_len - (buf2 + 1 - new_needle);
+          length_t new_tar = 0;
+          length_t new_start;
 
           *target_len = *target_len + matches;
 
           new_start = memfind(buf1, buf2 + 1, new_hay_len, new_nee_len, case_ignore, arbsts, arb_single, arb_multiple, &new_tar);
           if (new_start != (-1)) {
             if (need_free)
-              (*the_free) (new_needle);
+              free(new_needle);
             *target_len = *target_len + new_tar + new_start;
             if (new_needle[nee_len - 1] == arb_multiple && new_start == 0) {
               *target_len = hay_len - *target_len - 1;
@@ -778,13 +778,13 @@ LENGTHTYPE memfind(CHARTYPE * haystack, CHARTYPE * needle, LENGTHTYPE hay_len, L
     }
     if (matches == nee_len) {
       if (need_free)
-        (*the_free) (new_needle);
+        free(new_needle);
       *target_len = *target_len + matches;
       return (i);
     }
   }
   if (need_free)
-    (*the_free) (new_needle);
+    free(new_needle);
   return (-1);
 }
 
@@ -794,9 +794,9 @@ NAME
 
 SYNOPSIS
      void memrev(dest,source,len)
-     CHARTYPE *dest;
-     CHARTYPE *source;
-     LENGTHTYPE length;
+     char_t *dest;
+     char_t *source;
+     length_t length;
 
 DESCRIPTION
      The memrev function reverses the contents of the source buffer
@@ -805,15 +805,15 @@ DESCRIPTION
 RETURN VALUE
      None
 *******************************************************************************/
-void memrev(CHARTYPE * dest, CHARTYPE * src, LENGTHTYPE length) {
-  LENGTHTYPE i, j;
+void memrev(char_t * dest, char_t * src, length_t length) {
+  length_t i, j;
 
   for (i = 0, j = length - 1; i < length; i++, j--) {
     dest[j] = src[i];
   }
 }
 
-LENGTHTYPE memcmpi(CHARTYPE * buf1, CHARTYPE * buf2, LENGTHTYPE len)
+length_t memcmpi(char_t * buf1, char_t * buf2, length_t len)
 /* Function  : Compares two memory buffers for equality;               */
 /*             case insensitive. Same as memicmp() Microsoft C.        */
 /* Parameters: buf1     - first buffer                                 */
@@ -823,8 +823,8 @@ LENGTHTYPE memcmpi(CHARTYPE * buf1, CHARTYPE * buf2, LENGTHTYPE len)
 /*             =0 if buf1 = buf2,                                      */
 /*             >0 if buf1 > buf2,                                      */
 {
-  LENGTHTYPE i = 0;
-  CHARTYPE c1, c2;
+  length_t i = 0;
+  char_t c1, c2;
 
   for (i = 0; i < len; i++) {
     if (isupper(*buf1))
@@ -843,13 +843,13 @@ LENGTHTYPE memcmpi(CHARTYPE * buf1, CHARTYPE * buf2, LENGTHTYPE len)
   return (0);
 }
 
-CHARTYPE *make_upper(CHARTYPE * str)
+char_t *make_upper(char_t * str)
 /* Function  : Makes the supplied string uppercase.                    */
 /*             Equivalent to strupr() on some platforms.               */
 /* Parameters: str      - string to uppercase                          */
 /* Return    : str uppercased                                          */
 {
-  CHARTYPE *save_str = str;
+  char_t *save_str = str;
 
   while (*str) {
     if (islower(*str))
@@ -865,8 +865,8 @@ NAME
 
 SYNOPSIS
      bool equal(con,str,min_len)
-     CHARTYPE *con,*str;
-     LENGTHTYPE min_len;
+     char_t *con,*str;
+     length_t min_len;
 
 DESCRIPTION
      The equal function determines if a two strings are equal, irrespective
@@ -877,17 +877,17 @@ DESCRIPTION
 RETURN VALUE
      If 'equal' TRUE else FALSE.
 *******************************************************************************/
-bool equal(CHARTYPE * con, CHARTYPE * str, LENGTHTYPE min_len) {
-  LENGTHTYPE i = 0, lenstr = 0;
-  CHARTYPE c1, c2;
+bool equal(char_t * con, char_t * str, length_t min_len) {
+  length_t i = 0, lenstr = 0;
+  char_t c1, c2;
 
   if (min_len == 0) {
     return (FALSE);
   }
-  if (strlen((DEFCHAR *) str) < min_len || strlen((DEFCHAR *) con) < strlen((DEFCHAR *) str)) {
+  if (strlen((char *) str) < min_len || strlen((char *) con) < strlen((char *) str)) {
     return (FALSE);
   }
-  lenstr = strlen((DEFCHAR *) str);
+  lenstr = strlen((char *) str);
   for (i = 0; i < lenstr; i++) {
     if (isupper(*con))
       c1 = tolower(*con);
@@ -907,15 +907,15 @@ bool equal(CHARTYPE * con, CHARTYPE * str, LENGTHTYPE min_len) {
 
 }
 
-bool valid_integer(CHARTYPE * str)
+bool valid_integer(char_t * str)
 /* Function  : Checks that string contains only 0-9,- or +.            */
 /* Parameters: *str     - string to be checked                         */
 /* Return    : TRUE or FALSE                                           */
 {
-  LENGTHTYPE i = 0;
-  LENGTHTYPE num_signs = 0;
+  length_t i = 0;
+  length_t num_signs = 0;
 
-  for (i = 0; i < strlen((DEFCHAR *) str); i++) {
+  for (i = 0; i < strlen((char *) str); i++) {
     if (*(str + i) == '-' || *(str + i) == '+')
       num_signs++;
     else {
@@ -930,16 +930,16 @@ bool valid_integer(CHARTYPE * str)
   return (TRUE);
 }
 
-bool valid_positive_integer(CHARTYPE * str)
+bool valid_positive_integer(char_t * str)
 /* Function  : Checks that string contains only 0-9, or +.             */
 /* Parameters: *str     - string to be checked                         */
 /* Return    : TRUE or FALSE                                           */
 {
-  LENGTHTYPE i = 0;
+  length_t i = 0;
 
   if (*str == '+')
     str++;
-  for (i = 0; i < strlen((DEFCHAR *) str); i++) {
+  for (i = 0; i < strlen((char *) str); i++) {
     if (!isdigit(*(str + i))) {
       return (FALSE);
     }
@@ -947,15 +947,15 @@ bool valid_positive_integer(CHARTYPE * str)
   return (TRUE);
 }
 
-short valid_positive_integer_against_maximum(CHARTYPE * str, LENGTHTYPE maximum)
+short valid_positive_integer_against_maximum(char_t * str, length_t maximum)
 /* Function  : Checks that string contains only 0-9, or +              */
 /*             and is less than supplied string maximum                */
 /* Parameters: *str     - string to be checked                         */
 /* Return    : TRUE or FALSE                                           */
 {
-  LENGTHTYPE i, len_str, len_max;
-  CHARTYPE _THE_FAR buffer[50];
-  CHARTYPE *buf;
+  length_t i, len_str, len_max;
+  char_t buffer[50];
+  char_t *buf;
   short rc = 0;
 
   if (!valid_positive_integer(str)) {
@@ -965,11 +965,11 @@ short valid_positive_integer_against_maximum(CHARTYPE * str, LENGTHTYPE maximum)
    * Now check against the maximum
    */
   buf = buffer;
-  sprintf((DEFCHAR *) buf, "%ld", maximum);
+  sprintf((char *) buf, "%ld", maximum);
   if (*str == '+')
     str++;
-  len_max = strlen((DEFCHAR *) buf);
-  len_str = strlen((DEFCHAR *) str);
+  len_max = strlen((char *) buf);
+  len_str = strlen((char *) str);
   if (len_str > len_max) {
     return (6);
   }
@@ -989,39 +989,39 @@ short valid_positive_integer_against_maximum(CHARTYPE * str, LENGTHTYPE maximum)
   return (rc);
 }
 
-LENGTHTYPE strzeq(CHARTYPE * str, CHARTYPE ch)
+length_t strzeq(char_t * str, char_t ch)
 /* Function  : Locate in ASCIIZ string, character                      */
 /* Parameters: *str     - string to be searched                        */
 /*             ch       - character to be searched for                 */
 /* Return    : position in string of character - (-1) if not found     */
 {
-  LENGTHTYPE len = 0;
-  LENGTHTYPE i = 0;
+  length_t len = 0;
+  length_t i = 0;
 
-  len = strlen((DEFCHAR *) str);
+  len = strlen((char *) str);
   for (; i < len && str[i] != ch; i++);
   if (i >= len)
     i = (-1L);
   return (i);
 }
 
-CHARTYPE *strtrans(CHARTYPE * str, CHARTYPE oldch, CHARTYPE newch)
+char_t *strtrans(char_t * str, char_t oldch, char_t newch)
 /* Function  : Translate all occurrences of oldch to newch in str      */
 /* Parameters: *str     - string to be amendedd                        */
 /*             oldch    - character to be replaced                     */
 /*             newch    - character to replace oldch                   */
 /* Return    : same string but with characters translated              */
 {
-  LENGTHTYPE i = 0;
+  length_t i = 0;
 
-  for (i = 0; i < strlen((DEFCHAR *) str); i++) {
+  for (i = 0; i < strlen((char *) str); i++) {
     if (*(str + i) == oldch)
       *(str + i) = newch;
   }
   return (str);
 }
 
-LINE *add_LINE(LINE * first, LINE * curr, CHARTYPE * line, LENGTHTYPE len, SELECTTYPE select, bool new_flag)
+LINE *add_LINE(LINE * first, LINE * curr, char_t * line, length_t len, select_t select, bool new_flag)
 /* Adds a member of the linked list for the specified file containing  */
 /* the line contents and length.                                       */
 /* PARAMETERS:                                                         */
@@ -1036,7 +1036,7 @@ LINE *add_LINE(LINE * first, LINE * curr, CHARTYPE * line, LENGTHTYPE len, SELEC
    * Validate that the line being added is shorter than the maximum line length
    */
   if (len > max_line_length) {
-    display_error(0, (CHARTYPE *) "Truncated", FALSE);
+    display_error(0, (char_t *) "Truncated", FALSE);
     len = max_line_length;
   }
   next_line = lll_add(first, curr, sizeof(LINE));
@@ -1045,7 +1045,7 @@ LINE *add_LINE(LINE * first, LINE * curr, CHARTYPE * line, LENGTHTYPE len, SELEC
   }
   curr_line = next_line;
 
-  curr_line->line = (CHARTYPE *) (*the_malloc) ((len + 1) * sizeof(CHARTYPE));
+  curr_line->line = (char_t *) malloc((len + 1) * sizeof(char_t));
   if (curr_line->line == NULL) {
     return (NULL);
   }
@@ -1071,8 +1071,8 @@ LINE *add_LINE(LINE * first, LINE * curr, CHARTYPE * line, LENGTHTYPE len, SELEC
   }
   return (curr_line);
 }
-LINE *append_LINE(LINE * curr, CHARTYPE * line, LENGTHTYPE len) {
-  curr->line = (CHARTYPE *) (*the_realloc) (curr->line, (curr->length + len + 1) * sizeof(CHARTYPE));
+LINE *append_LINE(LINE * curr, char_t * line, length_t len) {
+  curr->line = (char_t *) realloc(curr->line, (curr->length + len + 1) * sizeof(char_t));
   if (curr->line == NULL) {
     return (NULL);
   }
@@ -1098,20 +1098,20 @@ LINE *delete_LINE(LINE ** first, LINE ** last, LINE * curr, short direction, boo
       curr->first_name = NULL;
     }
     if (curr->name) {
-      (*the_free) (curr->name);
+      free(curr->name);
       curr->name = NULL;
     }
   }
   if (curr->line) {
-    (*the_free) (curr->line);
+    free(curr->line);
     curr->line = NULL;
   }
   curr = lll_del(first, last, curr, direction);
   return (curr);
 }
 
-void put_string(WINDOW * win, ROWTYPE row, COLTYPE col, CHARTYPE * string, LENGTHTYPE len) {
-  LENGTHTYPE i = 0;
+void put_string(WINDOW * win, row_t row, col_t col, char_t * string, length_t len) {
+  length_t i = 0;
 
   wmove(win, row, col);
   for (i = 0; i < len; i++) {
@@ -1119,7 +1119,7 @@ void put_string(WINDOW * win, ROWTYPE row, COLTYPE col, CHARTYPE * string, LENGT
   }
   return;
 }
-void put_char(WINDOW * win, chtype ch, CHARTYPE add_ins) {
+void put_char(WINDOW * win, chtype ch, char_t add_ins) {
   chtype chr = 0;
 
   chr = ch & A_CHARTEXT;
@@ -1149,8 +1149,8 @@ short set_up_windows(short scrn) {
   /*
    * Allocate space for a file descriptor colour attributes...
    */
-  if ((fp.attr = (COLOUR_ATTR *) (*the_malloc) (ATTR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((fp.attr = (COLOUR_ATTR *) malloc(ATTR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   if (screen[scrn].screen_view) {
@@ -1176,7 +1176,7 @@ short set_up_windows(short scrn) {
     if (screen[scrn].rows[i] != 0 && screen[scrn].cols[i] != 0) {
       screen[scrn].win[i] = newwin(screen[scrn].rows[i], screen[scrn].cols[i], screen[scrn].start_row[i], screen[scrn].start_col[i]);
       if (screen[scrn].win[i] == (WINDOW *) NULL) {
-        display_error(30, (CHARTYPE *) "creating window", FALSE);
+        display_error(30, (char_t *) "creating window", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
       keypad(screen[scrn].win[i], TRUE);
@@ -1227,7 +1227,7 @@ short set_up_windows(short scrn) {
   if (display_screens > 1 && !horizontal) {
     divider = newwin(screen[1].screen_rows, 2, screen[1].screen_start_row, screen[1].screen_start_col - 2);
     if (divider == (WINDOW *) NULL) {
-      display_error(30, (CHARTYPE *) "creating window", FALSE);
+      display_error(30, (char_t *) "creating window", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     keypad(divider, TRUE);
@@ -1243,7 +1243,7 @@ short set_up_windows(short scrn) {
   /*
    * Free up  space for a file descriptor colour attributes...
    */
-  (*the_free) (fp.attr);
+  free(fp.attr);
   return (RC_OK);
 }
 short draw_divider(void) {
@@ -1305,7 +1305,7 @@ short create_filetabs_window(void) {
   }
   return (RC_OK);
 }
-void pre_process_line(VIEW_DETAILS * the_view, LINETYPE line_number, LINE * known_curr) {
+void pre_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * known_curr) {
   LINE *curr = known_curr;
 
   /*
@@ -1325,14 +1325,14 @@ void pre_process_line(VIEW_DETAILS * the_view, LINETYPE line_number, LINE * know
     pre_rec_len = 0;
   } else {
     memset(pre_rec, ' ', MAX_PREFIX_WIDTH);
-    strcpy((DEFCHAR *) pre_rec, (DEFCHAR *) curr->pre->ppc_orig_command);
-    pre_rec_len = strlen((DEFCHAR *) pre_rec);
+    strcpy((char *) pre_rec, (char *) curr->pre->ppc_orig_command);
+    pre_rec_len = strlen((char *) pre_rec);
     pre_rec[pre_rec_len] = ' ';
     pre_rec[MAX_PREFIX_WIDTH] = '\0';
   }
   return;
 }
-short post_process_line(VIEW_DETAILS * the_view, LINETYPE line_number, LINE * known_curr, bool set_alt) {
+short post_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * known_curr, bool set_alt) {
   LINE *curr = known_curr;
   short rc = RC_OK;
 
@@ -1379,9 +1379,9 @@ short post_process_line(VIEW_DETAILS * the_view, LINETYPE line_number, LINE * kn
    * Realloc the dynamic memory for the line if the line is now longer.
    */
   if (rec_len > curr->length) {
-    curr->line = (CHARTYPE *) (*the_realloc) ((void *) curr->line, (rec_len + 1) * sizeof(CHARTYPE));
+    curr->line = (char_t *) realloc((void *) curr->line, (rec_len + 1) * sizeof(char_t));
     if (curr->line == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
   }
@@ -1400,7 +1400,7 @@ short post_process_line(VIEW_DETAILS * the_view, LINETYPE line_number, LINE * kn
   }
   return (rc);
 }
-bool blank_field(CHARTYPE * field) {
+bool blank_field(char_t * field) {
   if (field == NULL) {
     return (TRUE);              /* field is NULL */
   }
@@ -1409,7 +1409,7 @@ bool blank_field(CHARTYPE * field) {
   }
   return (FALSE);
 }
-void adjust_marked_lines(bool binsert_line, LINETYPE base_line, LINETYPE num_lines) {
+void adjust_marked_lines(bool binsert_line, line_t base_line, line_t num_lines) {
   int iinsert_line = binsert_line;
 
 /*
@@ -1462,7 +1462,7 @@ void adjust_marked_lines(bool binsert_line, LINETYPE base_line, LINETYPE num_lin
   }
   return;
 }
-void adjust_pending_prefix(VIEW_DETAILS * view, bool binsert_line, LINETYPE base_line, LINETYPE num_lines) {
+void adjust_pending_prefix(VIEW_DETAILS * view, bool binsert_line, line_t base_line, line_t num_lines) {
   int iinsert_line = binsert_line;
 
   /*
@@ -1500,8 +1500,8 @@ void adjust_pending_prefix(VIEW_DETAILS * view, bool binsert_line, LINETYPE base
   }
   return;
 }
-CHARTYPE case_translate(CHARTYPE key) {
-  CHARTYPE case_type = CURRENT_VIEW->case_enter;
+char_t case_translate(char_t key) {
+  char_t case_type = CURRENT_VIEW->case_enter;
 
   switch (CURRENT_VIEW->current_window) {
     case WINDOW_COMMAND:
@@ -1521,7 +1521,7 @@ CHARTYPE case_translate(CHARTYPE key) {
   }
   return (key);
 }
-void add_to_recovery_list(CHARTYPE * line, LENGTHTYPE len) {
+void add_to_recovery_list(char_t * line, length_t len) {
   register short i = 0;
 
   /*
@@ -1543,13 +1543,13 @@ void add_to_recovery_list(CHARTYPE * line, LENGTHTYPE len) {
    * Now we are here, lets add to the array.
    */
   if (rcvry[add_rcvry] == NULL) {       /* haven't malloced yet */
-    if ((rcvry[add_rcvry] = (CHARTYPE *) (*the_malloc) ((len + 1) * sizeof(CHARTYPE))) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+    if ((rcvry[add_rcvry] = (char_t *) malloc((len + 1) * sizeof(char_t))) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
       return;
     }
   } else {
-    if ((rcvry[add_rcvry] = (CHARTYPE *) (*the_realloc) (rcvry[add_rcvry], (len + 1) * sizeof(CHARTYPE))) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+    if ((rcvry[add_rcvry] = (char_t *) realloc(rcvry[add_rcvry], (len + 1) * sizeof(char_t))) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
       return;
     }
   }
@@ -1569,7 +1569,7 @@ void get_from_recovery_list(short num) {
    * Return error if nothing to recover.
    */
   if (retr_rcvry == (-1)) {
-    display_error(0, (CHARTYPE *) "0 line(s) recovered", TRUE);
+    display_error(0, (char_t *) "0 line(s) recovered", TRUE);
     return;
   }
   /*
@@ -1588,7 +1588,7 @@ void get_from_recovery_list(short num) {
   if (num_retr)
     increment_alt(CURRENT_FILE);
 
-  sprintf((DEFCHAR *) temp_cmd, "%d line(s) recovered", num_retr);
+  sprintf((char *) temp_cmd, "%d line(s) recovered", num_retr);
   display_error(0, temp_cmd, TRUE);
   return;
 }
@@ -1597,7 +1597,7 @@ void free_recovery_list(void) {
 
   for (i = 0; i < MAX_RECV; i++) {
     if (rcvry[i] != NULL) {
-      (*the_free) (rcvry[i]);
+      free(rcvry[i]);
       rcvry[i] = NULL;
     }
   }
@@ -1632,7 +1632,7 @@ short my_wdelch(WINDOW * win) {
   return (0);
 }
 
-short get_word(CHARTYPE * string, LENGTHTYPE length, LENGTHTYPE curr_pos, LENGTHTYPE * first_col, LENGTHTYPE * last_col)
+short get_word(char_t * string, length_t length, length_t curr_pos, length_t * first_col, length_t * last_col)
 /*
  * A "word" is based on the SET WORD settings
  * Returns the portion of the string containing a "word" to the right
@@ -1644,7 +1644,7 @@ short get_word(CHARTYPE * string, LENGTHTYPE length, LENGTHTYPE curr_pos, LENGTH
  */
 {
   short state = 0;
-  LENGTHTYPE i = 0;
+  length_t i = 0;
 
   /*
    * If we are after the last column of the line, then just ignore the
@@ -1752,7 +1752,7 @@ short get_word(CHARTYPE * string, LENGTHTYPE length, LENGTHTYPE curr_pos, LENGTH
   return (1);
 }
 
-short get_fieldword(CHARTYPE * string, LENGTHTYPE length, LENGTHTYPE curr_pos, LENGTHTYPE * first_col, LENGTHTYPE * last_col)
+short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_t * first_col, length_t * last_col)
 /*
  * A "word" is based on the SET WORD settings
  * Returns the portion of the string containing a "word" nearest
@@ -1786,7 +1786,7 @@ short get_fieldword(CHARTYPE * string, LENGTHTYPE length, LENGTHTYPE curr_pos, L
 #define LOOK_BOTH 1
   short look;
   short state = 0;
-  LENGTHTYPE i = 0, j = 0;
+  length_t i = 0, j = 0;
 
   /*
    * If we are after the last column of the line, then just look left.
@@ -1889,7 +1889,7 @@ short get_fieldword(CHARTYPE * string, LENGTHTYPE length, LENGTHTYPE curr_pos, L
   return (1);
 }
 
-short my_isalphanum(CHARTYPE chr) {
+short my_isalphanum(char_t chr) {
   short char_type = CHAR_OTHER;
 
   if (chr == ' ')
@@ -1919,7 +1919,7 @@ short my_wmove(WINDOW * win, short scridx, short winidx, short y, short x) {
   return (rc);
 }
 
-short get_row_for_tof_eof(short row, CHARTYPE scridx) {
+short get_row_for_tof_eof(short row, char_t scridx) {
   if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_ABOVE) {
     for (; screen[scridx].sl[row].line_type != LINE_TOF; row++)
 /*    for(;screen[scridx].sl[row].line_type != LINE_TOF_EOF;row++) MH12 */
@@ -1943,7 +1943,7 @@ static int query_item_compare(const void *inkey, const void *intpl) {
 
   if (m > tpl->name_length)
     m = tpl->name_length;
-  rc = memcmp(key, (DEFCHAR *) tpl->name, m);
+  rc = memcmp(key, (char *) tpl->name, m);
   if (rc != 0)
     return (rc);
   if (CompareExact) {
@@ -1952,7 +1952,7 @@ static int query_item_compare(const void *inkey, const void *intpl) {
     if (CompareLen < tpl->name_length)
       return (-1);
   } else {
-    if (equal(tpl->name, (CHARTYPE *) key, tpl->min_len))
+    if (equal(tpl->name, (char_t *) key, tpl->min_len))
       return 0;
     if (CompareLen > tpl->name_length)
       return (1);
@@ -1966,7 +1966,7 @@ int search_query_item_array(void *base, size_t num, size_t width, const char *ne
   char *buf = NULL, *result = NULL;
   int i = 0;
 
-  if ((buf = (char *) (*the_malloc) (len + 1)) == NULL) {
+  if ((buf = (char *) malloc(len + 1)) == NULL) {
     return (-1);
   }
 
@@ -1976,7 +1976,7 @@ int search_query_item_array(void *base, size_t num, size_t width, const char *ne
   buf[i] = '\0';
   CompareLen = len;
   result = (char *) bsearch(buf, base, num, width, query_item_compare);
-  (*the_free) (buf);
+  free(buf);
 
   if (result == NULL) {
     return (-1);
@@ -1984,11 +1984,11 @@ int search_query_item_array(void *base, size_t num, size_t width, const char *ne
   return ((int) (((long) result - (long) base) / width));
 }
 
-int split_function_name(CHARTYPE * funcname, int *funcname_length) {
-  int functionname_length = strlen((DEFCHAR *) funcname);
+int split_function_name(char_t * funcname, int *funcname_length) {
+  int functionname_length = strlen((char *) funcname);
   int itemno = 0, pos = 0;
 
-  pos = memreveq((CHARTYPE *) funcname, (CHARTYPE) '.', functionname_length);
+  pos = memreveq((char_t *) funcname, (char_t) '.', functionname_length);
   if (pos == (-1)
       || functionname_length == pos - 1) {
     /*
@@ -1996,13 +1996,13 @@ int split_function_name(CHARTYPE * funcname, int *funcname_length) {
      */
     itemno = -1;
   } else {
-    if (!valid_positive_integer((CHARTYPE *) funcname + pos + 1)) {
+    if (!valid_positive_integer((char_t *) funcname + pos + 1)) {
       /*
        * Not a valid implied extract function; could be a boolean
        */
       itemno = -1;
     } else {
-      itemno = atoi((DEFCHAR *) funcname + pos + 1);
+      itemno = atoi((char *) funcname + pos + 1);
       /*
        * If the tail is > maximum number of variables that we can
        * handle, exit with error.
@@ -2032,12 +2032,12 @@ VIEW_DETAILS *find_filetab(int x) {
   if (FILETABSx) {
     wmove(filetabs, 0, COLS - 1);
     if ((winch(filetabs) & A_CHARTEXT) == '>' && x == COLS - 1) {
-      Tabfile((CHARTYPE *) "+");
+      Tabfile((char_t *) "+");
       return NULL;
     }
     wmove(filetabs, 0, COLS - 2);
     if ((winch(filetabs) & A_CHARTEXT) == '<' && x == COLS - 2) {
-      Tabfile((CHARTYPE *) "-");
+      Tabfile((char_t *) "-");
       return NULL;
     }
     if (filetabs_start_view == NULL)
@@ -2055,7 +2055,7 @@ VIEW_DETAILS *find_filetab(int x) {
       if (process_view) {
         j++;
         if (curr != CURRENT_VIEW) {
-          fname_len = strlen((DEFCHAR *) curr->file_for_view->fname);
+          fname_len = strlen((char *) curr->file_for_view->fname);
           if (first) {
             /*
              * If run from command line, return the VIEW_DETAILS

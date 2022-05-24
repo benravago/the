@@ -36,7 +36,7 @@
 #include <time.h>
 
 static void handle_signal(int);
-static void display_info(CHARTYPE *);
+static void display_info(char_t *);
 static void init_signals(void);
 
 /*--------------------------- global data -----------------------------*/
@@ -46,10 +46,10 @@ VIEW_DETAILS *vd_first = (VIEW_DETAILS *) NULL;
 VIEW_DETAILS *vd_last = (VIEW_DETAILS *) NULL;
 VIEW_DETAILS *vd_mark = (VIEW_DETAILS *) NULL;
 VIEW_DETAILS *filetabs_start_view = (VIEW_DETAILS *) NULL;
-CHARTYPE number_of_views = 0;   /* number of views */
-LINETYPE number_of_files = 0;   /* number of files */
-CHARTYPE display_screens = 1;   /* number of screens */
-CHARTYPE current_screen = 0;
+char_t number_of_views = 0;   /* number of views */
+line_t number_of_files = 0;   /* number of files */
+char_t display_screens = 1;   /* number of screens */
+char_t current_screen = 0;
 SCREEN_DETAILS screen[MAX_SCREENS];     /* 2 screen structures */
 short screen_rows[MAX_SCREENS];
 short screen_cols[MAX_SCREENS];
@@ -69,21 +69,21 @@ bool error_on_screen = FALSE;
 bool colour_support = TRUE;     /* indicates if colour is supported */
 bool initial = TRUE;
 bool been_interactive = FALSE;
-CHARTYPE *rec = NULL;
-LENGTHTYPE rec_len = 0;         /* length of rec */
-CHARTYPE *trec = NULL;
-LENGTHTYPE trec_len = 0;
-LENGTHTYPE max_trec_len = 0;
-CHARTYPE *brec = NULL;
-LENGTHTYPE brec_len = 0;
-CHARTYPE *cmd_rec = NULL;
-LENGTHTYPE cmd_rec_len = 0;     /* length of cmd_rec */
-LENGTHTYPE cmd_verify_col = 1;  /* display offset of cmd 1-based like verify_col */
-CHARTYPE *pre_rec = NULL;
-LENGTHTYPE pre_rec_len = 0;     /* length of pre_cmd_rec */
-CHARTYPE *profile_command_line = NULL;
-CHARTYPE *target_buffer = NULL; /* used in get_item_values() */
-LENGTHTYPE target_buffer_len = 0;       /* length of target buffer */
+char_t *rec = NULL;
+length_t rec_len = 0;         /* length of rec */
+char_t *trec = NULL;
+length_t trec_len = 0;
+length_t max_trec_len = 0;
+char_t *brec = NULL;
+length_t brec_len = 0;
+char_t *cmd_rec = NULL;
+length_t cmd_rec_len = 0;     /* length of cmd_rec */
+length_t cmd_verify_col = 1;  /* display offset of cmd 1-based like verify_col */
+char_t *pre_rec = NULL;
+length_t pre_rec_len = 0;     /* length of pre_cmd_rec */
+char_t *profile_command_line = NULL;
+char_t *target_buffer = NULL; /* used in get_item_values() */
+length_t target_buffer_len = 0;       /* length of target buffer */
 bool focus_changed = FALSE;     /* indicates if focus line has changed */
 bool current_changed = FALSE;   /* indicates if current line has changed */
 bool in_profile = FALSE;        /* indicates if processing profile */
@@ -99,61 +99,61 @@ bool curses_started = FALSE;    /* indicates if curses has started */
 bool the_readonly = FALSE;      /* indicates if running THE in readonly mode */
 bool be_quiet = FALSE;          /* do not display error message header if TRUE */
 
-CHARTYPE *the_version = (CHARTYPE *) THE_VERSION;
-CHARTYPE *the_release = (CHARTYPE *) THE_VERSION_DATE;
-CHARTYPE *the_copyright = (CHARTYPE *) "Copyright 1991-2020 Mark Hessling";
-CHARTYPE term_name[20];         /* $TERM value */
-CHARTYPE *tempfilename = (CHARTYPE *) NULL;
-CHARTYPE *stdinprofile = (CHARTYPE *) NULL;
-CHARTYPE user_home_dir[MAX_FILE_NAME + 1];
+char_t *the_version = (char_t *) THE_VERSION;
+char_t *the_release = (char_t *) THE_VERSION_DATE;
+char_t *the_copyright = (char_t *) "Copyright 1991-2020 Mark Hessling";
+char_t term_name[20];         /* $TERM value */
+char_t *tempfilename = (char_t *) NULL;
+char_t *stdinprofile = (char_t *) NULL;
+char_t user_home_dir[MAX_FILE_NAME + 1];
 
 #define THE_PROFILE_FILE ".therc"
 
 #define THE_FIFO_FILE ".thefifo"
 #define THE_PID_FILE ".thepid"
-CHARTYPE fifo_name[MAX_FILE_NAME + 1];
-CHARTYPE pid_name[MAX_FILE_NAME + 1];
+char_t fifo_name[MAX_FILE_NAME + 1];
+char_t pid_name[MAX_FILE_NAME + 1];
 
-CHARTYPE *rexxoutname = (CHARTYPE *) "REXX.$$$";
-CHARTYPE *keyfilename = (CHARTYPE *) "KEY$$$.$$$";
-CHARTYPE _THE_FAR rexx_pathname[MAX_FILE_NAME + 1];
-CHARTYPE _THE_FAR rexx_filename[10];
-CHARTYPE *dirfilename = (CHARTYPE *) "DIR.DIR";
+char_t *rexxoutname = (char_t *) "REXX.$$$";
+char_t *keyfilename = (char_t *) "KEY$$$.$$$";
+char_t rexx_pathname[MAX_FILE_NAME + 1];
+char_t rexx_filename[10];
+char_t *dirfilename = (char_t *) "DIR.DIR";
 
-CHARTYPE macro_suffix[12] = ".the";     /* default extension for macros */
-CHARTYPE _THE_FAR dir_pathname[MAX_FILE_NAME + 1];
-CHARTYPE dir_filename[10];
-CHARTYPE _THE_FAR key_pathname[MAX_FILE_NAME + 1];
-CHARTYPE key_filename[15];
-CHARTYPE _THE_FAR curr_path[MAX_FILE_NAME + 1];
-CHARTYPE _THE_FAR sp_path[MAX_FILE_NAME + 1];
-CHARTYPE _THE_FAR sp_fname[MAX_FILE_NAME + 1];
-CHARTYPE _THE_FAR dir_path[MAX_FILE_NAME + 1];  /* for dir and ls commands */
-CHARTYPE _THE_FAR dir_files[MAX_FILE_NAME + 1]; /* for dir and ls commands */
-CHARTYPE _THE_FAR rexx_macro_name[MAX_FILE_NAME + 1];   /* current rexx macro name */
-CHARTYPE _THE_FAR rexx_macro_parameters[MAX_FILE_NAME + 1];     /* current rexx macro parameters */
+char_t macro_suffix[12] = ".the";     /* default extension for macros */
+char_t dir_pathname[MAX_FILE_NAME + 1];
+char_t dir_filename[10];
+char_t key_pathname[MAX_FILE_NAME + 1];
+char_t key_filename[15];
+char_t curr_path[MAX_FILE_NAME + 1];
+char_t sp_path[MAX_FILE_NAME + 1];
+char_t sp_fname[MAX_FILE_NAME + 1];
+char_t dir_path[MAX_FILE_NAME + 1];  /* for dir and ls commands */
+char_t dir_files[MAX_FILE_NAME + 1]; /* for dir and ls commands */
+char_t rexx_macro_name[MAX_FILE_NAME + 1];   /* current rexx macro name */
+char_t rexx_macro_parameters[MAX_FILE_NAME + 1];     /* current rexx macro parameters */
 
-CHARTYPE _THE_FAR the_home_dir[MAX_FILE_NAME + 1];
-CHARTYPE _THE_FAR the_help_file[MAX_FILE_NAME + 1];
+char_t the_home_dir[MAX_FILE_NAME + 1];
+char_t the_help_file[MAX_FILE_NAME + 1];
 
-CHARTYPE _THE_FAR the_macro_path[MAX_FILE_NAME + 1];
-CHARTYPE _THE_FAR the_macro_path_buf[MAX_FILE_NAME + 1];
-CHARTYPE **the_macro_dir;
+char_t the_macro_path[MAX_FILE_NAME + 1];
+char_t the_macro_path_buf[MAX_FILE_NAME + 1];
+char_t **the_macro_dir;
 int max_macro_dirs = 0;
 int total_macro_dirs = 0;
 
-CHARTYPE _THE_FAR spooler_name[MAX_FILE_NAME + 1];
+char_t spooler_name[MAX_FILE_NAME + 1];
 
-CHARTYPE *prf_arg = (CHARTYPE *) NULL;
-CHARTYPE *local_prf = (CHARTYPE *) NULL;
-CHARTYPE *specified_prf = (CHARTYPE *) NULL;
+char_t *prf_arg = (char_t *) NULL;
+char_t *local_prf = (char_t *) NULL;
+char_t *specified_prf = (char_t *) NULL;
 
-CHARTYPE tabkey_insert = 'C';
-CHARTYPE tabkey_overwrite = 'T';
+char_t tabkey_insert = 'C';
+char_t tabkey_overwrite = 'T';
 
 struct stat stat_buf;
 
-LENGTHTYPE display_length = 0;
+length_t display_length = 0;
 
 short lastrc = 0;
 short compatible_look = COMPAT_THE;
@@ -162,8 +162,8 @@ short compatible_keys = COMPAT_THE;
 short prefix_width = DEFAULT_PREFIX_WIDTH;
 short prefix_gap = DEFAULT_PREFIX_GAP;
 
-chtype _THE_FAR etmode_table[256];
-bool _THE_FAR etmode_flag[256];
+chtype etmode_table[256];
+bool etmode_flag[256];
 
 bool ncurses_screen_resized = FALSE;
 
@@ -186,38 +186,38 @@ extern int optind;
    /*
     * Following are for original cursor position for EXTRACT /CURSOR/
     */
-LINETYPE original_screen_line = (-1L);
-LINETYPE original_screen_column = (-1L);
-LINETYPE original_file_line = (-1L);
-LINETYPE original_file_column = (-1L);
+line_t original_screen_line = (-1L);
+line_t original_screen_column = (-1L);
+line_t original_file_line = (-1L);
+line_t original_file_column = (-1L);
 
    /*
     * Following are for startup LINE and COLUMN
     */
-LINETYPE startup_line = 0L;
-LENGTHTYPE startup_column = 0;
+line_t startup_line = 0L;
+length_t startup_column = 0;
 
    /*
     * Following are XCurses data
     */
 int gotOutput = 0;
 
-CHARTYPE *linebuf;              /* Buffer for one terminal line, at least 81 elems */
+char_t *linebuf;              /* Buffer for one terminal line, at least 81 elems */
 chtype *linebufch;              /* Buffer for one terminal line in chtype-mode, >= 81 */
-LENGTHTYPE linebuf_size = 0;
+length_t linebuf_size = 0;
 int max_slk_labels = 0;
 int slk_format_switch = 0;
 
-LASTOP _THE_FAR lastop[LASTOP_MAX] = {
-  { NULL, 0, (CHARTYPE *) "alter", 2 },
-  { NULL, 0, (CHARTYPE *) "change", 1 },
-  { NULL, 0, (CHARTYPE *) "clocate", 2 },
-  { NULL, 0, (CHARTYPE *) "count", 3 },
-  { NULL, 0, (CHARTYPE *) "find", 1 },
-  { NULL, 0, (CHARTYPE *) "locate", 1 },
-  { NULL, 0, (CHARTYPE *) "schange", 3 },
-  { NULL, 0, (CHARTYPE *) "tfind", 2 },
-  { NULL, 0, (CHARTYPE *) "search", 3 },
+LASTOP lastop[LASTOP_MAX] = {
+  { NULL, 0, (char_t *) "alter", 2 },
+  { NULL, 0, (char_t *) "change", 1 },
+  { NULL, 0, (char_t *) "clocate", 2 },
+  { NULL, 0, (char_t *) "count", 3 },
+  { NULL, 0, (char_t *) "find", 1 },
+  { NULL, 0, (char_t *) "locate", 1 },
+  { NULL, 0, (char_t *) "schange", 3 },
+  { NULL, 0, (char_t *) "tfind", 2 },
+  { NULL, 0, (char_t *) "search", 3 },
 };
 
    /*
@@ -225,7 +225,7 @@ LASTOP _THE_FAR lastop[LASTOP_MAX] = {
     */
 FILE *record_fp = NULL;
 int record_key = 0;
-CHARTYPE *record_status = NULL;
+char_t *record_status = NULL;
 
    /*
     * Globals to support 16 colours
@@ -234,7 +234,7 @@ short colour_offset_bits = 3;
 
 void atexit_handler(void) {
   if (number_of_views > 0) {
-    Cancel((CHARTYPE *) "SAVE");
+    Cancel((char_t *) "SAVE");
   }
 }
 
@@ -294,48 +294,48 @@ int main(int argc, char *argv[]) {
   /*
    * Initialise the printer spooler.
    */
-  strcpy((DEFCHAR *) spooler_name, (DEFCHAR *) "lpr");
+  strcpy((char *) spooler_name, (char *) "lpr");
   /*
    * Get all environment variables here. Some may be overridden by
    * command-line switches. (future possibility)
    */
   if ((envptr = getenv("HOME")) != NULL) {
-    if (((envptr == NULL) ? 0 : strlen((DEFCHAR *) envptr)) > MAX_FILE_NAME) {
+    if (((envptr == NULL) ? 0 : strlen((char *) envptr)) > MAX_FILE_NAME) {
       cleanup();
-      display_error(7, (CHARTYPE *) envptr, FALSE);
+      display_error(7, (char_t *) envptr, FALSE);
       return (7);
     }
-    strcpy((DEFCHAR *) user_home_dir, envptr);
+    strcpy((char *) user_home_dir, envptr);
   } else
-    strcpy((DEFCHAR *) user_home_dir, "./");
-  if (*(user_home_dir + strlen((DEFCHAR *) user_home_dir) - 1) != ISLASH)
-    strcat((DEFCHAR *) user_home_dir, (DEFCHAR *) ISTR_SLASH);
+    strcpy((char *) user_home_dir, "./");
+  if (*(user_home_dir + strlen((char *) user_home_dir) - 1) != ISLASH)
+    strcat((char *) user_home_dir, (char *) ISTR_SLASH);
   if ((envptr = getenv("TERM")) != NULL)
-    strcpy((DEFCHAR *) term_name, envptr);
+    strcpy((char *) term_name, envptr);
   else
-    strcpy((DEFCHAR *) term_name, "default");
+    strcpy((char *) term_name, "default");
   /*
    * Get THE_HOME_DIR first (as all other paths rely on this value)
    */
   if ((envptr = getenv("THE_HOME_DIR")) != NULL) {
-    strcpy((DEFCHAR *) the_home_dir, envptr);
+    strcpy((char *) the_home_dir, envptr);
     strrmdup(strtrans(the_home_dir, OSLASH, ISLASH), ISLASH, TRUE);
-    if ((the_home_dir[strlen((DEFCHAR *) the_home_dir) - 1]) != ISLASH)
-      strcat((DEFCHAR *) the_home_dir, (DEFCHAR *) ISTR_SLASH);
+    if ((the_home_dir[strlen((char *) the_home_dir) - 1]) != ISLASH)
+      strcat((char *) the_home_dir, (char *) ISTR_SLASH);
   } else {
-    strcpy((DEFCHAR *) the_home_dir, (DEFCHAR *) THE_HOME_DIRECTORY);
+    strcpy((char *) the_home_dir, (char *) THE_HOME_DIRECTORY);
   }
   /*
    * Get THE_MACRO_PATH environment variable. If not set set up default
    * to be THE_HOME_DIR followed by the current directory.
    */
   if ((envptr = getenv("THE_MACRO_PATH")) != NULL)
-    Macropath((CHARTYPE *) envptr);
+    Macropath((char_t *) envptr);
   else {
-    strcpy((DEFCHAR *) the_macro_path, (DEFCHAR *) the_home_dir);
-    if (strlen((DEFCHAR *) the_macro_path) == 0)
-      strcpy((DEFCHAR *) the_macro_path, ".");
-    strcat((DEFCHAR *) the_macro_path, ":.");
+    strcpy((char *) the_macro_path, (char *) the_home_dir);
+    if (strlen((char *) the_macro_path) == 0)
+      strcpy((char *) the_macro_path, ".");
+    strcat((char *) the_macro_path, ":.");
     Macropath(the_macro_path);
   }
   /*
@@ -343,8 +343,8 @@ int main(int argc, char *argv[]) {
    * or the value from -w command line switch.
    */
   if ((envptr = getenv("THE_WIDTH")) != NULL) {
-    if ((rc = valid_positive_integer_against_maximum((CHARTYPE *) envptr, MAX_WIDTH_NUM)) == 0) {
-      LENGTHTYPE tmplen = atol(envptr);
+    if ((rc = valid_positive_integer_against_maximum((char_t *) envptr, MAX_WIDTH_NUM)) == 0) {
+      length_t tmplen = atol(envptr);
 
       if (tmplen >= 10L && tmplen <= MAX_WIDTH_NUM) {
         max_line_length = tmplen;
@@ -403,7 +403,7 @@ int main(int argc, char *argv[]) {
         if (slk_format == 0) {
           cleanup();
           STARTUPCONSOLE();
-          display_error(4, (CHARTYPE *) optarg, FALSE);
+          display_error(4, (char_t *) optarg, FALSE);
           CLOSEDOWNCONSOLE();
           return (4);
         }
@@ -411,9 +411,9 @@ int main(int argc, char *argv[]) {
           char buf[MAX_FILE_NAME + 1];
 
           cleanup();
-          sprintf((DEFCHAR *) buf, "SLK format must be >= 1 and <= %d", MAX_SLK_FORMAT);
+          sprintf((char *) buf, "SLK format must be >= 1 and <= %d", MAX_SLK_FORMAT);
           STARTUPCONSOLE();
-          display_error(6, (CHARTYPE *) buf, FALSE);
+          display_error(6, (char_t *) buf, FALSE);
           CLOSEDOWNCONSOLE();
           return (4);
         }
@@ -439,21 +439,21 @@ int main(int argc, char *argv[]) {
         SBx = TRUE;
         break;
       case 'l':                /* set current line on startup */
-        startup_line = (LINETYPE) atol(optarg);
+        startup_line = (line_t) atol(optarg);
         if (startup_line < 0L) {
           cleanup();
           STARTUPCONSOLE();
-          display_error(5, (CHARTYPE *) "startup line MUST be > 0", FALSE);
+          display_error(5, (char_t *) "startup line MUST be > 0", FALSE);
           CLOSEDOWNCONSOLE();
           return (4);
         }
         break;
       case 'c':                /* set current column on startup */
-        startup_column = (LENGTHTYPE) atoi(optarg);
+        startup_column = (length_t) atoi(optarg);
         if (startup_column == 0) {
           cleanup();
           STARTUPCONSOLE();
-          display_error(5, (CHARTYPE *) "startup column MUST be > 0", FALSE);
+          display_error(5, (char_t *) "startup column MUST be > 0", FALSE);
           CLOSEDOWNCONSOLE();
           return (4);
         }
@@ -471,27 +471,27 @@ int main(int argc, char *argv[]) {
         the_readonly = TRUE;
         break;
       case 'p':                /* profile file name */
-        if ((specified_prf = (CHARTYPE *) (*the_malloc) ((strlen(optarg) + 1) * sizeof(CHARTYPE))) == NULL) {
+        if ((specified_prf = (char_t *) malloc((strlen(optarg) + 1) * sizeof(char_t))) == NULL) {
           cleanup();
           STARTUPCONSOLE();
-          display_error(30, (CHARTYPE *) "", FALSE);
+          display_error(30, (char_t *) "", FALSE);
           CLOSEDOWNCONSOLE();
           return (2);
         }
-        strcpy((DEFCHAR *) specified_prf, (DEFCHAR *) optarg);
+        strcpy((char *) specified_prf, (char *) optarg);
         break;
       case 'a':                /* profile arguments */
-        if ((prf_arg = (CHARTYPE *) (*the_malloc) ((strlen(optarg) + 1) * sizeof(CHARTYPE))) == NULL) {
+        if ((prf_arg = (char_t *) malloc((strlen(optarg) + 1) * sizeof(char_t))) == NULL) {
           cleanup();
           STARTUPCONSOLE();
-          display_error(30, (CHARTYPE *) "", FALSE);
+          display_error(30, (char_t *) "", FALSE);
           CLOSEDOWNCONSOLE();
           return (3);
         }
-        strcpy((DEFCHAR *) prf_arg, (DEFCHAR *) optarg);
+        strcpy((char *) prf_arg, (char *) optarg);
         break;
       case 'w':                /* width of line */
-        if ((rc = valid_positive_integer_against_maximum((CHARTYPE *) optarg, MAX_WIDTH_NUM)) != 0) {
+        if ((rc = valid_positive_integer_against_maximum((char_t *) optarg, MAX_WIDTH_NUM)) != 0) {
           cleanup();
           /* safe to use mygetopt_opts as we are bailing out */
           if (rc == 4)
@@ -499,7 +499,7 @@ int main(int argc, char *argv[]) {
           else
             sprintf(mygetopt_opts, "- width MUST be <= %ld", MAX_WIDTH_NUM);
           STARTUPCONSOLE();
-          display_error(rc, (CHARTYPE *) mygetopt_opts, FALSE);
+          display_error(rc, (char_t *) mygetopt_opts, FALSE);
           CLOSEDOWNCONSOLE();
           return (4);
         }
@@ -507,7 +507,7 @@ int main(int argc, char *argv[]) {
         if (max_line_length < 10L) {
           cleanup();
           STARTUPCONSOLE();
-          display_error(5, (CHARTYPE *) "- width MUST be >= 10", FALSE);
+          display_error(5, (char_t *) "- width MUST be >= 10", FALSE);
           CLOSEDOWNCONSOLE();
           return (4);
         }
@@ -516,7 +516,7 @@ int main(int argc, char *argv[]) {
           /* safe to use mygetopt_opts as we are bailing out */
           sprintf(mygetopt_opts, "- width MUST be <= %ld", MAX_WIDTH_NUM);
           STARTUPCONSOLE();
-          display_error(6, (CHARTYPE *) mygetopt_opts, FALSE);
+          display_error(6, (char_t *) mygetopt_opts, FALSE);
           CLOSEDOWNCONSOLE();
           return (5);
         }
@@ -526,7 +526,7 @@ int main(int argc, char *argv[]) {
         if (display_length == 0) {
           cleanup();
           STARTUPCONSOLE();
-          display_error(5, (CHARTYPE *) "- display length MUST be > 0", FALSE);
+          display_error(5, (char_t *) "- display length MUST be > 0", FALSE);
           CLOSEDOWNCONSOLE();
           return (4);
         }
@@ -534,7 +534,7 @@ int main(int argc, char *argv[]) {
       case 'h':
         cleanup();
         STARTUPCONSOLE();
-        display_info((CHARTYPE *) my_argv[0]);
+        display_info((char_t *) my_argv[0]);
         CLOSEDOWNCONSOLE();
         return (0);
         break;
@@ -545,13 +545,13 @@ int main(int argc, char *argv[]) {
          * for the path, otherwise use the supplied value
          */
         if (optarg == NULL) {
-          strcpy((DEFCHAR *) fifo_name, (DEFCHAR *) user_home_dir);
-          strcat((DEFCHAR *) fifo_name, (DEFCHAR *) THE_FIFO_FILE);
-          strcpy((DEFCHAR *) pid_name, (DEFCHAR *) user_home_dir);
-          strcat((DEFCHAR *) pid_name, (DEFCHAR *) THE_PID_FILE);
+          strcpy((char *) fifo_name, (char *) user_home_dir);
+          strcat((char *) fifo_name, (char *) THE_FIFO_FILE);
+          strcpy((char *) pid_name, (char *) user_home_dir);
+          strcat((char *) pid_name, (char *) THE_PID_FILE);
           break;
         }
-        strcpy((DEFCHAR *) fifo_name, (DEFCHAR *) optarg);
+        strcpy((char *) fifo_name, (char *) optarg);
         break;
       default:
         break;
@@ -561,10 +561,10 @@ int main(int argc, char *argv[]) {
   if (optind < my_argc) {
     while (optind < my_argc) {
       /* for each trailing arg; assumed to be filenames, add each to a list of filenames to be edited */
-      if ((current_file_name = add_LINE(first_file_name, current_file_name, strrmdup(strtrans((CHARTYPE *) my_argv[optind], OSLASH, ISLASH), ISLASH, TRUE), strlen(my_argv[optind]), 0, TRUE)) == NULL) {
+      if ((current_file_name = add_LINE(first_file_name, current_file_name, strrmdup(strtrans((char_t *) my_argv[optind], OSLASH, ISLASH), ISLASH, TRUE), strlen(my_argv[optind]), 0, TRUE)) == NULL) {
         cleanup();
         STARTUPCONSOLE();
-        display_error(30, (CHARTYPE *) "", FALSE);
+        display_error(30, (char_t *) "", FALSE);
         CLOSEDOWNCONSOLE();
         return (6);
       }
@@ -574,10 +574,10 @@ int main(int argc, char *argv[]) {
     }
   } else {
     /* add the current dir to the list of files to be edited */
-    if ((current_file_name = add_LINE(first_file_name, current_file_name, CURRENT_DIR, strlen((DEFCHAR *) CURRENT_DIR), 0, TRUE)) == NULL) {
+    if ((current_file_name = add_LINE(first_file_name, current_file_name, CURRENT_DIR, strlen((char *) CURRENT_DIR), 0, TRUE)) == NULL) {
       cleanup();
       STARTUPCONSOLE();
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       CLOSEDOWNCONSOLE();
       return (7);
     }
@@ -593,7 +593,7 @@ int main(int argc, char *argv[]) {
   if (rc) {
     cleanup();
     STARTUPCONSOLE();
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     CLOSEDOWNCONSOLE();
     return (rc);
   }
@@ -604,10 +604,10 @@ int main(int argc, char *argv[]) {
     length = THE_MAX_SCREEN_WIDTH + 1;
 
   linebuf_size = length;
-  if ((linebuf = (CHARTYPE *) (*the_malloc) (linebuf_size)) == NULL) {
+  if ((linebuf = (char_t *) malloc(linebuf_size)) == NULL) {
     cleanup();
     STARTUPCONSOLE();
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     CLOSEDOWNCONSOLE();
     return (30);
   }
@@ -630,7 +630,7 @@ int main(int argc, char *argv[]) {
   if (display_length > 0 && display_length > max_line_length) {
     cleanup();
     STARTUPCONSOLE();
-    display_error(6, (CHARTYPE *) "- width MUST be >= display length", FALSE);
+    display_error(6, (char_t *) "- width MUST be >= display length", FALSE);
     CLOSEDOWNCONSOLE();
     return (8);
   }
@@ -641,14 +641,14 @@ int main(int argc, char *argv[]) {
     FILE *fp = NULL;
     int num = 0;
 
-    if ((stdinprofile = (CHARTYPE *) strdup(tmpnam(NULL))) == NULL)     // thetmpnam ( "PRF" )
+    if ((stdinprofile = (char_t *) strdup(tmpnam(NULL))) == NULL)     // thetmpnam ( "PRF" )
     {
       cleanup();
       return (31);
     }
-    if ((fp = fopen((DEFCHAR *) stdinprofile, "w")) == NULL) {
-      (*the_free) (stdinprofile);
-      (*the_free) (specified_prf);
+    if ((fp = fopen((char *) stdinprofile, "w")) == NULL) {
+      free(stdinprofile);
+      free(specified_prf);
       cleanup();
       return (8);
     }
@@ -670,14 +670,14 @@ int main(int argc, char *argv[]) {
     }
   }
   if (specified_prf != NULL)
-    (*the_free) (specified_prf);
+    free(specified_prf);
   /*
    * Allocate memory to pre_rec and set it to blanks.
    */
-  if ((pre_rec = (CHARTYPE *) (*the_malloc) ((MAX_PREFIX_WIDTH + 1) * sizeof(CHARTYPE))) == NULL) {
+  if ((pre_rec = (char_t *) malloc((MAX_PREFIX_WIDTH + 1) * sizeof(char_t))) == NULL) {
     cleanup();
     STARTUPCONSOLE();
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     CLOSEDOWNCONSOLE();
     return (16);
   }
@@ -686,9 +686,9 @@ int main(int argc, char *argv[]) {
   /*
    * Set up filename for directory temporary file (DIR.DIR).
    */
-  strcpy((DEFCHAR *) dir_pathname, (DEFCHAR *) user_home_dir);
+  strcpy((char *) dir_pathname, (char *) user_home_dir);
 
-  strcat((DEFCHAR *) dir_pathname, (DEFCHAR *) dirfilename);
+  strcat((char *) dir_pathname, (char *) dirfilename);
   if (splitpath(dir_pathname) != RC_OK) {
     cleanup();
     STARTUPCONSOLE();
@@ -696,13 +696,13 @@ int main(int argc, char *argv[]) {
     CLOSEDOWNCONSOLE();
     return (18);
   }
-  strcpy((DEFCHAR *) dir_pathname, (DEFCHAR *) sp_path);
-  strcpy((DEFCHAR *) dir_filename, (DEFCHAR *) sp_fname);
+  strcpy((char *) dir_pathname, (char *) sp_path);
+  strcpy((char *) dir_filename, (char *) sp_fname);
 
   /*
    * Set up a temporary file name for output from PUT command to go...
    */
-  if ((tempfilename = (CHARTYPE *) strdup(tmpnam(NULL))) == NULL)       // thetmpnam ( "TMP" )
+  if ((tempfilename = (char_t *) strdup(tmpnam(NULL))) == NULL)       // thetmpnam ( "TMP" )
   {
     cleanup();
     return (31);
@@ -756,18 +756,18 @@ int main(int argc, char *argv[]) {
      */
     current_file_name = first_file_name;
     while (current_file_name != NULL) {
-      if ((rc = get_file((CHARTYPE *) current_file_name->line)) != RC_OK) {
+      if ((rc = get_file((char_t *) current_file_name->line)) != RC_OK) {
         cleanup();
         if (rc == RC_DISK_FULL) {
           STARTUPCONSOLE();
-          display_error(57, (CHARTYPE *) "...probably", FALSE);
+          display_error(57, (char_t *) "...probably", FALSE);
           CLOSEDOWNCONSOLE();
         }
         return (21);
       }
       pre_process_line(CURRENT_VIEW, 0L, (LINE *) NULL);
       if (execute_profile) {
-        if (local_prf != (CHARTYPE *) NULL)
+        if (local_prf != (char_t *) NULL)
           rc = get_profile(local_prf, prf_arg);
         if (error_on_screen) {
           error_on_screen = FALSE;
@@ -780,7 +780,7 @@ int main(int argc, char *argv[]) {
      * If THE has been used only in batch, exit here.
      */
     if (number_of_files != 0) {
-      sprintf((DEFCHAR *) rec, "%ld", number_of_files);
+      sprintf((char *) rec, "%ld", number_of_files);
       STARTUPCONSOLE();
       display_error(77, rec, FALSE);
       CLOSEDOWNCONSOLE();
@@ -816,7 +816,7 @@ int main(int argc, char *argv[]) {
    */
   terminal_lines = LINES;
   terminal_cols = COLS;
-  if ((linebufch = (chtype *) (*the_malloc) (linebuf_size * sizeof(chtype))) == NULL) {
+  if ((linebufch = (chtype *) malloc(linebuf_size * sizeof(chtype))) == NULL) {
     cleanup();
     return (30);
   }
@@ -841,7 +841,7 @@ int main(int argc, char *argv[]) {
   keypad(stdscr, TRUE);
   notimeout(stdscr, TRUE);
   def_prog_mode();
-  (void) THETypeahead((CHARTYPE *) "OFF");
+  (void) THETypeahead((char_t *) "OFF");
   /*
    * Set up mouse support if enabled in curses library.
    */
@@ -865,34 +865,34 @@ int main(int argc, char *argv[]) {
   if (create_statusline_window() != RC_OK) {
     cleanup();
     STARTUPCONSOLE();
-    display_error(0, (CHARTYPE *) "creating status line window", FALSE);
+    display_error(0, (char_t *) "creating status line window", FALSE);
     CLOSEDOWNCONSOLE();
     return (23);
   }
   if (create_filetabs_window() != RC_OK) {
     cleanup();
     STARTUPCONSOLE();
-    display_error(0, (CHARTYPE *) "creating filetabs window", FALSE);
+    display_error(0, (char_t *) "creating filetabs window", FALSE);
     CLOSEDOWNCONSOLE();
     return (23);
   }
   /*
    * Set up ETMODE tables...
    */
-  (void) Etmode((CHARTYPE *) "OFF");
+  (void) Etmode((char_t *) "OFF");
   /*
    * Add the default settings to statusline before the profile
    * file is executed so they can be overridden
    */
-  Statopt((CHARTYPE *) "ON NBFILE.1 13 0 Files=");
-  Statopt((CHARTYPE *) "ON WIDTH.1 23 0 Width=");
+  Statopt((char_t *) "ON NBFILE.1 13 0 Files=");
+  Statopt((char_t *) "ON WIDTH.1 23 0 Width=");
   /*
    * Read each file into memory and apply the profile file to each of the
    * files.
    */
   current_file_name = first_file_name;
   while (current_file_name != NULL) {
-    rc = EditFile((CHARTYPE *) current_file_name->line, TRUE);
+    rc = EditFile((char_t *) current_file_name->line, TRUE);
     if (rc != RC_OK) {
       cleanup();
       return (24);
@@ -932,21 +932,21 @@ int main(int argc, char *argv[]) {
     first_prefix_synonym = lll_free(first_prefix_synonym);
   if (first_mouse_define != NULL)
     first_mouse_define = dll_free(first_mouse_define);
-  (*the_free) (rec);
-  (*the_free) (trec);
-  (*the_free) (brec);
-  (*the_free) (cmd_rec);
-  (*the_free) (pre_rec);
-  (*the_free) (linebuf);
-  (*the_free) (linebufch);
+  free(rec);
+  free(trec);
+  free(brec);
+  free(cmd_rec);
+  free(pre_rec);
+  free(linebuf);
+  free(linebufch);
   if (profile_command_line != NULL)
-    (*the_free) (profile_command_line);
+    free(profile_command_line);
   if (screen[0].sl != NULL)
-    (*the_free) (screen[0].sl);
+    free(screen[0].sl);
   if (screen[1].sl != NULL)
-    (*the_free) (screen[1].sl);
+    free(screen[1].sl);
   if (the_macro_dir)
-    (*the_free) (the_macro_dir);
+    free(the_macro_dir);
   /*
    * Free memory for temp_params and tmp_cmd.
    */
@@ -957,13 +957,13 @@ int main(int argc, char *argv[]) {
   free_temp_space(TEMP_TMP_CMD);
 
   if (local_prf != NULL)
-    (*the_free) (local_prf);
+    free(local_prf);
   if (prf_arg != NULL)
-    (*the_free) (prf_arg);
+    free(prf_arg);
   free_recovery_list();
 
   if (target_buffer != NULL)
-    (*the_free) (target_buffer);
+    free(target_buffer);
 
   if (divider != (WINDOW *) NULL) {
     delwin(divider);
@@ -974,7 +974,7 @@ int main(int argc, char *argv[]) {
     error_window = (WINDOW *) NULL;
   }
   if (last_message != NULL)
-    (*the_free) (last_message);
+    free(last_message);
   /*
    * Destroy the builtin parsers...
    */
@@ -1050,7 +1050,7 @@ void init_colour_pairs(void) {
   }
   return;
 }
-int setup_profile_files(CHARTYPE * specified_prf) {
+int setup_profile_files(char_t * specified_prf) {
   int rc = RC_OK;
   char *envptr = NULL;
   short errnum = 0;
@@ -1059,19 +1059,19 @@ int setup_profile_files(CHARTYPE * specified_prf) {
    * If a profile specified on the command line, set it up as the local
    * profile. It MUST exist and be readable, otherwise an error.
    */
-  if (specified_prf != (CHARTYPE *) NULL) {
-    if ((local_prf = (CHARTYPE *) (*the_malloc) ((MAX_FILE_NAME + 1) * sizeof(CHARTYPE))) == NULL)
+  if (specified_prf != (char_t *) NULL) {
+    if ((local_prf = (char_t *) malloc((MAX_FILE_NAME + 1) * sizeof(char_t))) == NULL)
       return (RC_OUT_OF_MEMORY);
     rc = get_valid_macro_file_name(specified_prf, local_prf, macro_suffix, &errnum);
     if (rc != RC_OK) {
       display_error(9, specified_prf, FALSE);
-      (*the_free) (local_prf);
+      free(local_prf);
       local_prf = NULL;
       return (rc);
     }
     if (file_exists(local_prf) != THE_FILE_EXISTS) {
       display_error(9, local_prf, FALSE);
-      (*the_free) (local_prf);
+      free(local_prf);
       local_prf = NULL;
       return (RC_FILE_NOT_FOUND);
     }
@@ -1080,7 +1080,7 @@ int setup_profile_files(CHARTYPE * specified_prf) {
      */
     if (!file_readable(local_prf)) {
       display_error(8, local_prf, FALSE);
-      (*the_free) (local_prf);
+      free(local_prf);
       local_prf = NULL;
       return (RC_ACCESS_DENIED);
     }
@@ -1091,12 +1091,12 @@ int setup_profile_files(CHARTYPE * specified_prf) {
    * profile. It does have to exist and be readable..
    */
   if ((envptr = getenv("THE_PROFILE_FILE")) != NULL) {
-    if ((local_prf = (CHARTYPE *) (*the_malloc) ((MAX_FILE_NAME + 1) * sizeof(CHARTYPE))) == NULL)
+    if ((local_prf = (char_t *) malloc((MAX_FILE_NAME + 1) * sizeof(char_t))) == NULL)
       return (RC_OUT_OF_MEMORY);
-    strcpy((DEFCHAR *) local_prf, envptr);
+    strcpy((char *) local_prf, envptr);
     if (file_exists(local_prf) != THE_FILE_EXISTS) {
       display_error(9, local_prf, FALSE);
-      (*the_free) (local_prf);
+      free(local_prf);
       local_prf = NULL;
       return (RC_FILE_NOT_FOUND);
     }
@@ -1105,7 +1105,7 @@ int setup_profile_files(CHARTYPE * specified_prf) {
      */
     if (!file_readable(local_prf)) {
       display_error(8, local_prf, FALSE);
-      (*the_free) (local_prf);
+      free(local_prf);
       local_prf = NULL;
       return (RC_ACCESS_DENIED);
     }
@@ -1114,13 +1114,13 @@ int setup_profile_files(CHARTYPE * specified_prf) {
   /*
    * No specific profile, so check for default profiles.
    */
-  if ((local_prf = (CHARTYPE *) (*the_malloc) ((MAX_FILE_NAME + 1) * sizeof(CHARTYPE))) == NULL)
+  if ((local_prf = (char_t *) malloc((MAX_FILE_NAME + 1) * sizeof(char_t))) == NULL)
     return (RC_OUT_OF_MEMORY);
   /*
    * For Unix, use a local profile first...
    */
-  strcpy((DEFCHAR *) local_prf, (DEFCHAR *) user_home_dir);
-  strcat((DEFCHAR *) local_prf, (DEFCHAR *) THE_PROFILE_FILE);
+  strcpy((char *) local_prf, (char *) user_home_dir);
+  strcat((char *) local_prf, (char *) THE_PROFILE_FILE);
   strrmdup(strtrans(local_prf, OSLASH, ISLASH), ISLASH, TRUE);
   if (file_readable(local_prf))
     return (rc);
@@ -1131,19 +1131,19 @@ int setup_profile_files(CHARTYPE * specified_prf) {
    * Lastly try for a default profile file in THE_HOME_DIR if set
    * or directory where THE executable lives
    */
-  strcpy((DEFCHAR *) local_prf, (DEFCHAR *) the_home_dir);
-  strcat((DEFCHAR *) local_prf, (DEFCHAR *) THE_PROFILE_FILE);
+  strcpy((char *) local_prf, (char *) the_home_dir);
+  strcat((char *) local_prf, (char *) THE_PROFILE_FILE);
   strrmdup(strtrans(local_prf, OSLASH, ISLASH), ISLASH, TRUE);
   if (file_readable(local_prf))
     return (rc);
   /*
    * To get here, no profile files to be executed.
    */
-  (*the_free) (local_prf);
-  local_prf = (CHARTYPE *) NULL;
+  free(local_prf);
+  local_prf = (char_t *) NULL;
   return (rc);
 }
-static void display_info(CHARTYPE * argv0) {
+static void display_info(char_t * argv0) {
   fprintf(stdout, "\nTHE %s %2s %s. All rights reserved.\n", the_version, the_release, the_copyright);
   fprintf(stdout, "THE is distributed under the terms of the GNU General Public License \n");
   fprintf(stdout, "and comes with NO WARRANTY. See the file COPYING for details.\n");
@@ -1172,38 +1172,38 @@ int allocate_working_memory(void) {
    * Allocate some memory to rec.
    */
   if (rec == NULL)
-    rec = (CHARTYPE *) (*the_malloc) ((max_line_length + 5) * sizeof(CHARTYPE));
+    rec = (char_t *) malloc((max_line_length + 5) * sizeof(char_t));
   else
-    rec = (CHARTYPE *) (*the_realloc) (rec, (max_line_length + 5) * sizeof(CHARTYPE));
+    rec = (char_t *) realloc(rec, (max_line_length + 5) * sizeof(char_t));
   if (rec == NULL)
     return (10);
   /*
    * Allocate some memory to trec; buffer for file line.
    */
-  max_trec_len = trec_len = max((LENGTHTYPE) (30 * 80), (LENGTHTYPE) ((max_line_length + 2) * 2));
+  max_trec_len = trec_len = max((length_t) (30 * 80), (length_t) ((max_line_length + 2) * 2));
   if (trec == NULL)
-    trec = (CHARTYPE *) (*the_malloc) (trec_len * sizeof(CHARTYPE));
+    trec = (char_t *) malloc(trec_len * sizeof(char_t));
   else
-    trec = (CHARTYPE *) (*the_realloc) (trec, trec_len * sizeof(CHARTYPE));
+    trec = (char_t *) realloc(trec, trec_len * sizeof(char_t));
   if (trec == NULL)
     return (11);
   /*
    * Allocate some memory to brec; buffer for reading files.
    */
-  brec_len = max((LENGTHTYPE) (30 * 80), (LENGTHTYPE) ((max_line_length + 2)));
+  brec_len = max((length_t) (30 * 80), (length_t) ((max_line_length + 2)));
   if (brec == NULL)
-    brec = (CHARTYPE *) (*the_malloc) (brec_len * sizeof(CHARTYPE));
+    brec = (char_t *) malloc(brec_len * sizeof(char_t));
   else
-    brec = (CHARTYPE *) (*the_realloc) (brec, brec_len * sizeof(CHARTYPE));
+    brec = (char_t *) realloc(brec, brec_len * sizeof(char_t));
   if (brec == NULL)
     return (11);
   /*
    * Allocate memory to cmd_rec and set it to blanks.
    */
   if (cmd_rec == NULL)
-    cmd_rec = (CHARTYPE *) (*the_malloc) ((max_line_length + 2) * sizeof(CHARTYPE));
+    cmd_rec = (char_t *) malloc((max_line_length + 2) * sizeof(char_t));
   else
-    cmd_rec = (CHARTYPE *) (*the_realloc) (cmd_rec, (max_line_length + 2) * sizeof(CHARTYPE));
+    cmd_rec = (char_t *) realloc(cmd_rec, (max_line_length + 2) * sizeof(char_t));
   if (cmd_rec == NULL)
     return (12);
   memset(cmd_rec, ' ', max_line_length);
@@ -1226,9 +1226,9 @@ int allocate_working_memory(void) {
    * do this if NO Rexx support).
    */
   if (profile_command_line == NULL)
-    profile_command_line = (CHARTYPE *) (*the_malloc) ((max_line_length + 2) * sizeof(CHARTYPE));
+    profile_command_line = (char_t *) malloc((max_line_length + 2) * sizeof(char_t));
   else
-    profile_command_line = (CHARTYPE *) (*the_realloc) (profile_command_line, (max_line_length + 2) * sizeof(CHARTYPE));
+    profile_command_line = (char_t *) realloc(profile_command_line, (max_line_length + 2) * sizeof(char_t));
   if (profile_command_line == NULL)
     return (17);
   return (0);
@@ -1238,7 +1238,7 @@ void cleanup(void) {
 
   if (curses_started) {
     if (error_on_screen && error_window != NULL) {
-      display_error(0, (CHARTYPE *) HIT_ANY_KEY, FALSE);
+      display_error(0, (char_t *) HIT_ANY_KEY, FALSE);
       wrefresh(error_window);
       /*
        * Real hack here. If we have an error caused by editing the first file
@@ -1264,12 +1264,12 @@ void cleanup(void) {
   if (tempfilename) {
     if (file_exists(tempfilename) == THE_FILE_EXISTS)
       remove_file(tempfilename);
-    (*the_free) (tempfilename);
+    free(tempfilename);
   }
   if (stdinprofile) {
     if (file_exists(stdinprofile) == THE_FILE_EXISTS)
       remove_file(stdinprofile);
-    (*the_free) (stdinprofile);
+    free(stdinprofile);
   }
 
   /*

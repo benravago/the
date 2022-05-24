@@ -38,25 +38,25 @@
 bool BEEPx;
 bool CAPREXXOUTx;
 bool ERROROUTPUTx;
-LINETYPE CAPREXXMAXx;
+line_t CAPREXXMAXx;
 bool CLEARSCREENx;
 int CLEARERRORKEYx;
 bool CLOCKx;
-CHARTYPE CMDARROWSTABCMDx;
-CHARTYPE EOLx;
+char_t CMDARROWSTABCMDx;
+char_t EOLx;
 bool HEXDISPLAYx;
 bool INSERTMODEx;
 bool LINEND_STATUSx;            /* not really global, but used in command_line() */
-CHARTYPE LINEND_VALUEx;         /* not really global, but used in command_line() */
-CHARTYPE NONDISPx;
-CHARTYPE PREFIXx;               /* not really global but used in set_screen_defaults() */
+char_t LINEND_VALUEx;         /* not really global, but used in command_line() */
+char_t NONDISPx;
+char_t PREFIXx;               /* not really global but used in set_screen_defaults() */
 bool REPROFILEx;
 bool DONT_CALL_DEFSORTx = FALSE;
-CHARTYPE TABI_ONx;
-CHARTYPE TABI_Nx;
-CHARTYPE EQUIVCHARx;            /* equivalence character */
-CHARTYPE EQUIVCHARstr[2];       /* equivalence character as a string */
-ROWTYPE STATUSLINEx = 'B';
+char_t TABI_ONx;
+char_t TABI_Nx;
+char_t EQUIVCHARx;            /* equivalence character */
+char_t EQUIVCHARstr[2];       /* equivalence character as a string */
+row_t STATUSLINEx = 'B';
 bool FILETABSx = FALSE;         /* file tabs are off by default */
 bool TYPEAHEADx;
 bool scroll_cursor_stay;        /* determine how page scrolling is handled */
@@ -73,31 +73,31 @@ int popup_escape_keys[MAXIMUM_POPUP_KEYS];
 PARSER_DETAILS *first_parser = NULL, *last_parser = NULL;
 PARSER_MAPPING *first_parser_mapping = NULL, *last_parser_mapping = NULL;
 bool CTLCHARx = FALSE;
-CHARTYPE ctlchar_escape = 0;
+char_t ctlchar_escape = 0;
 COLOUR_ATTR ctlchar_attr[MAX_CTLCHARS]; /* colour attributes for ctlchar */
-CHARTYPE ctlchar_char[MAX_CTLCHARS];    /* escape chars for ctlchar */
+char_t ctlchar_char[MAX_CTLCHARS];    /* escape chars for ctlchar */
 bool ctlchar_protect[MAX_CTLCHARS];     /* protected ctlchar */
-CHARTYPE INTERFACEx = INTERFACE_CLASSIC;        /* behavioural interface */
+char_t INTERFACEx = INTERFACE_CLASSIC;        /* behavioural interface */
 int TARGETSAVEx = TARGET_ALL;
 bool save_for_repeat = 1;
-CHARTYPE BACKUP_SUFFIXx[101];
+char_t BACKUP_SUFFIXx[101];
 int COMMANDCALLSx = 0;
 int FUNCTIONCALLSx = 0;
 bool inDIALOG = FALSE;          /* indicates if we are running a dialog or alert */
-CHARTYPE ERRORFORMATx = 'N';    /* normal error text format */
+char_t ERRORFORMATx = 'N';    /* normal error text format */
 int last_command_index = -1;
 
 /*--------------------------- default parsers -------------------------*/
 typedef struct {
-  CHARTYPE *filename;
-  CHARTYPE *name;
-  CHARTYPE *contents;
+  char_t *filename;
+  char_t *name;
+  char_t *contents;
 } DEFAULT_PARSERS;
 
-DEFAULT_PARSERS _THE_FAR default_parsers[] = {
-  { (CHARTYPE *) "*REXX.TLD",
-   (CHARTYPE *) "REXX",
-   (CHARTYPE *) "* REXX\n:case\nignore\n:option\nrexx\nfunction ( noblank\n:number\nrexx\n:identifier\n[a-zA-Z!?_@#$.] [a-zA-Z0-9.!?_@#$]\n" ":string\nsingle\ndouble\n:comment\npaired /* */ nest\nline -- any\n"
+DEFAULT_PARSERS default_parsers[] = {
+  { (char_t *) "*REXX.TLD",
+   (char_t *) "REXX",
+   (char_t *) "* REXX\n:case\nignore\n:option\nrexx\nfunction ( noblank\n:number\nrexx\n:identifier\n[a-zA-Z!?_@#$.] [a-zA-Z0-9.!?_@#$]\n" ":string\nsingle\ndouble\n:comment\npaired /* */ nest\nline -- any\n"
    ":label\ndelimiter : firstnonblank\n:match\n( )\ndo,select end when,otherwise\n:header\nline #! column 1\n" ":keyword\naddress type 5\narg type 7\nby type 2\ncall type 5\ncaseless type 2\ndigits type 2\ndo type 5\ndrop type 1\n"
    "else type 1\nend type 1\nengineering type 2\nexit type 1\nexpose type 2\nfor type 2\nforever type 2\n" "form type 2\nfuzz type 2\nhalt\nif type 1\ninterpret type 1\niterate type 1\nleave type 1\nlower type 2\nname type 2\nnop type 1\n"
    "novalue\nnumeric type 5\noff type 2\non type 2\noptions type 1\notherwise type 1\nparse type 5\nprocedure type 5\n" "pull type 7\npush type 1\nqueue type 1\nreturn type 1\nsay type 1\nscientific type 2\nselect type 1\n"
@@ -108,32 +108,32 @@ DEFAULT_PARSERS _THE_FAR default_parsers[] = {
    "subword\ntranslate\nverify\nword\nwordindex\nwordlength\nwordpos\nwords\nxrange\n" "abs\nformat\nmax\nmin\nsign\ntrunc\naddress\narg\ncondition\ndigits\nerrortext\nform\n"
    "fuzz\nsourceline\ntrace\nb2x\nbitand\nbitor\nbitxor\nc2d\nc2x\nd2c\nd2x\nx2b\nx2c\nx2d\n" "charin\ncharout\nchars\nlinein\nlineout\nlines\nqualify\nstream\ndate\nqueued\nrandom\n" "symbol\ntime\nupper\nvalue\n"
    ":postcompare\nclass [-\\/\\+\\=\\*\\<\\>|%&,] alt w\n" },
-  { (CHARTYPE *) "*C.TLD",
-   (CHARTYPE *) "C",
-   (CHARTYPE *) "* C\n:case\nrespect\n:option\npreprocessor #\n:number\nc\n:identifier\n[a-zA-Z_] [a-zA-Z0-9_]\n" ":string\nsingle backslash\ndouble backslash\n:comment\npaired /* */ nonest\nline // any\n"
+  { (char_t *) "*C.TLD",
+   (char_t *) "C",
+   (char_t *) "* C\n:case\nrespect\n:option\npreprocessor #\n:number\nc\n:identifier\n[a-zA-Z_] [a-zA-Z0-9_]\n" ":string\nsingle backslash\ndouble backslash\n:comment\npaired /* */ nonest\nline // any\n"
    ":label\ndelimiter : column 1\n:match\n( )\n{ }\n#ifdef,#if,#ifndef #endif #else,#elif,#elseif\n" ":keyword\n#define\n#elif\n#else\n#endif\n#error\n#if\n#ifdef\n#ifndef\n#include\n#line\n#pragma\n#undef\n"
    "auto\nbool\nbreak\ncase\nchar\nconst\ncontinue\ndefault\ndefined alt f\ndelete\ndo\ndouble\nelse\nenum\n" "extern\nfloat\nfor\ngoto\nif\nint\nlong\nnew\nregister\nreturn\nshort\nsigned\nsizeof\nstatic\nstruct\n"
    "switch\nthis\ntypedef\nunion\nunsigned\nvoid\nvolatile\nwhile\nclass\nprivate\npublic\n" ":postcompare\nclass [-\\/\\+\\=\\*\\<\\>|%&!,] alt x\n" },
-  { (CHARTYPE *) "*SH.TLD",
-   (CHARTYPE *) "SH",
-   (CHARTYPE *) "* SH\n:case\nrespect\n:number\nc\n" ":string\nsingle backslash\ndouble backslash\n:identifier\n[a-zA-Z_] [a-zA-Z0-9_]\n" ":comment\nline # any\n:header\nline #! column 1\n"
+  { (char_t *) "*SH.TLD",
+   (char_t *) "SH",
+   (char_t *) "* SH\n:case\nrespect\n:number\nc\n" ":string\nsingle backslash\ndouble backslash\n:identifier\n[a-zA-Z_] [a-zA-Z0-9_]\n" ":comment\nline # any\n:header\nline #! column 1\n"
    ":keyword\nif\nfi\nelif\nfor\nuntil\ncase\nesac\nwhile\nthen\nelse\ntest alt 4\nshift alt 4\ndo\ndone\nin\n" "continue alt 4\nbreak alt 4\ncd alt 4\necho alt 4\neval alt 4\nexec alt 4\n"
    "exit alt 4\nexport alt 4\ngetopts alt 4\nset alt 4\nunset alt 4\ntrap alt 4\n" },
-  { (CHARTYPE *) "*TLD.TLD",
-   (CHARTYPE *) "TLD",
-   (CHARTYPE *) "* TLD\n:case\nignore\n" ":comment\nline * firstnonblank\n" ":header\nline : column 1\n" },
-  { (CHARTYPE *) "*HTML.TLD",
-   (CHARTYPE *) "HTML",
-   (CHARTYPE *) "* HTML\n" ":case\nignore\n" ":identifier\n[a-zA-Z] [a-zA-Z0-9]\n" ":string\ndouble\n" ":comment\npaired <!-- --> nonest\n" ":markup\ntag < >\nreference & ;\n" },
-  { (CHARTYPE *) "*DIR.TLD",
-   (CHARTYPE *) "DIR",
-   (CHARTYPE *) "* DIR\n" ":case\nignore\n" ":directory\n" "directory alt a\n" "executable\n" "link\n" "extensions .bak alt 8\n" "extensions .the alt 1\n" "extensions .c .cc .cpp .h .hpp alt 2\n" "extensions .rex .rexx .cmd alt 3\n"
+  { (char_t *) "*TLD.TLD",
+   (char_t *) "TLD",
+   (char_t *) "* TLD\n:case\nignore\n" ":comment\nline * firstnonblank\n" ":header\nline : column 1\n" },
+  { (char_t *) "*HTML.TLD",
+   (char_t *) "HTML",
+   (char_t *) "* HTML\n" ":case\nignore\n" ":identifier\n[a-zA-Z] [a-zA-Z0-9]\n" ":string\ndouble\n" ":comment\npaired <!-- --> nonest\n" ":markup\ntag < >\nreference & ;\n" },
+  { (char_t *) "*DIR.TLD",
+   (char_t *) "DIR",
+   (char_t *) "* DIR\n" ":case\nignore\n" ":directory\n" "directory alt a\n" "executable\n" "link\n" "extensions .bak alt 8\n" "extensions .the alt 1\n" "extensions .c .cc .cpp .h .hpp alt 2\n" "extensions .rex .rexx .cmd alt 3\n"
    "extensions .exe .dll alt 6\n" "extensions .zip .Z .gz .tgz alt w\n" "extensions Makefile .mak alt 4\n" },
   {
    NULL, NULL, NULL }
 };
 
-PARSER_MAPPING _THE_FAR default_parser_mapping[] = {
+PARSER_MAPPING default_parser_mapping[] = {
 
   /*
    * The following describes this table for those interested in
@@ -146,27 +146,27 @@ PARSER_MAPPING _THE_FAR default_parser_mapping[] = {
    * Parameter 5 - Length of "magic number" - 0 if using filemask
    * Parameter 6 - Always NULL
    */
-  { NULL, NULL, (CHARTYPE *) "C", (CHARTYPE *) "*.c", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "C", (CHARTYPE *) "*.cc", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "C", (CHARTYPE *) "*.cpp", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "C", (CHARTYPE *) "*.h", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "C", (CHARTYPE *) "*.hpp", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "REXX", (CHARTYPE *) "*.cmd", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "REXX", (CHARTYPE *) "*.rex", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "REXX", (CHARTYPE *) "*.rexx", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "REXX", (CHARTYPE *) "*.the", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "REXX", (CHARTYPE *) ".therc", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "TLD", (CHARTYPE *) "*.tld", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "HTML", (CHARTYPE *) "*.htm", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "HTML", (CHARTYPE *) "*.html", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "DIR", (CHARTYPE *) "DIR.DIR", NULL, 0, NULL },
-  { NULL, NULL, (CHARTYPE *) "REXX", NULL, (CHARTYPE *) "rexx", 4, NULL },
-  { NULL, NULL, (CHARTYPE *) "REXX", NULL, (CHARTYPE *) "regina", 6, NULL },
-  { NULL, NULL, (CHARTYPE *) "REXX", NULL, (CHARTYPE *) "rxx", 3, NULL },
-  { NULL, NULL, (CHARTYPE *) "SH", NULL, (CHARTYPE *) "sh", 2, NULL },
-  { NULL, NULL, (CHARTYPE *) "SH", NULL, (CHARTYPE *) "ksh", 3, NULL },
-  { NULL, NULL, (CHARTYPE *) "SH", NULL, (CHARTYPE *) "bash", 4, NULL },
-  { NULL, NULL, (CHARTYPE *) "SH", NULL, (CHARTYPE *) "zsh", 3, NULL },
+  { NULL, NULL, (char_t *) "C", (char_t *) "*.c", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "C", (char_t *) "*.cc", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "C", (char_t *) "*.cpp", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "C", (char_t *) "*.h", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "C", (char_t *) "*.hpp", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "REXX", (char_t *) "*.cmd", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "REXX", (char_t *) "*.rex", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "REXX", (char_t *) "*.rexx", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "REXX", (char_t *) "*.the", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "REXX", (char_t *) ".therc", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "TLD", (char_t *) "*.tld", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "HTML", (char_t *) "*.htm", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "HTML", (char_t *) "*.html", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "DIR", (char_t *) "DIR.DIR", NULL, 0, NULL },
+  { NULL, NULL, (char_t *) "REXX", NULL, (char_t *) "rexx", 4, NULL },
+  { NULL, NULL, (char_t *) "REXX", NULL, (char_t *) "regina", 6, NULL },
+  { NULL, NULL, (char_t *) "REXX", NULL, (char_t *) "rxx", 3, NULL },
+  { NULL, NULL, (char_t *) "SH", NULL, (char_t *) "sh", 2, NULL },
+  { NULL, NULL, (char_t *) "SH", NULL, (char_t *) "ksh", 3, NULL },
+  { NULL, NULL, (char_t *) "SH", NULL, (char_t *) "bash", 4, NULL },
+  { NULL, NULL, (char_t *) "SH", NULL, (char_t *) "zsh", 3, NULL },
   { NULL, NULL, NULL, NULL, NULL, 0, NULL }
 };
 
@@ -201,7 +201,7 @@ void set_global_defaults(void) {
    * Set CTLCHAR defaults...
    */
   for (i = 0; i < MAX_CTLCHARS; i++) {
-    memset((CHARTYPE *) & ctlchar_attr[i], 0, sizeof(COLOUR_ATTR));
+    memset((char_t *) & ctlchar_attr[i], 0, sizeof(COLOUR_ATTR));
     ctlchar_char[i] = 0;
     ctlchar_protect[i] = FALSE;
   }
@@ -213,7 +213,7 @@ void set_global_defaults(void) {
   TYPEAHEADx = FALSE;
   scroll_cursor_stay = TRUE;
   prefix_width = DEFAULT_PREFIX_WIDTH;
-  strcpy((DEFCHAR *) BACKUP_SUFFIXx, ".bak");
+  strcpy((char *) BACKUP_SUFFIXx, ".bak");
   /*
    * Set defaults for individual environments next...
    */
@@ -500,7 +500,7 @@ void set_view_defaults(VIEW_DETAILS * viewp) {
     viewp->tabs[i] = 1 + (i * tabinc);
   return;
 }
-short get_profile(CHARTYPE * prf_file, CHARTYPE * prf_arg) {
+short get_profile(char_t * prf_file, char_t * prf_arg) {
   FILE *fp = NULL;
   short rc = RC_OK;
   bool save_in_macro = in_macro;
@@ -514,14 +514,14 @@ short get_profile(CHARTYPE * prf_file, CHARTYPE * prf_arg) {
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     rc = execute_macro_file(prf_file, prf_arg, &macrorc, FALSE);
     if (rc != RC_OK) {
-      display_error(54, (CHARTYPE *) "", FALSE);
+      display_error(54, (char_t *) "", FALSE);
       rc = RC_SYSTEM_ERROR;
     }
   } else {
     /*
      * ...otherwise, process the file as a non-REXX macro file...
      */
-    if ((fp = fopen((DEFCHAR *) prf_file, "r")) == NULL) {
+    if ((fp = fopen((char *) prf_file, "r")) == NULL) {
       rc = RC_ACCESS_DENIED;
       display_error(8, prf_file, FALSE);
     }
@@ -531,9 +531,9 @@ short get_profile(CHARTYPE * prf_file, CHARTYPE * prf_arg) {
       fclose(fp);
     }
     if (rc == RC_SYSTEM_ERROR)
-      display_error(53, (CHARTYPE *) "", FALSE);
+      display_error(53, (char_t *) "", FALSE);
     if (rc == RC_NOREXX_ERROR)
-      display_error(52, (CHARTYPE *) "", FALSE);
+      display_error(52, (char_t *) "", FALSE);
   }
   in_macro = save_in_macro;
   return (RC_OK);
@@ -686,7 +686,7 @@ short defaults_for_other_files(VIEW_DETAILS * base_view) {
     CURRENT_VIEW->wrap = base_view->wrap;
     CURRENT_VIEW->numtabs = base_view->numtabs;
     CURRENT_VIEW->tabsinc = base_view->tabsinc;
-    memcpy(CURRENT_VIEW->tabs, base_view->tabs, MAX_NUMTABS * sizeof(LENGTHTYPE));
+    memcpy(CURRENT_VIEW->tabs, base_view->tabs, MAX_NUMTABS * sizeof(length_t));
   } else {
     set_view_defaults(CURRENT_VIEW);
     CURRENT_VIEW->focus_line = 0L;
@@ -752,7 +752,7 @@ short defaults_for_other_files(VIEW_DETAILS * base_view) {
     CURRENT_VIEW->wrap = PREVIOUS_VIEW->wrap;
     CURRENT_VIEW->numtabs = PREVIOUS_VIEW->numtabs;
     CURRENT_VIEW->tabsinc = PREVIOUS_VIEW->tabsinc;
-    memcpy(CURRENT_VIEW->tabs, PREVIOUS_VIEW->tabs, MAX_NUMTABS * sizeof(LENGTHTYPE));
+    memcpy(CURRENT_VIEW->tabs, PREVIOUS_VIEW->tabs, MAX_NUMTABS * sizeof(length_t));
   }
 
   CURRENT_FILE = (FILE_DETAILS *) NULL;
@@ -777,9 +777,9 @@ short default_file_attributes(FILE_DETAILS * fd) {
 
   set_file_defaults(CURRENT_FILE);
 
-  CURRENT_FILE->fname = (CHARTYPE *) NULL;
-  CURRENT_FILE->fpath = (CHARTYPE *) NULL;
-  CURRENT_FILE->autosave_fname = (CHARTYPE *) NULL;
+  CURRENT_FILE->fname = (char_t *) NULL;
+  CURRENT_FILE->fpath = (char_t *) NULL;
+  CURRENT_FILE->autosave_fname = (char_t *) NULL;
   CURRENT_FILE->file_views = 1;
   CURRENT_FILE->first_line = (LINE *) NULL;
   CURRENT_FILE->last_line = (LINE *) NULL;
@@ -822,9 +822,9 @@ short default_file_attributes(FILE_DETAILS * fd) {
 void set_screen_defaults(void) {
   register int i = 0;
   register int j = 0;
-  ROWTYPE cmdline = 0;
-  CHARTYPE prefix = 0;
-  ROWTYPE start_row = 0, number_rows_less = 0, idline_rows = 0;
+  row_t cmdline = 0;
+  char_t prefix = 0;
+  row_t start_row = 0, number_rows_less = 0, idline_rows = 0;
   short my_prefix_width = 0, my_prefix_gap = 0;
   bool my_arrow = TRUE;
 
@@ -838,11 +838,11 @@ void set_screen_defaults(void) {
      */
     for (i = 0; i < screen[0].rows[WINDOW_FILEAREA]; i++) {
       if (screen[0].sl[i].highlight_type) {
-        (*the_free) ((void *) screen[0].sl[i].highlight_type);
+        free((void *) screen[0].sl[i].highlight_type);
         screen[0].sl[i].highlight_type = NULL;
       }
     }
-    (*the_free) (screen[0].sl);
+    free(screen[0].sl);
     screen[0].sl = NULL;
   }
   if (screen[1].sl != NULL) {
@@ -851,11 +851,11 @@ void set_screen_defaults(void) {
      */
     for (i = 0; i < screen[1].rows[WINDOW_FILEAREA]; i++) {
       if (screen[1].sl[i].highlight_type) {
-        (*the_free) ((void *) screen[1].sl[i].highlight_type);
+        free((void *) screen[1].sl[i].highlight_type);
         screen[1].sl[i].highlight_type = NULL;
       }
     }
-    (*the_free) (screen[1].sl);
+    free(screen[1].sl);
     screen[1].sl = NULL;
   }
   /*
@@ -1028,16 +1028,16 @@ void set_screen_defaults(void) {
    * line arrays.
    */
 
-  if ((screen[0].sl = (SHOW_LINE *) (*the_malloc) (screen[0].rows[WINDOW_FILEAREA] * sizeof(SHOW_LINE))) == NULL) {
+  if ((screen[0].sl = (SHOW_LINE *) malloc(screen[0].rows[WINDOW_FILEAREA] * sizeof(SHOW_LINE))) == NULL) {
     cleanup();
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     exit(1);
   }
   memset(screen[0].sl, 0, screen[0].rows[WINDOW_FILEAREA] * sizeof(SHOW_LINE));
   if (display_screens > 1) {
-    if ((screen[1].sl = (SHOW_LINE *) (*the_malloc) (screen[1].rows[WINDOW_FILEAREA] * sizeof(SHOW_LINE))) == NULL) {
+    if ((screen[1].sl = (SHOW_LINE *) malloc(screen[1].rows[WINDOW_FILEAREA] * sizeof(SHOW_LINE))) == NULL) {
       cleanup();
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       exit(1);
     }
     memset(screen[1].sl, 0, screen[1].rows[WINDOW_FILEAREA] * sizeof(SHOW_LINE));
@@ -1051,27 +1051,27 @@ short set_THE_key_defaults(int prey, int prex) {
    * This function is for resetting all default values for THE
    * compatibility mode.
    */
-  Define((CHARTYPE *) "F2");
-  Define((CHARTYPE *) "F3");
-  Define((CHARTYPE *) "F4");
-  Define((CHARTYPE *) "F6");
-  Define((CHARTYPE *) "F7");
-  Define((CHARTYPE *) "F8");
-  Define((CHARTYPE *) "F9");
-  Define((CHARTYPE *) "F11");
-  Define((CHARTYPE *) "CURD");
-  Define((CHARTYPE *) "CURL");
-  Define((CHARTYPE *) "CURR");
-  Define((CHARTYPE *) "CURU");
-  Define((CHARTYPE *) "C-M");
-  Define((CHARTYPE *) "F16");
+  Define((char_t *) "F2");
+  Define((char_t *) "F3");
+  Define((char_t *) "F4");
+  Define((char_t *) "F6");
+  Define((char_t *) "F7");
+  Define((char_t *) "F8");
+  Define((char_t *) "F9");
+  Define((char_t *) "F11");
+  Define((char_t *) "CURD");
+  Define((char_t *) "CURL");
+  Define((char_t *) "CURR");
+  Define((char_t *) "CURU");
+  Define((char_t *) "C-M");
+  Define((char_t *) "F16");
 #if defined(KEY_TAB)
-  Define((CHARTYPE *) "KEY_TAB");
+  Define((char_t *) "KEY_TAB");
 #endif
 #if defined(KEY_BTAB)
-  Define((CHARTYPE *) "S-TAB");
+  Define((char_t *) "S-TAB");
 #endif
-  Define((CHARTYPE *) "C-I");
+  Define((char_t *) "C-I");
   return (rc);
 }
 short set_XEDIT_key_defaults(int prey, int prex) {
@@ -1081,26 +1081,26 @@ short set_XEDIT_key_defaults(int prey, int prex) {
    * This function is for resetting all default values for XEDIT
    * compatibility mode.
    */
-  Define((CHARTYPE *) "F2 sos lineadd");
-  Define((CHARTYPE *) "F3 quit");
-  Define((CHARTYPE *) "F4 sos tabf");
-  Define((CHARTYPE *) "F6 ?");
-  Define((CHARTYPE *) "F7 backward");
-  Define((CHARTYPE *) "F8 forward");
-  Define((CHARTYPE *) "F9 =");
-  Define((CHARTYPE *) "F11 spltjoin");
-  Define((CHARTYPE *) "CURD cursor screen down");
-  Define((CHARTYPE *) "CURL cursor screen left");
-  Define((CHARTYPE *) "CURR cursor screen right");
-  Define((CHARTYPE *) "CURU cursor screen up");
-  Define((CHARTYPE *) "C-M sos doprefix execute");
+  Define((char_t *) "F2 sos lineadd");
+  Define((char_t *) "F3 quit");
+  Define((char_t *) "F4 sos tabf");
+  Define((char_t *) "F6 ?");
+  Define((char_t *) "F7 backward");
+  Define((char_t *) "F8 forward");
+  Define((char_t *) "F9 =");
+  Define((char_t *) "F11 spltjoin");
+  Define((char_t *) "CURD cursor screen down");
+  Define((char_t *) "CURL cursor screen left");
+  Define((char_t *) "CURR cursor screen right");
+  Define((char_t *) "CURU cursor screen up");
+  Define((char_t *) "C-M sos doprefix execute");
 #if defined(KEY_BTAB)
-  Define((CHARTYPE *) "S-TAB sos tabfieldb");
+  Define((char_t *) "S-TAB sos tabfieldb");
 #endif
 #if defined(KEY_TAB)
-  Define((CHARTYPE *) "KEY_TAB sos tabfieldf");
+  Define((char_t *) "KEY_TAB sos tabfieldf");
 #endif
-  Define((CHARTYPE *) "C-I sos tabfieldf");
+  Define((char_t *) "C-I sos tabfieldf");
   return (rc);
 }
 short set_ISPF_key_defaults(int prey, int prex) {
@@ -1110,26 +1110,26 @@ short set_ISPF_key_defaults(int prey, int prex) {
    * This function is for resetting all default values for XEDIT
    * compatibility mode.
    */
-  Define((CHARTYPE *) "F2 sos lineadd");
-  Define((CHARTYPE *) "F3 quit");
-  Define((CHARTYPE *) "F4 sos tabf");
-  Define((CHARTYPE *) "F6 ?");
-  Define((CHARTYPE *) "F7 up");
-  Define((CHARTYPE *) "F8 down");
-  Define((CHARTYPE *) "F9 =");
-  Define((CHARTYPE *) "F11 spltjoin");
-  Define((CHARTYPE *) "CURD cursor screen down");
-  Define((CHARTYPE *) "CURL cursor screen left");
-  Define((CHARTYPE *) "CURR cursor screen right");
-  Define((CHARTYPE *) "CURU cursor screen up");
-  Define((CHARTYPE *) "C-M sos doprefix execute");
+  Define((char_t *) "F2 sos lineadd");
+  Define((char_t *) "F3 quit");
+  Define((char_t *) "F4 sos tabf");
+  Define((char_t *) "F6 ?");
+  Define((char_t *) "F7 up");
+  Define((char_t *) "F8 down");
+  Define((char_t *) "F9 =");
+  Define((char_t *) "F11 spltjoin");
+  Define((char_t *) "CURD cursor screen down");
+  Define((char_t *) "CURL cursor screen left");
+  Define((char_t *) "CURR cursor screen right");
+  Define((char_t *) "CURU cursor screen up");
+  Define((char_t *) "C-M sos doprefix execute");
 #if defined(KEY_BTAB)
-  Define((CHARTYPE *) "S-TAB sos tabfieldb");
+  Define((char_t *) "S-TAB sos tabfieldb");
 #endif
 #if defined(KEY_TAB)
-  Define((CHARTYPE *) "KEY_TAB sos tabfieldf");
+  Define((char_t *) "KEY_TAB sos tabfieldf");
 #endif
-  Define((CHARTYPE *) "C-I sos tabfieldf");
+  Define((char_t *) "C-I sos tabfieldf");
   return (rc);
 }
 short set_KEDIT_key_defaults(int prey, int prex) {
@@ -1139,28 +1139,28 @@ short set_KEDIT_key_defaults(int prey, int prex) {
    * This function is for resetting all default values for KEDIT
    * compatibility mode.
    */
-  Define((CHARTYPE *) "F2 sos lineadd");
-  Define((CHARTYPE *) "F3 quit");
-  Define((CHARTYPE *) "F4 sos tab");
-  Define((CHARTYPE *) "F5 sos makecurr");
-  Define((CHARTYPE *) "F6 ?");
-  Define((CHARTYPE *) "F7 ");
-  Define((CHARTYPE *) "F8 dup");
-  Define((CHARTYPE *) "F9 =");
-  Define((CHARTYPE *) "F11 spltjoin");
-  Define((CHARTYPE *) "F12 cursor home");
-  Define((CHARTYPE *) "CURD");
-  Define((CHARTYPE *) "CURL cursor kedit left");
-  Define((CHARTYPE *) "CURR cursor kedit right");
-  Define((CHARTYPE *) "CURU");
-  Define((CHARTYPE *) "C-M");
+  Define((char_t *) "F2 sos lineadd");
+  Define((char_t *) "F3 quit");
+  Define((char_t *) "F4 sos tab");
+  Define((char_t *) "F5 sos makecurr");
+  Define((char_t *) "F6 ?");
+  Define((char_t *) "F7 ");
+  Define((char_t *) "F8 dup");
+  Define((char_t *) "F9 =");
+  Define((char_t *) "F11 spltjoin");
+  Define((char_t *) "F12 cursor home");
+  Define((char_t *) "CURD");
+  Define((char_t *) "CURL cursor kedit left");
+  Define((char_t *) "CURR cursor kedit right");
+  Define((char_t *) "CURU");
+  Define((char_t *) "C-M");
 #if defined(KEY_TAB)
-  Define((CHARTYPE *) "KEY_TAB");
+  Define((char_t *) "KEY_TAB");
 #endif
 #if defined(KEY_BTAB)
-  Define((CHARTYPE *) "S-TAB");
+  Define((char_t *) "S-TAB");
 #endif
-  Define((CHARTYPE *) "C-I");
+  Define((char_t *) "C-I");
 
   return (rc);
 }
@@ -1168,12 +1168,12 @@ short construct_default_parsers(void) {
   short rc = RC_OK;
   PARSER_DETAILS *curr;
   int i;
-  CHARTYPE tmp[20];
+  char_t tmp[20];
 
   for (i = 0;; i++) {
     if (default_parsers[i].contents == NULL)
       break;
-    rc = construct_parser(default_parsers[i].contents, strlen((DEFCHAR *) default_parsers[i].contents), &curr, default_parsers[i].name, default_parsers[i].filename);
+    rc = construct_parser(default_parsers[i].contents, strlen((char *) default_parsers[i].contents), &curr, default_parsers[i].name, default_parsers[i].filename);
     if (rc != RC_OK)
       break;
     if (rexx_support) {
@@ -1181,7 +1181,7 @@ short construct_default_parsers(void) {
        * If we have a Rexx interpreter, register an implied extract
        * function for the number of parsers we now have.
        */
-      sprintf((DEFCHAR *) tmp, "parser.%d", i + 1);
+      sprintf((char *) tmp, "parser.%d", i + 1);
       MyRexxRegisterFunctionExe(tmp);
     }
   }
@@ -1212,25 +1212,25 @@ short construct_default_parser_mapping(void) {
     if (first_parser_mapping == NULL)
       first_parser_mapping = curr;
     if (default_parser_mapping[i].filemask) {
-      curr->filemask = (CHARTYPE *) (*the_malloc) (1 + strlen((DEFCHAR *) default_parser_mapping[i].filemask) * sizeof(CHARTYPE));
+      curr->filemask = (char_t *) malloc(1 + strlen((char *) default_parser_mapping[i].filemask) * sizeof(char_t));
       if (curr->filemask == NULL) {
-        display_error(30, (CHARTYPE *) "", FALSE);
+        display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
-      strcpy((DEFCHAR *) curr->filemask, (DEFCHAR *) default_parser_mapping[i].filemask);
+      strcpy((char *) curr->filemask, (char *) default_parser_mapping[i].filemask);
     }
     if (default_parser_mapping[i].magic_number) {
-      curr->magic_number = (CHARTYPE *) (*the_malloc) ((1 + default_parser_mapping[i].magic_number_length) * sizeof(CHARTYPE));
+      curr->magic_number = (char_t *) malloc((1 + default_parser_mapping[i].magic_number_length) * sizeof(char_t));
       if (curr->magic_number == NULL) {
-        display_error(30, (CHARTYPE *) "", FALSE);
+        display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
-      strcpy((DEFCHAR *) curr->magic_number, (DEFCHAR *) default_parser_mapping[i].magic_number);
+      strcpy((char *) curr->magic_number, (char *) default_parser_mapping[i].magic_number);
       curr->magic_number_length = default_parser_mapping[i].magic_number_length;
     }
     curr->parser = NULL;
     for (currp = first_parser; currp != NULL; currp = currp->next) {
-      if (strcasecmp((DEFCHAR *) currp->parser_name, (DEFCHAR *) default_parser_mapping[i].parser_name) == 0) {
+      if (strcasecmp((char *) currp->parser_name, (char *) default_parser_mapping[i].parser_name) == 0) {
         curr->parser = currp;
         break;
       }
@@ -1240,24 +1240,24 @@ short construct_default_parser_mapping(void) {
        * If we have a Rexx interpreter, register an implied extract
        * function for the number of parsers we now have.
        */
-      CHARTYPE tmp[20];
+      char_t tmp[20];
 
-      sprintf((DEFCHAR *) tmp, "autocolor.%d", i + 1);
+      sprintf((char *) tmp, "autocolor.%d", i + 1);
       MyRexxRegisterFunctionExe(tmp);
-      sprintf((DEFCHAR *) tmp, "autocolour.%d", i + 1);
+      sprintf((char *) tmp, "autocolour.%d", i + 1);
       MyRexxRegisterFunctionExe(tmp);
     }
   }
   return (rc);
 }
-CHARTYPE *find_default_parser(CHARTYPE * name) {
+char_t *find_default_parser(char_t * name) {
   int i;
-  CHARTYPE *contents = NULL;
+  char_t *contents = NULL;
 
   for (i = 0;; i++) {
     if (default_parsers[i].filename == NULL)
       break;
-    if (strcasecmp((DEFCHAR *) default_parsers[i].filename, (DEFCHAR *) name) == 0) {
+    if (strcasecmp((char *) default_parsers[i].filename, (char *) name) == 0) {
       contents = default_parsers[i].contents;
       break;
     }

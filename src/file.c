@@ -35,14 +35,14 @@
 
 #include <errno.h>
 
-static short write_line(CHARTYPE *, LENGTHTYPE, FILE *, short);
-static short write_char(CHARTYPE, FILE *);
+static short write_line(char_t *, length_t, FILE *, short);
+static short write_char(char_t, FILE *);
 
 LINE *dir_first_line = NULL;
 LINE *dir_last_line = NULL;
-LINETYPE dir_number_lines = 0L;
+line_t dir_number_lines = 0L;
 
-static short process_file_attributes(int restore_attributes, FILE_DETAILS * cf, CHARTYPE * filename) {
+static short process_file_attributes(int restore_attributes, FILE_DETAILS * cf, char_t * filename) {
 
   if (restore_attributes) {
     return RC_OK;
@@ -50,16 +50,16 @@ static short process_file_attributes(int restore_attributes, FILE_DETAILS * cf, 
     return RC_OK;
   }
 }
-short get_file(CHARTYPE * filename) {
+short get_file(char_t * filename) {
   LINE *curr = NULL;
-  CHARTYPE *work_filename;
+  char_t *work_filename;
   VIEW_DETAILS *save_current_view = NULL, *found_file = NULL;
   short rc = RC_OK;
   FILE_DETAILS *save_current_file = NULL;
   bool save_scope = FALSE;
   bool save_stay = FALSE;
-  CHARTYPE pseudo_file = PSEUDO_REAL;
-  LENGTHTYPE len, sp_path_len, sp_fname_len;
+  char_t pseudo_file = PSEUDO_REAL;
+  length_t len, sp_path_len, sp_fname_len;
 
   /*
    * Split the filename supplied into directory and filename parts.
@@ -74,23 +74,23 @@ short get_file(CHARTYPE * filename) {
    * editing a directory. So create the new file with the appropriate OS
    * command and set the filename to DIR.DIR.
    */
-  if (strcmp((DEFCHAR *) sp_fname, "") == 0) {
+  if (strcmp((char *) sp_fname, "") == 0) {
     if ((rc = read_directory()) != RC_OK) {
       display_error(10, sp_path, FALSE);
       return (rc);
     }
-    strcpy((DEFCHAR *) sp_path, (DEFCHAR *) dir_pathname);
-    strcpy((DEFCHAR *) sp_fname, (DEFCHAR *) dir_filename);
+    strcpy((char *) sp_path, (char *) dir_pathname);
+    strcpy((char *) sp_fname, (char *) dir_filename);
   }
   /*
    * Determine if we are editing a PSEUDO file.  Set a temporary flag
    * here for REXXOUT and KEY files; a DIR.DIR file is determined below.
    */
-  if (strcmp((DEFCHAR *) dir_filename, (DEFCHAR *) sp_fname) == 0)
+  if (strcmp((char *) dir_filename, (char *) sp_fname) == 0)
     pseudo_file = PSEUDO_DIR;
-  else if (strcmp((DEFCHAR *) rexxoutname, (DEFCHAR *) sp_fname) == 0)
+  else if (strcmp((char *) rexxoutname, (char *) sp_fname) == 0)
     pseudo_file = PSEUDO_REXX;
-  else if (strcmp((DEFCHAR *) keyfilename, (DEFCHAR *) sp_fname) == 0)
+  else if (strcmp((char *) keyfilename, (char *) sp_fname) == 0)
     pseudo_file = PSEUDO_KEY;
   /*
    * If this is the first file to be edited, don't check to see if the
@@ -149,9 +149,9 @@ short get_file(CHARTYPE * filename) {
   /*
    * Allocate memory to file pointer.
    */
-  if ((CURRENT_FILE = (FILE_DETAILS *) (*the_malloc) (sizeof(FILE_DETAILS))) == NULL) {
+  if ((CURRENT_FILE = (FILE_DETAILS *) malloc(sizeof(FILE_DETAILS))) == NULL) {
     free_view_memory(TRUE, TRUE);
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
@@ -161,16 +161,16 @@ short get_file(CHARTYPE * filename) {
   /*
    * Allocate space for file's colour attributes...
    */
-  if ((CURRENT_FILE->attr = (COLOUR_ATTR *) (*the_malloc) (ATTR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((CURRENT_FILE->attr = (COLOUR_ATTR *) malloc(ATTR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   memset(CURRENT_FILE->attr, 0, ATTR_MAX * sizeof(COLOUR_ATTR));
   /*
    * Allocate space for file's ecolour attributes...
    */
-  if ((CURRENT_FILE->ecolour = (COLOUR_ATTR *) (*the_malloc) (ECOLOUR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((CURRENT_FILE->ecolour = (COLOUR_ATTR *) malloc(ECOLOUR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   memset(CURRENT_FILE->ecolour, 0, ECOLOUR_MAX * sizeof(COLOUR_ATTR));
@@ -182,61 +182,61 @@ short get_file(CHARTYPE * filename) {
   /*
    * Get length of path and filename components
    */
-  sp_path_len = strlen((DEFCHAR *) sp_path);
-  sp_fname_len = strlen((DEFCHAR *) sp_fname);
+  sp_path_len = strlen((char *) sp_path);
+  sp_fname_len = strlen((char *) sp_fname);
   /*
    * Copy the filename and path strings split up at the start of the
    * function.
    */
-  if ((CURRENT_FILE->fname = (CHARTYPE *) (*the_malloc) (sp_fname_len + 1)) == NULL) {
+  if ((CURRENT_FILE->fname = (char_t *) malloc(sp_fname_len + 1)) == NULL) {
     free_view_memory(TRUE, TRUE);
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  strcpy((DEFCHAR *) CURRENT_FILE->fname, (DEFCHAR *) sp_fname);
+  strcpy((char *) CURRENT_FILE->fname, (char *) sp_fname);
 
-  if ((CURRENT_FILE->fpath = (CHARTYPE *) (*the_malloc) (sp_path_len + 1)) == NULL) {
+  if ((CURRENT_FILE->fpath = (char_t *) malloc(sp_path_len + 1)) == NULL) {
     free_view_memory(TRUE, TRUE);
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  strcpy((DEFCHAR *) CURRENT_FILE->fpath, (DEFCHAR *) sp_path);
+  strcpy((char *) CURRENT_FILE->fpath, (char *) sp_path);
 
-  if ((CURRENT_FILE->actualfname = (CHARTYPE *) (*the_malloc) (strlen((DEFCHAR *) filename) + 1)) == NULL) {
+  if ((CURRENT_FILE->actualfname = (char_t *) malloc(strlen((char *) filename) + 1)) == NULL) {
     free_view_memory(TRUE, TRUE);
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  strcpy((DEFCHAR *) CURRENT_FILE->actualfname, (DEFCHAR *) filename);
-  if ((CURRENT_FILE->efileid = (CHARTYPE *) (*the_malloc) (sp_path_len + sp_fname_len + 1)) == NULL) {
+  strcpy((char *) CURRENT_FILE->actualfname, (char *) filename);
+  if ((CURRENT_FILE->efileid = (char_t *) malloc(sp_path_len + sp_fname_len + 1)) == NULL) {
     free_view_memory(TRUE, TRUE);
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  strcpy((DEFCHAR *) CURRENT_FILE->efileid, (DEFCHAR *) sp_path);
-  strcat((DEFCHAR *) CURRENT_FILE->efileid, (DEFCHAR *) sp_fname);
+  strcpy((char *) CURRENT_FILE->efileid, (char *) sp_path);
+  strcat((char *) CURRENT_FILE->efileid, (char *) sp_fname);
   /*
    * If we have a "real" file, generate the filename to be used in
    * AUTOSAVE.
    */
   if (!CURRENT_FILE->pseudo_file) {
-    if ((CURRENT_FILE->autosave_fname = (CHARTYPE *) (*the_malloc) (sp_path_len + sp_fname_len + 7)) == NULL) {
+    if ((CURRENT_FILE->autosave_fname = (char_t *) malloc(sp_path_len + sp_fname_len + 7)) == NULL) {
       free_view_memory(TRUE, TRUE);
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    new_filename(sp_path, sp_fname, CURRENT_FILE->autosave_fname, (CHARTYPE *) ".aus");
+    new_filename(sp_path, sp_fname, CURRENT_FILE->autosave_fname, (char_t *) ".aus");
   }
   if ((work_filename = alloca(sp_path_len + sp_fname_len + 1)) == NULL) {
     free_view_memory(TRUE, TRUE);
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * Save the path and filename in a working area.
    */
-  strcpy((DEFCHAR *) work_filename, (DEFCHAR *) sp_path);
-  strcat((DEFCHAR *) work_filename, (DEFCHAR *) sp_fname);
+  strcpy((char *) work_filename, (char *) sp_path);
+  strcat((char *) work_filename, (char *) sp_fname);
   /*
    * For PSEUDO files, point the first and last line pointers to the
    * already allocated LINE* linked list...
@@ -279,26 +279,26 @@ short get_file(CHARTYPE * filename) {
       else {
         if (file_readable(work_filename)) {
           CURRENT_FILE->disposition = FILE_READONLY;
-          display_error(14, (CHARTYPE *) work_filename, FALSE);
+          display_error(14, (char_t *) work_filename, FALSE);
         } else {
           display_error(8, work_filename, FALSE);
           free_view_memory(TRUE, TRUE);
           return (RC_ACCESS_DENIED);
         }
       }
-      stat((DEFCHAR *) work_filename, &stat_buf);
+      stat((char *) work_filename, &stat_buf);
       CURRENT_FILE->fmode = stat_buf.st_mode;
       CURRENT_FILE->modtime = stat_buf.st_mtime;
       CURRENT_FILE->uid = stat_buf.st_uid;
       CURRENT_FILE->gid = stat_buf.st_gid;
-      if ((CURRENT_FILE->fp = fopen((DEFCHAR *) work_filename, "rb")) == NULL) {
+      if ((CURRENT_FILE->fp = fopen((char *) work_filename, "rb")) == NULL) {
         display_error(8, work_filename, FALSE);
         free_view_memory(TRUE, TRUE);
         return (RC_ACCESS_DENIED);
       }
       break;
     case THE_FILE_NAME_TOO_LONG:
-      display_error(8, (CHARTYPE *) "- file name too long", TRUE);
+      display_error(8, (char_t *) "- file name too long", TRUE);
       free_view_memory(TRUE, TRUE);
       return (RC_ACCESS_DENIED);
       break;
@@ -306,7 +306,7 @@ short get_file(CHARTYPE * filename) {
       CURRENT_FILE->fmode = 0;
       CURRENT_FILE->modtime = 0;
       CURRENT_FILE->disposition = FILE_NEW;
-      display_error(20, (CHARTYPE *) work_filename, TRUE);
+      display_error(20, (char_t *) work_filename, TRUE);
       break;
   }
   /*
@@ -317,7 +317,7 @@ short get_file(CHARTYPE * filename) {
   /*
    * first_line is set to "Top of File"
    */
-  if ((CURRENT_FILE->first_line = add_LINE(CURRENT_FILE->first_line, NULL, TOP_OF_FILE, strlen((DEFCHAR *) TOP_OF_FILE), 0, FALSE)) == NULL) {
+  if ((CURRENT_FILE->first_line = add_LINE(CURRENT_FILE->first_line, NULL, TOP_OF_FILE, strlen((char *) TOP_OF_FILE), 0, FALSE)) == NULL) {
     if (CURRENT_FILE->disposition != FILE_NEW)
       fclose(CURRENT_FILE->fp);
     free_view_memory(TRUE, TRUE);
@@ -354,7 +354,7 @@ short get_file(CHARTYPE * filename) {
   /*
    * last line is set to "Bottom of File"
    */
-  if ((CURRENT_FILE->last_line = add_LINE(CURRENT_FILE->first_line, curr, BOTTOM_OF_FILE, strlen((DEFCHAR *) BOTTOM_OF_FILE), 0, FALSE)) == NULL) {
+  if ((CURRENT_FILE->last_line = add_LINE(CURRENT_FILE->first_line, curr, BOTTOM_OF_FILE, strlen((char *) BOTTOM_OF_FILE), 0, FALSE)) == NULL) {
     free_view_memory(TRUE, TRUE);
     return (RC_OUT_OF_MEMORY);
   }
@@ -369,7 +369,7 @@ short get_file(CHARTYPE * filename) {
     save_scope = CURRENT_VIEW->scope_all;
     save_stay = CURRENT_VIEW->stay;
     CURRENT_VIEW->stay = TRUE;
-    rc = execute_expand_compress((CHARTYPE *) "ALL", TRUE, FALSE, FALSE, FALSE);
+    rc = execute_expand_compress((char_t *) "ALL", TRUE, FALSE, FALSE, FALSE);
     if (rc == RC_TOF_EOF_REACHED)
       rc = RC_OK;
     CURRENT_VIEW->scope_all = save_scope;
@@ -396,22 +396,22 @@ short get_file(CHARTYPE * filename) {
     find_auto_parser(CURRENT_FILE);
   return (rc);
 }
-LINE *read_file(FILE * fp, LINE * curr, CHARTYPE * filename, LINETYPE fromline, LINETYPE numlines, bool called_from_get_command) {
+LINE *read_file(FILE * fp, LINE * curr, char_t * filename, line_t fromline, line_t numlines, bool called_from_get_command) {
 #define THE_CR '\r'
 #define THE_LF '\n'
 #define DOSEOF 26
-  LENGTHTYPE i = 0L;
-  LENGTHTYPE maxlen = 0;
+  length_t i = 0L;
+  length_t maxlen = 0;
   short ch = 0;
   LINE *temp = NULL;
-  LENGTHTYPE len = 0;
+  length_t len = 0;
   bool eof_reached = FALSE;
-  LENGTHTYPE chars_read = 0;
-  LENGTHTYPE line_start = 0;
-  LENGTHTYPE total_line_length = 0;
+  length_t chars_read = 0;
+  length_t line_start = 0;
+  length_t total_line_length = 0;
   int extra = 0;
-  LENGTHTYPE read_start = 0;
-  LINETYPE total_lines_read = 0L, actual_lines_read = 0L;
+  length_t read_start = 0;
+  line_t total_lines_read = 0L, actual_lines_read = 0L;
 
   temp = curr;
 
@@ -421,15 +421,15 @@ LINE *read_file(FILE * fp, LINE * curr, CHARTYPE * filename, LINETYPE fromline, 
   trec_len = max_trec_len;
   while (1) {
     line_start = 0;
-    chars_read = (LENGTHTYPE) fread(brec, sizeof(CHARTYPE), max_line_length, fp);
+    chars_read = (length_t) fread(brec, sizeof(char_t), max_line_length, fp);
     if (chars_read + read_start > trec_len) {
-      sprintf((DEFCHAR *) trec, "Line %ld exceeds max. width of %ld. File: %s", total_lines_read + 1, max_line_length, filename);
+      sprintf((char *) trec, "Line %ld exceeds max. width of %ld. File: %s", total_lines_read + 1, max_line_length, filename);
       display_error(29, trec, FALSE);
       if (!called_from_get_command)
         CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
       return (NULL);
     }
-    memcpy(trec + read_start, brec, sizeof(CHARTYPE) * chars_read);
+    memcpy(trec + read_start, brec, sizeof(char_t) * chars_read);
     if (feof(fp)) {
       eof_reached = TRUE;
       if (chars_read > 0) {
@@ -482,7 +482,7 @@ LINE *read_file(FILE * fp, LINE * curr, CHARTYPE * filename, LINETYPE fromline, 
           len = i - line_start;
           total_line_length += len;
           if (total_line_length > max_line_length) {
-            sprintf((DEFCHAR *) trec, "Line %ld exceeds max. width of %ld. File: %s", total_lines_read, max_line_length, filename);
+            sprintf((char *) trec, "Line %ld exceeds max. width of %ld. File: %s", total_lines_read, max_line_length, filename);
             display_error(29, trec, FALSE);
             if (!called_from_get_command)
               CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
@@ -512,7 +512,7 @@ LINE *read_file(FILE * fp, LINE * curr, CHARTYPE * filename, LINETYPE fromline, 
           if (++total_lines_read >= fromline) {
             total_line_length += len;
             if (total_line_length > max_line_length) {
-              sprintf((DEFCHAR *) trec, "Line %ld exceeds max. width of %ld. File: %s", total_lines_read, max_line_length, filename);
+              sprintf((char *) trec, "Line %ld exceeds max. width of %ld. File: %s", total_lines_read, max_line_length, filename);
               display_error(29, trec, FALSE);
               if (!called_from_get_command)
                 CURRENT_FILE->first_line = CURRENT_FILE->last_line = lll_free(CURRENT_FILE->first_line);
@@ -541,16 +541,16 @@ LINE *read_file(FILE * fp, LINE * curr, CHARTYPE * filename, LINETYPE fromline, 
   CURRENT_FILE->number_lines += actual_lines_read;
   return (temp);
 }
-LINE *read_fixed_file(FILE * fp, LINE * curr, CHARTYPE * filename, LINETYPE fromline, LINETYPE numlines) {
+LINE *read_fixed_file(FILE * fp, LINE * curr, char_t * filename, line_t fromline, line_t numlines) {
   LINE *temp = NULL;
   bool eof_reached = FALSE;
-  LENGTHTYPE chars_read = 0;
-  LINETYPE total_lines_read = 0L, actual_lines_read = 0L;
+  length_t chars_read = 0;
+  line_t total_lines_read = 0L, actual_lines_read = 0L;
 
   temp = curr;
 
   while (1) {
-    chars_read = (LENGTHTYPE) fread(trec, sizeof(CHARTYPE), display_length, fp);
+    chars_read = (length_t) fread(trec, sizeof(char_t), display_length, fp);
     if (feof(fp)) {
       eof_reached = TRUE;
     }
@@ -579,25 +579,25 @@ LINE *read_fixed_file(FILE * fp, LINE * curr, CHARTYPE * filename, LINETYPE from
   CURRENT_FILE->eolfirst = EOLOUT_NONE;
   return (temp);
 }
-short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in_lines, LINETYPE start_line, LINETYPE * num_file_lines, bool append, LENGTHTYPE start_col, LENGTHTYPE end_col, bool ignore_scope, bool lines_based_on_scope, bool autosave) {
-  CHARTYPE *bak_filename = NULL;
-  CHARTYPE *write_fname = NULL;
-  LINETYPE i = 0L;
-  LINETYPE abs_num_lines = (in_lines < 0L ? -in_lines : in_lines);
-  LINETYPE num_actual_lines = 0L;
-  LINETYPE my_num_file_lines = 0L;
+short save_file(FILE_DETAILS * cf, char_t * new_fname, bool force, line_t in_lines, line_t start_line, line_t * num_file_lines, bool append, length_t start_col, length_t end_col, bool ignore_scope, bool lines_based_on_scope, bool autosave) {
+  char_t *bak_filename = NULL;
+  char_t *write_fname = NULL;
+  line_t i = 0L;
+  line_t abs_num_lines = (in_lines < 0L ? -in_lines : in_lines);
+  line_t num_actual_lines = 0L;
+  line_t my_num_file_lines = 0L;
   short direction = (in_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
   LINE *curr = NULL;
   FILE *fp = NULL;
-  LENGTHTYPE col = 0, newcol = 0;
+  length_t col = 0, newcol = 0;
   long off = 0L;
-  CHARTYPE c = 0;
+  char_t c = 0;
   short rc = RC_OK;
   bool same_file = TRUE;
   bool save_scope_all = CURRENT_VIEW->scope_all;
-  CHARTYPE eol[2];
+  char_t eol[2];
   int eol_len = 0;
-  char _THE_FAR buf[MAX_FILE_NAME + 1];
+  char buf[MAX_FILE_NAME + 1];
 
   /*
    * Do not attempt to autosave a pseudo file...
@@ -609,16 +609,16 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
 
   switch (cf->eolout) {
     case EOLOUT_CRLF:
-      eol[0] = (CHARTYPE) '\r';
-      eol[1] = (CHARTYPE) '\n';
+      eol[0] = (char_t) '\r';
+      eol[1] = (char_t) '\n';
       eol_len = 2;
       break;
     case EOLOUT_LF:
-      eol[0] = (CHARTYPE) '\n';
+      eol[0] = (char_t) '\n';
       eol_len = 1;
       break;
     case EOLOUT_CR:
-      eol[0] = (CHARTYPE) '\r';
+      eol[0] = (char_t) '\r';
       eol_len = 1;
       break;
     case EOLOUT_NONE:
@@ -626,11 +626,11 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
       eol_len = 0;
       break;
   }
-  if ((write_fname = (CHARTYPE *) (*the_malloc) (MAX_FILE_NAME)) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((write_fname = (char_t *) malloc(MAX_FILE_NAME)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  if (strcmp((DEFCHAR *) new_fname, "") != 0) { /* new_fname supplied */
+  if (strcmp((char *) new_fname, "") != 0) { /* new_fname supplied */
     /*
      * If a new filename is specified, use it as the old filename.
      */
@@ -640,14 +640,14 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
      */
     if ((rc = splitpath(new_fname)) != RC_OK) {
       display_error(10, new_fname, FALSE);
-      if (bak_filename != (CHARTYPE *) NULL)
-        (*the_free) (bak_filename);
-      if (write_fname != (CHARTYPE *) NULL)
-        (*the_free) (write_fname);
+      if (bak_filename != (char_t *) NULL)
+        free(bak_filename);
+      if (write_fname != (char_t *) NULL)
+        free(write_fname);
       return (rc);
     }
-    strcpy((DEFCHAR *) write_fname, (DEFCHAR *) sp_path);
-    strcat((DEFCHAR *) write_fname, (DEFCHAR *) sp_fname);
+    strcpy((char *) write_fname, (char *) sp_path);
+    strcat((char *) write_fname, (char *) sp_fname);
     same_file = FALSE;
     /*
      * Test to make sure that the write fname doesn't exist...
@@ -655,10 +655,10 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
      */
     if ((!force) && file_exists(write_fname) == THE_FILE_EXISTS) {
       display_error(31, write_fname, FALSE);
-      if (bak_filename != (CHARTYPE *) NULL)
-        (*the_free) (bak_filename);
-      if (write_fname != (CHARTYPE *) NULL)
-        (*the_free) (write_fname);
+      if (bak_filename != (char_t *) NULL)
+        free(bak_filename);
+      if (write_fname != (char_t *) NULL)
+        free(write_fname);
       return (RC_ACCESS_DENIED);
     }
     /*
@@ -666,10 +666,10 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
      */
     if (!file_writable(write_fname)) {
       display_error(8, write_fname, FALSE);
-      if (bak_filename != (CHARTYPE *) NULL)
-        (*the_free) (bak_filename);
-      if (write_fname != (CHARTYPE *) NULL)
-        (*the_free) (write_fname);
+      if (bak_filename != (char_t *) NULL)
+        free(bak_filename);
+      if (write_fname != (char_t *) NULL)
+        free(write_fname);
       return (RC_ACCESS_DENIED);
     }
   } else {
@@ -677,26 +677,26 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
      * We are using the same file name for the new file.
      * Create the name of the current file.
      */
-    strcpy((DEFCHAR *) write_fname, (DEFCHAR *) cf->fpath);
-    strcat((DEFCHAR *) write_fname, (DEFCHAR *) cf->fname);
+    strcpy((char *) write_fname, (char *) cf->fpath);
+    strcat((char *) write_fname, (char *) cf->fname);
     /*
      * If the file to be saved is a "pseudo" file, return with an error...
      */
     if (cf->pseudo_file) {
       display_error(8, write_fname, FALSE);
-      if (bak_filename != (CHARTYPE *) NULL)
-        (*the_free) (bak_filename);
-      if (write_fname != (CHARTYPE *) NULL)
-        (*the_free) (write_fname);
+      if (bak_filename != (char_t *) NULL)
+        free(bak_filename);
+      if (write_fname != (char_t *) NULL)
+        free(write_fname);
       return (RC_ACCESS_DENIED);
     }
     /*
      * Check if the file to be written is a symlink. If so, get the "real"
      * filename and use it from here on...
      */
-    rc = readlink((DEFCHAR *) write_fname, buf, sizeof(buf));
+    rc = readlink((char *) write_fname, buf, sizeof(buf));
     if (rc != (-1)) {
-      memcpy((DEFCHAR *) write_fname, buf, rc);
+      memcpy((char *) write_fname, buf, rc);
       write_fname[rc] = '\0';
     }
     /*
@@ -709,18 +709,18 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
        */
       if (!file_writable(write_fname)) {
         display_error(8, write_fname, FALSE);
-        if (bak_filename != (CHARTYPE *) NULL)
-          (*the_free) (bak_filename);
-        if (write_fname != (CHARTYPE *) NULL)
-          (*the_free) (write_fname);
+        if (bak_filename != (char_t *) NULL)
+          free(bak_filename);
+        if (write_fname != (char_t *) NULL)
+          free(write_fname);
         return (RC_ACCESS_DENIED);
       }
 
       if ((rc = process_file_attributes(0, cf, write_fname)) != RC_OK) {
-        if (bak_filename != (CHARTYPE *) NULL)
-          (*the_free) (bak_filename);
-        if (write_fname != (CHARTYPE *) NULL)
-          (*the_free) (write_fname);
+        if (bak_filename != (char_t *) NULL)
+          free(bak_filename);
+        if (write_fname != (char_t *) NULL)
+          free(write_fname);
         return (rc);
       }
       /*
@@ -729,13 +729,13 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
        * forcing the write...
        */
       if (CURRENT_FILE->timecheck && !force) {
-        stat((DEFCHAR *) write_fname, &stat_buf);
+        stat((char *) write_fname, &stat_buf);
         if (CURRENT_FILE->modtime != stat_buf.st_mtime) {
-          display_error(138, (CHARTYPE *) "", FALSE);
-          if (bak_filename != (CHARTYPE *) NULL)
-            (*the_free) (bak_filename);
-          if (write_fname != (CHARTYPE *) NULL)
-            (*the_free) (write_fname);
+          display_error(138, (char_t *) "", FALSE);
+          if (bak_filename != (char_t *) NULL)
+            free(bak_filename);
+          if (write_fname != (char_t *) NULL)
+            free(write_fname);
           return (RC_ACCESS_DENIED);
         }
       }
@@ -743,12 +743,12 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
        * Rename the current file to filename[BACKUP_SUFFIXx].
        */
       if (cf->backup != BACKUP_OFF) {
-        if ((bak_filename = (CHARTYPE *) (*the_malloc) (strlen((DEFCHAR *) cf->fpath) + strlen((DEFCHAR *) cf->fname) + strlen((DEFCHAR *) BACKUP_SUFFIXx) + 1)) == NULL) {
-          display_error(30, (CHARTYPE *) "", FALSE);
-          if (bak_filename != (CHARTYPE *) NULL)
-            (*the_free) (bak_filename);
-          if (write_fname != (CHARTYPE *) NULL)
-            (*the_free) (write_fname);
+        if ((bak_filename = (char_t *) malloc(strlen((char *) cf->fpath) + strlen((char *) cf->fname) + strlen((char *) BACKUP_SUFFIXx) + 1)) == NULL) {
+          display_error(30, (char_t *) "", FALSE);
+          if (bak_filename != (char_t *) NULL)
+            free(bak_filename);
+          if (write_fname != (char_t *) NULL)
+            free(write_fname);
           return (RC_OUT_OF_MEMORY);
         }
         new_filename(cf->fpath, cf->fname, bak_filename, BACKUP_SUFFIXx);
@@ -758,26 +758,26 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
             /*
              * Copy the contents of the current file to the BACKUP_SUFFIXx file
              */
-            FILE *fp1 = fopen((DEFCHAR *) write_fname, "rb");
+            FILE *fp1 = fopen((char *) write_fname, "rb");
             FILE *fp2 = NULL;
             int num = 0;
             char tmp[5120];
 
             if (fp1 == NULL) {
               display_error(8, write_fname, FALSE);
-              if (bak_filename != (CHARTYPE *) NULL)
-                (*the_free) (bak_filename);
-              if (write_fname != (CHARTYPE *) NULL)
-                (*the_free) (write_fname);
+              if (bak_filename != (char_t *) NULL)
+                free(bak_filename);
+              if (write_fname != (char_t *) NULL)
+                free(write_fname);
               return (RC_ACCESS_DENIED);
             }
-            fp2 = fopen((DEFCHAR *) bak_filename, "wb");
+            fp2 = fopen((char *) bak_filename, "wb");
             if (fp2 == NULL) {
               display_error(8, bak_filename, FALSE);
-              if (bak_filename != (CHARTYPE *) NULL)
-                (*the_free) (bak_filename);
-              if (write_fname != (CHARTYPE *) NULL)
-                (*the_free) (write_fname);
+              if (bak_filename != (char_t *) NULL)
+                free(bak_filename);
+              if (write_fname != (char_t *) NULL)
+                free(write_fname);
               fclose(fp1);
               return (RC_ACCESS_DENIED);
             }
@@ -796,12 +796,12 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
              */
             process_file_attributes(1, cf, bak_filename);
           } else {
-            if (rename((DEFCHAR *) write_fname, (DEFCHAR *) bak_filename) != 0) {
+            if (rename((char *) write_fname, (char *) bak_filename) != 0) {
               display_error(8, write_fname, FALSE);
-              if (bak_filename != (CHARTYPE *) NULL)
-                (*the_free) (bak_filename);
-              if (write_fname != (CHARTYPE *) NULL)
-                (*the_free) (write_fname);
+              if (bak_filename != (char_t *) NULL)
+                free(bak_filename);
+              if (write_fname != (char_t *) NULL)
+                free(write_fname);
               return (RC_ACCESS_DENIED);
             }
           }
@@ -813,15 +813,15 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
    * Open the file we are writing to...
    */
   if (append == TRUE)
-    fp = fopen((DEFCHAR *) write_fname, "ab");
+    fp = fopen((char *) write_fname, "ab");
   else
-    fp = fopen((DEFCHAR *) write_fname, "wb");
+    fp = fopen((char *) write_fname, "wb");
   if (fp == NULL) {
-    display_error(8, (CHARTYPE *) "could not open for writing", FALSE);
-    if (bak_filename != (CHARTYPE *) NULL)
-      (*the_free) (bak_filename);
-    if (write_fname != (CHARTYPE *) NULL)
-      (*the_free) (write_fname);
+    display_error(8, (char_t *) "could not open for writing", FALSE);
+    if (bak_filename != (char_t *) NULL)
+      free(bak_filename);
+    if (write_fname != (char_t *) NULL)
+      free(write_fname);
     return (RC_ACCESS_DENIED);
   }
   /*
@@ -846,7 +846,7 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
       if (abs_num_lines == i)
         break;
     }
-    rc = processable_line(CURRENT_VIEW, start_line + (LINETYPE) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, start_line + (line_t) (i * direction), curr);
     switch (rc) {
       case LINE_SHADOW:
         rc = 0;
@@ -866,18 +866,18 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
             while ((c = next_char(curr, &off, end_col + 1)) == ' ') {
               newcol++;
               if ((newcol % cf->tabsout_num) == 0) {
-                if ((rc = write_char((CHARTYPE) '\t', fp)) == RC_DISK_FULL)
+                if ((rc = write_char((char_t) '\t', fp)) == RC_DISK_FULL)
                   break;
                 col = newcol;
               }
             }
             for (; col < newcol; col++) {
-              if ((rc = write_char((CHARTYPE) ' ', fp)) == RC_DISK_FULL)
+              if ((rc = write_char((char_t) ' ', fp)) == RC_DISK_FULL)
                 break;
             }
             if (off == (-1L))   /* end of line */
               break;
-            if ((rc = write_char((CHARTYPE) c, fp)) == RC_DISK_FULL)
+            if ((rc = write_char((char_t) c, fp)) == RC_DISK_FULL)
               break;
             col++;
           }
@@ -892,7 +892,7 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
              * No characters to write, but we need to call this so we can handle
              * trailing blanks for TRAILING_EMPTY setting properly
              */
-            if ((rc = write_line((CHARTYPE *) "", 0, fp, CURRENT_FILE->trailing)) == RC_DISK_FULL)
+            if ((rc = write_line((char_t *) "", 0, fp, CURRENT_FILE->trailing)) == RC_DISK_FULL)
               break;
           }
         }
@@ -912,7 +912,7 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
       curr = curr->prev;
     else
       curr = curr->next;
-    my_num_file_lines += (LINETYPE) direction;
+    my_num_file_lines += (line_t) direction;
     if (curr == NULL)
       break;
   }
@@ -941,12 +941,12 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
     /* remove 'new' file (the one that couldn't be written) */
     remove_file(write_fname);
     if (same_file) {
-      if (rename((DEFCHAR *) bak_filename, (DEFCHAR *) write_fname) != 0) {
+      if (rename((char *) bak_filename, (char *) write_fname) != 0) {
         display_error(8, write_fname, FALSE);
-        if (bak_filename != (CHARTYPE *) NULL)
-          (*the_free) (bak_filename);
-        if (write_fname != (CHARTYPE *) NULL)
-          (*the_free) (write_fname);
+        if (bak_filename != (char_t *) NULL)
+          free(bak_filename);
+        if (write_fname != (char_t *) NULL)
+          free(write_fname);
         return (RC_ACCESS_DENIED);
       }
     }
@@ -954,10 +954,10 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
     if (same_file) {
       if (cf->backup != BACKUP_INPLACE) {
         if (cf->fmode != 0)
-          chmod((DEFCHAR *) write_fname, cf->fmode);
+          chmod((char *) write_fname, cf->fmode);
         if (cf->disposition != FILE_NEW) {
-          if (chown((DEFCHAR *) write_fname, cf->uid, cf->gid)) {
-            display_error(84, (CHARTYPE *) "ownerships", FALSE);
+          if (chown((char *) write_fname, cf->uid, cf->gid)) {
+            display_error(84, (char_t *) "ownerships", FALSE);
           }
         }
         process_file_attributes(1, cf, write_fname);
@@ -965,7 +965,7 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
       /*
        * Save the new timestamp of the file.
        */
-      stat((DEFCHAR *) write_fname, &stat_buf);
+      stat((char *) write_fname, &stat_buf);
       CURRENT_FILE->modtime = stat_buf.st_mtime;
     }
     /*
@@ -978,22 +978,22 @@ short save_file(FILE_DETAILS * cf, CHARTYPE * new_fname, bool force, LINETYPE in
      * If a new filename was not supplied, free up temporary memory.
      */
   }
-  if (bak_filename != (CHARTYPE *) NULL)
-    (*the_free) (bak_filename);
-  if (write_fname != (CHARTYPE *) NULL)
-    (*the_free) (write_fname);
+  if (bak_filename != (char_t *) NULL)
+    free(bak_filename);
+  if (write_fname != (char_t *) NULL)
+    free(write_fname);
 
   return (rc);
 }
-static short write_char(CHARTYPE chr, FILE * fp) {
+static short write_char(char_t chr, FILE * fp) {
   if (fputc(chr, fp) == chr && ferror(fp) == 0) {
     return (RC_OK);
   }
   clearerr(fp);
-  display_error(57, (CHARTYPE *) "", FALSE);
+  display_error(57, (char_t *) "", FALSE);
   return (RC_DISK_FULL);
 }
-static short write_line(CHARTYPE * line, LENGTHTYPE len, FILE * fp, short trailing) {
+static short write_line(char_t * line, length_t len, FILE * fp, short trailing) {
   short rc = RC_OK;
   long newlen = len;
 
@@ -1011,17 +1011,17 @@ static short write_line(CHARTYPE * line, LENGTHTYPE len, FILE * fp, short traili
   if (trailing != TRAILING_ON) {
     newlen = 1 + (long) memrevne(line, ' ', len);
   }
-  if (fwrite(line, sizeof(CHARTYPE), newlen, fp) != newlen) {
-    display_error(57, (CHARTYPE *) "", FALSE);
+  if (fwrite(line, sizeof(char_t), newlen, fp) != newlen) {
+    display_error(57, (char_t *) "", FALSE);
     rc = RC_DISK_FULL;
   }
   switch (trailing) {
     case TRAILING_EMPTY:
       if (newlen == 0)
-        rc = write_char((CHARTYPE) ' ', fp);
+        rc = write_char((char_t) ' ', fp);
       break;
     case TRAILING_SINGLE:
-      rc = write_char((CHARTYPE) ' ', fp);
+      rc = write_char((char_t) ' ', fp);
       break;
     default:
       break;
@@ -1041,34 +1041,34 @@ void increment_alt(FILE_DETAILS * cf) {
   }
   return;
 }
-CHARTYPE *new_filename(CHARTYPE * ofp, CHARTYPE * ofn, CHARTYPE * nfn, CHARTYPE * ext) {
+char_t *new_filename(char_t * ofp, char_t * ofn, char_t * nfn, char_t * ext) {
 
-  strcpy((DEFCHAR *) nfn, (DEFCHAR *) ofp);
-  strcat((DEFCHAR *) nfn, (DEFCHAR *) ofn);
+  strcpy((char *) nfn, (char *) ofp);
+  strcat((char *) nfn, (char *) ofn);
 
-  strcat((DEFCHAR *) nfn, (DEFCHAR *) ext);
+  strcat((char *) nfn, (char *) ext);
   return (nfn);
 }
 short remove_aus_file(FILE_DETAILS * cf) {
-  CHARTYPE *aus_filename = NULL;
+  char_t *aus_filename = NULL;
 
-  if ((aus_filename = (CHARTYPE *) (*the_malloc) (strlen((DEFCHAR *) cf->fpath) + strlen((DEFCHAR *) cf->fname) + 5)) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((aus_filename = (char_t *) malloc(strlen((char *) cf->fpath) + strlen((char *) cf->fname) + 5)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  new_filename(cf->fpath, cf->fname, aus_filename, (CHARTYPE *) ".aus");
+  new_filename(cf->fpath, cf->fname, aus_filename, (char_t *) ".aus");
   remove_file(aus_filename);
-  (*the_free) (aus_filename);
+  free(aus_filename);
   return (RC_OK);
 }
 short free_view_memory(bool free_file_lines, bool display_the_screen) {
   VIEW_DETAILS *save_current_view = NULL;
-  CHARTYPE save_current_screen = 0;
+  char_t save_current_screen = 0;
   short rc = RC_OK;
   int y = 0, x = 0;
   int scenario = 0;
-  ROWTYPE save_cmd_line = 0;
-  CHARTYPE save_prefix = 0;
+  row_t save_cmd_line = 0;
+  char_t save_prefix = 0;
   short save_gap = 0, save_prefix_width = 0;
 
   /*
@@ -1179,7 +1179,7 @@ short free_view_memory(bool free_file_lines, bool display_the_screen) {
       current_screen = save_current_screen;
       set_screen_defaults();
       if (curses_started) {
-        if ((rc = set_up_windows((CHARTYPE) (other_screen))) != RC_OK) {
+        if ((rc = set_up_windows((char_t) (other_screen))) != RC_OK) {
           return (rc);
         }
         if ((rc = set_up_windows(current_screen)) != RC_OK) {
@@ -1187,9 +1187,9 @@ short free_view_memory(bool free_file_lines, bool display_the_screen) {
         }
       }
       pre_process_line(OTHER_SCREEN.screen_view, OTHER_SCREEN.screen_view->focus_line, (LINE *) NULL);
-      prepare_view((CHARTYPE) (other_screen));
+      prepare_view((char_t) (other_screen));
       if (display_the_screen)
-        display_screen((CHARTYPE) (other_screen));
+        display_screen((char_t) (other_screen));
       break;
     case 3:
       /*
@@ -1273,7 +1273,7 @@ void free_a_view(void) {
   if (MARK_VIEW == CURRENT_VIEW)
     MARK_VIEW = (VIEW_DETAILS *) NULL;
   if (CURRENT_VIEW->preserved_view_details)
-    (*the_free) (CURRENT_VIEW->preserved_view_details);
+    free(CURRENT_VIEW->preserved_view_details);
   CURRENT_VIEW = vll_del(&vd_first, &vd_last, CURRENT_VIEW, DIRECTION_BACKWARD);
   CURRENT_SCREEN.screen_view = CURRENT_VIEW;
   number_of_views--;
@@ -1284,49 +1284,49 @@ short free_file_memory(bool free_file_lines) {
    * If the file name is not NULL, free it...
    */
   if (CURRENT_FILE->fname != NULL) {
-    (*the_free) (CURRENT_FILE->fname);
-    CURRENT_FILE->fname = (CHARTYPE *) NULL;
+    free(CURRENT_FILE->fname);
+    CURRENT_FILE->fname = (char_t *) NULL;
   }
   /*
    * If the actual file name is not NULL, free it...
    */
   if (CURRENT_FILE->actualfname != NULL) {
-    (*the_free) (CURRENT_FILE->actualfname);
-    CURRENT_FILE->actualfname = (CHARTYPE *) NULL;
+    free(CURRENT_FILE->actualfname);
+    CURRENT_FILE->actualfname = (char_t *) NULL;
   }
   /*
    * If the origianl file name is not NULL, free it...
    */
   if (CURRENT_FILE->efileid != NULL) {
-    (*the_free) (CURRENT_FILE->efileid);
-    CURRENT_FILE->efileid = (CHARTYPE *) NULL;
+    free(CURRENT_FILE->efileid);
+    CURRENT_FILE->efileid = (char_t *) NULL;
   }
   /*
    * If the file path is not NULL, free it...
    */
   if (CURRENT_FILE->fpath != NULL) {
-    (*the_free) (CURRENT_FILE->fpath);
-    CURRENT_FILE->fpath = (CHARTYPE *) NULL;
+    free(CURRENT_FILE->fpath);
+    CURRENT_FILE->fpath = (char_t *) NULL;
   }
   /*
    * If the autosave file name is not NULL, free it...
    */
   if (CURRENT_FILE->autosave_fname != NULL) {
-    (*the_free) (CURRENT_FILE->autosave_fname);
-    CURRENT_FILE->autosave_fname = (CHARTYPE *) NULL;
+    free(CURRENT_FILE->autosave_fname);
+    CURRENT_FILE->autosave_fname = (char_t *) NULL;
   }
   /*
    * If the file display attributes is not NULL, free it...
    */
   if (CURRENT_FILE->attr != NULL) {
-    (*the_free) (CURRENT_FILE->attr);
+    free(CURRENT_FILE->attr);
     CURRENT_FILE->attr = (COLOUR_ATTR *) NULL;
   }
   /*
    * If the file ecolour attributes is not NULL, free it...
    */
   if (CURRENT_FILE->ecolour != NULL) {
-    (*the_free) (CURRENT_FILE->ecolour);
+    free(CURRENT_FILE->ecolour);
     CURRENT_FILE->ecolour = (COLOUR_ATTR *) NULL;
   }
   /*
@@ -1365,14 +1365,14 @@ short free_file_memory(bool free_file_lines) {
    * Free the preserved file details (if any)
    */
   if (CURRENT_FILE->preserved_file_details) {
-    (*the_free) (CURRENT_FILE->preserved_file_details);
+    free(CURRENT_FILE->preserved_file_details);
     CURRENT_FILE->preserved_file_details = NULL;
   }
   /*
    * Free the FILE_DETAILS structure...
    */
   if (CURRENT_FILE != NULL) {
-    (*the_free) (CURRENT_FILE);
+    free(CURRENT_FILE);
     CURRENT_FILE = (FILE_DETAILS *) NULL;
   }
   /*
@@ -1380,9 +1380,9 @@ short free_file_memory(bool free_file_lines) {
    * implied function.
    */
   if (rexx_support) {
-    CHARTYPE tmp[20];
+    char_t tmp[20];
 
-    sprintf((DEFCHAR *) tmp, "ring.%ld", number_of_files);
+    sprintf((char *) tmp, "ring.%ld", number_of_files);
     MyRexxDeregisterFunction(tmp);
   }
   number_of_files--;
@@ -1390,22 +1390,22 @@ short free_file_memory(bool free_file_lines) {
 }
 short read_directory(void) {
   struct dirfile *dpfirst = NULL, *dplast = NULL, *dp;
-  CHARTYPE str_attr[12];
-  CHARTYPE str_date[12];
-  CHARTYPE str_time[6];
+  char_t str_attr[12];
+  char_t str_date[12];
+  char_t str_time[6];
   VIEW_DETAILS *found_view = NULL;
   short rc = RC_OK;
   LINE *curr = NULL;
-  CHARTYPE tmp[50];
+  char_t tmp[50];
   int len;
-  CHARTYPE _THE_FAR dir_rec[MAX_FILE_NAME + 50];
+  char_t dir_rec[MAX_FILE_NAME + 50];
 
   /*
    * Get all file info for the selected files into structure. If no file
    * name specified, force it to '*'.
    */
-  if (strcmp((DEFCHAR *) sp_fname, "") == 0)
-    rc = getfiles(sp_path, (CHARTYPE *) "*", &dpfirst, &dplast);
+  if (strcmp((char *) sp_fname, "") == 0)
+    rc = getfiles(sp_path, (char_t *) "*", &dpfirst, &dplast);
   else
     rc = getfiles(sp_path, sp_fname, &dpfirst, &dplast);
   if (rc != RC_OK) {
@@ -1419,8 +1419,8 @@ short read_directory(void) {
    * dir_path is set up here so that subsequent sos_edit commands can use
    * the directory path as a prefix to the edit files filename.
    */
-  strcpy((DEFCHAR *) dir_path, (DEFCHAR *) sp_path);
-  strcpy((DEFCHAR *) dir_files, (DEFCHAR *) sp_fname);
+  strcpy((char *) dir_path, (char *) sp_path);
+  strcpy((char *) dir_files, (char *) sp_fname);
   /*
    * sort the array of file structures.
    */
@@ -1455,13 +1455,13 @@ short read_directory(void) {
   /*
    * first_line is set to "Top of File"
    */
-  if ((dir_first_line = add_LINE(dir_first_line, NULL, TOP_OF_FILE, strlen((DEFCHAR *) TOP_OF_FILE), 0, FALSE)) == NULL) {
+  if ((dir_first_line = add_LINE(dir_first_line, NULL, TOP_OF_FILE, strlen((char *) TOP_OF_FILE), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * last line is set to "Bottom of File"
    */
-  if ((dir_last_line = add_LINE(dir_first_line, dir_first_line, BOTTOM_OF_FILE, strlen((DEFCHAR *) BOTTOM_OF_FILE), 0, FALSE)) == NULL) {
+  if ((dir_last_line = add_LINE(dir_first_line, dir_first_line, BOTTOM_OF_FILE, strlen((char *) BOTTOM_OF_FILE), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   curr = dir_first_line;
@@ -1469,31 +1469,31 @@ short read_directory(void) {
    * write out the formatted contents of the file structures.
    */
   for (dp = dpfirst; dp < dplast; dp++, dir_number_lines++) {
-    len = sprintf((DEFCHAR *) tmp, "%ld", dp->fsize);
+    len = sprintf((char *) tmp, "%ld", dp->fsize);
     if (len > 8) {
-      sprintf((DEFCHAR *) tmp, "%7ldk", dp->fsize / 1024);
+      sprintf((char *) tmp, "%7ldk", dp->fsize / 1024);
     }
     if (dp->lname != NULL) {
-      sprintf((DEFCHAR *) dir_rec, "%s%8s %s %s %s -> %s", file_attrs(dp->fattr, str_attr, dp->facl), tmp, file_date(dp, str_date), file_time(dp, str_time), dp->fname, dp->lname);
+      sprintf((char *) dir_rec, "%s%8s %s %s %s -> %s", file_attrs(dp->fattr, str_attr, dp->facl), tmp, file_date(dp, str_date), file_time(dp, str_time), dp->fname, dp->lname);
     } else {
-      sprintf((DEFCHAR *) dir_rec, "%s%8s %s %s %s", file_attrs(dp->fattr, str_attr, dp->facl), tmp, file_date(dp, str_date), file_time(dp, str_time), dp->fname);
+      sprintf((char *) dir_rec, "%s%8s %s %s %s", file_attrs(dp->fattr, str_attr, dp->facl), tmp, file_date(dp, str_date), file_time(dp, str_time), dp->fname);
     }
-    if ((curr = add_LINE(dir_first_line, curr, dir_rec, strlen((DEFCHAR *) dir_rec), 0, FALSE)) == NULL) {
+    if ((curr = add_LINE(dir_first_line, curr, dir_rec, strlen((char *) dir_rec), 0, FALSE)) == NULL) {
       return (RC_OUT_OF_MEMORY);
     }
-    (*the_free) (dp->fname);
+    free(dp->fname);
   }
-  (*the_free) (dpfirst);
+  free(dpfirst);
 
   return (RC_OK);
 }
-VIEW_DETAILS *find_file(CHARTYPE * fp, CHARTYPE * fn) {
+VIEW_DETAILS *find_file(char_t * fp, char_t * fn) {
   VIEW_DETAILS *save_current_view = NULL, *found_file = NULL;
 
   save_current_view = CURRENT_VIEW;
   CURRENT_VIEW = vd_first;
   while (CURRENT_VIEW != (VIEW_DETAILS *) NULL) {
-    if (strcmp((DEFCHAR *) CURRENT_FILE->fname, (DEFCHAR *) fn) == 0 && strcmp((DEFCHAR *) CURRENT_FILE->fpath, (DEFCHAR *) fp) == 0) {
+    if (strcmp((char *) CURRENT_FILE->fname, (char *) fn) == 0 && strcmp((char *) CURRENT_FILE->fpath, (char *) fp) == 0) {
       found_file = CURRENT_VIEW;
       CURRENT_VIEW = save_current_view;
       return (found_file);
@@ -1503,7 +1503,7 @@ VIEW_DETAILS *find_file(CHARTYPE * fp, CHARTYPE * fn) {
   CURRENT_VIEW = save_current_view;
   return ((VIEW_DETAILS *) NULL);
 }
-VIEW_DETAILS *find_pseudo_file(CHARTYPE file) {
+VIEW_DETAILS *find_pseudo_file(char_t file) {
   VIEW_DETAILS *cv;
 
   cv = vd_first;
@@ -1515,7 +1515,7 @@ VIEW_DETAILS *find_pseudo_file(CHARTYPE file) {
   }
   return ((VIEW_DETAILS *) NULL);
 }
-static short process_command_line(CHARTYPE * profile_command_line, LINETYPE line_number) {
+static short process_command_line(char_t * profile_command_line, line_t line_number) {
   short rc = RC_OK;
   short len = 0;
   bool strip = FALSE;
@@ -1537,7 +1537,7 @@ static short process_command_line(CHARTYPE * profile_command_line, LINETYPE line
    * If the line begins and ends with a quote, single or double, strip
    * the quotes.
    */
-  len = strlen((DEFCHAR *) profile_command_line);
+  len = strlen((char *) profile_command_line);
   if (*(profile_command_line) == '\'' && *(profile_command_line + len - 1) == '\'')
     strip = TRUE;
   if (*(profile_command_line) == '"' && *(profile_command_line + len - 1) == '"')
@@ -1551,10 +1551,10 @@ static short process_command_line(CHARTYPE * profile_command_line, LINETYPE line
   return (rc);
 }
 short execute_command_file(FILE * fp) {
-  LENGTHTYPE i;
-  CHARTYPE ch;
+  length_t i;
+  char_t ch;
   short rc = RC_OK;
-  LINETYPE line_number = 0;
+  line_t line_number = 0;
 
   memset(profile_command_line, ' ', MAX_LENGTH_OF_LINE);
   i = 0;
@@ -1600,34 +1600,34 @@ short execute_command_file(FILE * fp) {
   return (rc);
 }
 
-CHARTYPE *read_file_into_memory(CHARTYPE * filename, int *buffer_size) {
+char_t *read_file_into_memory(char_t * filename, int *buffer_size) {
   FILE *fp = NULL;
-  CHARTYPE *buffer = NULL;
+  char_t *buffer = NULL;
 
-  if ((stat((DEFCHAR *) filename, &stat_buf) == 0)
+  if ((stat((char *) filename, &stat_buf) == 0)
       && (is_a_dir_stat(stat_buf.st_mode))) {
-    display_error(8, (CHARTYPE *) "specified file is a directory", FALSE);
+    display_error(8, (char_t *) "specified file is a directory", FALSE);
     return NULL;
   }
-  if ((buffer = (CHARTYPE *) (*the_malloc) ((stat_buf.st_size) * sizeof(CHARTYPE))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((buffer = (char_t *) malloc((stat_buf.st_size) * sizeof(char_t))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return NULL;
   }
   /*
    * Open the TLD file in text mode, so on DOSish systems we don't get
    * CRLFs.
    */
-  fp = fopen((DEFCHAR *) filename, "r");
+  fp = fopen((char *) filename, "r");
   if (fp == NULL) {
     display_error(8, filename, FALSE);
-    (*the_free) (buffer);
+    free(buffer);
     return NULL;
   }
   /*
    * Read the full file into memory. Use the returned value from
    * fread() to cater for CR/LF translations if appropriate.
    */
-  *buffer_size = fread(buffer, sizeof(CHARTYPE), stat_buf.st_size, fp);
+  *buffer_size = fread(buffer, sizeof(char_t), stat_buf.st_size, fp);
   fclose(fp);
   return (buffer);
 }

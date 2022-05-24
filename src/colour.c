@@ -35,7 +35,7 @@
 #include <the.h>
 #include <proto.h>
 
-static COLOUR_DEF _THE_FAR the_colours[ATTR_MAX] = {
+static COLOUR_DEF the_colours[ATTR_MAX] = {
   /* foreground   background   modifier  mono                     */
   { COLOR_WHITE, COLOR_BLUE, A_NORMAL, A_NORMAL },      /* FILEAREA    */
   { COLOR_WHITE, COLOR_BLUE, A_BOLD, A_BOLD },  /* CURLINE     */
@@ -79,7 +79,7 @@ static COLOUR_DEF _THE_FAR the_colours[ATTR_MAX] = {
   { COLOR_BLUE, COLOR_WHITE, A_NORMAL, A_REVERSE },     /* POP-DIVIDER   */
 };
 
-static COLOUR_DEF _THE_FAR kedit_colours[ATTR_MAX] = {
+static COLOUR_DEF kedit_colours[ATTR_MAX] = {
   /* foreground   background   modifier  mono                     */
   { COLOR_CYAN, COLOR_BLUE, A_BOLD, A_NORMAL }, /* FILEAREA    */
   { COLOR_YELLOW, COLOR_BLUE, A_BOLD, A_BOLD }, /* CURLINE     */
@@ -123,7 +123,7 @@ static COLOUR_DEF _THE_FAR kedit_colours[ATTR_MAX] = {
   { COLOR_YELLOW, COLOR_BLUE, A_BOLD, A_BOLD }, /* POP-DIVIDER   */
 };
 
-static COLOUR_DEF _THE_FAR keditw_colours[ATTR_MAX] = {
+static COLOUR_DEF keditw_colours[ATTR_MAX] = {
   /* foreground   background   modifier          mono                     */
   { COLOR_BLACK, COLOR_WHITE, A_NORMAL | A_BLINK, A_NORMAL },   /* FILEAREA    */
   { COLOR_BLACK, COLOR_WHITE, A_BOLD | A_BLINK, A_BOLD },       /* CURLINE     */
@@ -167,7 +167,7 @@ static COLOUR_DEF _THE_FAR keditw_colours[ATTR_MAX] = {
   { COLOR_BLUE, COLOR_WHITE, A_NORMAL, A_BOLD },        /* POP-DIVIDER   */
 };
 
-static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] = {
+static COLOUR_DEF xedit_colours[ATTR_MAX] = {
   /* foreground   background   modifier  mono                     */
   { COLOR_GREEN, COLOR_BLACK, A_NORMAL, A_NORMAL },     /* FILEAREA    */
   { COLOR_CYAN, COLOR_BLACK, A_NORMAL, A_BOLD },        /* CURLINE     */
@@ -247,7 +247,7 @@ static COLOUR_DEF _THE_FAR xedit_colours[ATTR_MAX] = {
 /* 8 - alternate keyword color 8 */
 /* 9 - alternate keyword color 9 */
 
-static COLOUR_DEF _THE_FAR the_ecolours[ECOLOUR_MAX] = {
+static COLOUR_DEF the_ecolours[ECOLOUR_MAX] = {
   /* foreground   background   modifier  mono */
   { COLOR_GREEN, COLOR_BLUE, A_NORMAL, A_NORMAL },      /* A */
   { COLOR_YELLOW, COLOR_BLUE, A_NORMAL, A_NORMAL },     /* B */
@@ -286,7 +286,7 @@ static COLOUR_DEF _THE_FAR the_ecolours[ECOLOUR_MAX] = {
   { COLOR_BLUE, COLOR_BLUE, A_BOLD, A_NORMAL }, /* 9 */
 };
 
-static COLOUR_DEF _THE_FAR xedit_ecolours[ECOLOUR_MAX] = {
+static COLOUR_DEF xedit_ecolours[ECOLOUR_MAX] = {
   /* foreground   background   modifier  mono */
   { COLOR_GREEN, COLOR_BLACK, A_NORMAL, A_NORMAL },     /* A */
   { COLOR_CYAN, COLOR_BLACK, A_NORMAL, A_NORMAL },      /* B */
@@ -325,7 +325,7 @@ static COLOUR_DEF _THE_FAR xedit_ecolours[ECOLOUR_MAX] = {
   { COLOR_BLUE, COLOR_BLACK, A_BOLD, A_NORMAL },        /* 9 */
 };
 
-static COLOUR_DEF _THE_FAR kedit_ecolours[ECOLOUR_MAX] = {
+static COLOUR_DEF kedit_ecolours[ECOLOUR_MAX] = {
   /* foreground   background   modifier  mono */
   { COLOR_GREEN, COLOR_BLUE, A_NORMAL, A_NORMAL },      /* A */
   { COLOR_CYAN, COLOR_BLUE, A_NORMAL, A_NORMAL },       /* B */
@@ -364,7 +364,7 @@ static COLOUR_DEF _THE_FAR kedit_ecolours[ECOLOUR_MAX] = {
   { COLOR_BLUE, COLOR_BLUE, A_BOLD, A_NORMAL }, /* 9 */
 };
 
-static COLOUR_DEF _THE_FAR keditw_ecolours[ECOLOUR_MAX] = {
+static COLOUR_DEF keditw_ecolours[ECOLOUR_MAX] = {
   /* foreground   background   modifier  mono */
   { COLOR_GREEN, COLOR_WHITE, A_NORMAL | A_BLINK, A_NORMAL },   /* A */
   { COLOR_CYAN, COLOR_WHITE, A_NORMAL | A_BLINK, A_NORMAL },    /* B */
@@ -404,7 +404,7 @@ static COLOUR_DEF _THE_FAR keditw_ecolours[ECOLOUR_MAX] = {
 };
 
 struct attributes {
-  CHARTYPE *attrib;
+  char_t *attrib;
   short attrib_min_len;
   int actual_attrib;
   chtype colour_modifier;
@@ -414,43 +414,43 @@ struct attributes {
 };
 typedef struct attributes ATTRIBS;
 
-static ATTRIBS _THE_FAR valid_attribs[] = {
-  { (CHARTYPE *) "black", 3, COLOR_BLACK, 0, FALSE, TRUE, TRUE },
-  { (CHARTYPE *) "grey", 3, COLOR_WHITE, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "gray", 3, COLOR_WHITE, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "white", 1, COLOR_WHITE, A_BOLD, FALSE, TRUE, TRUE },
-  { (CHARTYPE *) "blue", 3, COLOR_BLUE, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "green", 1, COLOR_GREEN, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "cyan", 1, COLOR_CYAN, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "red", 3, COLOR_RED, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "magenta", 1, COLOR_MAGENTA, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "pink", 1, COLOR_MAGENTA, A_BOLD, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "brown", 1, COLOR_YELLOW, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "yellow", 1, COLOR_YELLOW, A_BOLD, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "turquoise", 1, COLOR_CYAN, 0, FALSE, FALSE, TRUE },
-  { (CHARTYPE *) "normal", 3, A_NORMAL, 0, TRUE, TRUE, TRUE },
-  { (CHARTYPE *) "backbold", 8, A_BLINK, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) "blink", 3, A_BLINK, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) "bold", 2, A_BOLD, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) "bright", 3, A_BOLD, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) "high", 1, A_BOLD, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) "reverse", 3, A_REVERSE, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) "underline", 1, A_UNDERLINE, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) "dark", 4, A_NORMAL, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) "italic", 1, A_ITALIC, 0, TRUE, TRUE, FALSE },
-  { (CHARTYPE *) ",", 1, 8, 0, FALSE, TRUE, FALSE },
-  { (CHARTYPE *) NULL, 0, 0, 0, FALSE, FALSE, FALSE },
+static ATTRIBS valid_attribs[] = {
+  { (char_t *) "black", 3, COLOR_BLACK, 0, FALSE, TRUE, TRUE },
+  { (char_t *) "grey", 3, COLOR_WHITE, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "gray", 3, COLOR_WHITE, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "white", 1, COLOR_WHITE, A_BOLD, FALSE, TRUE, TRUE },
+  { (char_t *) "blue", 3, COLOR_BLUE, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "green", 1, COLOR_GREEN, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "cyan", 1, COLOR_CYAN, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "red", 3, COLOR_RED, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "magenta", 1, COLOR_MAGENTA, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "pink", 1, COLOR_MAGENTA, A_BOLD, FALSE, FALSE, TRUE },
+  { (char_t *) "brown", 1, COLOR_YELLOW, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "yellow", 1, COLOR_YELLOW, A_BOLD, FALSE, FALSE, TRUE },
+  { (char_t *) "turquoise", 1, COLOR_CYAN, 0, FALSE, FALSE, TRUE },
+  { (char_t *) "normal", 3, A_NORMAL, 0, TRUE, TRUE, TRUE },
+  { (char_t *) "backbold", 8, A_BLINK, 0, TRUE, TRUE, FALSE },
+  { (char_t *) "blink", 3, A_BLINK, 0, TRUE, TRUE, FALSE },
+  { (char_t *) "bold", 2, A_BOLD, 0, TRUE, TRUE, FALSE },
+  { (char_t *) "bright", 3, A_BOLD, 0, TRUE, TRUE, FALSE },
+  { (char_t *) "high", 1, A_BOLD, 0, TRUE, TRUE, FALSE },
+  { (char_t *) "reverse", 3, A_REVERSE, 0, TRUE, TRUE, FALSE },
+  { (char_t *) "underline", 1, A_UNDERLINE, 0, TRUE, TRUE, FALSE },
+  { (char_t *) "dark", 4, A_NORMAL, 0, TRUE, TRUE, FALSE },
+  { (char_t *) "italic", 1, A_ITALIC, 0, TRUE, TRUE, FALSE },
+  { (char_t *) ",", 1, 8, 0, FALSE, TRUE, FALSE },
+  { (char_t *) NULL, 0, 0, 0, FALSE, FALSE, FALSE },
 };
 
-short parse_colours(CHARTYPE * attrib, COLOUR_ATTR * pattr, CHARTYPE ** rem, bool spare, bool *any_colours) {
+short parse_colours(char_t * attrib, COLOUR_ATTR * pattr, char_t ** rem, bool spare, bool *any_colours) {
   register short i = 0;
   short num_colours = 0;
   chtype mono = pattr->mono;
   chtype specified_mod = 0L;
   chtype fg = FOREFROMPAIR(pattr->pair);
   chtype bg = BACKFROMPAIR(pattr->pair);
-  CHARTYPE *string = NULL;
-  CHARTYPE *p = NULL, *oldp = NULL;
+  char_t *string = NULL;
+  char_t *p = NULL, *oldp = NULL;
   bool found = FALSE, any_found = FALSE;
   bool spare_pos = FALSE;
   int offset = 0;
@@ -459,20 +459,20 @@ short parse_colours(CHARTYPE * attrib, COLOUR_ATTR * pattr, CHARTYPE ** rem, boo
    * Get a copy of the passed string and wreck it rather than the passed
    * string.
    */
-  if ((string = (CHARTYPE *) my_strdup(attrib)) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((string = (char_t *) my_strdup(attrib)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   oldp = string;
-  p = (CHARTYPE *) strtok((DEFCHAR *) string, " \t");
+  p = (char_t *) strtok((char *) string, " \t");
   while (p != NULL) {
     found = FALSE;
     for (i = 0; valid_attribs[i].attrib != NULL; i++) {
       if (equal(valid_attribs[i].attrib, p, valid_attribs[i].attrib_min_len)) {
         any_found = found = TRUE;
         if (!valid_attribs[i].attrib_allowed_on_mono && !colour_support) {
-          display_error(61, (CHARTYPE *) p, FALSE);
-          (*the_free) (string);
+          display_error(61, (char_t *) p, FALSE);
+          free(string);
           return (RC_INVALID_OPERAND);
         }
         if (valid_attribs[i].attrib_modifier) {
@@ -480,14 +480,14 @@ short parse_colours(CHARTYPE * attrib, COLOUR_ATTR * pattr, CHARTYPE ** rem, boo
             specified_mod = (valid_attribs[i].actual_attrib == A_NORMAL) ? A_NORMAL : specified_mod | valid_attribs[i].actual_attrib;
           else
             mono = (valid_attribs[i].actual_attrib == A_NORMAL) ? A_NORMAL : mono | valid_attribs[i].actual_attrib;
-          offset = p - oldp + strlen((DEFCHAR *) p) + 1;
+          offset = p - oldp + strlen((char *) p) + 1;
           break;
         } else {
           switch (num_colours) {
             case 0:
               if (!colour_support && valid_attribs[i].actual_attrib != COLOR_WHITE) {
-                display_error(61, (CHARTYPE *) p, FALSE);
-                (*the_free) (string);
+                display_error(61, (char_t *) p, FALSE);
+                free(string);
                 return (RC_INVALID_OPERAND);
               }
               if (valid_attribs[i].actual_attrib != 8) {
@@ -495,28 +495,28 @@ short parse_colours(CHARTYPE * attrib, COLOUR_ATTR * pattr, CHARTYPE ** rem, boo
                 specified_mod |= valid_attribs[i].colour_modifier;
               }
               num_colours++;
-              offset = p - oldp + strlen((DEFCHAR *) p) + 1;
+              offset = p - oldp + strlen((char *) p) + 1;
               break;
             case 1:
               if (!colour_support && valid_attribs[i].actual_attrib != COLOR_BLACK) {
-                display_error(61, (CHARTYPE *) p, FALSE);
-                (*the_free) (string);
+                display_error(61, (char_t *) p, FALSE);
+                free(string);
                 return (RC_INVALID_OPERAND);
               }
               if (valid_attribs[i].actual_attrib != 8) {
                 bg = valid_attribs[i].actual_attrib;
               }
               num_colours++;
-              offset = p - oldp + strlen((DEFCHAR *) p) + 1;
+              offset = p - oldp + strlen((char *) p) + 1;
               break;
             default:
               if (spare) {
                 spare_pos = TRUE;
-                *rem = (CHARTYPE *) attrib + offset;
+                *rem = (char_t *) attrib + offset;
                 break;
               }
-              display_error(1, (CHARTYPE *) p, FALSE);
-              (*the_free) (string);
+              display_error(1, (char_t *) p, FALSE);
+              free(string);
               return (RC_INVALID_OPERAND);
               break;
           }
@@ -529,19 +529,19 @@ short parse_colours(CHARTYPE * attrib, COLOUR_ATTR * pattr, CHARTYPE ** rem, boo
     if (spare_pos && found)
       break;
     if (!found) {
-      if (equal((CHARTYPE *) "on", p, 2)
+      if (equal((char_t *) "on", p, 2)
           && num_colours == 1);
       else {
         if (spare) {
-          *rem = (CHARTYPE *) attrib + offset;
+          *rem = (char_t *) attrib + offset;
           break;
         }
-        display_error(1, (CHARTYPE *) p, FALSE);
-        (*the_free) (string);
+        display_error(1, (char_t *) p, FALSE);
+        free(string);
         return (RC_INVALID_OPERAND);
       }
     }
-    p = (CHARTYPE *) strtok(NULL, " \t");
+    p = (char_t *) strtok(NULL, " \t");
   }
 
   if (num_colours == 0)
@@ -551,27 +551,27 @@ short parse_colours(CHARTYPE * attrib, COLOUR_ATTR * pattr, CHARTYPE ** rem, boo
   pattr->mod = specified_mod;
   pattr->mono = mono;
   *any_colours = any_found;
-  (*the_free) (string);
+  free(string);
   return (RC_OK);
 }
 
-short parse_modifiers(CHARTYPE * attrib, COLOUR_ATTR * pattr) {
+short parse_modifiers(char_t * attrib, COLOUR_ATTR * pattr) {
   register short i = 0;
   chtype mono = pattr->mono;
   chtype specified_mod = 0L;
-  CHARTYPE *string = NULL;
-  CHARTYPE *p = NULL, *last_word = NULL;
+  char_t *string = NULL;
+  char_t *p = NULL, *last_word = NULL;
   bool found = FALSE;
 
   /*
    * Get a copy of the passed string and wreck it rather than the passed
    * string.
    */
-  if ((string = (CHARTYPE *) my_strdup(attrib)) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((string = (char_t *) my_strdup(attrib)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  p = (CHARTYPE *) strtok((DEFCHAR *) string, " \t");
+  p = (char_t *) strtok((char *) string, " \t");
   while (p != NULL) {
     found = FALSE;
     for (i = 0; valid_attribs[i].attrib != NULL; i++) {
@@ -579,8 +579,8 @@ short parse_modifiers(CHARTYPE * attrib, COLOUR_ATTR * pattr) {
           && valid_attribs[i].attrib_modifier) {
         found = TRUE;
         if (!valid_attribs[i].attrib_allowed_on_mono && !colour_support) {
-          display_error(61, (CHARTYPE *) p, FALSE);
-          (*the_free) (string);
+          display_error(61, (char_t *) p, FALSE);
+          free(string);
           return (RC_INVALID_OPERAND);
         }
         if (colour_support)
@@ -591,28 +591,28 @@ short parse_modifiers(CHARTYPE * attrib, COLOUR_ATTR * pattr) {
       }
     }
     if (!found) {
-      if (equal((CHARTYPE *) "on", p, 2)
-          || equal((CHARTYPE *) "off", p, 3))
+      if (equal((char_t *) "on", p, 2)
+          || equal((char_t *) "off", p, 3))
         last_word = p;
       else {
-        display_error(1, (CHARTYPE *) p, FALSE);
-        (*the_free) (string);
+        display_error(1, (char_t *) p, FALSE);
+        free(string);
         return (RC_INVALID_OPERAND);
       }
     }
-    p = (CHARTYPE *) strtok(NULL, " \t");
+    p = (char_t *) strtok(NULL, " \t");
   }
 
-  if (equal((CHARTYPE *) "on", last_word, 2)
-      || equal((CHARTYPE *) "off", last_word, 3)) {
-    (*the_free) (string);
+  if (equal((char_t *) "on", last_word, 2)
+      || equal((char_t *) "off", last_word, 3)) {
+    free(string);
   } else {
-    display_error(1, (CHARTYPE *) p, FALSE);
+    display_error(1, (char_t *) p, FALSE);
     /*
      * Free the memory after we finish referencing it; p points to
      * somewhere in string.
      */
-    (*the_free) (string);
+    free(string);
     return (RC_INVALID_OPERAND);
   }
 
@@ -743,7 +743,7 @@ void set_up_default_ecolours(FILE_DETAILS * fd)
   return;
 }
 
-CHARTYPE *get_colour_strings(COLOUR_ATTR * attr)
+char_t *get_colour_strings(COLOUR_ATTR * attr)
 /* This function returns a pointer to an allocated block of memory with*/
 /* textual descriptions of the colours associated with the attr.       */
 /* The caller is responsible for freeing up the allocated memory.      */
@@ -752,7 +752,7 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR * attr)
 #define GET_FG  1
 #define GET_BG  2
   register int i = 0, j = 0;
-  CHARTYPE *attr_string = NULL;
+  char_t *attr_string = NULL;
   int fg = FOREFROMPAIR(attr->pair), bg = BACKFROMPAIR(attr->pair);
   chtype mod = attr->mono;
   int start_with = 0;
@@ -765,12 +765,12 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR * attr)
     start_with = GET_MOD;
     mod = attr->mod;
   }
-  attr_string = (CHARTYPE *) (*the_malloc) (sizeof(CHARTYPE) * 70);
-  if (attr_string == (CHARTYPE *) NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  attr_string = (char_t *) malloc(sizeof(char_t) * 70);
+  if (attr_string == (char_t *) NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (NULL);
   }
-  strcpy((DEFCHAR *) attr_string, "");
+  strcpy((char *) attr_string, "");
   /*
    * If mono, we start with the modifier (GET_MOD)
    * and end with the modifier (GET_MOD).
@@ -784,7 +784,7 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR * attr)
         match_value = (chtype) fg;
         break;
       case GET_BG:
-        strcat((DEFCHAR *) attr_string, "on ");
+        strcat((char *) attr_string, "on ");
         colour_only = TRUE;
         match_value = (chtype) bg;
         break;
@@ -799,8 +799,8 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR * attr)
          * Foreground or background
          */
         if (!valid_attribs[i].attrib_modifier && match_value == (chtype) valid_attribs[i].actual_attrib && valid_attribs[i].colour_modifier == 0) {
-          strcat((DEFCHAR *) attr_string, (DEFCHAR *) valid_attribs[i].attrib);
-          strcat((DEFCHAR *) attr_string, " ");
+          strcat((char *) attr_string, (char *) valid_attribs[i].attrib);
+          strcat((char *) attr_string, " ");
           break;
         }
       } else {
@@ -809,8 +809,8 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR * attr)
          */
         if (valid_attribs[i].attrib_modifier && (match_value & valid_attribs[i].actual_attrib)
             && !(matched_modifiers & valid_attribs[i].actual_attrib)) {
-          strcat((DEFCHAR *) attr_string, (DEFCHAR *) valid_attribs[i].attrib);
-          strcat((DEFCHAR *) attr_string, " ");
+          strcat((char *) attr_string, (char *) valid_attribs[i].attrib);
+          strcat((char *) attr_string, " ");
           matched_modifiers |= valid_attribs[i].actual_attrib;
         }
       }
@@ -819,7 +819,7 @@ CHARTYPE *get_colour_strings(COLOUR_ATTR * attr)
   return (attr_string);
 }
 
-int is_valid_colour(CHARTYPE * colour)
+int is_valid_colour(char_t * colour)
 /*
  * This function determines if a colour name is passed as the only argument.
  */

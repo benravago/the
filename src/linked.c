@@ -45,7 +45,7 @@ THELIST *ll_add(THELIST * first, THELIST * curr, unsigned short size)
 {
   THELIST *next = NULL;
 
-  if ((next = (THELIST *) (*the_malloc) (size)) != (THELIST *) NULL) {
+  if ((next = (THELIST *) malloc(size)) != (THELIST *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -98,7 +98,7 @@ THELIST *ll_del(THELIST ** first, THELIST ** last, THELIST * curr, short directi
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -110,7 +110,7 @@ THELIST *ll_del(THELIST ** first, THELIST ** last, THELIST * curr, short directi
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return curr;
   }
@@ -122,7 +122,7 @@ THELIST *ll_del(THELIST ** first, THELIST ** last, THELIST * curr, short directi
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return curr;
   }
@@ -136,7 +136,7 @@ THELIST *ll_del(THELIST ** first, THELIST ** last, THELIST * curr, short directi
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return curr;
 }
@@ -158,7 +158,7 @@ THELIST *ll_free(THELIST * first, THELIST_DEL delfunc)
     if (delfunc)
       (*delfunc) (curr->data);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return (THELIST *) NULL;
@@ -174,7 +174,7 @@ LINE *lll_add(LINE * first, LINE * curr, unsigned short size)
 {
   LINE *next = NULL;
 
-  if ((next = (LINE *) (*the_malloc) (size)) != (LINE *) NULL) {
+  if ((next = (LINE *) malloc(size)) != (LINE *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -213,7 +213,7 @@ LINE *lll_del(LINE ** first, LINE ** last, LINE * curr, short direction) {
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -225,7 +225,7 @@ LINE *lll_del(LINE ** first, LINE ** last, LINE * curr, short direction) {
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -237,7 +237,7 @@ LINE *lll_del(LINE ** first, LINE ** last, LINE * curr, short direction) {
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -251,7 +251,7 @@ LINE *lll_del(LINE ** first, LINE ** last, LINE * curr, short direction) {
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -268,18 +268,18 @@ LINE *lll_free(LINE * first)
   curr = first;
   while (curr != NULL) {
     if (curr->line)
-      (*the_free) (curr->line);
+      free(curr->line);
     if (curr->name)
-      (*the_free) (curr->name);
+      free(curr->name);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((LINE *) NULL);
 }
-LINE *lll_find(LINE * first, LINE * last, LINETYPE line_number, LINETYPE max_lines) {
+LINE *lll_find(LINE * first, LINE * last, line_t line_number, line_t max_lines) {
   LINE *curr = NULL;
-  LINETYPE i = 0L;
+  line_t i = 0L;
 
   if (line_number < (max_lines / 2)) {
     curr = first;
@@ -294,12 +294,12 @@ LINE *lll_find(LINE * first, LINE * last, LINETYPE line_number, LINETYPE max_lin
   }
   return (curr);
 }
-LINE *lll_locate(LINE * first, CHARTYPE * value) {
+LINE *lll_locate(LINE * first, char_t * value) {
   LINE *curr = NULL;
 
   curr = first;
   while (curr) {
-    if (curr->name && strcmp((DEFCHAR *) curr->name, (DEFCHAR *) value) == 0)
+    if (curr->name && strcmp((char *) curr->name, (char *) value) == 0)
       break;
     curr = curr->next;
   }
@@ -316,7 +316,7 @@ VIEW_DETAILS *vll_add(VIEW_DETAILS * first, VIEW_DETAILS * curr, unsigned short 
 {
   VIEW_DETAILS *next = (VIEW_DETAILS *) NULL;
 
-  if ((next = (VIEW_DETAILS *) (*the_malloc) (size)) != (VIEW_DETAILS *) NULL) {
+  if ((next = (VIEW_DETAILS *) malloc(size)) != (VIEW_DETAILS *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -344,7 +344,7 @@ VIEW_DETAILS *vll_del(VIEW_DETAILS ** first, VIEW_DETAILS ** last, VIEW_DETAILS 
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -356,7 +356,7 @@ VIEW_DETAILS *vll_del(VIEW_DETAILS ** first, VIEW_DETAILS ** last, VIEW_DETAILS 
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -372,7 +372,7 @@ VIEW_DETAILS *vll_del(VIEW_DETAILS ** first, VIEW_DETAILS ** last, VIEW_DETAILS 
       new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -386,7 +386,7 @@ VIEW_DETAILS *vll_del(VIEW_DETAILS ** first, VIEW_DETAILS ** last, VIEW_DETAILS 
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -401,7 +401,7 @@ DEFINE *dll_add(DEFINE * first, DEFINE * curr, unsigned short size)
 {
   DEFINE *next = NULL;
 
-  if ((next = (DEFINE *) (*the_malloc) (size)) != (DEFINE *) NULL) {
+  if ((next = (DEFINE *) malloc(size)) != (DEFINE *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -426,7 +426,7 @@ DEFINE *dll_del(DEFINE ** first, DEFINE ** last, DEFINE * curr, short direction)
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -438,7 +438,7 @@ DEFINE *dll_del(DEFINE ** first, DEFINE ** last, DEFINE * curr, short direction)
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -450,7 +450,7 @@ DEFINE *dll_del(DEFINE ** first, DEFINE ** last, DEFINE * curr, short direction)
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -464,7 +464,7 @@ DEFINE *dll_del(DEFINE ** first, DEFINE ** last, DEFINE * curr, short direction)
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -475,17 +475,17 @@ DEFINE *dll_free(DEFINE * first) {
   curr = first;
   while (curr != (DEFINE *) NULL) {
     if (curr->def_params != NULL)
-      (*the_free) (curr->def_params);
+      free(curr->def_params);
     if (curr->pcode != NULL)
-      (*the_free) (curr->pcode);
+      free(curr->pcode);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((DEFINE *) NULL);
 }
 
-THE_PPC *pll_add(THE_PPC ** first, unsigned short size, LINETYPE line_number)
+THE_PPC *pll_add(THE_PPC ** first, unsigned short size, line_t line_number)
 /* Adds a THE_PPC to the current linked list in line_number order.     */
 /* PARAMETERS:                                                         */
 /* first      - pointer to first THE_PPC in linked list                */
@@ -495,7 +495,7 @@ THE_PPC *pll_add(THE_PPC ** first, unsigned short size, LINETYPE line_number)
 {
   THE_PPC *next = NULL, *curr, *prev = NULL;
 
-  if ((next = (THE_PPC *) (*the_malloc) (size)) != (THE_PPC *) NULL) {
+  if ((next = (THE_PPC *) malloc(size)) != (THE_PPC *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -546,7 +546,7 @@ THE_PPC *pll_del(THE_PPC ** first, THE_PPC ** last, THE_PPC * curr, short direct
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -558,7 +558,7 @@ THE_PPC *pll_del(THE_PPC ** first, THE_PPC ** last, THE_PPC * curr, short direct
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -570,7 +570,7 @@ THE_PPC *pll_del(THE_PPC ** first, THE_PPC ** last, THE_PPC * curr, short direct
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -584,7 +584,7 @@ THE_PPC *pll_del(THE_PPC ** first, THE_PPC ** last, THE_PPC * curr, short direct
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -601,12 +601,12 @@ THE_PPC *pll_free(THE_PPC * first)
   curr = first;
   while (curr != NULL) {
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((THE_PPC *) NULL);
 }
-THE_PPC *pll_find(THE_PPC * first, LINETYPE line_number) {
+THE_PPC *pll_find(THE_PPC * first, line_t line_number) {
   THE_PPC *curr_ppc = NULL;
 
   curr_ppc = first;
@@ -629,7 +629,7 @@ RESERVED *rll_add(RESERVED * first, RESERVED * curr, unsigned short size)
 {
   RESERVED *next = NULL;
 
-  if ((next = (RESERVED *) (*the_malloc) (size)) != (RESERVED *) NULL) {
+  if ((next = (RESERVED *) malloc(size)) != (RESERVED *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -654,7 +654,7 @@ RESERVED *rll_del(RESERVED ** first, RESERVED ** last, RESERVED * curr, short di
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -666,7 +666,7 @@ RESERVED *rll_del(RESERVED ** first, RESERVED ** last, RESERVED * curr, short di
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -678,7 +678,7 @@ RESERVED *rll_del(RESERVED ** first, RESERVED ** last, RESERVED * curr, short di
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -692,7 +692,7 @@ RESERVED *rll_del(RESERVED ** first, RESERVED ** last, RESERVED * curr, short di
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -708,14 +708,14 @@ RESERVED *rll_free(RESERVED * first)
 
   curr = first;
   while (curr != NULL) {
-    if (curr->line != (CHARTYPE *) NULL)
-      (*the_free) (curr->line);
-    if (curr->spec != (CHARTYPE *) NULL)
-      (*the_free) (curr->spec);
+    if (curr->line != (char_t *) NULL)
+      free(curr->line);
+    if (curr->spec != (char_t *) NULL)
+      free(curr->spec);
     if (curr->attr != (COLOUR_ATTR *) NULL)
-      (*the_free) (curr->attr);
+      free(curr->attr);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((RESERVED *) NULL);
@@ -741,7 +741,7 @@ PARSER_DETAILS *parserll_add(PARSER_DETAILS * first, PARSER_DETAILS * curr, unsi
 {
   PARSER_DETAILS *next = NULL;
 
-  if ((next = (PARSER_DETAILS *) (*the_malloc) (size)) != (PARSER_DETAILS *) NULL) {
+  if ((next = (PARSER_DETAILS *) malloc(size)) != (PARSER_DETAILS *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -766,7 +766,7 @@ PARSER_DETAILS *parserll_del(PARSER_DETAILS ** first, PARSER_DETAILS ** last, PA
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -778,7 +778,7 @@ PARSER_DETAILS *parserll_del(PARSER_DETAILS ** first, PARSER_DETAILS ** last, PA
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -790,7 +790,7 @@ PARSER_DETAILS *parserll_del(PARSER_DETAILS ** first, PARSER_DETAILS ** last, PA
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -804,7 +804,7 @@ PARSER_DETAILS *parserll_del(PARSER_DETAILS ** first, PARSER_DETAILS ** last, PA
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -821,25 +821,25 @@ PARSER_DETAILS *parserll_free(PARSER_DETAILS * first)
   curr = first;
   while (curr != NULL) {
     if (curr->first_comments != NULL)
-      (*the_free) (curr->first_comments);
+      free(curr->first_comments);
     if (curr->first_keyword != NULL)
-      (*the_free) (curr->first_keyword);
+      free(curr->first_keyword);
     if (curr->first_function != NULL)
-      (*the_free) (curr->first_function);
+      free(curr->first_function);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((PARSER_DETAILS *) NULL);
 }
-PARSER_DETAILS *parserll_find(PARSER_DETAILS * first, CHARTYPE * name) {
+PARSER_DETAILS *parserll_find(PARSER_DETAILS * first, char_t * name) {
   PARSER_DETAILS *curr = NULL;
   short i = 0;
 
   curr = first;
   if (curr != NULL) {
     for (i = 0; curr != NULL; i++, curr = curr->next) {
-      if (strcasecmp((DEFCHAR *) name, (DEFCHAR *) curr->parser_name) == 0) {
+      if (strcasecmp((char *) name, (char *) curr->parser_name) == 0) {
         return curr;
       }
     }
@@ -857,7 +857,7 @@ PARSE_KEYWORDS *parse_keywordll_add(PARSE_KEYWORDS * first, PARSE_KEYWORDS * cur
 {
   PARSE_KEYWORDS *next = NULL;
 
-  if ((next = (PARSE_KEYWORDS *) (*the_malloc) (size)) != (PARSE_KEYWORDS *) NULL) {
+  if ((next = (PARSE_KEYWORDS *) malloc(size)) != (PARSE_KEYWORDS *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -882,7 +882,7 @@ PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS ** first, PARSE_KEYWORDS ** l
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -894,7 +894,7 @@ PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS ** first, PARSE_KEYWORDS ** l
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -906,7 +906,7 @@ PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS ** first, PARSE_KEYWORDS ** l
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -920,7 +920,7 @@ PARSE_KEYWORDS *parse_keywordll_del(PARSE_KEYWORDS ** first, PARSE_KEYWORDS ** l
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -937,9 +937,9 @@ PARSE_KEYWORDS *parse_keywordll_free(PARSE_KEYWORDS * first)
   curr = first;
   while (curr != NULL) {
     if (curr->keyword != NULL)
-      (*the_free) (curr->keyword);
+      free(curr->keyword);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((PARSE_KEYWORDS *) NULL);
@@ -955,7 +955,7 @@ PARSE_FUNCTIONS *parse_functionll_add(PARSE_FUNCTIONS * first, PARSE_FUNCTIONS *
 {
   PARSE_FUNCTIONS *next = NULL;
 
-  if ((next = (PARSE_FUNCTIONS *) (*the_malloc) (size)) != (PARSE_FUNCTIONS *) NULL) {
+  if ((next = (PARSE_FUNCTIONS *) malloc(size)) != (PARSE_FUNCTIONS *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -980,7 +980,7 @@ PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS ** first, PARSE_FUNCTIONS 
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -992,7 +992,7 @@ PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS ** first, PARSE_FUNCTIONS 
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1004,7 +1004,7 @@ PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS ** first, PARSE_FUNCTIONS 
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1018,7 +1018,7 @@ PARSE_FUNCTIONS *parse_functionll_del(PARSE_FUNCTIONS ** first, PARSE_FUNCTIONS 
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -1035,9 +1035,9 @@ PARSE_FUNCTIONS *parse_functionll_free(PARSE_FUNCTIONS * first)
   curr = first;
   while (curr != NULL) {
     if (curr->function != NULL)
-      (*the_free) (curr->function);
+      free(curr->function);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((PARSE_FUNCTIONS *) NULL);
@@ -1053,7 +1053,7 @@ PARSE_HEADERS *parse_headerll_add(PARSE_HEADERS * first, PARSE_HEADERS * curr, u
 {
   PARSE_HEADERS *next = NULL;
 
-  if ((next = (PARSE_HEADERS *) (*the_malloc) (size)) != (PARSE_HEADERS *) NULL) {
+  if ((next = (PARSE_HEADERS *) malloc(size)) != (PARSE_HEADERS *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -1084,7 +1084,7 @@ PARSE_HEADERS *parse_headerll_free(PARSE_HEADERS * first)
   curr = first;
   while (curr != NULL) {
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((PARSE_HEADERS *) NULL);
@@ -1100,7 +1100,7 @@ PARSER_MAPPING *mappingll_add(PARSER_MAPPING * first, PARSER_MAPPING * curr, uns
 {
   PARSER_MAPPING *next = NULL;
 
-  if ((next = (PARSER_MAPPING *) (*the_malloc) (size)) != (PARSER_MAPPING *) NULL) {
+  if ((next = (PARSER_MAPPING *) malloc(size)) != (PARSER_MAPPING *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -1125,7 +1125,7 @@ PARSER_MAPPING *mappingll_del(PARSER_MAPPING ** first, PARSER_MAPPING ** last, P
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -1137,7 +1137,7 @@ PARSER_MAPPING *mappingll_del(PARSER_MAPPING ** first, PARSER_MAPPING ** last, P
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1149,7 +1149,7 @@ PARSER_MAPPING *mappingll_del(PARSER_MAPPING ** first, PARSER_MAPPING ** last, P
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1163,7 +1163,7 @@ PARSER_MAPPING *mappingll_del(PARSER_MAPPING ** first, PARSER_MAPPING ** last, P
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -1180,18 +1180,18 @@ PARSER_MAPPING *mappingll_free(PARSER_MAPPING * first)
   curr = first;
   while (curr != NULL) {
     if (curr->parser_name != NULL)
-      (*the_free) (curr->parser_name);
+      free(curr->parser_name);
     if (curr->filemask != NULL)
-      (*the_free) (curr->filemask);
+      free(curr->filemask);
     if (curr->magic_number != NULL)
-      (*the_free) (curr->magic_number);
+      free(curr->magic_number);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((PARSER_MAPPING *) NULL);
 }
-PARSER_MAPPING *mappingll_find(PARSER_MAPPING * first, CHARTYPE * filemask, CHARTYPE * magic_number) {
+PARSER_MAPPING *mappingll_find(PARSER_MAPPING * first, char_t * filemask, char_t * magic_number) {
   PARSER_MAPPING *curr = NULL;
   short i = 0;
 
@@ -1199,11 +1199,11 @@ PARSER_MAPPING *mappingll_find(PARSER_MAPPING * first, CHARTYPE * filemask, CHAR
   if (curr != NULL) {
     for (i = 0; curr != NULL; i++, curr = curr->next) {
       if (filemask != NULL) {
-        if (curr->filemask && strcmp((DEFCHAR *) filemask, (DEFCHAR *) curr->filemask) == 0) {
+        if (curr->filemask && strcmp((char *) filemask, (char *) curr->filemask) == 0) {
           return curr;
         }
       } else {
-        if (curr->magic_number && strcmp((DEFCHAR *) magic_number, (DEFCHAR *) curr->magic_number) == 0) {
+        if (curr->magic_number && strcmp((char *) magic_number, (char *) curr->magic_number) == 0) {
           return curr;
         }
       }
@@ -1222,7 +1222,7 @@ PARSE_COMMENTS *parse_commentsll_add(PARSE_COMMENTS * first, PARSE_COMMENTS * cu
 {
   PARSE_COMMENTS *next = NULL;
 
-  if ((next = (PARSE_COMMENTS *) (*the_malloc) (size)) != (PARSE_COMMENTS *) NULL) {
+  if ((next = (PARSE_COMMENTS *) malloc(size)) != (PARSE_COMMENTS *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -1247,7 +1247,7 @@ PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS ** first, PARSE_COMMENTS ** 
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -1259,7 +1259,7 @@ PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS ** first, PARSE_COMMENTS ** 
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1271,7 +1271,7 @@ PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS ** first, PARSE_COMMENTS ** 
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1285,7 +1285,7 @@ PARSE_COMMENTS *parse_commentsll_del(PARSE_COMMENTS ** first, PARSE_COMMENTS ** 
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -1302,7 +1302,7 @@ PARSE_COMMENTS *parse_commentsll_free(PARSE_COMMENTS * first)
   curr = first;
   while (curr != NULL) {
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((PARSE_COMMENTS *) NULL);
@@ -1318,7 +1318,7 @@ PARSE_POSTCOMPARE *parse_postcomparell_add(PARSE_POSTCOMPARE * first, PARSE_POST
 {
   PARSE_POSTCOMPARE *next = NULL;
 
-  if ((next = (PARSE_POSTCOMPARE *) (*the_malloc) (size)) != (PARSE_POSTCOMPARE *) NULL) {
+  if ((next = (PARSE_POSTCOMPARE *) malloc(size)) != (PARSE_POSTCOMPARE *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -1340,14 +1340,14 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE ** first, PARSE_POS
   PARSE_POSTCOMPARE *new_curr = NULL;
 
   if (curr->string)
-    (*the_free) (curr->string);
+    free(curr->string);
   if (curr->is_class_type)
     regfree(&curr->pattern_buffer);
   /*
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -1359,7 +1359,7 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE ** first, PARSE_POS
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1371,7 +1371,7 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE ** first, PARSE_POS
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1385,7 +1385,7 @@ PARSE_POSTCOMPARE *parse_postcomparell_del(PARSE_POSTCOMPARE ** first, PARSE_POS
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -1402,11 +1402,11 @@ PARSE_POSTCOMPARE *parse_postcomparell_free(PARSE_POSTCOMPARE * first)
   curr = first;
   while (curr != NULL) {
     if (curr->string)
-      (*the_free) (curr->string);
+      free(curr->string);
     if (curr->is_class_type)
       regfree(&curr->pattern_buffer);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((PARSE_POSTCOMPARE *) NULL);
@@ -1422,7 +1422,7 @@ PARSE_EXTENSION *parse_extensionll_add(PARSE_EXTENSION * first, PARSE_EXTENSION 
 {
   PARSE_EXTENSION *next = NULL;
 
-  if ((next = (PARSE_EXTENSION *) (*the_malloc) (size)) != (PARSE_EXTENSION *) NULL) {
+  if ((next = (PARSE_EXTENSION *) malloc(size)) != (PARSE_EXTENSION *) NULL) {
     /*
      * Ensure all pointers in the structure are set to NULL
      */
@@ -1444,12 +1444,12 @@ PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION ** first, PARSE_EXTENSION
   PARSE_EXTENSION *new_curr = NULL;
 
   if (curr->extension)
-    (*the_free) (curr->extension);
+    free(curr->extension);
   /*
    * Delete the only record
    */
   if (curr->prev == NULL && curr->next == NULL) {
-    (*the_free) (curr);
+    free(curr);
     *first = NULL;
     if (last != NULL)
       *last = NULL;
@@ -1461,7 +1461,7 @@ PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION ** first, PARSE_EXTENSION
   if (curr->prev == NULL) {
     curr->next->prev = NULL;
     *first = new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1473,7 +1473,7 @@ PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION ** first, PARSE_EXTENSION
     new_curr = curr->prev;
     if (last != NULL)
       *last = curr->prev;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
     return (curr);
   }
@@ -1487,7 +1487,7 @@ PARSE_EXTENSION *parse_extensionll_del(PARSE_EXTENSION ** first, PARSE_EXTENSION
   else
     new_curr = curr->prev;
 
-  (*the_free) (curr);
+  free(curr);
   curr = new_curr;
   return (curr);
 }
@@ -1504,9 +1504,9 @@ PARSE_EXTENSION *parse_extensionll_free(PARSE_EXTENSION * first)
   curr = first;
   while (curr != NULL) {
     if (curr->extension)
-      (*the_free) (curr->extension);
+      free(curr->extension);
     new_curr = curr->next;
-    (*the_free) (curr);
+    free(curr);
     curr = new_curr;
   }
   return ((PARSE_EXTENSION *) NULL);

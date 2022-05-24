@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* 
+/*
  * Directory routines
  */
 

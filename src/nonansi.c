@@ -79,8 +79,8 @@ void convert_equals_in_filename(char_t * outfilename, char_t * infilename) {
    * 7) \apath\=       \apath\fred.c     \apath\fred       filename
    */
 
-  char_t _THE_FAR in_filename[MAX_FILE_NAME + 1];
-  char_t _THE_FAR current_filename[MAX_FILE_NAME + 1];
+  char_t in_filename[MAX_FILE_NAME + 1];
+  char_t current_filename[MAX_FILE_NAME + 1];
   char_t *in_ftype, *in_fpath, *in_fname;
   char_t *current_ftype, *current_fpath, *current_fname;
   line_t last_pos;
@@ -164,8 +164,8 @@ void convert_equals_in_filename(char_t * outfilename, char_t * infilename) {
 
 short splitpath(char_t * filename) {
   short len = 0;
-  char_t _THE_FAR work_filename[MAX_FILE_NAME + 1];
-  char_t _THE_FAR conv_filename[MAX_FILE_NAME + 1];
+  char_t work_filename[MAX_FILE_NAME + 1];
+  char_t conv_filename[MAX_FILE_NAME + 1];
 
   if (strlen((char *) filename) > MAX_FILE_NAME) {
     return (RC_BAD_FILEID);

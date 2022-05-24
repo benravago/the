@@ -37,21 +37,21 @@
 #include "key.h"
 #include "command.h"
 
-static CHARTYPE *build_defined_key_definition(int, CHARTYPE *, DEFINE *, int);
-static void save_last_command(CHARTYPE *, CHARTYPE *);
+static char_t *build_defined_key_definition(int, char_t *, DEFINE *, int);
+static void save_last_command(char_t *, char_t *);
 void AdjustThighlight(int);
 static bool save_target(TARGET *);
 
 #define HEXVAL(c) (((c)>'9')?(tolower(c)-'a'+10):((c)-'0'))
 
-static CHARTYPE _THE_FAR *cmd_history[MAX_SAVED_COMMANDS];
+static char_t *cmd_history[MAX_SAVED_COMMANDS];
 static short cmd_history_len[MAX_SAVED_COMMANDS];
 static short last_cmd = (-1), current_cmd = 0, number_cmds = 0, offset_cmd = 0;
-CHARTYPE _THE_FAR *last_command_for_reexecute;
+char_t *last_command_for_reexecute;
 short last_command_for_reexecute_len;
-CHARTYPE _THE_FAR *last_command_for_repeat;
+char_t *last_command_for_repeat;
 short last_command_for_repeat_len;
-CHARTYPE _THE_FAR *last_command_for_repeat_in_macro;
+char_t *last_command_for_repeat_in_macro;
 short last_command_for_repeat_in_macro_len;
 
 #define KEY_REDEF "/* Key re-definitions */"
@@ -64,8 +64,8 @@ short last_command_for_repeat_in_macro_len;
  * temp_params is > length_temp_params, reallocate a larger area and
  * set the value of length_temp_params to reflect the new size.
  */
-static CHARTYPE *temp_params = NULL;
-static LENGTHTYPE length_temp_params = 0;
+static char_t *temp_params = NULL;
+static length_t length_temp_params = 0;
 
 /*
  * The following two static variables are for reserving space for the
@@ -74,8 +74,8 @@ static LENGTHTYPE length_temp_params = 0;
  * temp_set_params is > length_temp_set_params, reallocate a larger area and
  * set the value of length_temp_set_params to reflect the new size.
  */
-static CHARTYPE *temp_set_params = NULL;
-static LENGTHTYPE length_temp_set_params = 0;
+static char_t *temp_set_params = NULL;
+static length_t length_temp_set_params = 0;
 
 /*
  * The following two static variables are for reserving space for the
@@ -84,8 +84,8 @@ static LENGTHTYPE length_temp_set_params = 0;
  * temp_macros is > length_temp_macros  reallocate a larger area and
  * set the value of length_temp_macros to reflect the new size.
  */
-static CHARTYPE *temp_macros = NULL;
-static LENGTHTYPE length_temp_macros = 0;
+static char_t *temp_macros = NULL;
+static length_t length_temp_macros = 0;
 
 /*
  * The following two static variables are for reserving space for the
@@ -94,8 +94,8 @@ static LENGTHTYPE length_temp_macros = 0;
  * tmp_cmd     is > length_tmp_cmd    , reallocate a larger area and
  * set the value of length_tmp_cmd     to reflect the new size.
  */
-static CHARTYPE *tmp_cmd = NULL;
-static LENGTHTYPE length_tmp_cmd = 0;
+static char_t *tmp_cmd = NULL;
+static length_t length_tmp_cmd = 0;
 
 /*
  * The following two        variables are for reserving space for the
@@ -104,8 +104,8 @@ static LENGTHTYPE length_tmp_cmd = 0;
  * temp_cmd    is > length_temp_cmd   , reallocate a larger area and
  * set the value of length_temp_cmd    to reflect the new size.
  */
-CHARTYPE *temp_cmd = NULL;
-static LENGTHTYPE length_temp_cmd = 0;
+char_t *temp_cmd = NULL;
+static length_t length_temp_cmd = 0;
 
 /*
  * The following two are to specify the first and last items in the
@@ -133,54 +133,54 @@ DEFINE *last_mouse_define = NULL;
  */
 LINE *key_first_line = NULL;
 LINE *key_last_line = NULL;
-LINETYPE key_number_lines = 0L;
+line_t key_number_lines = 0L;
 
-AREAS _THE_FAR valid_areas[ATTR_MAX] = {
-  { (CHARTYPE *) "FILEAREA", 1, WINDOW_FILEAREA, TRUE },
-  { (CHARTYPE *) "CURLINE", 2, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "BLOCK", 1, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "CBLOCK", 2, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "CMDLINE", 1, WINDOW_COMMAND, TRUE },
-  { (CHARTYPE *) "IDLINE", 1, WINDOW_IDLINE, TRUE },
-  { (CHARTYPE *) "MSGLINE", 1, WINDOW_ERROR, FALSE },
-  { (CHARTYPE *) "ARROW", 1, WINDOW_ARROW, TRUE },
-  { (CHARTYPE *) "PREFIX", 2, WINDOW_PREFIX, TRUE },
-  { (CHARTYPE *) "CPREFIX", 3, WINDOW_PREFIX, TRUE },
-  { (CHARTYPE *) "PENDING", 1, WINDOW_PREFIX, FALSE },
-  { (CHARTYPE *) "SCALE", 1, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "TOFEOF", 2, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "CTOFEOF", 2, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "TABLINE", 1, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "SHADOW", 2, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "STATAREA", 2, WINDOW_STATAREA, TRUE },
-  { (CHARTYPE *) "DIVIDER", 1, WINDOW_DIVIDER, TRUE },
-  { (CHARTYPE *) "RESERVED", 1, WINDOW_RESERVED, FALSE },
-  { (CHARTYPE *) "NONDISP", 1, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "HIGHLIGHT", 2, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "CHIGHLIGHT", 3, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "THIGHLIGHT", 5, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "SLK", 3, WINDOW_SLK, FALSE },
-  { (CHARTYPE *) "GAP", 3, WINDOW_PREFIX, FALSE },
-  { (CHARTYPE *) "CGAP", 4, WINDOW_PREFIX, FALSE },
-  { (CHARTYPE *) "ALERT", 5, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "DIALOG", 6, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "BOUNDMARKER", 5, WINDOW_FILEAREA, FALSE },
-  { (CHARTYPE *) "FILETABS", 8, WINDOW_FILETABS, TRUE },
-  { (CHARTYPE *) "FILETABSDIV", 11, WINDOW_FILETABS, TRUE },
-  { (CHARTYPE *) "CURSORLINE", 6, WINDOW_FILEAREA, TRUE },
-  { (CHARTYPE *) "DIALOGBORDER", 12, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "DIALOGEDITFIELD", 15, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "DIALOGBUTTON", 12, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "DIALOGABUTTON", 13, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "POPUPBORDER", 11, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "POPUPCURLINE", 12, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "POPUP", 5, WINDOW_DIVIDER, FALSE },
-  { (CHARTYPE *) "POPUPDIVIDER", 12, WINDOW_DIVIDER, FALSE },
+AREAS valid_areas[ATTR_MAX] = {
+  { (char_t *) "FILEAREA", 1, WINDOW_FILEAREA, TRUE },
+  { (char_t *) "CURLINE", 2, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "BLOCK", 1, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "CBLOCK", 2, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "CMDLINE", 1, WINDOW_COMMAND, TRUE },
+  { (char_t *) "IDLINE", 1, WINDOW_IDLINE, TRUE },
+  { (char_t *) "MSGLINE", 1, WINDOW_ERROR, FALSE },
+  { (char_t *) "ARROW", 1, WINDOW_ARROW, TRUE },
+  { (char_t *) "PREFIX", 2, WINDOW_PREFIX, TRUE },
+  { (char_t *) "CPREFIX", 3, WINDOW_PREFIX, TRUE },
+  { (char_t *) "PENDING", 1, WINDOW_PREFIX, FALSE },
+  { (char_t *) "SCALE", 1, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "TOFEOF", 2, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "CTOFEOF", 2, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "TABLINE", 1, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "SHADOW", 2, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "STATAREA", 2, WINDOW_STATAREA, TRUE },
+  { (char_t *) "DIVIDER", 1, WINDOW_DIVIDER, TRUE },
+  { (char_t *) "RESERVED", 1, WINDOW_RESERVED, FALSE },
+  { (char_t *) "NONDISP", 1, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "HIGHLIGHT", 2, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "CHIGHLIGHT", 3, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "THIGHLIGHT", 5, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "SLK", 3, WINDOW_SLK, FALSE },
+  { (char_t *) "GAP", 3, WINDOW_PREFIX, FALSE },
+  { (char_t *) "CGAP", 4, WINDOW_PREFIX, FALSE },
+  { (char_t *) "ALERT", 5, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "DIALOG", 6, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "BOUNDMARKER", 5, WINDOW_FILEAREA, FALSE },
+  { (char_t *) "FILETABS", 8, WINDOW_FILETABS, TRUE },
+  { (char_t *) "FILETABSDIV", 11, WINDOW_FILETABS, TRUE },
+  { (char_t *) "CURSORLINE", 6, WINDOW_FILEAREA, TRUE },
+  { (char_t *) "DIALOGBORDER", 12, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "DIALOGEDITFIELD", 15, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "DIALOGBUTTON", 12, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "DIALOGABUTTON", 13, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "POPUPBORDER", 11, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "POPUPCURLINE", 12, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "POPUP", 5, WINDOW_DIVIDER, FALSE },
+  { (char_t *) "POPUPDIVIDER", 12, WINDOW_DIVIDER, FALSE },
 };
 
-CHARTYPE *get_key_name(int key, int *shift) {
+char_t *get_key_name(int key, int *shift) {
   register short i = 0;
-  CHARTYPE *keyname = NULL;
+  char_t *keyname = NULL;
 
   /*
    * Get name of key...
@@ -195,13 +195,13 @@ CHARTYPE *get_key_name(int key, int *shift) {
   }
   return (keyname);
 }
-CHARTYPE *get_key_definition(int key, int define_format, bool default_keys, bool mouse_key) {
+char_t *get_key_definition(int key, int define_format, bool default_keys, bool mouse_key) {
   register short i = 0;
   DEFINE *curr = NULL;
   bool check_redefined = TRUE;
   bool check_default = TRUE;
-  CHARTYPE *keyname = NULL;
-  CHARTYPE _THE_FAR key_buf[50];
+  char_t *keyname = NULL;
+  char_t key_buf[50];
   int dummy = 0;
 
   /*
@@ -217,20 +217,20 @@ CHARTYPE *get_key_definition(int key, int define_format, bool default_keys, bool
    */
   if (keyname == NULL) {
     if (define_format == THE_KEY_DEFINE_DEFINE)
-      sprintf((DEFCHAR *) temp_cmd, "\"define \\%d ", key);
+      sprintf((char *) temp_cmd, "\"define \\%d ", key);
     else if (define_format == THE_KEY_DEFINE_SHOW)
-      sprintf((DEFCHAR *) temp_cmd, "Key: \\%d", key);
+      sprintf((char *) temp_cmd, "Key: \\%d", key);
     else
-      strcpy((DEFCHAR *) temp_cmd, "");
+      strcpy((char *) temp_cmd, "");
   } else {
     if (define_format == THE_KEY_DEFINE_DEFINE) {
-      sprintf((DEFCHAR *) temp_cmd, "\"define %s ", (DEFCHAR *) keyname);
+      sprintf((char *) temp_cmd, "\"define %s ", (char *) keyname);
     } else if (define_format == THE_KEY_DEFINE_SHOW) {
-      sprintf((DEFCHAR *) temp_cmd, "Key: %s ", (DEFCHAR *) keyname);
+      sprintf((char *) temp_cmd, "Key: %s ", (char *) keyname);
     } else if (define_format == THE_KEY_DEFINE_QUERY) {
-      sprintf((DEFCHAR *) temp_cmd, "%s ", (DEFCHAR *) keyname);
+      sprintf((char *) temp_cmd, "%s ", (char *) keyname);
     } else
-      strcpy((DEFCHAR *) temp_cmd, "");
+      strcpy((char *) temp_cmd, "");
   }
 
   if (mouse_key)
@@ -249,9 +249,9 @@ CHARTYPE *get_key_definition(int key, int define_format, bool default_keys, bool
      * Next check to see if the key has been "defined".
      */
     curr = first_define;
-    if (build_defined_key_definition(key, temp_cmd, curr, define_format) != (CHARTYPE *) NULL) {
+    if (build_defined_key_definition(key, temp_cmd, curr, define_format) != (char_t *) NULL) {
       if (define_format != THE_KEY_DEFINE_RAW && define_format != THE_KEY_DEFINE_QUERY)
-        strcat((DEFCHAR *) temp_cmd, "\"");
+        strcat((char *) temp_cmd, "\"");
       return (temp_cmd);
     }
   }
@@ -262,12 +262,12 @@ CHARTYPE *get_key_definition(int key, int define_format, bool default_keys, bool
     for (i = 0; command[i].text != NULL; i++) {
       if (key == command[i].funkey) {
         if (define_format == THE_KEY_DEFINE_DEFINE)
-          strcat((DEFCHAR *) temp_cmd, " ");
+          strcat((char *) temp_cmd, " ");
         else if (define_format == THE_KEY_DEFINE_SHOW)
-          strcat((DEFCHAR *) temp_cmd, " - assigned to \"");
+          strcat((char *) temp_cmd, " - assigned to \"");
         build_default_key_definition(i, temp_cmd);
         if (define_format != THE_KEY_DEFINE_RAW && define_format != THE_KEY_DEFINE_QUERY)
-          strcat((DEFCHAR *) temp_cmd, "\"");
+          strcat((char *) temp_cmd, "\"");
         return (temp_cmd);
       }
     }
@@ -280,9 +280,9 @@ CHARTYPE *get_key_definition(int key, int define_format, bool default_keys, bool
      * Next check to see if the key has been "defined".
      */
     curr = first_mouse_define;
-    if (build_defined_key_definition(key, temp_cmd, curr, define_format) != (CHARTYPE *) NULL) {
+    if (build_defined_key_definition(key, temp_cmd, curr, define_format) != (char_t *) NULL) {
       if (define_format != THE_KEY_DEFINE_RAW && define_format != THE_KEY_DEFINE_QUERY)
-        strcat((DEFCHAR *) temp_cmd, "\"");
+        strcat((char *) temp_cmd, "\"");
       return (temp_cmd);
     }
   }
@@ -293,21 +293,21 @@ CHARTYPE *get_key_definition(int key, int define_format, bool default_keys, bool
   if (define_format == THE_KEY_DEFINE_RAW) {
     if (key < 256 && key >= 0) {
       if (etmode_flag[key]) {
-        sprintf((DEFCHAR *) temp_cmd, "TEXT d'%d'", key);
+        sprintf((char *) temp_cmd, "TEXT d'%d'", key);
       } else {
-        sprintf((DEFCHAR *) temp_cmd, "TEXT %c", (char) key);
+        sprintf((char *) temp_cmd, "TEXT %c", (char) key);
       }
     }
   } else {
-    strcat((DEFCHAR *) temp_cmd, " - unassigned");
+    strcat((char *) temp_cmd, " - unassigned");
   }
   return (temp_cmd);
 }
 
-static short execute_synonym(CHARTYPE * synonym, CHARTYPE * params) {
+static short execute_synonym(char_t * synonym, char_t * params) {
   DEFINE *curr = (DEFINE *) NULL;
   short rc = RC_FILE_NOT_FOUND;
-  CHARTYPE *key_cmd = NULL;
+  char_t *key_cmd = NULL;
   short macrorc = 0;
   int tokenised = 0;
   int params_len, def_params_len;
@@ -338,7 +338,7 @@ static short execute_synonym(CHARTYPE * synonym, CHARTYPE * params) {
       if (number_of_files != 0 && ISREADONLY(CURRENT_FILE)
           && curr->def_command != (-1)
           && !command[curr->def_command].valid_in_readonly) {
-        display_error(56, (CHARTYPE *) "", FALSE);
+        display_error(56, (char_t *) "", FALSE);
         rc = RC_INVALID_ENVIRON;
         curr = NULL;
         break;
@@ -348,10 +348,10 @@ static short execute_synonym(CHARTYPE * synonym, CHARTYPE * params) {
        * from the synonym's definition and also from the command line.
        * Append them in that order.
        */
-      def_params_len = strlen((DEFCHAR *) curr->def_params);
-      params_len = strlen((DEFCHAR *) params);
-      if ((key_cmd = (CHARTYPE *) (*the_malloc) (def_params_len + params_len + 2)) == NULL) {
-        display_error(30, (CHARTYPE *) "", FALSE);
+      def_params_len = strlen((char *) curr->def_params);
+      params_len = strlen((char *) params);
+      if ((key_cmd = (char_t *) malloc(def_params_len + params_len + 2)) == NULL) {
+        display_error(30, (char_t *) "", FALSE);
         rc = RC_OUT_OF_MEMORY;
         curr = NULL;
         break;
@@ -360,7 +360,7 @@ static short execute_synonym(CHARTYPE * synonym, CHARTYPE * params) {
         spc = " ";
       else
         spc = "";
-      sprintf((DEFCHAR *) key_cmd, "%s%s%s", (DEFCHAR *) curr->def_params, spc, (DEFCHAR *) params);
+      sprintf((char *) key_cmd, "%s%s%s", (char *) curr->def_params, spc, (char *) params);
       if (curr->def_command == (-1)) {
         rc = execute_macro_instore(key_cmd, &macrorc, &curr->pcode, &curr->pcode_len, &tokenised, curr->def_funkey);
         if (tokenised) {
@@ -368,8 +368,8 @@ static short execute_synonym(CHARTYPE * synonym, CHARTYPE * params) {
         }
         if (number_of_files > 0) {
           if (display_screens > 1) {
-            build_screen((CHARTYPE) other_screen);
-            display_screen((CHARTYPE) other_screen);
+            build_screen((char_t) other_screen);
+            display_screen((char_t) other_screen);
           }
           build_screen(current_screen);
           display_screen(current_screen);
@@ -389,9 +389,9 @@ static short execute_synonym(CHARTYPE * synonym, CHARTYPE * params) {
         if (CURRENT_VIEW->thighlight_on && CURRENT_VIEW->thighlight_active) {
           AdjustThighlight(command[curr->def_command].thighlight_behaviour);
         }
-        rc = (*command[curr->def_command].function) ((CHARTYPE *) key_cmd);
+        rc = (*command[curr->def_command].function) ((char_t *) key_cmd);
       }
-      (*the_free) (key_cmd);
+      free(key_cmd);
     }
     curr = curr->next;
   }
@@ -405,8 +405,8 @@ short function_key(int key, int option, bool mouse_details_present) {
   DEFINE *first_save = (DEFINE *) NULL, *last_save = (DEFINE *) NULL;
   short rc = RC_OK;
   short len = 0, num_cmds = 0;
-  CHARTYPE *key_cmd = NULL;
-  CHARTYPE tmpnum[15];
+  char_t *key_cmd = NULL;
+  char_t tmpnum[15];
   short macrorc = 0;
   int tokenised = 0;
 
@@ -458,13 +458,13 @@ short function_key(int key, int option, bool mouse_details_present) {
         if (number_of_files != 0 && ISREADONLY(CURRENT_FILE)
             && curr->def_command != (-1)
             && !command[curr->def_command].valid_in_readonly) {
-          display_error(56, (CHARTYPE *) "", FALSE);
+          display_error(56, (char_t *) "", FALSE);
           rc = RC_INVALID_ENVIRON;
           curr = NULL;
           break;
         }
-        if ((key_cmd = (CHARTYPE *) my_strdup(curr->def_params)) == NULL) {
-          display_error(30, (CHARTYPE *) "", FALSE);
+        if ((key_cmd = (char_t *) my_strdup(curr->def_params)) == NULL) {
+          display_error(30, (char_t *) "", FALSE);
           rc = RC_OUT_OF_MEMORY;
           curr = NULL;
           break;
@@ -496,8 +496,8 @@ short function_key(int key, int option, bool mouse_details_present) {
           }
           if (number_of_files > 0) {
             if (display_screens > 1) {
-              build_screen((CHARTYPE) other_screen);
-              display_screen((CHARTYPE) other_screen);
+              build_screen((char_t) other_screen);
+              display_screen((char_t) other_screen);
             }
             build_screen(current_screen);
             display_screen(current_screen);
@@ -517,9 +517,9 @@ short function_key(int key, int option, bool mouse_details_present) {
           if (CURRENT_VIEW->thighlight_on && CURRENT_VIEW->thighlight_active) {
             AdjustThighlight(command[curr->def_command].thighlight_behaviour);
           }
-          rc = (*command[curr->def_command].function) ((CHARTYPE *) key_cmd);
+          rc = (*command[curr->def_command].function) ((char_t *) key_cmd);
         }
-        (*the_free) (key_cmd);
+        free(key_cmd);
         if (rc != RC_OK && rc != RC_TOF_EOF_REACHED && rc != RC_NO_LINES_CHANGED && rc != RC_TARGET_NOT_FOUND) {
           curr = NULL;
           break;
@@ -531,24 +531,24 @@ short function_key(int key, int option, bool mouse_details_present) {
          * for each command associated with the function key.
          */
         if (curr->def_command != (-1)) {
-          len = strlen((DEFCHAR *) command[curr->def_command].text) + strlen((DEFCHAR *) curr->def_params) + 2;
+          len = strlen((char *) command[curr->def_command].text) + strlen((char *) curr->def_params) + 2;
         } else {
-          len = strlen((DEFCHAR *) curr->def_params) + 1;
+          len = strlen((char *) curr->def_params) + 1;
         }
-        if ((key_cmd = (CHARTYPE *) (*the_malloc) (len)) == NULL) {
-          display_error(30, (CHARTYPE *) "", FALSE);
+        if ((key_cmd = (char_t *) malloc(len)) == NULL) {
+          display_error(30, (char_t *) "", FALSE);
           curr = NULL;
           rc = RC_OUT_OF_MEMORY;
           break;
         }
         if (curr->def_command != (-1)) {
-          strcpy((DEFCHAR *) key_cmd, (DEFCHAR *) command[curr->def_command].text);
-          strcat((DEFCHAR *) key_cmd, " ");
-          strcat((DEFCHAR *) key_cmd, (DEFCHAR *) curr->def_params);
+          strcpy((char *) key_cmd, (char *) command[curr->def_command].text);
+          strcat((char *) key_cmd, " ");
+          strcat((char *) key_cmd, (char *) curr->def_params);
         } else
-          strcpy((DEFCHAR *) key_cmd, (DEFCHAR *) curr->def_params);
-        rc = set_rexx_variable((CHARTYPE *) "SHOWKEY", key_cmd, strlen((DEFCHAR *) key_cmd), ++num_cmds);
-        (*the_free) (key_cmd);
+          strcpy((char *) key_cmd, (char *) curr->def_params);
+        rc = set_rexx_variable((char_t *) "SHOWKEY", key_cmd, strlen((char *) key_cmd), ++num_cmds);
+        free(key_cmd);
         break;
       case OPTION_READV:
         /*
@@ -577,14 +577,14 @@ short function_key(int key, int option, bool mouse_details_present) {
         /*
          * To get here, a valid READV CMDLINE command is present; execute it.
          */
-        if ((key_cmd = (CHARTYPE *) my_strdup(curr->def_params)) == NULL) {
-          display_error(30, (CHARTYPE *) "", FALSE);
+        if ((key_cmd = (char_t *) my_strdup(curr->def_params)) == NULL) {
+          display_error(30, (char_t *) "", FALSE);
           rc = RC_OUT_OF_MEMORY;
           curr = NULL;
           break;
         }
-        rc = (*command[curr->def_command].function) ((CHARTYPE *) key_cmd);
-        (*the_free) (key_cmd);
+        rc = (*command[curr->def_command].function) ((char_t *) key_cmd);
+        free(key_cmd);
         if (rc != RC_OK && rc != RC_TOF_EOF_REACHED && rc != RC_NO_LINES_CHANGED && rc != RC_TARGET_NOT_FOUND) {
           curr = NULL;
           break;
@@ -602,8 +602,8 @@ short function_key(int key, int option, bool mouse_details_present) {
    */
   if (first_save) {
     if (option == OPTION_EXTRACT) {
-      sprintf((DEFCHAR *) tmpnum, "%d", num_cmds);
-      rc = set_rexx_variable((CHARTYPE *) "SHOWKEY", tmpnum, strlen((DEFCHAR *) tmpnum), 0);
+      sprintf((char *) tmpnum, "%d", num_cmds);
+      rc = set_rexx_variable((char_t *) "SHOWKEY", tmpnum, strlen((char *) tmpnum), 0);
       rc = num_cmds;
     }
     dll_free(first_save);
@@ -622,12 +622,12 @@ short function_key(int key, int option, bool mouse_details_present) {
            */
           if (number_of_files != 0 && ISREADONLY(CURRENT_FILE)
               && !command[i].valid_in_readonly) {
-            display_error(56, (CHARTYPE *) "", FALSE);
+            display_error(56, (char_t *) "", FALSE);
             rc = RC_INVALID_ENVIRON;
             break;
           }
-          if ((key_cmd = (CHARTYPE *) my_strdup(command[i].params)) == NULL) {
-            display_error(30, (CHARTYPE *) "", FALSE);
+          if ((key_cmd = (char_t *) my_strdup(command[i].params)) == NULL) {
+            display_error(30, (char_t *) "", FALSE);
             rc = RC_OUT_OF_MEMORY;
             break;
           }
@@ -645,21 +645,21 @@ short function_key(int key, int option, bool mouse_details_present) {
           if (CURRENT_VIEW->thighlight_on && CURRENT_VIEW->thighlight_active) {
             AdjustThighlight(command[i].thighlight_behaviour);
           }
-          rc = (*command[i].function) ((CHARTYPE *) key_cmd);
-          (*the_free) (key_cmd);
+          rc = (*command[i].function) ((char_t *) key_cmd);
+          free(key_cmd);
           break;
         case OPTION_EXTRACT:
-          len = strlen((DEFCHAR *) command[i].text) + strlen((DEFCHAR *) command[i].params) + 10;
-          if ((key_cmd = (CHARTYPE *) (*the_malloc) (len)) == NULL) {
-            display_error(30, (CHARTYPE *) "", FALSE);
+          len = strlen((char *) command[i].text) + strlen((char *) command[i].params) + 10;
+          if ((key_cmd = (char_t *) malloc(len)) == NULL) {
+            display_error(30, (char_t *) "", FALSE);
             rc = RC_OUT_OF_MEMORY;
             break;
           }
-          strcpy((DEFCHAR *) key_cmd, "");
+          strcpy((char *) key_cmd, "");
           key_cmd = build_default_key_definition(i, key_cmd);
-          rc = set_rexx_variable((CHARTYPE *) "SHOWKEY", key_cmd, strlen((DEFCHAR *) key_cmd), 1);
-          (*the_free) (key_cmd);
-          rc = set_rexx_variable((CHARTYPE *) "SHOWKEY", (CHARTYPE *) "1", 1, 0);
+          rc = set_rexx_variable((char_t *) "SHOWKEY", key_cmd, strlen((char *) key_cmd), 1);
+          free(key_cmd);
+          rc = set_rexx_variable((char_t *) "SHOWKEY", (char_t *) "1", 1, 0);
           break;
         case OPTION_READV:
           /*
@@ -680,20 +680,20 @@ short function_key(int key, int option, bool mouse_details_present) {
           /*
            * To get here, a valid READV CMDLINE command is present; execute it.
            */
-          if ((key_cmd = (CHARTYPE *) my_strdup(command[i].params)) == NULL) {
-            display_error(30, (CHARTYPE *) "", FALSE);
+          if ((key_cmd = (char_t *) my_strdup(command[i].params)) == NULL) {
+            display_error(30, (char_t *) "", FALSE);
             rc = RC_OUT_OF_MEMORY;
             break;
           }
-          rc = (*command[i].function) ((CHARTYPE *) key_cmd);
-          (*the_free) (key_cmd);
+          rc = (*command[i].function) ((char_t *) key_cmd);
+          free(key_cmd);
           break;
       }
       return (rc);
     }
   }
   if (option == OPTION_EXTRACT)
-    rc = set_rexx_variable((CHARTYPE *) "SHOWKEY", (CHARTYPE *) "0", 1, 0);
+    rc = set_rexx_variable((char_t *) "SHOWKEY", (char_t *) "0", 1, 0);
   return (RAW_KEY);
 }
 bool is_modifier_key(int key) {
@@ -709,7 +709,7 @@ bool is_modifier_key(int key) {
   }
   return (FALSE);
 }
-CHARTYPE *build_default_key_definition(int key, CHARTYPE * buf) {
+char_t *build_default_key_definition(int key, char_t * buf) {
   /*
    * The argument, buf, MUST be long enough to to accept the full command
    * and arguments and MUST have be nul terminated before this function
@@ -718,29 +718,29 @@ CHARTYPE *build_default_key_definition(int key, CHARTYPE * buf) {
    * If a SET command, prefix with 'set'
    */
   if (command[key].set_command)
-    strcat((DEFCHAR *) buf, "set ");
+    strcat((char *) buf, "set ");
   /*
    * If a SOS command, prefix with 'sos'
    */
   if (command[key].sos_command)
-    strcat((DEFCHAR *) buf, "sos ");
+    strcat((char *) buf, "sos ");
   /*
    * Append the command name.
    */
-  strcat((DEFCHAR *) buf, (DEFCHAR *) command[key].text);
+  strcat((char *) buf, (char *) command[key].text);
   /*
    * Append any parameters.
    */
-  if (strcmp((DEFCHAR *) command[key].params, "") != 0) {
-    strcat((DEFCHAR *) buf, " ");
-    strcat((DEFCHAR *) buf, (DEFCHAR *) command[key].params);
+  if (strcmp((char *) command[key].params, "") != 0) {
+    strcat((char *) buf, " ");
+    strcat((char *) buf, (char *) command[key].params);
   }
   return (buf);
 }
-static CHARTYPE *build_defined_key_definition(int key, CHARTYPE * buf, DEFINE * curr, int define_format) {
+static char_t *build_defined_key_definition(int key, char_t * buf, DEFINE * curr, int define_format) {
   bool key_defined = FALSE;
   bool first_time = TRUE;
-  CHARTYPE delim[2];
+  char_t delim[2];
 
   /*
    * The argument, buf, MUST be long enough to to accept the full command
@@ -754,38 +754,38 @@ static CHARTYPE *build_defined_key_definition(int key, CHARTYPE * buf, DEFINE * 
       key_defined = TRUE;
       if (first_time) {
         if (define_format == THE_KEY_DEFINE_DEFINE)
-          strcat((DEFCHAR *) buf, " ");
+          strcat((char *) buf, " ");
         else if (define_format == THE_KEY_DEFINE_QUERY)
-          strcat((DEFCHAR *) buf, " ");
+          strcat((char *) buf, " ");
         else if (define_format == THE_KEY_DEFINE_SHOW)
-          strcat((DEFCHAR *) buf, " - assigned to \"");
+          strcat((char *) buf, " - assigned to \"");
       } else {
-        strcat((DEFCHAR *) buf, (DEFCHAR *) delim);
+        strcat((char *) buf, (char *) delim);
       }
       /*
        * Append the command to the string.
        */
       if (curr->def_command == (-1))    /* definition is REXX instore */
-        strcat((DEFCHAR *) buf, (DEFCHAR *) "REXX");
+        strcat((char *) buf, (char *) "REXX");
       else
-        strcat((DEFCHAR *) buf, (DEFCHAR *) command[curr->def_command].text);
+        strcat((char *) buf, (char *) command[curr->def_command].text);
       /*
        * Append any parameters.
        */
-      if (strcmp((DEFCHAR *) curr->def_params, "") != 0) {
-        strcat((DEFCHAR *) buf, " ");
-        strcat((DEFCHAR *) buf, (DEFCHAR *) curr->def_params);
+      if (strcmp((char *) curr->def_params, "") != 0) {
+        strcat((char *) buf, " ");
+        strcat((char *) buf, (char *) curr->def_params);
       }
       first_time = FALSE;
     }
     curr = curr->next;
   }
-  return ((key_defined) ? buf : (CHARTYPE *) NULL);
+  return ((key_defined) ? buf : (char_t *) NULL);
 }
 
-CHARTYPE *build_synonym_definition(DEFINE * curr, CHARTYPE * name, CHARTYPE * buf, bool full_definition) {
-  CHARTYPE delim[2];
-  DEFCHAR *cmd;
+char_t *build_synonym_definition(DEFINE * curr, char_t * name, char_t * buf, bool full_definition) {
+  char_t delim[2];
+  char *cmd;
 
   /*
    * The argument, buf, MUST be long enough to to accept the full command
@@ -801,16 +801,16 @@ CHARTYPE *build_synonym_definition(DEFINE * curr, CHARTYPE * name, CHARTYPE * bu
     if (curr->def_command == (-1))      /* definition is REXX instore */
       cmd = "REXX";
     else
-      cmd = (DEFCHAR *) command[curr->def_command].text;
+      cmd = (char *) command[curr->def_command].text;
     if (full_definition)
-      sprintf((DEFCHAR *) buf, "%s %d%s%s %s%s%s", name, curr->def_funkey, (curr->linend) ? " LINEND " : "", (curr->linend) ? (DEFCHAR *) delim : "", cmd, (curr->def_params) ? " " : "", curr->def_params);
+      sprintf((char *) buf, "%s %d%s%s %s%s%s", name, curr->def_funkey, (curr->linend) ? " LINEND " : "", (curr->linend) ? (char *) delim : "", cmd, (curr->def_params) ? " " : "", curr->def_params);
     else
-      sprintf((DEFCHAR *) buf, "%s%s%s", cmd, (curr->def_params) ? " " : "", curr->def_params);
+      sprintf((char *) buf, "%s%s%s", cmd, (curr->def_params) ? " " : "", curr->def_params);
   } else {
     if (full_definition)
-      sprintf((DEFCHAR *) buf, "%s %lu %s", name, (unsigned long) strlen((DEFCHAR *) name), name);
+      sprintf((char *) buf, "%s %lu %s", name, (unsigned long) strlen((char *) name), name);
     else
-      sprintf((DEFCHAR *) buf, "%s", name);
+      sprintf((char *) buf, "%s", name);
   }
   return (buf);
 }
@@ -821,7 +821,7 @@ short display_all_keys(void) {
   int key = 0, save_funkey = 0;
   short rc = RC_OK;
   register int i = 0;
-  CHARTYPE *keydef = NULL;
+  char_t *keydef = NULL;
   VIEW_DETAILS *found_view = NULL;
   static bool first = TRUE;
 
@@ -830,13 +830,13 @@ short display_all_keys(void) {
    * name.
    */
   if (first) {
-    strcpy((DEFCHAR *) key_pathname, (DEFCHAR *) dir_pathname);
-    strcat((DEFCHAR *) key_pathname, (DEFCHAR *) keyfilename);
+    strcpy((char *) key_pathname, (char *) dir_pathname);
+    strcat((char *) key_pathname, (char *) keyfilename);
     if ((rc = splitpath(key_pathname)) != RC_OK) {
       return (rc);
     }
-    strcpy((DEFCHAR *) key_pathname, (DEFCHAR *) sp_path);
-    strcpy((DEFCHAR *) key_filename, (DEFCHAR *) sp_fname);
+    strcpy((char *) key_pathname, (char *) sp_path);
+    strcpy((char *) key_filename, (char *) sp_fname);
     first = FALSE;
   }
   key_first_line = key_last_line = lll_free(key_first_line);
@@ -848,20 +848,20 @@ short display_all_keys(void) {
   /*
    * first_line is set to "Top of File"
    */
-  if ((key_first_line = add_LINE(key_first_line, NULL, TOP_OF_FILE, strlen((DEFCHAR *) TOP_OF_FILE), 0, FALSE)) == NULL) {
+  if ((key_first_line = add_LINE(key_first_line, NULL, TOP_OF_FILE, strlen((char *) TOP_OF_FILE), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * last line is set to "Bottom of File"
    */
-  if ((key_last_line = add_LINE(key_first_line, key_first_line, BOTTOM_OF_FILE, strlen((DEFCHAR *) BOTTOM_OF_FILE), 0, FALSE)) == NULL) {
+  if ((key_last_line = add_LINE(key_first_line, key_first_line, BOTTOM_OF_FILE, strlen((char *) BOTTOM_OF_FILE), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   curr = key_first_line;
   /*
    * First display default key mappings...
    */
-  if ((curr = add_LINE(key_first_line, curr, (CHARTYPE *) KEY_DEFAULT, strlen(KEY_DEFAULT), 0, FALSE)) == NULL) {
+  if ((curr = add_LINE(key_first_line, curr, (char_t *) KEY_DEFAULT, strlen(KEY_DEFAULT), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   key_number_lines++;
@@ -871,7 +871,7 @@ short display_all_keys(void) {
         && save_funkey != command[i].funkey) {
       save_funkey = command[i].funkey;
       keydef = get_key_definition(command[i].funkey, THE_KEY_DEFINE_DEFINE, TRUE, FALSE);
-      if ((curr = add_LINE(key_first_line, curr, keydef, strlen((DEFCHAR *) keydef), 0, FALSE)) == NULL) {
+      if ((curr = add_LINE(key_first_line, curr, keydef, strlen((char *) keydef), 0, FALSE)) == NULL) {
         return (RC_OUT_OF_MEMORY);
       }
       key_number_lines++;
@@ -880,7 +880,7 @@ short display_all_keys(void) {
   /*
    * ...next, display any key redefinitions.
    */
-  if ((curr = add_LINE(key_first_line, curr, (CHARTYPE *) KEY_REDEF, strlen(KEY_REDEF), 0, FALSE)) == NULL) {
+  if ((curr = add_LINE(key_first_line, curr, (char_t *) KEY_REDEF, strlen(KEY_REDEF), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   key_number_lines++;
@@ -888,7 +888,7 @@ short display_all_keys(void) {
   while (curr_define != NULL) {
     if (key != curr_define->def_funkey) {
       keydef = get_key_definition(curr_define->def_funkey, THE_KEY_DEFINE_DEFINE, FALSE, FALSE);
-      if ((curr = add_LINE(key_first_line, curr, keydef, strlen((DEFCHAR *) keydef), 0, FALSE)) == NULL) {
+      if ((curr = add_LINE(key_first_line, curr, keydef, strlen((char *) keydef), 0, FALSE)) == NULL) {
         return (RC_OUT_OF_MEMORY);
       }
       key_number_lines++;
@@ -899,7 +899,7 @@ short display_all_keys(void) {
   /*
    * ...last, display any mouse key definitions.
    */
-  if ((curr = add_LINE(key_first_line, curr, (CHARTYPE *) KEY_MOUSE_REDEF, strlen(KEY_MOUSE_REDEF), 0, FALSE)) == NULL) {
+  if ((curr = add_LINE(key_first_line, curr, (char_t *) KEY_MOUSE_REDEF, strlen(KEY_MOUSE_REDEF), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   key_number_lines++;
@@ -907,7 +907,7 @@ short display_all_keys(void) {
   while (curr_define != NULL) {
     if (key != curr_define->def_funkey) {
       keydef = get_key_definition(curr_define->def_funkey, THE_KEY_DEFINE_DEFINE, FALSE, TRUE);
-      if ((curr = add_LINE(key_first_line, curr, keydef, strlen((DEFCHAR *) keydef), 0, FALSE)) == NULL) {
+      if ((curr = add_LINE(key_first_line, curr, keydef, strlen((char *) keydef), 0, FALSE)) == NULL) {
         return (RC_OUT_OF_MEMORY);
       }
       key_number_lines++;
@@ -915,8 +915,8 @@ short display_all_keys(void) {
     key = curr_define->def_funkey;
     curr_define = curr_define->next;
   }
-  strcpy((DEFCHAR *) temp_cmd, (DEFCHAR *) key_pathname);
-  strcat((DEFCHAR *) temp_cmd, (DEFCHAR *) key_filename);
+  strcpy((char *) temp_cmd, (char *) key_pathname);
+  strcat((char *) temp_cmd, (char *) key_filename);
   Xedit(temp_cmd);
   return (RC_OK);
 }
@@ -925,7 +925,7 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
   int key = 0, save_funkey = 0;
   short rc = RC_OK;
   register int i = 0;
-  CHARTYPE *keydef = NULL;
+  char_t *keydef = NULL;
   int number_keys = 0;
 
   *number_keys_return = 0;
@@ -937,7 +937,7 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
         number_keys++;
         save_funkey = command[i].funkey;
         keydef = get_key_definition(command[i].funkey, THE_KEY_DEFINE_SHOW, TRUE, FALSE);
-        if ((rc = set_rexx_variable((CHARTYPE *) "define", keydef, strlen((DEFCHAR *) keydef), number_keys)) != RC_OK) {
+        if ((rc = set_rexx_variable((char_t *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
           return (rc);
         }
       }
@@ -950,7 +950,7 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
       if (key != curr_define->def_funkey) {
         number_keys++;
         keydef = get_key_definition(curr_define->def_funkey, THE_KEY_DEFINE_SHOW, FALSE, FALSE);
-        if ((rc = set_rexx_variable((CHARTYPE *) "define", keydef, strlen((DEFCHAR *) keydef), number_keys)) != RC_OK) {
+        if ((rc = set_rexx_variable((char_t *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
           return (rc);
         }
       }
@@ -967,7 +967,7 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
       if (key != curr_define->def_funkey) {
         number_keys++;
         keydef = get_key_definition(curr_define->def_funkey, THE_KEY_DEFINE_SHOW, FALSE, TRUE);
-        if ((rc = set_rexx_variable((CHARTYPE *) "define", keydef, strlen((DEFCHAR *) keydef), number_keys)) != RC_OK) {
+        if ((rc = set_rexx_variable((char_t *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
           return (rc);
         }
       }
@@ -978,20 +978,20 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
   *number_keys_return = number_keys;
   return (RC_OK);
 }
-short command_line(CHARTYPE * cmd_line, bool command_only) {
+short command_line(char_t * cmd_line, bool command_only) {
   bool valid_command = FALSE;
   bool target_found;
   bool linend_status = (number_of_files) ? CURRENT_VIEW->linend_status : LINEND_STATUSx;
-  CHARTYPE linend_value = 0;
+  char_t linend_value = 0;
   register short i = 0, j = 0;
   short rc = RC_OK;
-  CHARTYPE *cmd[MAX_COMMANDS + 1];
+  char_t *cmd[MAX_COMMANDS + 1];
   unsigned short num_commands = 0;
-  CHARTYPE command_delim[2];
-  CHARTYPE *command_entered = NULL;
-  CHARTYPE *saved_command = NULL;
-  CHARTYPE *cl_cmd = NULL;
-  CHARTYPE *cl_param = NULL;
+  char_t command_delim[2];
+  char_t *command_entered = NULL;
+  char_t *saved_command = NULL;
+  char_t *cl_cmd = NULL;
+  char_t *cl_param = NULL;
   short macrorc = 0;
   bool display_parse_error;
 
@@ -1017,8 +1017,8 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
    * If the command is to be kept displayed on the command line, copy it.
    */
   if (*(cmd_line) == '&') {
-    if ((saved_command = (CHARTYPE *) my_strdup(cmd_line)) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+    if ((saved_command = (char_t *) my_strdup(cmd_line)) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     cmd_line++;
@@ -1028,20 +1028,20 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
   /*
    * Copy the incoming cmd_line, so we can play with it.
    */
-  if ((command_entered = (CHARTYPE *) my_strdup(cmd_line)) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((command_entered = (char_t *) my_strdup(cmd_line)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * Allocate some space to cl_cmd and cl_param for the a command when
    * it is split into a command and its parameters.
    */
-  if ((cl_cmd = (CHARTYPE *) (*the_malloc) ((strlen((DEFCHAR *) cmd_line) + 1) * sizeof(CHARTYPE))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((cl_cmd = (char_t *) malloc((strlen((char *) cmd_line) + 1) * sizeof(char_t))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  if ((cl_param = (CHARTYPE *) (*the_malloc) ((strlen((DEFCHAR *) cmd_line) + 1) * sizeof(CHARTYPE))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((cl_param = (char_t *) malloc((strlen((char *) cmd_line) + 1) * sizeof(char_t))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
@@ -1084,7 +1084,7 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
      * To reduce file accesses, check if command is COMMAND or MACRO, and treat
      * both as though they were already prefixed with COMMAND
      */
-    if (strcasecmp((DEFCHAR *) "COMMAND", (DEFCHAR *) cl_cmd) == 0 || strcasecmp((DEFCHAR *) "MACRO", (DEFCHAR *) cl_cmd) == 0) {
+    if (strcasecmp((char *) "COMMAND", (char *) cl_cmd) == 0 || strcasecmp((char *) "MACRO", (char *) cl_cmd) == 0) {
       command_only = 1;
     }
     /*
@@ -1107,7 +1107,7 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
       /*
        * If no command text, continue.
        */
-      if (strcmp((DEFCHAR *) command[i].text, "") == 0)
+      if (strcmp((char *) command[i].text, "") == 0)
         continue;
       rc = RC_OK;
       /*
@@ -1158,7 +1158,7 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
          */
         if (number_of_files != 0 && ISREADONLY(CURRENT_FILE)
             && !command[i].valid_in_readonly) {
-          display_error(56, (CHARTYPE *) "", FALSE);
+          display_error(56, (char_t *) "", FALSE);
           rc = RC_INVALID_ENVIRON;
           break;
         }
@@ -1222,7 +1222,7 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
      * If return is RC_INVALID_OPERAND, check if command is OS command...
      */
     if (cmd[j][0] == '!') {
-      memmove(command_entered, cmd[j], strlen((DEFCHAR *) cmd[j]) + 1);
+      memmove(command_entered, cmd[j], strlen((char *) cmd[j]) + 1);
       lastrc = rc = Os(command_entered + 1);
       save_last_command(cmd[j], cl_cmd);
       continue;
@@ -1232,7 +1232,7 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
      * command_only is FALSE...
      */
     if (CURRENT_VIEW->imp_macro && !command_only) {
-      memmove(command_entered, cmd[j], strlen((DEFCHAR *) cmd[j]) + 1);
+      memmove(command_entered, cmd[j], strlen((char *) cmd[j]) + 1);
       if (CURRENT_VIEW->imp_os) {
         rc = execute_macro(command_entered, FALSE, &macrorc);
         if (rc != RC_FILE_NOT_FOUND) {
@@ -1257,7 +1257,7 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
      */
     if (CURRENT_VIEW->imp_os) {
       error_on_screen = FALSE;
-      memmove(command_entered, cmd[j], strlen((DEFCHAR *) cmd[j]) + 1);
+      memmove(command_entered, cmd[j], strlen((char *) cmd[j]) + 1);
       rc = Os(command_entered);
     } else {
       display_error(21, cmd[j], FALSE);
@@ -1274,11 +1274,11 @@ short command_line(CHARTYPE * cmd_line, bool command_only) {
 /* cleanup_command_line(); */
   if (saved_command) {
     Cmsg(saved_command);
-    (*the_free) (saved_command);
+    free(saved_command);
   }
-  (*the_free) (command_entered);
-  (*the_free) (cl_cmd);
-  (*the_free) (cl_param);
+  free(command_entered);
+  free(cl_cmd);
+  free(cl_param);
 
   return (rc);
 }
@@ -1302,23 +1302,23 @@ void cleanup_command_line(void) {
   cmd_verify_col = 1;
   return;
 }
-void split_command(CHARTYPE * cmd_line, CHARTYPE * cmd, CHARTYPE * param) {
-  LENGTHTYPE pos = 0;
-  CHARTYPE *param_ptr = NULL;
+void split_command(char_t * cmd_line, char_t * cmd, char_t * param) {
+  length_t pos = 0;
+  char_t *param_ptr = NULL;
 
-  strcpy((DEFCHAR *) cmd, (DEFCHAR *) cmd_line);
+  strcpy((char *) cmd, (char *) cmd_line);
   MyStrip(cmd, STRIP_LEADING, ' ');
   /*
    * Special test here for ? and = command...
    */
   if (*cmd == '?') {
-    strcpy((DEFCHAR *) param, (DEFCHAR *) (cmd + 1));
-    strcpy((DEFCHAR *) cmd, "?");
+    strcpy((char *) param, (char *) (cmd + 1));
+    strcpy((char *) cmd, "?");
     return;
   }
   if (*cmd == '=') {
-    strcpy((DEFCHAR *) param, (DEFCHAR *) (cmd + 1));
-    strcpy((DEFCHAR *) cmd, "=");
+    strcpy((char *) param, (char *) (cmd + 1));
+    strcpy((char *) cmd, "=");
     return;
   }
   for (param_ptr = cmd; *param_ptr != '\0'; param_ptr++) {
@@ -1326,39 +1326,39 @@ void split_command(CHARTYPE * cmd_line, CHARTYPE * cmd, CHARTYPE * param) {
       break;
   }
   if (!param_ptr) {
-    strcpy((DEFCHAR *) param, "");
+    strcpy((char *) param, "");
     return;
   }
   if (param_ptr == cmd || *param_ptr == '\0') {
-    strcpy((DEFCHAR *) param, "");
+    strcpy((char *) param, "");
     return;
   }
   pos = strzne(param_ptr, ' ');
   if (pos == (-1)) {            /* parameters are all spaces */
-    strcpy((DEFCHAR *) param, (DEFCHAR *) param_ptr + 1);
+    strcpy((char *) param, (char *) param_ptr + 1);
     return;
   }
-  strcpy((DEFCHAR *) param, (DEFCHAR *) param_ptr + (*(param_ptr) == ' ' ? 1 : 0));
+  strcpy((char *) param, (char *) param_ptr + (*(param_ptr) == ' ' ? 1 : 0));
   *(param_ptr) = '\0';
   return;
 }
-short param_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTYPE * delims, CHARTYPE param_type, CHARTYPE * strip, bool trailing_spaces_is_arg) {
+short param_split(char_t * params, char_t * word[], int words, char_t * delims, char_t param_type, char_t * strip, bool trailing_spaces_is_arg) {
 #define STATE_START    0
 #define STATE_WORD     1
 #define STATE_DELIM    2
-  register short k = 0, delims_len = strlen((DEFCHAR *) delims);
-  CHARTYPE j = 0;
-  LENGTHTYPE i = 0, len = 0;
-  CHARTYPE *param_ptr = NULL;
-  CHARTYPE *space_ptr = NULL;
-  CHARTYPE state = STATE_START;
+  register short k = 0, delims_len = strlen((char *) delims);
+  char_t j = 0;
+  length_t i = 0, len = 0;
+  char_t *param_ptr = NULL;
+  char_t *space_ptr = NULL;
+  char_t state = STATE_START;
   short str_start = 0, str_end = (-1);
 
   /*
    * Allocate some memory to the temporary area.
    */
   if (params != NULL) {
-    if (allocate_temp_space(strlen((DEFCHAR *) params), param_type) != RC_OK) {
+    if (allocate_temp_space(strlen((char *) params), param_type) != RC_OK) {
       return (-1);
     }
   }
@@ -1389,14 +1389,14 @@ short param_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTYPE * de
    * In case params is NULL, copy an empty string into param_ptr...
    */
   if (params == NULL)
-    strcpy((DEFCHAR *) param_ptr, "");
+    strcpy((char *) param_ptr, "");
   else
-    memmove((DEFCHAR *) param_ptr, (DEFCHAR *) params, strlen((DEFCHAR *) params) + 1);
+    memmove((char *) param_ptr, (char *) params, strlen((char *) params) + 1);
 
   for (i = 0; i < words; i++)
-    word[i] = (CHARTYPE *) "";
+    word[i] = (char_t *) "";
   word[0] = param_ptr;
-  len = strlen((DEFCHAR *) param_ptr);
+  len = strlen((char *) param_ptr);
   if (trailing_spaces_is_arg) {
     i = strzrevne(param_ptr, ' ');
     if (i != (-1)
@@ -1464,7 +1464,7 @@ short param_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTYPE * de
   }
   return (j);
 }
-short quoted_param_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTYPE * delims, CHARTYPE param_type, CHARTYPE * strip, bool trailing_spaces_is_arg, CHARTYPE * quoted) {
+short quoted_param_split(char_t * params, char_t * word[], int words, char_t * delims, char_t param_type, char_t * strip, bool trailing_spaces_is_arg, char_t * quoted) {
 /*
  * Handle args like:
  * <  "filename with spaces" arg  arg >
@@ -1478,19 +1478,19 @@ short quoted_param_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTY
 #define STATE_WORD         1
 #define STATE_DELIM        2
 #define STATE_QUOTED_WORD  3
-  register short k = 0, delims_len = strlen((DEFCHAR *) delims);
-  CHARTYPE j = 0, current_word;
-  LENGTHTYPE i = 0, len = 0;
-  CHARTYPE *param_ptr = NULL;
-  CHARTYPE *space_ptr = NULL;
-  CHARTYPE state = STATE_START;
+  register short k = 0, delims_len = strlen((char *) delims);
+  char_t j = 0, current_word;
+  length_t i = 0, len = 0;
+  char_t *param_ptr = NULL;
+  char_t *space_ptr = NULL;
+  char_t state = STATE_START;
   short str_start = 0, str_end = (-1);
 
   /*
    * Allocate some memory to the temporary area.
    */
   if (params != NULL) {
-    if (allocate_temp_space(strlen((DEFCHAR *) params), param_type) != RC_OK) {
+    if (allocate_temp_space(strlen((char *) params), param_type) != RC_OK) {
       return (-1);
     }
   }
@@ -1521,21 +1521,21 @@ short quoted_param_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTY
    * In case params is NULL, copy an empty string into param_ptr...
    */
   if (params == NULL)
-    strcpy((DEFCHAR *) param_ptr, "");
+    strcpy((char *) param_ptr, "");
   else
-    memmove((DEFCHAR *) param_ptr, (DEFCHAR *) params, strlen((DEFCHAR *) params) + 1);
+    memmove((char *) param_ptr, (char *) params, strlen((char *) params) + 1);
 
   /*
    * Set all our return word values to empty strings
    */
   for (i = 0; i < words; i++)
-    word[i] = (CHARTYPE *) "";
+    word[i] = (char_t *) "";
   word[0] = param_ptr;
   /*
    * If we are allowed a trailing arg of spaces (eg 'text  ')
    * set it now
    */
-  len = strlen((DEFCHAR *) param_ptr);
+  len = strlen((char *) param_ptr);
   if (trailing_spaces_is_arg) {
     i = strzrevne(param_ptr, ' ');
     if (i != (-1)
@@ -1647,26 +1647,26 @@ short quoted_param_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTY
   }
   return (j);
 }
-short command_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTYPE * delims, CHARTYPE * buffer) {
-  register short k, delims_len = strlen((DEFCHAR *) delims);
-  LENGTHTYPE i, len;
-  CHARTYPE j = 0;
+short command_split(char_t * params, char_t * word[], int words, char_t * delims, char_t * buffer) {
+  register short k, delims_len = strlen((char *) delims);
+  length_t i, len;
+  char_t j = 0;
   bool end_of_string = FALSE, end_of_word = FALSE;
 
   /*
    * In case params is NULL, copy an empty string into buffer...
    */
   if (params == NULL)
-    strcpy((DEFCHAR *) buffer, "");
+    strcpy((char *) buffer, "");
   else
-    strcpy((DEFCHAR *) buffer, (DEFCHAR *) params);
+    strcpy((char *) buffer, (char *) params);
 
   for (i = 0; i < words; i++) {
-    word[i] = (CHARTYPE *) "";
+    word[i] = (char_t *) "";
   }
   j = 0;
   end_of_string = TRUE;
-  len = strlen((DEFCHAR *) buffer);
+  len = strlen((char *) buffer);
   for (i = 0; i < len && j < words; i++) {
     end_of_word = FALSE;
     for (k = 0; k < delims_len; k++) {
@@ -1685,8 +1685,8 @@ short command_split(CHARTYPE * params, CHARTYPE * word[], int words, CHARTYPE * 
   }
   return (j);
 }
-LINETYPE get_true_line(bool respect_compat) {
-  LINETYPE true_line = 0L;
+line_t get_true_line(bool respect_compat) {
+  line_t true_line = 0L;
 
   /*
    * Determine 'true_line'.
@@ -1698,8 +1698,8 @@ LINETYPE get_true_line(bool respect_compat) {
     true_line = CURRENT_VIEW->focus_line;
   return (true_line);
 }
-LENGTHTYPE get_true_column(bool respect_compat) {
-  LENGTHTYPE true_column = 0;
+length_t get_true_column(bool respect_compat) {
+  length_t true_column = 0;
   short x, y;
 
   /*
@@ -1714,7 +1714,7 @@ LENGTHTYPE get_true_column(bool respect_compat) {
   }
   return (true_column);
 }
-CHARTYPE next_char(LINE * curr, long *off, LENGTHTYPE end_col) {
+char_t next_char(LINE * curr, long *off, length_t end_col) {
   if (*(off) < (long) min(curr->length, end_col)) {
     (*(off))++;
     return (*(curr->line + ((*(off)) - 1L)));
@@ -1723,24 +1723,24 @@ CHARTYPE next_char(LINE * curr, long *off, LENGTHTYPE end_col) {
   return (0);
 }
 
-short add_define(DEFINE ** first, DEFINE ** last, int key_value, CHARTYPE * commands, bool instore, CHARTYPE * synonym, CHARTYPE linend)
+short add_define(DEFINE ** first, DEFINE ** last, int key_value, char_t * commands, bool instore, char_t * synonym, char_t linend)
 /* Parameters:                                                         */
 /*  key_value: numeric representation of function key                  */
 /*   commands: commands and parameters                                 */
 {
   register short j = 0;
   short cmd_nr = 0;
-  CHARTYPE *word[MAX_COMMANDS + 1];
+  char_t *word[MAX_COMMANDS + 1];
   unsigned short num_commands = 0;
-  CHARTYPE command_delim[2];
+  char_t command_delim[2];
   short rc = RC_OK;
-  CHARTYPE *command_entered = NULL, *cl_cmd = NULL, *cl_param = NULL;
+  char_t *command_entered = NULL, *cl_cmd = NULL, *cl_param = NULL;
 
   /*
    * If the commands argument is empty, delete the definition of the key
    * definitions for the key, so just return.
    */
-  if (strcmp((DEFCHAR *) commands, "") == 0) {
+  if (strcmp((char *) commands, "") == 0) {
     remove_define(first, last, key_value, synonym);
     return (RC_OK);
   }
@@ -1750,7 +1750,7 @@ short add_define(DEFINE ** first, DEFINE ** last, int key_value, CHARTYPE * comm
       rc = append_define(first, last, key_value, (-1), commands, NULL, 0, synonym, linend);
       return (rc);
     } else {
-      display_error(58, (CHARTYPE *) "instore macros", FALSE);
+      display_error(58, (char_t *) "instore macros", FALSE);
       return (RC_INVALID_OPERAND);
     }
   }
@@ -1759,20 +1759,20 @@ short add_define(DEFINE ** first, DEFINE ** last, int key_value, CHARTYPE * comm
    * rather than instore macros...
    * Copy the incoming commands, so we can play with it.
    */
-  if ((command_entered = (CHARTYPE *) my_strdup(commands)) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((command_entered = (char_t *) my_strdup(commands)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * Allocate some space to cl_cmd and cl_param for the a command when
    * it is split into a command and its parameters.
    */
-  if ((cl_cmd = (CHARTYPE *) (*the_malloc) ((strlen((DEFCHAR *) commands) + 1) * sizeof(CHARTYPE))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((cl_cmd = (char_t *) malloc((strlen((char *) commands) + 1) * sizeof(char_t))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  if ((cl_param = (CHARTYPE *) (*the_malloc) ((strlen((DEFCHAR *) commands) + 1) * sizeof(CHARTYPE))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((cl_param = (char_t *) malloc((strlen((char *) commands) + 1) * sizeof(char_t))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   if (synonym) {
@@ -1846,13 +1846,13 @@ short add_define(DEFINE ** first, DEFINE ** last, int key_value, CHARTYPE * comm
         break;
     }
   }
-  (*the_free) (command_entered);
-  (*the_free) (cl_cmd);
-  (*the_free) (cl_param);
+  free(command_entered);
+  free(cl_cmd);
+  free(cl_param);
   return (rc);
 }
 
-short remove_define(DEFINE ** first, DEFINE ** last, int key_value, CHARTYPE * synonym)
+short remove_define(DEFINE ** first, DEFINE ** last, int key_value, char_t * synonym)
 /* Parameters:                                                         */
 /*  key_value: numeric representation of function key                  */
 {
@@ -1865,13 +1865,13 @@ short remove_define(DEFINE ** first, DEFINE ** last, int key_value, CHARTYPE * s
   curr = *first;
   if (synonym) {
     while (curr != NULL) {
-      if (strcasecmp((DEFCHAR *) curr->synonym, (DEFCHAR *) synonym) == 0) {
+      if (strcasecmp((char *) curr->synonym, (char *) synonym) == 0) {
         if (curr->def_params != NULL)
-          (*the_free) (curr->def_params);
+          free(curr->def_params);
         if (curr->pcode != NULL)
-          (*the_free) (curr->pcode);
+          free(curr->pcode);
         if (curr->synonym != NULL)
-          (*the_free) (curr->synonym);
+          free(curr->synonym);
         curr = dll_del(first, last, curr, DIRECTION_FORWARD);
       } else
         curr = curr->next;
@@ -1880,9 +1880,9 @@ short remove_define(DEFINE ** first, DEFINE ** last, int key_value, CHARTYPE * s
     while (curr != NULL) {
       if (curr->def_funkey == key_value) {
         if (curr->def_params != NULL)
-          (*the_free) (curr->def_params);
+          free(curr->def_params);
         if (curr->pcode != NULL)
-          (*the_free) (curr->pcode);
+          free(curr->pcode);
         curr = dll_del(first, last, curr, DIRECTION_FORWARD);
       } else
         curr = curr->next;
@@ -1892,7 +1892,7 @@ short remove_define(DEFINE ** first, DEFINE ** last, int key_value, CHARTYPE * s
   return (RC_OK);
 }
 
-short append_define(DEFINE ** first, DEFINE ** last, int key_value, short cmd, CHARTYPE * prm, CHARTYPE * pcode, int pcode_len, CHARTYPE * synonym, CHARTYPE linend)
+short append_define(DEFINE ** first, DEFINE ** last, int key_value, short cmd, char_t * prm, char_t * pcode, int pcode_len, char_t * synonym, char_t linend)
 /* Parameters:                                                         */
 /*  key_value: numeric representation of function key                  */
 {
@@ -1903,23 +1903,23 @@ short append_define(DEFINE ** first, DEFINE ** last, int key_value, short cmd, C
    */
   curr = dll_add(*first, *last, sizeof(DEFINE));
   if (curr == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  curr->def_params = (CHARTYPE *) (*the_malloc) ((strlen((DEFCHAR *) prm) + 1) * sizeof(CHARTYPE));
+  curr->def_params = (char_t *) malloc((strlen((char *) prm) + 1) * sizeof(char_t));
   if (curr->def_params == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  strcpy((DEFCHAR *) curr->def_params, (DEFCHAR *) prm);
+  strcpy((char *) curr->def_params, (char *) prm);
 
   if (synonym) {
-    curr->synonym = (CHARTYPE *) (*the_malloc) ((strlen((DEFCHAR *) synonym) + 1) * sizeof(CHARTYPE));
+    curr->synonym = (char_t *) malloc((strlen((char *) synonym) + 1) * sizeof(char_t));
     if (curr->synonym == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    strcpy((DEFCHAR *) curr->synonym, (DEFCHAR *) synonym);
+    strcpy((char *) curr->synonym, (char *) synonym);
   } else
     curr->synonym = NULL;
 
@@ -1927,9 +1927,9 @@ short append_define(DEFINE ** first, DEFINE ** last, int key_value, short cmd, C
   curr->def_command = cmd;
   curr->linend = linend;
   if (pcode && pcode_len) {
-    curr->pcode = (CHARTYPE *) (*the_malloc) (pcode_len * sizeof(CHARTYPE));
+    curr->pcode = (char_t *) malloc(pcode_len * sizeof(char_t));
     if (curr->pcode == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     memcpy(curr->pcode, pcode, pcode_len);
@@ -1941,7 +1941,7 @@ short append_define(DEFINE ** first, DEFINE ** last, int key_value, short cmd, C
   return (RC_OK);
 }
 
-short find_command(CHARTYPE * cmd, bool search_for_target)
+short find_command(char_t * cmd, bool search_for_target)
 /*   Function: determine if the string supplied is a valid abbrev for  */
 /*             a command.                                              */
 /* Parameters:                                                         */
@@ -1954,7 +1954,7 @@ short find_command(CHARTYPE * cmd, bool search_for_target)
   long target_type = TARGET_NORMAL | TARGET_BLOCK | TARGET_ALL;
 
   for (i = 0; command[i].text != NULL; i++) {
-    if (equal(command[i].text, cmd, (command[i].min_len == 0) ? strlen((DEFCHAR *) command[i].text) : command[i].min_len)
+    if (equal(command[i].text, cmd, (command[i].min_len == 0) ? strlen((char *) command[i].text) : command[i].min_len)
         && !command[i].sos_command) {
       return (i);
     }
@@ -1979,9 +1979,9 @@ short find_command(CHARTYPE * cmd, bool search_for_target)
   /*
    * If a valid target, find 'LOCATE' command and return the index.
    */
-  strcpy((DEFCHAR *) temp_params, (DEFCHAR *) cmd);
+  strcpy((char *) temp_params, (char *) cmd);
   for (i = 0; command[i].text != NULL; i++) {
-    if (strcmp((DEFCHAR *) command[i].text, "locate") == 0)
+    if (strcmp((char *) command[i].text, "locate") == 0)
       break;
   }
   return (i);
@@ -2001,7 +2001,7 @@ void init_command(void) {
   }
   return;
 }
-void add_command(CHARTYPE * new_cmd) {
+void add_command(char_t * new_cmd) {
   int len_cmd;
 
   /*
@@ -2018,13 +2018,13 @@ void add_command(CHARTYPE * new_cmd) {
   if (!valid_command_to_save(new_cmd)) {
     return;
   }
-  len_cmd = strlen((DEFCHAR *) new_cmd);
+  len_cmd = strlen((char *) new_cmd);
   offset_cmd = 0;
   /*
    * if the incoming command is the same as the current one, don't save it again
    */
   if (cmd_history[current_cmd]
-      && (strcmp((DEFCHAR *) new_cmd, (DEFCHAR *) cmd_history[current_cmd]) == 0)) {
+      && (strcmp((char *) new_cmd, (char *) cmd_history[current_cmd]) == 0)) {
     return;
   }
   if (number_cmds == MAX_SAVED_COMMANDS) {
@@ -2039,23 +2039,23 @@ void add_command(CHARTYPE * new_cmd) {
    * command length is > current command in array
    */
   if (len_cmd > cmd_history_len[current_cmd]) {
-    cmd_history[current_cmd] = (CHARTYPE *) (*the_realloc) (cmd_history[current_cmd], len_cmd + 1);
+    cmd_history[current_cmd] = (char_t *) realloc(cmd_history[current_cmd], len_cmd + 1);
     if (cmd_history[current_cmd] == NULL) {
       cmd_history_len[current_cmd] = 0;
       return;
     }
   }
-  strcpy((DEFCHAR *) cmd_history[current_cmd], (DEFCHAR *) new_cmd);
+  strcpy((char *) cmd_history[current_cmd], (char *) new_cmd);
   number_cmds++;
   if (number_cmds > MAX_SAVED_COMMANDS)
     number_cmds = MAX_SAVED_COMMANDS;
   return;
 }
-CHARTYPE *get_next_command(short direction, int num) {
-  CHARTYPE *ret_cmd = NULL;
+char_t *get_next_command(short direction, int num) {
+  char_t *ret_cmd = NULL;
 
   if (number_cmds == 0) {
-    return ((CHARTYPE *) NULL);
+    return ((char_t *) NULL);
   }
   while (num--) {
     switch (direction) {
@@ -2083,17 +2083,17 @@ CHARTYPE *get_next_command(short direction, int num) {
   }
   return (ret_cmd);
 }
-bool valid_command_to_save(CHARTYPE * save_cmd) {
+bool valid_command_to_save(char_t * save_cmd) {
   /*
    * If the command to be added is empty or is "=" or starts with "?",
    * return FALSE, otherwise return TRUE.
    */
-  if (save_cmd == NULL || strcmp((DEFCHAR *) save_cmd, "") == 0 || strcmp((DEFCHAR *) save_cmd, "=") == 0 || save_cmd[0] == '?') {
+  if (save_cmd == NULL || strcmp((char *) save_cmd, "") == 0 || strcmp((char *) save_cmd, "=") == 0 || save_cmd[0] == '?') {
     return (FALSE);
   }
   return (TRUE);
 }
-static void save_last_command(CHARTYPE * last_cmd, CHARTYPE * cmnd) {
+static void save_last_command(char_t * last_cmd, char_t * cmnd) {
   int last_cmd_len;
 
   /*
@@ -2104,33 +2104,33 @@ static void save_last_command(CHARTYPE * last_cmd, CHARTYPE * cmnd) {
    * run from a macro...
    */
   if (valid_command_to_save(last_cmd)) {
-    last_cmd_len = strlen((DEFCHAR *) last_cmd);
+    last_cmd_len = strlen((char *) last_cmd);
     if (!in_macro) {
       if (last_cmd_len > last_command_for_reexecute_len) {
-        last_command_for_reexecute = (CHARTYPE *) (*the_realloc) (last_command_for_reexecute, last_cmd_len + 1);
+        last_command_for_reexecute = (char_t *) realloc(last_command_for_reexecute, last_cmd_len + 1);
       }
       if (last_command_for_reexecute) {
-        strcpy((DEFCHAR *) last_command_for_reexecute, (DEFCHAR *) last_cmd);
+        strcpy((char *) last_command_for_reexecute, (char *) last_cmd);
         last_command_for_reexecute_len = last_cmd_len;
       } else
         last_command_for_reexecute_len = 0;
     }
-    if (!equal((CHARTYPE *) "repeat", cmnd, 4)
+    if (!equal((char_t *) "repeat", cmnd, 4)
         && save_for_repeat) {
       if (in_macro) {
         if (last_cmd_len > last_command_for_repeat_in_macro_len) {
-          last_command_for_repeat_in_macro = (CHARTYPE *) (*the_realloc) (last_command_for_repeat_in_macro, last_cmd_len + 1);
+          last_command_for_repeat_in_macro = (char_t *) realloc(last_command_for_repeat_in_macro, last_cmd_len + 1);
         }
         if (last_command_for_repeat_in_macro) {
-          strcpy((DEFCHAR *) last_command_for_repeat_in_macro, (DEFCHAR *) last_cmd);
+          strcpy((char *) last_command_for_repeat_in_macro, (char *) last_cmd);
         } else
           last_command_for_repeat_in_macro_len = 0;
       } else {
         if (last_cmd_len > last_command_for_repeat_len) {
-          last_command_for_repeat = (CHARTYPE *) (*the_realloc) (last_command_for_repeat, last_cmd_len + 1);
+          last_command_for_repeat = (char_t *) realloc(last_command_for_repeat, last_cmd_len + 1);
         }
         if (last_command_for_repeat) {
-          strcpy((DEFCHAR *) last_command_for_repeat, (DEFCHAR *) last_cmd);
+          strcpy((char *) last_command_for_repeat, (char *) last_cmd);
         } else
           last_command_for_repeat_len = 0;
       }
@@ -2138,7 +2138,7 @@ static void save_last_command(CHARTYPE * last_cmd, CHARTYPE * cmnd) {
   }
   return;
 }
-bool is_tab_col(LENGTHTYPE x) {
+bool is_tab_col(length_t x) {
   register short i = 0;
   bool rc = FALSE;
 
@@ -2150,9 +2150,9 @@ bool is_tab_col(LENGTHTYPE x) {
   }
   return (rc);
 }
-LENGTHTYPE find_next_tab_col(LENGTHTYPE x) {
+length_t find_next_tab_col(length_t x) {
   register short i = 0;
-  LENGTHTYPE next_tab_col = 0;
+  length_t next_tab_col = 0;
 
   for (i = 0; i < CURRENT_VIEW->numtabs; i++) {
     if (CURRENT_VIEW->tabs[i] > x) {
@@ -2162,9 +2162,9 @@ LENGTHTYPE find_next_tab_col(LENGTHTYPE x) {
   }
   return (next_tab_col);
 }
-LENGTHTYPE find_prev_tab_col(LENGTHTYPE x) {
+length_t find_prev_tab_col(length_t x) {
   register short i = 0;
-  LENGTHTYPE next_tab_col = 0;
+  length_t next_tab_col = 0;
 
   for (i = CURRENT_VIEW->numtabs - 1; i > -1; i--) {
     if (CURRENT_VIEW->tabs[i] < x) {
@@ -2177,11 +2177,11 @@ LENGTHTYPE find_prev_tab_col(LENGTHTYPE x) {
 short tabs_convert(LINE * curr, bool expand_tabs, bool use_tabs, bool add_to_recovery) {
 #define STATE_NORMAL 0
 #define STATE_TAB    1
-  LENGTHTYPE i, j;
+  length_t i, j;
   bool expanded = FALSE;
   bool tabs_exhausted = FALSE;
   int state = STATE_NORMAL;
-  LENGTHTYPE tabcol = 0;
+  length_t tabcol = 0;
 
   /*
    * If we are expanding tabs to spaces, do the following...
@@ -2229,9 +2229,9 @@ short tabs_convert(LINE * curr, bool expand_tabs, bool use_tabs, bool add_to_rec
     if (expanded) {
       if (add_to_recovery)
         add_to_recovery_list(curr->line, curr->length);
-      curr->line = (CHARTYPE *) (*the_realloc) ((void *) curr->line, (j + 1) * sizeof(CHARTYPE));
-      if (curr->line == (CHARTYPE *) NULL) {
-        display_error(30, (CHARTYPE *) "", FALSE);
+      curr->line = (char_t *) realloc((void *) curr->line, (j + 1) * sizeof(char_t));
+      if (curr->line == (char_t *) NULL) {
+        display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
       /*
@@ -2380,12 +2380,12 @@ static int pack_hex(char *string, char *out) {
 
   return res_ptr - out;
 }
-short convert_hex_strings(CHARTYPE * str) {
-  LENGTHTYPE i = 0;
-  CHARTYPE *p = NULL;
+short convert_hex_strings(char_t * str) {
+  length_t i = 0;
+  char_t *p = NULL;
   bool dec_char = FALSE;
-  CHARTYPE *temp_str;
-  CHARTYPE *ptr, *end_ptr, *first_non_blank = NULL, *last_non_blank = NULL;
+  char_t *temp_str;
+  char_t *ptr, *end_ptr, *first_non_blank = NULL, *last_non_blank = NULL;
   short num = 0;
   int str_len;
 
@@ -2393,30 +2393,30 @@ short convert_hex_strings(CHARTYPE * str) {
    * If the string is less than 4 chars; d'3', then it can't be a hex/dec
    * value.
    */
-  str_len = strlen((DEFCHAR *) str);
+  str_len = strlen((char *) str);
   if (str_len < 4) {
     return (str_len);
   }
   /*
    * Allocate some termporary space; it MUST be <= input string
    */
-  temp_str = (CHARTYPE *) alloca(str_len + 1);
+  temp_str = (char_t *) alloca(str_len + 1);
   if (temp_str == NULL) {
     return (-2);
   }
   ptr = str;
-  end_ptr = str + strlen((DEFCHAR *) str) - 1;
+  end_ptr = str + strlen((char *) str) - 1;
   /*
    * Determine the first and last non-blank characters...
    */
   for (ptr = str; ptr < end_ptr; ptr++) {
-    if (*ptr != (CHARTYPE) ' ') {
+    if (*ptr != (char_t) ' ') {
       first_non_blank = ptr;
       break;
     }
   }
   for (ptr = str; ptr < end_ptr; end_ptr--) {
-    if (*end_ptr != (CHARTYPE) ' ') {
+    if (*end_ptr != (char_t) ' ') {
       last_non_blank = end_ptr;
       break;
     }
@@ -2433,13 +2433,13 @@ short convert_hex_strings(CHARTYPE * str) {
    * as its 2nd non-blank character and as its last non-blank character
    * If not, then return with string unchanged.
    */
-  if (*last_non_blank != (CHARTYPE) '\'' || *(first_non_blank + 1) != (CHARTYPE) '\'') {
+  if (*last_non_blank != (char_t) '\'' || *(first_non_blank + 1) != (char_t) '\'') {
     return (str_len);
   }
   temp_str[0] = toupper(*first_non_blank);
-  if (temp_str[0] == (CHARTYPE) 'D')
+  if (temp_str[0] == (char_t) 'D')
     dec_char = TRUE;
-  else if (temp_str[0] == (CHARTYPE) 'X')
+  else if (temp_str[0] == (char_t) 'X')
     dec_char = FALSE;
   else {
     return (str_len);
@@ -2447,24 +2447,24 @@ short convert_hex_strings(CHARTYPE * str) {
   /*
    * If we got here we can validate (and change) the contents of the string.
    */
-  *(last_non_blank) = (CHARTYPE) '\0';
+  *(last_non_blank) = (char_t) '\0';
   if (dec_char == FALSE) {
-    i = pack_hex((DEFCHAR *) (first_non_blank + 2), (DEFCHAR *) temp_str);
+    i = pack_hex((char *) (first_non_blank + 2), (char *) temp_str);
     if (i != (-1))
       memcpy(str, temp_str, i);
   } else {
-    p = (CHARTYPE *) strtok((DEFCHAR *) first_non_blank + 2, " ");
+    p = (char_t *) strtok((char *) first_non_blank + 2, " ");
     while (p != NULL) {
-      if (equal((CHARTYPE *) "000000", p, 1))
-        temp_str[i++] = (CHARTYPE) 0;
+      if (equal((char_t *) "000000", p, 1))
+        temp_str[i++] = (char_t) 0;
       else {
-        num = atoi((DEFCHAR *) p);
+        num = atoi((char *) p);
         if (num < 1 || num > 255) {
           return ((-1));
         }
-        temp_str[i++] = (CHARTYPE) num;
+        temp_str[i++] = (char_t) num;
       }
-      p = (CHARTYPE *) strtok(NULL, " ");
+      p = (char_t *) strtok(NULL, " ");
     }
     memcpy(str, temp_str, i);
   }
@@ -2472,16 +2472,16 @@ short convert_hex_strings(CHARTYPE * str) {
 }
 short marked_block(bool in_current_view) {
   if (batch_only) {             /* block commands invalid in batch */
-    display_error(24, (CHARTYPE *) "", FALSE);
+    display_error(24, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (MARK_VIEW == (VIEW_DETAILS *) NULL) {     /* no marked block */
-    display_error(44, (CHARTYPE *) "", FALSE);
+    display_error(44, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (MARK_VIEW != CURRENT_VIEW /* marked block not in current view */
       && in_current_view) {
-    display_error(45, (CHARTYPE *) "", FALSE);
+    display_error(45, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   return (RC_OK);
@@ -2509,8 +2509,8 @@ short restore_THE(void) {
   getyx(CURRENT_WINDOW, y, x);
 
   if (display_screens > 1) {
-    touch_screen((CHARTYPE) other_screen);
-    refresh_screen((CHARTYPE) other_screen);
+    touch_screen((char_t) other_screen);
+    refresh_screen((char_t) other_screen);
     if (!horizontal) {
       touchwin(divider);
       wnoutrefresh(divider);
@@ -2528,10 +2528,10 @@ short restore_THE(void) {
   wmove(CURRENT_WINDOW, y, x);
   return (RC_OK);
 }
-short execute_set_sos_command(bool set_command, CHARTYPE * params) {
+short execute_set_sos_command(bool set_command, char_t * params) {
 #define SETSOS_PARAMS  2
-  CHARTYPE *word[SETSOS_PARAMS + 1];
-  CHARTYPE strip[SETSOS_PARAMS];
+  char_t *word[SETSOS_PARAMS + 1];
+  char_t strip[SETSOS_PARAMS];
   unsigned short num_params = 0;
   short rc = RC_OK, command_index = 0;
 
@@ -2539,7 +2539,7 @@ short execute_set_sos_command(bool set_command, CHARTYPE * params) {
   strip[1] = STRIP_NONE;
   num_params = param_split(params, word, SETSOS_PARAMS, WORD_DELIMS, TEMP_SET_PARAM, strip, FALSE);
   if (num_params < 1) {
-    display_error(1, (CHARTYPE *) "", FALSE);
+    display_error(1, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if ((command_index = valid_command_type(set_command, word[0])) == RC_NOT_COMMAND) {
@@ -2577,7 +2577,7 @@ short execute_set_sos_command(bool set_command, CHARTYPE * params) {
   }
   return (rc);
 }
-short valid_command_type(bool set_command, CHARTYPE * cmd_line) {
+short valid_command_type(bool set_command, char_t * cmd_line) {
   register short i;
   short rc = RC_NOT_COMMAND;
 
@@ -2585,7 +2585,7 @@ short valid_command_type(bool set_command, CHARTYPE * cmd_line) {
     /*
      * If no command text, continue.
      */
-    if (strcmp((DEFCHAR *) command[i].text, "") == 0)
+    if (strcmp((char *) command[i].text, "") == 0)
       continue;
     /*
      * Check that the supplied command matches the command for the length
@@ -2606,9 +2606,9 @@ short valid_command_type(bool set_command, CHARTYPE * cmd_line) {
   }
   return (rc);
 }
-short allocate_temp_space(LENGTHTYPE length, CHARTYPE param_type) {
-  CHARTYPE *temp_ptr = NULL;
-  LENGTHTYPE *temp_length = NULL;
+short allocate_temp_space(length_t length, char_t param_type) {
+  char_t *temp_ptr = NULL;
+  length_t *temp_length = NULL;
 
   /*
    * Based on param_type, point param_ptr to appropriate buffer.
@@ -2642,11 +2642,11 @@ short allocate_temp_space(LENGTHTYPE length, CHARTYPE param_type) {
     return (RC_OK);
   }
   if (temp_ptr == NULL)
-    temp_ptr = (CHARTYPE *) (*the_malloc) (sizeof(CHARTYPE) * (length + 1));
+    temp_ptr = (char_t *) malloc(sizeof(char_t) * (length + 1));
   else
-    temp_ptr = (CHARTYPE *) (*the_realloc) (temp_ptr, sizeof(CHARTYPE) * (length + 1));
+    temp_ptr = (char_t *) realloc(temp_ptr, sizeof(char_t) * (length + 1));
   if (temp_ptr == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
@@ -2675,9 +2675,9 @@ short allocate_temp_space(LENGTHTYPE length, CHARTYPE param_type) {
   *temp_length = length;
   return (RC_OK);
 }
-void free_temp_space(CHARTYPE param_type) {
-  CHARTYPE *temp_ptr = NULL;
-  LENGTHTYPE *temp_length = 0;
+void free_temp_space(char_t param_type) {
+  char_t *temp_ptr = NULL;
+  length_t *temp_length = 0;
 
   /*
    * Based on param_type, point param_ptr to appropriate buffer.
@@ -2712,12 +2712,12 @@ void free_temp_space(CHARTYPE param_type) {
       return;
       break;
   }
-  (*the_free) (temp_ptr);
+  free(temp_ptr);
   *temp_length = 0;
   return;
 }
 
-CHARTYPE calculate_actual_row(short base, short off, ROWTYPE rows, bool force_in_view) {
+char_t calculate_actual_row(short base, short off, row_t rows, bool force_in_view) {
   short row = 0;
 
   switch (base) {
@@ -2737,7 +2737,7 @@ CHARTYPE calculate_actual_row(short base, short off, ROWTYPE rows, bool force_in
   if ((row < 0 || row > rows)
       && force_in_view)
     row = rows / 2;
-  return ((CHARTYPE) row - 1);
+  return ((char_t) row - 1);
 }
 
 /*man***************************************************************************
@@ -2746,9 +2746,9 @@ NAME
 
 SYNOPSIS
      short get_valid_macro_file_name(macroname,filename,errnum)
-     CHARTYPE *macroname;
-     CHARTYPE *filename;
-     CHARTYPE *macro_ext;
+     char_t *macroname;
+     char_t *filename;
+     char_t *macro_ext;
      short *errnum;
 
 DESCRIPTION
@@ -2780,53 +2780,53 @@ RETURN VALUE
      copied into filename, the error number of the error message is
      copied into errnum and the function returns with RC_ACCESS_DENIED.
 *******************************************************************************/
-short get_valid_macro_file_name(CHARTYPE * inmacroname, CHARTYPE * filename, CHARTYPE * macro_ext, short *errnum) {
+short get_valid_macro_file_name(char_t * inmacroname, char_t * filename, char_t * macro_ext, short *errnum) {
   register short i = 0;
-  CHARTYPE delims[3];
+  char_t delims[3];
   bool file_found = FALSE;
-  CHARTYPE _THE_FAR macroname[MAX_FILE_NAME + 1];
-  int len_macroname = strlen((DEFCHAR *) inmacroname);
-  int len_macro_suffix = strlen((DEFCHAR *) macro_ext);
+  char_t macroname[MAX_FILE_NAME + 1];
+  int len_macroname = strlen((char *) inmacroname);
+  int len_macro_suffix = strlen((char *) macro_ext);
   bool append_suffix = TRUE;
 
   /*
    * Create the full name of the macro file by prepending the default
    * macropath provided the filename does not already contain a path.
    */
-  strcpy((DEFCHAR *) macroname, (DEFCHAR *) inmacroname);
+  strcpy((char *) macroname, (char *) inmacroname);
   strrmdup(strtrans(macroname, OSLASH, ISLASH), ISLASH, TRUE);
-  strcpy((DEFCHAR *) delims, (DEFCHAR *) ISTR_SLASH);
-  if (strpbrk((DEFCHAR *) macroname, (DEFCHAR *) delims) == NULL && *(macroname) != '~') {
+  strcpy((char *) delims, (char *) ISTR_SLASH);
+  if (strpbrk((char *) macroname, (char *) delims) == NULL && *(macroname) != '~') {
     /*
      * The supplied macro file name does not contain a path...so for each
      * directory in the_macro_path, try to find the supplied file in that
      * directory.
      */
     if (len_macroname > len_macro_suffix) {
-      if (strcmp((DEFCHAR *) macroname + (len_macroname - len_macro_suffix), (DEFCHAR *) macro_ext) == 0)
+      if (strcmp((char *) macroname + (len_macroname - len_macro_suffix), (char *) macro_ext) == 0)
         append_suffix = FALSE;
       else
         append_suffix = TRUE;
     }
     file_found = FALSE;
     for (i = 0; i < max_macro_dirs; i++) {
-      strcpy((DEFCHAR *) filename, (DEFCHAR *) the_macro_dir[i]);
-      if (strlen((DEFCHAR *) filename) == 0)
+      strcpy((char *) filename, (char *) the_macro_dir[i]);
+      if (strlen((char *) filename) == 0)
         continue;
-      if (*(filename + strlen((DEFCHAR *) filename) - 1) != ISLASH)
-        strcat((DEFCHAR *) filename, (DEFCHAR *) ISTR_SLASH);
-      strcat((DEFCHAR *) filename, (DEFCHAR *) macroname);      /* append the file name */
+      if (*(filename + strlen((char *) filename) - 1) != ISLASH)
+        strcat((char *) filename, (char *) ISTR_SLASH);
+      strcat((char *) filename, (char *) macroname);      /* append the file name */
       if (append_suffix)
-        strcat((DEFCHAR *) filename, (DEFCHAR *) macro_ext);    /* append default suffix */
+        strcat((char *) filename, (char *) macro_ext);    /* append default suffix */
       if (file_exists(filename) == THE_FILE_EXISTS) {   /* check if file exists... */
         file_found = TRUE;
         break;
       }
     }
     if (!file_found) {
-      strcpy((DEFCHAR *) filename, (DEFCHAR *) macroname);
+      strcpy((char *) filename, (char *) macroname);
       if (append_suffix)
-        strcat((DEFCHAR *) filename, (DEFCHAR *) macro_ext);
+        strcat((char *) filename, (char *) macro_ext);
       *errnum = 11;
       return (RC_FILE_NOT_FOUND);
     }
@@ -2838,9 +2838,9 @@ short get_valid_macro_file_name(CHARTYPE * inmacroname, CHARTYPE * filename, CHA
     *errnum = 9;
     return (RC_FILE_NOT_FOUND);
   }
-  strcpy((DEFCHAR *) filename, (DEFCHAR *) sp_path);
-  strcat((DEFCHAR *) filename, (DEFCHAR *) sp_fname);
-  if (file_exists(filename) != THE_FILE_EXISTS || strcmp((DEFCHAR *) sp_fname, "") == 0) {
+  strcpy((char *) filename, (char *) sp_path);
+  strcat((char *) filename, (char *) sp_fname);
+  if (file_exists(filename) != THE_FILE_EXISTS || strcmp((char *) sp_fname, "") == 0) {
     *errnum = 9;
     return (RC_FILE_NOT_FOUND);
   }
@@ -2855,16 +2855,16 @@ short get_valid_macro_file_name(CHARTYPE * inmacroname, CHARTYPE * filename, CHA
   *errnum = 0;
   return (RC_OK);
 }
-bool define_command(CHARTYPE * cmd_line) {
+bool define_command(char_t * cmd_line) {
   register short i = 0;
-  CHARTYPE buf[7];
+  char_t buf[7];
 
   /*
    * First check if the command is a synonym, and use the real name to
    * search the command array.
    */
   memset(buf, '\0', 7);
-  memcpy(buf, cmd_line, min(6, strlen((DEFCHAR *) cmd_line)));
+  memcpy(buf, cmd_line, min(6, strlen((char *) cmd_line)));
   for (i = 0; i < 7; i++) {
     if (buf[i] == ' ')
       buf[i] = '\0';
@@ -2872,12 +2872,12 @@ bool define_command(CHARTYPE * cmd_line) {
   if ((i = find_command(buf, FALSE)) == (-1)) {
     return (FALSE);
   }
-  if (strcmp("define", (DEFCHAR *) command[i].text) == 0) {
+  if (strcmp("define", (char *) command[i].text) == 0) {
     return (TRUE);
   }
   return (FALSE);
 }
-int find_key_name(CHARTYPE * keyname) {
+int find_key_name(char_t * keyname) {
   register int i = 0;
   int key = (-1);
 
@@ -2889,19 +2889,19 @@ int find_key_name(CHARTYPE * keyname) {
   }
   return (key);
 }
-int readv_cmdline(CHARTYPE * initial, WINDOW * dw, int start_col) {
+int readv_cmdline(char_t * initial, WINDOW * dw, int start_col) {
   int key = 0;
   short rc = RC_OK;
-  CHARTYPE buf[3];
+  char_t buf[3];
 
   if (CURRENT_WINDOW_COMMAND == (WINDOW *) NULL) {
-    display_error(86, (CHARTYPE *) "", FALSE);
+    display_error(86, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   buf[1] = '\0';
   Cmsg(initial);
   if (start_col == -1)
-    THEcursor_cmdline(current_screen, CURRENT_VIEW, (short) (strlen((DEFCHAR *) initial) + 1));
+    THEcursor_cmdline(current_screen, CURRENT_VIEW, (short) (strlen((char *) initial) + 1));
   else
     THEcursor_cmdline(current_screen, CURRENT_VIEW, (short) (start_col + 1));
   in_readv = TRUE;              /* this MUST go after THEcursor_cmdline() to work */
@@ -2952,7 +2952,7 @@ int readv_cmdline(CHARTYPE * initial, WINDOW * dw, int start_col) {
             if (rc > RAW_KEY)
               key = rc - (RAW_KEY * 2);
             if (key < 256 && key >= 0) {
-              buf[0] = (CHARTYPE) key;
+              buf[0] = (char_t) key;
               rc = Text(buf);
             }
           }
@@ -2979,7 +2979,7 @@ int readv_cmdline(CHARTYPE * initial, WINDOW * dw, int start_col) {
 }
 short execute_mouse_commands(int key) {
   DEFINE *curr = (DEFINE *) NULL;
-  CHARTYPE *key_cmd = NULL;
+  char_t *key_cmd = NULL;
   short rc = RC_OK;
   short macrorc = 0;
 
@@ -2993,7 +2993,7 @@ short execute_mouse_commands(int key) {
       if (curr->def_command != (-1)
           && ISREADONLY(CURRENT_FILE)
           && !command[curr->def_command].valid_in_readonly) {
-        display_error(56, (CHARTYPE *) "", FALSE);
+        display_error(56, (char_t *) "", FALSE);
         rc = RC_INVALID_ENVIRON;
         curr = NULL;
         break;
@@ -3008,8 +3008,8 @@ short execute_mouse_commands(int key) {
         curr = NULL;
         break;
       }
-      if ((key_cmd = (CHARTYPE *) my_strdup(curr->def_params)) == NULL) {
-        display_error(30, (CHARTYPE *) "", FALSE);
+      if ((key_cmd = (char_t *) my_strdup(curr->def_params)) == NULL) {
+        display_error(30, (char_t *) "", FALSE);
         rc = RC_OUT_OF_MEMORY;
         curr = NULL;
         break;
@@ -3031,9 +3031,9 @@ short execute_mouse_commands(int key) {
         if (CURRENT_VIEW->thighlight_on && CURRENT_VIEW->thighlight_active) {
           AdjustThighlight(command[curr->def_command].thighlight_behaviour);
         }
-        rc = (*command[curr->def_command].function) ((CHARTYPE *) key_cmd);
+        rc = (*command[curr->def_command].function) ((char_t *) key_cmd);
       }
-      (*the_free) (key_cmd);
+      free(key_cmd);
       if (rc != RC_OK && rc != RC_TOF_EOF_REACHED && rc != RC_NO_LINES_CHANGED && rc != RC_TARGET_NOT_FOUND) {
         curr = NULL;
         break;
@@ -3045,10 +3045,10 @@ short execute_mouse_commands(int key) {
   }
   return (rc);
 }
-short validate_n_m(CHARTYPE * params, short *col1, short *col2) {
+short validate_n_m(char_t * params, short *col1, short *col2) {
 #define NM_PARAMS  2
-  CHARTYPE *word[NM_PARAMS + 1];
-  CHARTYPE strip[NM_PARAMS];
+  char_t *word[NM_PARAMS + 1];
+  char_t strip[NM_PARAMS];
   unsigned short num_params = 0;
   short rc = RC_OK;
 
@@ -3064,19 +3064,19 @@ short validate_n_m(CHARTYPE * params, short *col1, short *col2) {
   strip[1] = STRIP_BOTH;
   num_params = param_split(params, word, NM_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params < 1) {
-    display_error(3, (CHARTYPE *) "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (num_params > 2) {
-    display_error(2, (CHARTYPE *) "", FALSE);
+    display_error(2, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (!valid_positive_integer(word[0])) {
     display_error(4, word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
-  *col1 = atoi((DEFCHAR *) word[0]);
-  if (strcmp((DEFCHAR *) word[1], "*") == 0)
+  *col1 = atoi((char *) word[0]);
+  if (strcmp((char *) word[1], "*") == 0)
     *col2 = 255;
   else {
     if (num_params == 1)        /* no second parameter, default to first */
@@ -3086,7 +3086,7 @@ short validate_n_m(CHARTYPE * params, short *col1, short *col2) {
         display_error(4, word[1], FALSE);
         return (RC_INVALID_OPERAND);
       } else
-        *col2 = atoi((DEFCHAR *) word[1]);
+        *col2 = atoi((char *) word[1]);
     }
   }
 
@@ -3100,11 +3100,11 @@ short validate_n_m(CHARTYPE * params, short *col1, short *col2) {
 }
 
 void ResetOrDeleteCUABlock(int cua_behaviour) {
-  LENGTHTYPE save_col;
-  LINETYPE save_line;
+  length_t save_col;
+  line_t save_line;
 
   if (cua_behaviour & CUA_RESET_BLOCK) {
-    Reset((CHARTYPE *) "BLOCK");
+    Reset((char_t *) "BLOCK");
   } else if (cua_behaviour & CUA_DELETE_BLOCK) {
     /*
      * Determine start of block, and save this position so
@@ -3156,16 +3156,16 @@ bool save_target(TARGET * target) {
   return string_target;
 }
 
-short execute_locate(CHARTYPE * cmd, bool display_parse_error, bool search_semantics, bool *target_found) {
-  LINETYPE save_focus_line = 0L;
-  LINETYPE save_current_line = 0L;
+short execute_locate(char_t * cmd, bool display_parse_error, bool search_semantics, bool *target_found) {
+  line_t save_focus_line = 0L;
+  line_t save_current_line = 0L;
   TARGET target;
   long target_type;
   bool negative = FALSE;
   short rc;
   bool wrapped = FALSE;
-  LINETYPE true_line = 0L;
-  LENGTHTYPE focus_column;
+  line_t true_line = 0L;
+  length_t focus_column;
 
   if (target_found)
     *target_found = FALSE;
@@ -3216,7 +3216,7 @@ short execute_locate(CHARTYPE * cmd, bool display_parse_error, bool search_seman
         else
           rc = save_lastop(LASTOP_LOCATE, target.string);
         if (rc != RC_OK) {
-          display_error(30, (CHARTYPE *) "", FALSE);
+          display_error(30, (char_t *) "", FALSE);
           return rc;
         }
       }
@@ -3237,7 +3237,7 @@ short execute_locate(CHARTYPE * cmd, bool display_parse_error, bool search_seman
     if (target_found)
       *target_found = TRUE;
     if (wrapped) {
-      display_error(0, (CHARTYPE *) "Wrapped...", FALSE);
+      display_error(0, (char_t *) "Wrapped...", FALSE);
       CURRENT_VIEW->focus_line = save_focus_line;
       CURRENT_VIEW->current_line = save_current_line;
       build_screen(current_screen);
@@ -3253,7 +3253,7 @@ short execute_locate(CHARTYPE * cmd, bool display_parse_error, bool search_seman
       else
         rc = save_lastop(LASTOP_LOCATE, target.string);
       if (rc != RC_OK) {
-        display_error(30, (CHARTYPE *) "", FALSE);
+        display_error(30, (char_t *) "", FALSE);
         return rc;
       }
     }
@@ -3310,25 +3310,25 @@ void adjust_other_screen_shadow_lines(void)
   /*
    * If the same file is in the other screen, refresh it
    */
-  if (display_screens > 1 && SCREEN_FILE(current_screen) == SCREEN_FILE((CHARTYPE) (other_screen))) {
+  if (display_screens > 1 && SCREEN_FILE(current_screen) == SCREEN_FILE((char_t) (other_screen))) {
     OTHER_VIEW->current_line = find_next_in_scope(OTHER_VIEW, NULL, OTHER_VIEW->current_line, DIRECTION_FORWARD);
-    build_screen((CHARTYPE) (other_screen));
-    if (!line_in_view((CHARTYPE) (other_screen), OTHER_VIEW->focus_line)) {
+    build_screen((char_t) (other_screen));
+    if (!line_in_view((char_t) (other_screen), OTHER_VIEW->focus_line)) {
       OTHER_VIEW->focus_line = OTHER_VIEW->current_line;
       pre_process_line(OTHER_VIEW, OTHER_VIEW->focus_line, (LINE *) NULL);
-      build_screen((CHARTYPE) (other_screen));
+      build_screen((char_t) (other_screen));
     }
-    display_screen((CHARTYPE) (other_screen));
+    display_screen((char_t) (other_screen));
   }
 
   return;
 }
 
-int is_file_in_ring(CHARTYPE * fpath, CHARTYPE * fname) {
+int is_file_in_ring(char_t * fpath, char_t * fname) {
   VIEW_DETAILS *curr = vd_first;
 
   while (curr) {
-    if (strcmp((DEFCHAR *) curr->file_for_view->fpath, (DEFCHAR *) fpath) == 0 && strcmp((DEFCHAR *) curr->file_for_view->fname, (DEFCHAR *) fname) == 0) {
+    if (strcmp((char *) curr->file_for_view->fpath, (char *) fpath) == 0 && strcmp((char *) curr->file_for_view->fname, (char *) fname) == 0) {
       return TRUE;
     }
     curr = curr->next;
@@ -3336,16 +3336,16 @@ int is_file_in_ring(CHARTYPE * fpath, CHARTYPE * fname) {
   return FALSE;
 }
 
-int save_lastop(int idx, CHARTYPE * op) {
+int save_lastop(int idx, char_t * op) {
   int op_len;
   int rc = RC_OK;
 
-  op_len = strlen((DEFCHAR *) op);
+  op_len = strlen((char *) op);
   if (op_len > lastop[idx].value_len) {
-    lastop[idx].value = (CHARTYPE *) (*the_realloc) (lastop[idx].value, op_len + 1);
+    lastop[idx].value = (char_t *) realloc(lastop[idx].value, op_len + 1);
   }
   if (lastop[idx].value) {
-    strcpy((DEFCHAR *) lastop[idx].value, (DEFCHAR *) op);
+    strcpy((char *) lastop[idx].value, (char *) op);
     lastop[idx].value_len = op_len;
   } else {
     lastop[idx].value_len = 0;
@@ -3354,7 +3354,7 @@ int save_lastop(int idx, CHARTYPE * op) {
   return rc;
 }
 
-CHARTYPE *get_command_name(int idx, bool *set_command, bool *sos_command) {
+char_t *get_command_name(int idx, bool *set_command, bool *sos_command) {
 
   if (idx < 0 || idx >= sizeof(command) / sizeof(struct commands) - 1) {
     return NULL;

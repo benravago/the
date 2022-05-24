@@ -35,7 +35,7 @@
 #include <the.h>
 #include <proto.h>
 
-static short selective_change(TARGET * target, CHARTYPE * old_str, LENGTHTYPE len_old_str, CHARTYPE * new_str, LENGTHTYPE len_new_str, LINETYPE true_line, LINETYPE last_true_line, LENGTHTYPE start_col) {
+static short selective_change(TARGET * target, char_t * old_str, length_t len_old_str, char_t * new_str, length_t len_new_str, line_t true_line, line_t last_true_line, length_t start_col) {
   register short i = 0;
   short y = 0, x = 0, rc = RC_OK;
   int key = 0;
@@ -97,9 +97,9 @@ static short selective_change(TARGET * target, CHARTYPE * old_str, LENGTHTYPE le
       CURRENT_VIEW->thighlight_target.rt[0].length = (changed) ? len_new_str : len_old_str;
     display_screen(current_screen);
     if (changed)
-      display_prompt((CHARTYPE *) "Press 'N' for next,'C' to undo 'Q' to quit");
+      display_prompt((char_t *) "Press 'N' for next,'C' to undo 'Q' to quit");
     else
-      display_prompt((CHARTYPE *) "Press 'N' for next,'C' to change 'Q' to quit");
+      display_prompt((char_t *) "Press 'N' for next,'C' to change 'Q' to quit");
     wmove(CURRENT_WINDOW_FILEAREA, y, x);
     wrefresh(CURRENT_WINDOW_FILEAREA);
 
@@ -151,25 +151,25 @@ static short selective_change(TARGET * target, CHARTYPE * old_str, LENGTHTYPE le
   }
   return (rc);
 }
-short execute_change_command(CHARTYPE * in_params, bool selective) {
-  LINETYPE num_lines = 0L, long_n = 0L, long_m = 0L;
+short execute_change_command(char_t * in_params, bool selective) {
+  line_t num_lines = 0L, long_n = 0L, long_m = 0L;
   LINE *curr = NULL;
-  CHARTYPE *old_str = NULL, *new_str = NULL;
+  char_t *old_str = NULL, *new_str = NULL;
   short rc = 0, selective_rc = RC_OK;
   short direction = DIRECTION_FORWARD;
   long number_changes = 0L, number_of_changes = 0L, number_of_occ = 0L;
-  LENGTHTYPE start_col = 0, real_start = 0, real_end = 0, loc = 0;
-  LINETYPE true_line = 0L, last_true_line = 0L, number_lines = 0L;
-  LINETYPE num_actual_lines = 0L, abs_num_lines = 0L, i = 0L;
-  LINETYPE num_file_lines = 0L;
-  LENGTHTYPE len_old_str = 0, len_new_str = 0;
+  length_t start_col = 0, real_start = 0, real_end = 0, loc = 0;
+  line_t true_line = 0L, last_true_line = 0L, number_lines = 0L;
+  line_t num_actual_lines = 0L, abs_num_lines = 0L, i = 0L;
+  line_t num_file_lines = 0L;
+  length_t len_old_str = 0, len_new_str = 0;
   TARGET target;
-  CHARTYPE _THE_FAR message[100];
+  char_t message[100];
   bool lines_based_on_scope = FALSE;
-  CHARTYPE *save_params = NULL;
-  CHARTYPE *params;
+  char_t *save_params = NULL;
+  char_t *params;
   short save_target_type = TARGET_RELATIVE;
-  LENGTHTYPE str_length = 0;
+  length_t str_length = 0;
 
   /*
    * If no arguments have been supplied, pass the last change command
@@ -178,7 +178,7 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
   if (blank_field(in_params)) {
     params = (selective) ? lastop[LASTOP_SCHANGE].value : lastop[LASTOP_CHANGE].value;
     if (blank_field(params)) {
-      display_error(39, (CHARTYPE *) "", FALSE);
+      display_error(39, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
   } else
@@ -186,7 +186,7 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
   /*
    * Save the parameters for later...
    */
-  if ((save_params = (CHARTYPE *) my_strdup(params)) == NULL) {
+  if ((save_params = (char_t *) my_strdup(params)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   /*
@@ -225,13 +225,13 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
       case -1:                 /* invalid hex value */
         free_target(&target);
         display_error(32, old_str, FALSE);
-        (*the_free) (save_params);
+        free(save_params);
         return (RC_INVALID_OPERAND);
         break;
       case -2:                 /* memory exhausted */
         free_target(&target);
-        display_error(30, (CHARTYPE *) "", FALSE);
-        (*the_free) (save_params);
+        display_error(30, (char_t *) "", FALSE);
+        free(save_params);
         return (RC_OUT_OF_MEMORY);
         break;
       default:
@@ -242,21 +242,21 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
       case -1:                 /* invalid hex value */
         free_target(&target);
         display_error(32, new_str, FALSE);
-        (*the_free) (save_params);
+        free(save_params);
         return (RC_INVALID_OPERAND);
         break;
       case -2:                 /* memory exhausted */
         free_target(&target);
-        display_error(30, (CHARTYPE *) "", FALSE);
-        (*the_free) (save_params);
+        display_error(30, (char_t *) "", FALSE);
+        free(save_params);
         return (RC_OUT_OF_MEMORY);
         break;
       default:
         break;
     }
   } else {
-    len_old_str = strlen((DEFCHAR *) old_str);
-    len_new_str = strlen((DEFCHAR *) new_str);
+    len_old_str = strlen((char *) old_str);
+    len_new_str = strlen((char *) new_str);
   }
   /*
    * Save the last change command...
@@ -265,10 +265,10 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
     rc = save_lastop(LASTOP_SCHANGE, save_params);
   else
     rc = save_lastop(LASTOP_CHANGE, save_params);
-  (*the_free) (save_params);
+  free(save_params);
   if (rc != RC_OK) {
     free_target(&target);
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return rc;
   }
   /*
@@ -277,7 +277,7 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
    */
   if (num_lines == 0L) {
     free_target(&target);
-    display_error(36, (CHARTYPE *) "", FALSE);
+    display_error(36, (char_t *) "", FALSE);
     return (RC_NO_LINES_CHANGED);
   }
   if (num_lines < 0) {
@@ -354,7 +354,7 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
               /* the following block is done for change or confirm of sch */
               if (!selective) {
                 memdeln(rec, start_col, rec_len, len_old_str);
-                rec_len = (LENGTHTYPE) max((LINETYPE) start_col, (LINETYPE) rec_len - (LINETYPE) len_old_str);
+                rec_len = (length_t) max((line_t) start_col, (line_t) rec_len - (line_t) len_old_str);
                 meminsmem(rec, new_str, len_new_str, start_col, max_line_length, rec_len);
                 rec_len += len_new_str;
                 if (rec_len > max_line_length) {
@@ -412,8 +412,8 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
       curr = curr->next;
     else
       curr = curr->prev;
-    true_line += (LINETYPE) (direction);
-    num_file_lines += (LINETYPE) (direction);
+    true_line += (line_t) (direction);
+    num_file_lines += (line_t) (direction);
     if (curr == NULL)
       break;
   }
@@ -422,7 +422,7 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
    * If no changes were made, display error message and return.
    */
   if (number_changes == 0L) {
-    display_error(36, (CHARTYPE *) "", FALSE);
+    display_error(36, (char_t *) "", FALSE);
     pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
     return (RC_NO_LINES_CHANGED);
   }
@@ -447,7 +447,7 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
     resolve_current_and_focus_lines(current_screen, CURRENT_VIEW, last_true_line, num_file_lines, direction, TRUE, FALSE);
   }
 
-  sprintf((DEFCHAR *) message, "%ld occurrence(s) changed on %ld line(s)", number_changes, number_lines);
+  sprintf((char *) message, "%ld occurrence(s) changed on %ld line(s)", number_changes, number_lines);
   display_error(0, message, TRUE);
   if (CURRENT_TOF || CURRENT_BOF)
     rc = RC_TOF_EOF_REACHED;
@@ -455,15 +455,15 @@ short execute_change_command(CHARTYPE * in_params, bool selective) {
     rc = RC_OK;
   return rc;
 }
-short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, CHARTYPE * line, LENGTHTYPE len, LINETYPE num_lines, LINETYPE true_line, bool start_left_col, bool make_current, bool inc_alt, CHARTYPE select, bool move_cursor, bool sos_command) {
-  LINETYPE i;
+short insert_new_line(char_t curr_screen, VIEW_DETAILS * curr_view, char_t * line, length_t len, line_t num_lines, line_t true_line, bool start_left_col, bool make_current, bool inc_alt, char_t select, bool move_cursor, bool sos_command) {
+  line_t i;
   LINE *curr = NULL, *save_curr = NULL;
   unsigned short x = 0, y = 0;
-  LENGTHTYPE new_col = 0;
+  length_t new_col = 0;
   bool on_bottom_of_file = FALSE, on_bottom_of_screen = FALSE;
   short number_focus_rows = 0;
   bool leave_cursor = FALSE;
-  LINETYPE new_focus_line = 0L, new_current_line = 0L;
+  line_t new_focus_line = 0L, new_current_line = 0L;
 
   if (!curr_view->scope_all)
     true_line = find_last_not_in_scope(curr_view, NULL, true_line, DIRECTION_FORWARD);
@@ -485,7 +485,7 @@ short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, CHARTYPE *
   save_curr = curr;
   for (i = 0; i < num_lines; i++) {
     if ((curr = add_LINE(curr_view->file_for_view->first_line, curr, line, len, select, TRUE)) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
   }
@@ -573,7 +573,7 @@ short insert_new_line(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, CHARTYPE *
 
   return (RC_OK);
 }
-short execute_os_command(CHARTYPE * cmd, bool quiet, bool pause) {
+short execute_os_command(char_t * cmd, bool quiet, bool pause) {
 #define SHELL "SHELL"
   short rc = 0;
 
@@ -585,27 +585,27 @@ short execute_os_command(CHARTYPE * cmd, bool quiet, bool pause) {
     wrefresh(stdscr);           /* clear screen */
     suspend_curses();
   }
-  if (allocate_temp_space(strlen((DEFCHAR *) cmd), TEMP_TEMP_CMD) != RC_OK) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if (allocate_temp_space(strlen((char *) cmd), TEMP_TEMP_CMD) != RC_OK) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  if (strcmp((DEFCHAR *) cmd, "") == 0) {
-    sprintf((DEFCHAR *) temp_cmd, "\"%s\"", getenv(SHELL));
+  if (strcmp((char *) cmd, "") == 0) {
+    sprintf((char *) temp_cmd, "\"%s\"", getenv(SHELL));
     /*
      * If no command to execute then do not ask for "any key"
      */
     pause = 0;
   } else
-    strcpy((DEFCHAR *) temp_cmd, (DEFCHAR *) cmd);
-  if (strcmp((DEFCHAR *) temp_cmd, "") == 0) {  /* no SHELL env variable set */
+    strcpy((char *) temp_cmd, (char *) cmd);
+  if (strcmp((char *) temp_cmd, "") == 0) {  /* no SHELL env variable set */
     printf("No SHELL environment variable set - using /bin/sh\n");
     fflush(stdout);
-    strcpy((DEFCHAR *) temp_cmd, "/bin/sh");
+    strcpy((char *) temp_cmd, "/bin/sh");
   }
   if (quiet) {
-    strcat((DEFCHAR *) temp_cmd, " > /dev/null");
+    strcat((char *) temp_cmd, " > /dev/null");
   }
-  rc = system((DEFCHAR *) temp_cmd);
+  rc = system((char *) temp_cmd);
   if (pause) {
     printf("\n\n%s", HIT_ANY_KEY);
     fflush(stdout);
@@ -622,7 +622,7 @@ short execute_os_command(CHARTYPE * cmd, bool quiet, bool pause) {
 
   return (rc);
 }
-short execute_makecurr(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, LINETYPE line) {
+short execute_makecurr(char_t curr_screen, VIEW_DETAILS * curr_view, line_t line) {
   unsigned short y = 0, x = 0;
 
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
@@ -641,14 +641,14 @@ short execute_makecurr(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, LINETYPE 
     wmove(SCREEN_WINDOW_FILEAREA(curr_screen), y, x);
   return (RC_OK);
 }
-short execute_shift_command(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, bool shift_left, LENGTHTYPE num_cols, LINETYPE true_line, LINETYPE num_lines, bool lines_based_on_scope, long target_type, bool sos, bool zone_shift) {
+short execute_shift_command(char_t curr_screen, VIEW_DETAILS * curr_view, bool shift_left, length_t num_cols, line_t true_line, line_t num_lines, bool lines_based_on_scope, long target_type, bool sos, bool zone_shift) {
   LINE *curr = NULL;
-  LINETYPE abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
-  LINETYPE num_file_lines = 0L, i = 0L;
-  LINETYPE num_actual_lines = 0L;
-  LENGTHTYPE left_col = 0L, right_col = 0L;
-  LENGTHTYPE j = 0;
-  LENGTHTYPE actual_cols = 0;
+  line_t abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
+  line_t num_file_lines = 0L, i = 0L;
+  line_t num_actual_lines = 0L;
+  length_t left_col = 0L, right_col = 0L;
+  length_t j = 0;
+  length_t actual_cols = 0;
   short rc = RC_OK;
   short direction = (num_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
   bool adjust_alt = FALSE;
@@ -666,7 +666,7 @@ short execute_shift_command(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, bool
       if (abs_num_lines == num_file_lines)
         break;
     }
-    rc = processable_line(curr_view, true_line + (LINETYPE) (i * direction), curr);
+    rc = processable_line(curr_view, true_line + (line_t) (i * direction), curr);
     switch (rc) {
       case LINE_SHADOW:
         break;
@@ -715,7 +715,7 @@ short execute_shift_command(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, bool
             meminschr(trec, ' ', left_col, max_line_length, trec_len++);
           if (trec_len > max_line_length) {
             trec_len = max_line_length;
-            display_error(0, (CHARTYPE *) "Truncated", FALSE);
+            display_error(0, (char_t *) "Truncated", FALSE);
           }
           actual_cols = num_cols;
         }
@@ -732,9 +732,9 @@ short execute_shift_command(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, bool
            * Realloc the dynamic memory for the line if the line is now longer.
            */
           if (trec_len > curr->length) {
-            curr->line = (CHARTYPE *) (*the_realloc) ((void *) curr->line, (trec_len + 1) * sizeof(CHARTYPE));
+            curr->line = (char_t *) realloc((void *) curr->line, (trec_len + 1) * sizeof(char_t));
             if (curr->line == NULL) {
-              display_error(30, (CHARTYPE *) "", FALSE);
+              display_error(30, (char_t *) "", FALSE);
               return (RC_OUT_OF_MEMORY);
             }
           }
@@ -756,7 +756,7 @@ short execute_shift_command(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, bool
       curr = curr->prev;
     else
       curr = curr->next;
-    num_file_lines += (LINETYPE) direction;
+    num_file_lines += (line_t) direction;
     if (curr == NULL)
       break;
   }
@@ -776,11 +776,11 @@ short execute_shift_command(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, bool
     rc = RC_OK;
   return rc;
 }
-short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, unsigned int tag_flag, LINETYPE true_line, LINETYPE num_lines, bool lines_based_on_scope, long target_type) {
+short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, unsigned int tag_flag, line_t true_line, line_t num_lines, bool lines_based_on_scope, long target_type) {
   LINE *curr = NULL;
-  LINETYPE abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
-  LINETYPE num_file_lines = 0L, i = 0L;
-  LINETYPE num_actual_lines = 0L;
+  line_t abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
+  line_t num_file_lines = 0L, i = 0L;
+  line_t num_actual_lines = 0L;
   short rc = RC_OK;
   short direction = (num_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
   bool adjust_alt = FALSE;
@@ -795,7 +795,7 @@ short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, uns
       if (abs_num_lines == num_file_lines)
         break;
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (LINETYPE) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (i * direction), curr);
     switch (rc) {
       case LINE_SHADOW:
         break;
@@ -820,7 +820,7 @@ short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, uns
       curr = curr->prev;
     else
       curr = curr->next;
-    num_file_lines += (LINETYPE) direction;
+    num_file_lines += (line_t) direction;
     if (curr == NULL)
       break;
   }
@@ -841,13 +841,13 @@ short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, uns
   return rc;
 }
 
-static bool change_case(CHARTYPE * str, LENGTHTYPE start, LENGTHTYPE end, CHARTYPE which_case)
+static bool change_case(char_t * str, length_t start, length_t end, char_t which_case)
 /*
  * Returns TRUE if a line was changed, FALSE otherwise.
  * This function MUST preceed execute_change_case().
  */
 {
-  LENGTHTYPE i;
+  length_t i;
   bool altered = FALSE;
 
   for (i = start; i < end + 1; i++) {
@@ -869,10 +869,10 @@ static bool change_case(CHARTYPE * str, LENGTHTYPE start, LENGTHTYPE end, CHARTY
   return (altered);
 }
 
-short do_actual_change_case(LINETYPE true_line, LINETYPE num_lines, CHARTYPE which_case, bool lines_based_on_scope, short direction, LENGTHTYPE start_col, LENGTHTYPE end_col) {
+short do_actual_change_case(line_t true_line, line_t num_lines, char_t which_case, bool lines_based_on_scope, short direction, length_t start_col, length_t end_col) {
   bool adjust_alt = FALSE;
   LINE *curr = NULL;
-  LINETYPE i, num_actual_lines = 0L, num_file_lines = 0L;
+  line_t i, num_actual_lines = 0L, num_file_lines = 0L;
   short rc = RC_OK;
 
   /*
@@ -891,7 +891,7 @@ short do_actual_change_case(LINETYPE true_line, LINETYPE num_lines, CHARTYPE whi
       if (num_lines == i)
         break;
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (LINETYPE) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (i * direction), curr);
     switch (rc) {
       case LINE_SHADOW:
         break;
@@ -925,7 +925,7 @@ short do_actual_change_case(LINETYPE true_line, LINETYPE num_lines, CHARTYPE whi
       curr = curr->next;
     else
       curr = curr->prev;
-    num_file_lines += (LINETYPE) direction;
+    num_file_lines += (line_t) direction;
     if (curr == NULL)
       break;
   }
@@ -939,10 +939,10 @@ short do_actual_change_case(LINETYPE true_line, LINETYPE num_lines, CHARTYPE whi
   return rc;
 }
 
-short execute_change_case(CHARTYPE * params, CHARTYPE which_case) {
-  LINETYPE num_lines = 0L, true_line = 0L;
+short execute_change_case(char_t * params, char_t which_case) {
+  line_t num_lines = 0L, true_line = 0L;
   short direction = 0;
-  LENGTHTYPE start_col = 0, end_col = 0;
+  length_t start_col = 0, end_col = 0;
   short rc = RC_OK;
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL;
@@ -953,8 +953,8 @@ short execute_change_case(CHARTYPE * params, CHARTYPE which_case) {
    * Valid values are: a target or "block".
    * If no parameter is supplied, 1 is assumed.
    */
-  if (strcmp("", (DEFCHAR *) params) == 0)
-    params = (CHARTYPE *) "+1";
+  if (strcmp("", (char *) params) == 0)
+    params = (char_t *) "+1";
   initialise_target(&target);
   if ((rc = validate_target(params, &target, target_type, get_true_line(TRUE), TRUE, TRUE)) != RC_OK) {
     free_target(&target);
@@ -999,7 +999,7 @@ short execute_change_case(CHARTYPE * params, CHARTYPE which_case) {
   return (rc);
 }
 
-short rearrange_line_blocks(CHARTYPE command, CHARTYPE source, LINETYPE start_line, LINETYPE end_line, LINETYPE dest_line, LINETYPE num_occ, VIEW_DETAILS * src_view, VIEW_DETAILS * dst_view, bool lines_based_on_scope, LINETYPE * lines_affected)
+short rearrange_line_blocks(char_t command, char_t source, line_t start_line, line_t end_line, line_t dest_line, line_t num_occ, VIEW_DETAILS * src_view, VIEW_DETAILS * dst_view, bool lines_based_on_scope, line_t * lines_affected)
 /* Parameters:                                                         */
 /*    command: the command being executed; COPY,DELETE,DUPLICATE,MOVE  */
 /*     source: where the command is executed; COMMAND, PREFIX, BLOCK   */
@@ -1010,14 +1010,14 @@ short rearrange_line_blocks(CHARTYPE command, CHARTYPE source, LINETYPE start_li
 /*    num_occ: the number of times to execute the command; only for DUP*/
 /* lines_affected: number of "real" lines affected by copy operation   */
 {
-  LINETYPE j = 0, k = 0;
+  line_t j = 0, k = 0;
   short rc = RC_OK;
   static unsigned short y = 0, x = 0;
   bool dst_inside_src = FALSE, lines_added = FALSE, reset_block = FALSE;
   bool dest_in_block = FALSE;
   short direction = 0;
-  LINETYPE num_lines = 0L, off = 0L, adjust_line = dest_line, num_actual_lines = 0L;
-  LINETYPE i = 0L, num_pseudo_lines = 0L;
+  line_t num_lines = 0L, off = 0L, adjust_line = dest_line, num_actual_lines = 0L;
+  line_t i = 0L, num_pseudo_lines = 0L;
   LINE *curr_src = NULL, *curr_dst = NULL;
   LINE *save_curr_src = NULL, *save_curr_dst = NULL;
   FILE_DETAILS *src_file = NULL, *dst_file = NULL;
@@ -1093,7 +1093,7 @@ short rearrange_line_blocks(CHARTYPE command, CHARTYPE source, LINETYPE start_li
               if ((curr_dst = add_LINE(dst_file->first_line, curr_dst, curr_src->line, curr_src->length, dst_view->display_low, TRUE)) == NULL)
 /*                                      curr_src->select)) == NULL)*/
               {
-                display_error(30, (CHARTYPE *) "", FALSE);
+                display_error(30, (char_t *) "", FALSE);
                 return (RC_OUT_OF_MEMORY);
               }
               /*
@@ -1332,8 +1332,8 @@ short rearrange_line_blocks(CHARTYPE command, CHARTYPE source, LINETYPE start_li
     pre_process_line(CURRENT_VIEW, dst_view->focus_line, (LINE *) NULL);
   if ((source == SOURCE_BLOCK || source == SOURCE_BLOCK_RESET)
       && display_screens > 1) {
-    build_screen((CHARTYPE) (other_screen));
-    display_screen((CHARTYPE) (other_screen));
+    build_screen((char_t) (other_screen));
+    display_screen((char_t) (other_screen));
   }
   if (command != COMMAND_MOVE_DELETE_DIFF && command != COMMAND_MOVE_COPY_SAME && command != COMMAND_OVERLAY_COPY && command != COMMAND_OVERLAY_DELETE) {
     build_screen(current_screen);
@@ -1346,15 +1346,15 @@ short rearrange_line_blocks(CHARTYPE command, CHARTYPE source, LINETYPE start_li
   return (RC_OK);
 }
 
-short execute_set_point(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, CHARTYPE * name, LINETYPE true_line, bool point_on)
+short execute_set_point(char_t curr_screen, VIEW_DETAILS * curr_view, char_t * name, line_t true_line, bool point_on)
 /* Parameters:                                                         */
 /*       name: the name of the line to be processed                    */
 /*  true_line: the line number of the line                             */
 /*   point_on: indicates if the line name is to be turned on or off    */
 {
   LINE *curr = NULL;
-  LINETYPE dummy = 0L;
-  CHARTYPE *this_name;
+  line_t dummy = 0L;
+  char_t *this_name;
   THELIST *curr_name;
 
   /*
@@ -1383,11 +1383,11 @@ short execute_set_point(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, CHARTYPE
     /*
      * Allocate space for the name and add it to the start of the linked list
      */
-    if ((this_name = (CHARTYPE *) (*the_malloc) (strlen((DEFCHAR *) name) + 1)) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+    if ((this_name = (char_t *) malloc(strlen((char *) name) + 1)) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    strcpy((DEFCHAR *) this_name, (DEFCHAR *) name);
+    strcpy((char *) this_name, (char *) name);
     curr->first_name = ll_add(curr->first_name, NULL, sizeof(THELIST));
     curr->first_name->data = (void *) this_name;
   }
@@ -1402,15 +1402,15 @@ short execute_set_point(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, CHARTYPE
   return (RC_OK);
 }
 
-short execute_wrap_word(LENGTHTYPE col)
+short execute_wrap_word(length_t col)
 /* Parameters: col   - current column position within rec              */
 {
-  LENGTHTYPE i = 0;
-  LENGTHTYPE col_break = 0, cursor_offset = 0;
+  length_t i = 0;
+  length_t col_break = 0, cursor_offset = 0;
   LINE *curr = NULL, *next_line = NULL;
   bool bnewline = FALSE, cursor_wrap = FALSE;
-  CHARTYPE *buf = NULL, *word_to_wrap = NULL;
-  LENGTHTYPE next_line_start = 0, length_word = 0, last_col = 0;
+  char_t *buf = NULL, *word_to_wrap = NULL;
+  length_t next_line_start = 0, length_word = 0, last_col = 0;
   short rc = RC_OK;
 
   /*
@@ -1449,7 +1449,7 @@ short execute_wrap_word(LENGTHTYPE col)
    * Point to word to wrap and determine its length.
    */
   length_word = rec_len - col_break;
-  word_to_wrap = (CHARTYPE *) rec + col_break;
+  word_to_wrap = (char_t *) rec + col_break;
   /*
    * If the position of the cursor is before the word to wrap leave the
    * cursor where it is.
@@ -1482,9 +1482,9 @@ short execute_wrap_word(LENGTHTYPE col)
   /*
    * Save the word to be wrapped...
    */
-  buf = (CHARTYPE *) (*the_malloc) (length_word + CURRENT_VIEW->margin_left);
+  buf = (char_t *) malloc(length_word + CURRENT_VIEW->margin_left);
   if (buf == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   memcpy(buf, word_to_wrap, length_word);
@@ -1514,7 +1514,7 @@ short execute_wrap_word(LENGTHTYPE col)
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line + 1L, (LINE *) NULL, TRUE);
     pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   }
-  (*the_free) (buf);
+  free(buf);
   /*
    * We now should know if the cursor is to wrap or stay where it is.
    */
@@ -1522,7 +1522,7 @@ short execute_wrap_word(LENGTHTYPE col)
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     build_screen(current_screen);
     THEcursor_down(current_screen, CURRENT_VIEW, TRUE);
-    rc = Sos_firstchar((CHARTYPE *) "");
+    rc = Sos_firstchar((char_t *) "");
     for (i = 0; i < cursor_offset + 1; i++) {
       rc = THEcursor_right(TRUE, FALSE);
     }
@@ -1542,12 +1542,12 @@ short execute_split_join(short action, bool aligned, bool cursorarg)
 /*             cursor  - whether to split focus line at cursor or      */
 /*                       command line at current column                */
 {
-  LENGTHTYPE i = 0;
-  LENGTHTYPE num_cols = 0, num_blanks_focus = 0, num_blanks_next = 0;
+  length_t i = 0;
+  length_t num_cols = 0, num_blanks_focus = 0, num_blanks_next = 0;
   unsigned short x = 0, y = 0;
   LINE *curr = NULL;
-  LINETYPE true_line = 0L;
-  LENGTHTYPE col = 0;
+  line_t true_line = 0L;
+  length_t col = 0;
 
   /*
    * Determine line and column to use.
@@ -1569,7 +1569,7 @@ short execute_split_join(short action, bool aligned, bool cursorarg)
    * Reject the command if true_line is top or bottom of file.
    */
   if (VIEW_TOF(CURRENT_VIEW, true_line) || VIEW_BOF(CURRENT_VIEW, true_line)) {
-    display_error(38, (CHARTYPE *) "", FALSE);
+    display_error(38, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   /*
@@ -1620,7 +1620,7 @@ short execute_split_join(short action, bool aligned, bool cursorarg)
         pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
       } else {
         pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
-        Sos_delend((CHARTYPE *) "");
+        Sos_delend((char_t *) "");
         post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
       }
       break;
@@ -1651,7 +1651,7 @@ short execute_split_join(short action, bool aligned, bool cursorarg)
        * If the join would result in exceeding line length (or future TRUNC column)
        */
       if (col + curr->next->length - num_cols > max_line_length) {
-        display_error(154, (CHARTYPE *) "", FALSE);
+        display_error(154, (char_t *) "", FALSE);
         return (RC_NO_LINES_CHANGED);
       }
       /*
@@ -1710,12 +1710,12 @@ short execute_split_join(short action, bool aligned, bool cursorarg)
   display_screen(current_screen);
   return (RC_OK);
 }
-short execute_put(CHARTYPE * params, bool putdel) {
-  LINETYPE num_lines = 0L, true_line = 0L, num_file_lines = 0L, end_line = 0L;
+short execute_put(char_t * params, bool putdel) {
+  line_t num_lines = 0L, true_line = 0L, num_file_lines = 0L, end_line = 0L;
   bool append = FALSE;
-  CHARTYPE *filename = NULL;
+  char_t *filename = NULL;
   short rc = RC_OK;
-  LENGTHTYPE start_col = 0, end_col = max_line_length;
+  length_t start_col = 0, end_col = max_line_length;
   bool lines_based_on_scope = TRUE;
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL | TARGET_SPARE;
@@ -1725,8 +1725,8 @@ short execute_put(CHARTYPE * params, bool putdel) {
   /*
    * If there are no arguments, default to "1"...
    */
-  if (strcmp("", (DEFCHAR *) params) == 0)
-    params = (CHARTYPE *) "1";
+  if (strcmp("", (char *) params) == 0)
+    params = (char_t *) "1";
   /*
    * Validate first argument as a target...
    */
@@ -1742,7 +1742,7 @@ short execute_put(CHARTYPE * params, bool putdel) {
     append = FALSE;
     filename = tempfilename;
   } else {
-    if (equal((CHARTYPE *) "clip:", MyStrip(target.rt[target.spare].string, STRIP_BOTH, ' '), 5)) {
+    if (equal((char_t *) "clip:", MyStrip(target.rt[target.spare].string, STRIP_BOTH, ' '), 5)) {
       clip = TRUE;
     } else {
       /*
@@ -1755,8 +1755,8 @@ short execute_put(CHARTYPE * params, bool putdel) {
         free_target(&target);
         return (rc);
       }
-      strcpy((DEFCHAR *) temp_cmd, (DEFCHAR *) sp_path);
-      strcat((DEFCHAR *) temp_cmd, (DEFCHAR *) sp_fname);
+      strcpy((char *) temp_cmd, (char *) sp_path);
+      strcat((char *) temp_cmd, (char *) sp_fname);
       filename = temp_cmd;
       append = TRUE;
     }
@@ -1807,21 +1807,21 @@ short execute_put(CHARTYPE * params, bool putdel) {
   free_target(&target);
   return (rc);
 }
-short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) {
+short execute_macro(char_t * params, bool error_on_not_found, short *macrorc) {
   short rc = RC_OK;
   short errnum = 0;
   FILE *fp = NULL;
 
 #define MAC_PARAMS  3
-  CHARTYPE *word[MAC_PARAMS + 1];
-  CHARTYPE strip[MAC_PARAMS];
-  CHARTYPE quoted[MAC_PARAMS];
+  char_t *word[MAC_PARAMS + 1];
+  char_t strip[MAC_PARAMS];
+  char_t quoted[MAC_PARAMS];
   unsigned short num_params = 0;
-  CHARTYPE *macroname = NULL;
+  char_t *macroname = NULL;
   bool save_in_macro = in_macro;
   bool allow_interactive = FALSE;
-  CHARTYPE *tmpfilename = NULL;
-  CHARTYPE *tmpargs = NULL;
+  char_t *tmpfilename = NULL;
+  char_t *tmpargs = NULL;
 
   /*
    * Validate the parameters. At least 1 must be present, the filename.
@@ -1832,13 +1832,13 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
   quoted[1] = '\0';
   num_params = quoted_param_split(params, word, MAC_PARAMS - 1, WORD_DELIMS, TEMP_PARAM, strip, TRUE, quoted);
   if (num_params == 0) {
-    display_error(3, (CHARTYPE *) "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * Check if first parameter is ?...
    */
-  if (strcmp((DEFCHAR *) word[0], "?") == 0) {
+  if (strcmp((char *) word[0], "?") == 0) {
     strip[0] = STRIP_BOTH;
     strip[1] = STRIP_BOTH;
     strip[2] = STRIP_NONE;
@@ -1847,7 +1847,7 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
     quoted[2] = '\0';
     num_params = quoted_param_split(params, word, MAC_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, TRUE, quoted);
     if (num_params == 1) {
-      display_error(3, (CHARTYPE *) "", FALSE);
+      display_error(3, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     tmpfilename = word[1];
@@ -1861,8 +1861,8 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
   /*
    * Allocate some space for macroname...
    */
-  if ((macroname = (CHARTYPE *) (*the_malloc) ((MAX_FILE_NAME + 1) * sizeof(CHARTYPE))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((macroname = (char_t *) malloc((MAX_FILE_NAME + 1) * sizeof(char_t))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
@@ -1885,7 +1885,7 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
        */
       if (error_on_not_found)
         display_error(errnum, tmpfilename, FALSE);
-      (*the_free) (macroname);
+      free(macroname);
       return (rc);
       break;
     default:
@@ -1893,7 +1893,7 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
        * All other cases, display error and return.
        */
       display_error(errnum, tmpfilename, FALSE);
-      (*the_free) (macroname);
+      free(macroname);
       return (rc);
   }
   /*
@@ -1914,15 +1914,15 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     rc = execute_macro_file(macroname, tmpargs, macrorc, allow_interactive);
     if (rc != RC_OK) {
-      display_error(54, (CHARTYPE *) "", FALSE);
+      display_error(54, (char_t *) "", FALSE);
       rc = RC_SYSTEM_ERROR;
     }
-    (*the_free) (macroname);
+    free(macroname);
   } else {
     /*
      * ...otherwise, process the file as a non-REXX macro file...
      */
-    if ((fp = fopen((DEFCHAR *) macroname, "r")) == NULL) {
+    if ((fp = fopen((char *) macroname, "r")) == NULL) {
       rc = RC_ACCESS_DENIED;
       display_error(8, macroname, FALSE);
     }
@@ -1931,11 +1931,11 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
       rc = execute_command_file(fp);
       fclose(fp);
     }
-    (*the_free) (macroname);
+    free(macroname);
     if (rc == RC_SYSTEM_ERROR)
-      display_error(53, (CHARTYPE *) "", FALSE);
+      display_error(53, (char_t *) "", FALSE);
     if (rc == RC_NOREXX_ERROR)
-      display_error(52, (CHARTYPE *) "", FALSE);
+      display_error(52, (char_t *) "", FALSE);
   }
   /*
    * Set in_macro = FALSE to indicate we are out of the macro and do a
@@ -1944,8 +1944,8 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
   in_macro = save_in_macro;
   if (number_of_files > 0) {
     if (display_screens > 1) {
-      build_screen((CHARTYPE) (other_screen));
-      display_screen((CHARTYPE) (other_screen));
+      build_screen((char_t) (other_screen));
+      display_screen((char_t) (other_screen));
     }
     build_screen(current_screen);
     display_screen(current_screen);
@@ -1953,11 +1953,11 @@ short execute_macro(CHARTYPE * params, bool error_on_not_found, short *macrorc) 
   return (rc);
 }
 
-short write_macro(CHARTYPE * defn) {
+short write_macro(char_t * defn) {
   int len, i;
 
   if (record_fp) {
-    len = strlen((DEFCHAR *) defn);
+    len = strlen((char *) defn);
     if (len) {
       fputc('"', record_fp);
       for (i = 0; i < len; i++) {
@@ -1972,17 +1972,17 @@ short write_macro(CHARTYPE * defn) {
   return 0;
 }
 
-short execute_set_on_off(CHARTYPE * inparams, bool *flag, bool error_display) {
+short execute_set_on_off(char_t * inparams, bool *flag, bool error_display) {
   short rc = RC_OK;
   int len = 0;
-  CHARTYPE *params = NULL;
+  char_t *params = NULL;
 
   /*
    * Make a copy of the arguments so we can split them up
    */
-  if ((params = (CHARTYPE *) my_strdup(inparams)) == NULL) {
+  if ((params = (char_t *) my_strdup(inparams)) == NULL) {
     if (error_display)
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
@@ -1992,12 +1992,12 @@ short execute_set_on_off(CHARTYPE * inparams, bool *flag, bool error_display) {
   /*
    * Validate the parameter. It must be ON or OFF.
    */
-  len = strlen((DEFCHAR *) params);
+  len = strlen((char *) params);
 
   if ((len < 2)
       || (toupper(params[0]) != 'O')) {
     if (error_display)
-      display_error(1, (CHARTYPE *) inparams, FALSE);
+      display_error(1, (char_t *) inparams, FALSE);
     rc = RC_INVALID_OPERAND;
   } else {
     if ((len == 3)
@@ -2010,22 +2010,22 @@ short execute_set_on_off(CHARTYPE * inparams, bool *flag, bool error_display) {
         *flag = TRUE;
       else {
         if (error_display)
-          display_error(1, (CHARTYPE *) inparams, FALSE);
+          display_error(1, (char_t *) inparams, FALSE);
         rc = RC_INVALID_OPERAND;
       }
     }
   }
-  (*the_free) (params);
+  free(params);
   return (rc);
 }
-short execute_set_row_position(CHARTYPE * inparams, short *base, short *off) {
+short execute_set_row_position(char_t * inparams, short *base, short *off) {
   short rc = RC_OK;
-  CHARTYPE *params = NULL, *save_param_ptr = NULL;
+  char_t *params = NULL, *save_param_ptr = NULL;
 
   /*
    * Strip the leading and trailing spaces from parameters...
    */
-  if ((params = save_param_ptr = (CHARTYPE *) my_strdup(inparams)) == NULL) {
+  if ((params = save_param_ptr = (char_t *) my_strdup(inparams)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   params = MyStrip(params, STRIP_BOTH, ' ');
@@ -2039,24 +2039,24 @@ short execute_set_row_position(CHARTYPE * inparams, short *base, short *off) {
       *off = 0;
     else {
       if ((*params != '-' && *params != '+')
-          || ((*off = atoi((DEFCHAR *) params)) == 0)) {
+          || ((*off = atoi((char *) params)) == 0)) {
         display_error(1, inparams, FALSE);
-        (*the_free) (save_param_ptr);
+        free(save_param_ptr);
         return (RC_INVALID_OPERAND);
       }
     }
   } else {
-    if ((*off = atoi((DEFCHAR *) params)) == 0) {
+    if ((*off = atoi((char *) params)) == 0) {
       display_error(1, inparams, FALSE);
-      (*the_free) (save_param_ptr);
+      free(save_param_ptr);
       return (RC_INVALID_OPERAND);
     }
     *base = (*off > 0) ? POSITION_TOP : POSITION_BOTTOM;
   }
-  (*the_free) (save_param_ptr);
+  free(save_param_ptr);
   return (rc);
 }
-short processable_line(VIEW_DETAILS * view, LINETYPE true_line, LINE * curr) {
+short processable_line(VIEW_DETAILS * view, line_t true_line, LINE * curr) {
 
   if (VIEW_TOF(view, true_line)) {
     return (LINE_TOF);
@@ -2070,9 +2070,9 @@ short processable_line(VIEW_DETAILS * view, LINETYPE true_line, LINE * curr) {
   }
   return (LINE_SHADOW);
 }
-short execute_expand_compress(CHARTYPE * params, bool expand, bool inc_alt, bool use_tabs, bool add_to_recovery) {
-  LINETYPE i = 0L, num_actual_lines = 0L;
-  LINETYPE num_lines = 0L, true_line = 0L, num_file_lines = 0L;
+short execute_expand_compress(char_t * params, bool expand, bool inc_alt, bool use_tabs, bool add_to_recovery) {
+  line_t i = 0L, num_actual_lines = 0L;
+  line_t num_lines = 0L, true_line = 0L, num_file_lines = 0L;
   short direction = 0, rc = RC_OK;
   LINE *curr = NULL;
   TARGET target;
@@ -2085,8 +2085,8 @@ short execute_expand_compress(CHARTYPE * params, bool expand, bool inc_alt, bool
    * If no parameter is supplied, 1 is assumed.
    */
   true_line = get_true_line(TRUE);
-  if (strcmp("", (DEFCHAR *) params) == 0)
-    params = (CHARTYPE *) "1";
+  if (strcmp("", (char *) params) == 0)
+    params = (char_t *) "1";
   initialise_target(&target);
   if ((rc = validate_target(params, &target, target_type, true_line, TRUE, TRUE)) != RC_OK) {
     free_target(&target);
@@ -2100,12 +2100,12 @@ short execute_expand_compress(CHARTYPE * params, bool expand, bool inc_alt, bool
       case M_BOX:
       case M_COLUMN:
       case M_WORD:
-        display_error(48, (CHARTYPE *) "", FALSE);
+        display_error(48, (char_t *) "", FALSE);
         rc = RC_INVALID_OPERAND;
         break;
       case M_STREAM:
       case M_CUA:
-        display_error(49, (CHARTYPE *) "", FALSE);
+        display_error(49, (char_t *) "", FALSE);
         rc = RC_INVALID_OPERAND;
         break;
       default:
@@ -2146,7 +2146,7 @@ short execute_expand_compress(CHARTYPE * params, bool expand, bool inc_alt, bool
       if (num_lines == i)
         break;
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (LINETYPE) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (i * direction), curr);
     switch (rc) {
       case LINE_SHADOW:
         break;
@@ -2170,7 +2170,7 @@ short execute_expand_compress(CHARTYPE * params, bool expand, bool inc_alt, bool
       curr = curr->next;
     else
       curr = curr->prev;
-    num_file_lines += (LINETYPE) direction;
+    num_file_lines += (line_t) direction;
     if (curr == NULL)
       break;
   }
@@ -2191,9 +2191,9 @@ short execute_expand_compress(CHARTYPE * params, bool expand, bool inc_alt, bool
     rc = RC_OK;
   return (rc);
 }
-short execute_select(CHARTYPE * params, bool relative, short off) {
-  LINETYPE i = 0L, num_actual_lines = 0L;
-  LINETYPE num_lines = 0L, true_line = 0L;
+short execute_select(char_t * params, bool relative, short off) {
+  line_t i = 0L, num_actual_lines = 0L;
+  line_t num_lines = 0L, true_line = 0L;
   short direction = 0, rc = RC_OK;
   LINE *curr = NULL;
   TARGET target;
@@ -2239,7 +2239,7 @@ short execute_select(CHARTYPE * params, bool relative, short off) {
       if (num_lines == i)
         break;
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (LINETYPE) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (i * direction), curr);
     switch (rc) {
       case LINE_SHADOW:
         break;
@@ -2275,10 +2275,10 @@ short execute_select(CHARTYPE * params, bool relative, short off) {
     rc = RC_OK;
   return (rc);
 }
-short execute_move_cursor(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, LENGTHTYPE col) {
+short execute_move_cursor(char_t curr_screen, VIEW_DETAILS * curr_view, length_t col) {
   short y = 0, x = 0;
-  COLTYPE new_screen_col = 0;
-  LENGTHTYPE new_verify_col = 0;
+  col_t new_screen_col = 0;
+  length_t new_verify_col = 0;
 
   switch (curr_view->current_window) {
     case WINDOW_FILEAREA:
@@ -2311,22 +2311,22 @@ short execute_move_cursor(CHARTYPE curr_screen, VIEW_DETAILS * curr_view, LENGTH
    */
   return (RC_OK);
 }
-short execute_find_command(CHARTYPE * str, long target_type) {
+short execute_find_command(char_t * str, long target_type) {
   short rc = RC_OK;
-  LENGTHTYPE save_zone_start = CURRENT_VIEW->zone_start;
-  LENGTHTYPE save_zone_end = CURRENT_VIEW->zone_end;
+  length_t save_zone_start = CURRENT_VIEW->zone_start;
+  length_t save_zone_end = CURRENT_VIEW->zone_end;
   bool save_arbchar_status = CURRENT_VIEW->arbchar_status;
   bool save_hex = CURRENT_VIEW->hex;
   bool negative = FALSE, wrapped = FALSE;
-  CHARTYPE save_arbchar_single = CURRENT_VIEW->arbchar_single;
+  char_t save_arbchar_single = CURRENT_VIEW->arbchar_single;
   TARGET target;
-  LINETYPE true_line = 0L;
-  LINETYPE save_focus_line = CURRENT_VIEW->focus_line;
-  LINETYPE save_current_line = CURRENT_VIEW->current_line;
+  line_t true_line = 0L;
+  line_t save_focus_line = CURRENT_VIEW->focus_line;
+  line_t save_current_line = CURRENT_VIEW->current_line;
 
-  if (strcmp((DEFCHAR *) str, "") == 0) {       /* no argument supplied */
-    if (lastop[LASTOP_FIND].value == NULL || strcmp((DEFCHAR *) lastop[LASTOP_FIND].value, "") == 0) {
-      display_error(39, (CHARTYPE *) "", FALSE);
+  if (strcmp((char *) str, "") == 0) {       /* no argument supplied */
+    if (lastop[LASTOP_FIND].value == NULL || strcmp((char *) lastop[LASTOP_FIND].value, "") == 0) {
+      display_error(39, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     } else
       str = lastop[LASTOP_FIND].value;
@@ -2338,7 +2338,7 @@ short execute_find_command(CHARTYPE * str, long target_type) {
    * Ensure ARBCHAR and HEX will be ignored in the search...
    */
   CURRENT_VIEW->zone_start = 1;
-  CURRENT_VIEW->zone_end = strlen((DEFCHAR *) str);
+  CURRENT_VIEW->zone_end = strlen((char *) str);
   CURRENT_VIEW->arbchar_status = TRUE;
   CURRENT_VIEW->arbchar_single = find_unique_char(str);
   CURRENT_VIEW->hex = FALSE;
@@ -2365,7 +2365,7 @@ short execute_find_command(CHARTYPE * str, long target_type) {
    * Save the last target...
    */
   if (save_lastop(LASTOP_FIND, str) != RC_OK) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return rc;
   }
   /*
@@ -2381,7 +2381,7 @@ short execute_find_command(CHARTYPE * str, long target_type) {
       CURRENT_VIEW->current_line = save_current_line;
       pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
     }
-    display_error(34, (CHARTYPE *) "", FALSE);
+    display_error(34, (char_t *) "", FALSE);
     free_target(&target);
     return (rc);
   }
@@ -2402,36 +2402,36 @@ short execute_find_command(CHARTYPE * str, long target_type) {
   rc = advance_current_or_focus_line(target.num_lines);
   free_target(&target);
   if (wrapped)
-    display_error(0, (CHARTYPE *) "Wrapped...", FALSE);
+    display_error(0, (char_t *) "Wrapped...", FALSE);
   return (rc);
 }
-short execute_modify_command(CHARTYPE * str) {
+short execute_modify_command(char_t * str) {
   register short i = 0;
   short itemno = 0;
-  CHARTYPE item_type = 0;
+  char_t item_type = 0;
 
-  if ((itemno = find_query_item(str, strlen((DEFCHAR *) str), &item_type)) == (-1)
+  if ((itemno = find_query_item(str, strlen((char *) str), &item_type)) == (-1)
       || !(item_type & QUERY_MODIFY)) {
     display_error(1, str, FALSE);
     return (RC_INVALID_OPERAND);
   }
 
-  itemno = get_item_values(1, itemno, (CHARTYPE *) "", QUERY_MODIFY, 0L, NULL, 0L);
-  strcpy((DEFCHAR *) temp_cmd, "set");
+  itemno = get_item_values(1, itemno, (char_t *) "", QUERY_MODIFY, 0L, NULL, 0L);
+  strcpy((char *) temp_cmd, "set");
   for (i = 0; i < itemno + 1; i++) {
-    strcat((DEFCHAR *) temp_cmd, " ");
-    strcat((DEFCHAR *) temp_cmd, (DEFCHAR *) item_values[i].value);
+    strcat((char *) temp_cmd, " ");
+    strcat((char *) temp_cmd, (char *) item_values[i].value);
   }
   return (RC_OK);
 }
 
-LENGTHTYPE calculate_rec_len(short action, CHARTYPE * rec, LENGTHTYPE current_rec_len, LENGTHTYPE start_col, LINETYPE num_cols, short trailing)
+length_t calculate_rec_len(short action, char_t * rec, length_t current_rec_len, length_t start_col, line_t num_cols, short trailing)
 /*
  * start_col is 1 based; ie first column is column 1
  */
 {
-  LENGTHTYPE new_rec_len = 0;
-  LENGTHTYPE end_col = start_col + num_cols - 1;
+  length_t new_rec_len = 0;
+  length_t end_col = start_col + num_cols - 1;
 
   if (num_cols <= 0) {
     new_rec_len = current_rec_len;
@@ -2445,7 +2445,7 @@ LENGTHTYPE calculate_rec_len(short action, CHARTYPE * rec, LENGTHTYPE current_re
     switch (action) {
       case ADJUST_DELETE:
         if (start_col < current_rec_len) {
-          new_rec_len = (LENGTHTYPE) (LINETYPE) current_rec_len - (min((LINETYPE) current_rec_len - (LINETYPE) start_col, num_cols));
+          new_rec_len = (length_t) (line_t) current_rec_len - (min((line_t) current_rec_len - (line_t) start_col, num_cols));
         }
         break;
       case ADJUST_INSERT:
@@ -2465,11 +2465,11 @@ LENGTHTYPE calculate_rec_len(short action, CHARTYPE * rec, LENGTHTYPE current_re
   return (new_rec_len);
 }
 
-static short set_editv(CHARTYPE * var, CHARTYPE * val, bool editv_file, bool rexx_var) {
+static short set_editv(char_t * var, char_t * val, bool editv_file, bool rexx_var) {
   short rc = RC_OK;
   LINE *curr = NULL;
   int len_var = 0, len_val = 0;
-  CHARTYPE *value = NULL;
+  char_t *value = NULL;
   LINE *first = NULL;
 
   first = (editv_file) ? CURRENT_FILE->editv : editv;
@@ -2481,20 +2481,20 @@ static short set_editv(CHARTYPE * var, CHARTYPE * val, bool editv_file, bool rex
     }
   } else {
     if (val == NULL)
-      value = (CHARTYPE *) "";
+      value = (char_t *) "";
     else
       value = val;
-    len_val = strlen((DEFCHAR *) value);
+    len_val = strlen((char *) value);
   }
-  len_var = strlen((DEFCHAR *) var);
+  len_var = strlen((char *) var);
   curr = lll_locate(first, var);
   if (curr) {                   /* found an existing variable */
     if (len_val > curr->length) {
-      curr->line = (CHARTYPE *) (*the_realloc) (curr->line, (len_val + 1) * sizeof(CHARTYPE));
+      curr->line = (char_t *) realloc(curr->line, (len_val + 1) * sizeof(char_t));
       if (curr->line == NULL) {
         if (rexx_var && value)
-          (*the_free) (value);
-        display_error(30, (CHARTYPE *) "", FALSE);
+          free(value);
+        display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
     }
@@ -2504,13 +2504,13 @@ static short set_editv(CHARTYPE * var, CHARTYPE * val, bool editv_file, bool rex
       else
         lll_del(&editv, NULL, curr, DIRECTION_FORWARD);
     } else
-      strcpy((DEFCHAR *) curr->line, (DEFCHAR *) value);
+      strcpy((char *) curr->line, (char *) value);
   } else {
     curr = lll_add(first, NULL, sizeof(LINE));
     if (curr == NULL) {
       if (rexx_var && value)
-        (*the_free) (value);
-      display_error(30, (CHARTYPE *) "", FALSE);
+        free(value);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     /*
@@ -2521,34 +2521,34 @@ static short set_editv(CHARTYPE * var, CHARTYPE * val, bool editv_file, bool rex
       CURRENT_FILE->editv = curr;
     else
       editv = curr;
-    curr->line = (CHARTYPE *) (*the_malloc) ((len_val + 1) * sizeof(CHARTYPE));
+    curr->line = (char_t *) malloc((len_val + 1) * sizeof(char_t));
     if (curr->line == NULL) {
       if (rexx_var && value)
-        (*the_free) (value);
-      display_error(30, (CHARTYPE *) "", FALSE);
+        free(value);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    strcpy((DEFCHAR *) curr->line, (DEFCHAR *) value);
+    strcpy((char *) curr->line, (char *) value);
     curr->length = len_val;
-    curr->name = (CHARTYPE *) (*the_malloc) ((len_var + 1) * sizeof(CHARTYPE));
+    curr->name = (char_t *) malloc((len_var + 1) * sizeof(char_t));
     if (curr->name == NULL) {
       if (rexx_var && value)
-        (*the_free) (value);
-      display_error(30, (CHARTYPE *) "", FALSE);
+        free(value);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    strcpy((DEFCHAR *) curr->name, (DEFCHAR *) var);
+    strcpy((char *) curr->name, (char *) var);
   }
   if (rexx_var && value)
-    (*the_free) (value);
+    free(value);
   return (rc);
 }
 
-short execute_editv(short editv_type, bool editv_file, CHARTYPE * params) {
+short execute_editv(short editv_type, bool editv_file, char_t * params) {
 #define EDITV_PARAMS  2
-  CHARTYPE *word[EDITV_PARAMS + 1];
-  CHARTYPE strip[EDITV_PARAMS];
-  CHARTYPE *p = NULL, *str = NULL;
+  char_t *word[EDITV_PARAMS + 1];
+  char_t strip[EDITV_PARAMS];
+  char_t *p = NULL, *str = NULL;
   unsigned short num_params = 0;
   LINE *curr = NULL, *first = NULL;
   int key = 0, lineno = 0, i, len_str, len_name, rem, x;
@@ -2561,41 +2561,41 @@ short execute_editv(short editv_type, bool editv_file, CHARTYPE * params) {
       strip[1] = STRIP_NONE;
       num_params = param_split(params, word, EDITV_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
       if (num_params == 0) {
-        display_error(3, (CHARTYPE *) "", FALSE);
+        display_error(3, (char_t *) "", FALSE);
         return (RC_INVALID_OPERAND);
       }
       rc = set_editv(word[0], word[1], editv_file, FALSE);
       break;
     case EDITV_SET:
-      p = (CHARTYPE *) strtok((DEFCHAR *) params, " ");
+      p = (char_t *) strtok((char *) params, " ");
       while (p != NULL) {
-        str = (CHARTYPE *) strtok(NULL, " ");
+        str = (char_t *) strtok(NULL, " ");
         rc = set_editv(p, str, editv_file, FALSE);
         if (str == NULL)
           break;
-        p = (CHARTYPE *) strtok(NULL, " ");
+        p = (char_t *) strtok(NULL, " ");
       }
       break;
     case EDITV_PUT:
-      p = (CHARTYPE *) strtok((DEFCHAR *) params, " ");
+      p = (char_t *) strtok((char *) params, " ");
       while (p != NULL) {
 /*            p = make_upper( p ); not needed as set_editv() uppercases this anyway */
         rc = set_editv(p, NULL, editv_file, TRUE);
-        p = (CHARTYPE *) strtok(NULL, " ");
+        p = (char_t *) strtok(NULL, " ");
       }
       break;
     case EDITV_GET:
-      p = (CHARTYPE *) strtok((DEFCHAR *) params, " ");
+      p = (char_t *) strtok((char *) params, " ");
       while (p != NULL) {
         p = make_upper(p);
         curr = lll_locate(first, p);
         if (curr && curr->line)
           str = curr->line;
         else
-          str = (CHARTYPE *) "";
-        if (set_rexx_variable(p, str, strlen((DEFCHAR *) str), -1) != RC_OK)
+          str = (char_t *) "";
+        if (set_rexx_variable(p, str, strlen((char *) str), -1) != RC_OK)
           break;
-        p = (CHARTYPE *) strtok(NULL, " ");
+        p = (char_t *) strtok(NULL, " ");
       }
       break;
     case EDITV_LIST:
@@ -2606,18 +2606,18 @@ short execute_editv(short editv_type, bool editv_file, CHARTYPE * params) {
           if (curr->line)
             str = curr->line;
           else
-            str = (CHARTYPE *) "";
+            str = (char_t *) "";
           attrset(A_BOLD);
-          mvaddstr(lineno, 0, (DEFCHAR *) curr->name);
+          mvaddstr(lineno, 0, (char *) curr->name);
           attrset(A_NORMAL);
           /*
            * Calculate maximum length of string to display so we don't wrap.
            */
           if (curr)
-            len_name = strlen((DEFCHAR *) curr->name);
+            len_name = strlen((char *) curr->name);
           else
             len_name = 0;
-          len_str = strlen((DEFCHAR *) str);
+          len_str = strlen((char *) str);
           rem = terminal_cols - len_name - 1;
           /*
            * Display the value, wrapping if necessary
@@ -2637,25 +2637,25 @@ short execute_editv(short editv_type, bool editv_file, CHARTYPE * params) {
           curr = curr->next;
         }
       } else {
-        p = (CHARTYPE *) strtok((DEFCHAR *) params, " ");
+        p = (char_t *) strtok((char *) params, " ");
         while (p != NULL) {
           p = make_upper(p);
           curr = lll_locate(first, p);
           if (curr && curr->line)
             str = curr->line;
           else
-            str = (CHARTYPE *) "";
+            str = (char_t *) "";
           attrset(A_BOLD);
-          mvaddstr(lineno, 0, (DEFCHAR *) p);
+          mvaddstr(lineno, 0, (char *) p);
           attrset(A_NORMAL);
           /*
            * Calculate maximum length of string to display so we don't wrap.
            */
           if (curr)
-            len_name = strlen((DEFCHAR *) curr->name);
+            len_name = strlen((char *) curr->name);
           else
             len_name = 0;
-          len_str = strlen((DEFCHAR *) str);
+          len_str = strlen((char *) str);
           rem = terminal_cols - len_name - 1;
           /*
            * Display the value, wrapping if necessary
@@ -2672,7 +2672,7 @@ short execute_editv(short editv_type, bool editv_file, CHARTYPE * params) {
             addch(*(str + i));
           }
           lineno++;
-          p = (CHARTYPE *) strtok(NULL, " ");
+          p = (char_t *) strtok(NULL, " ");
         }
       }
       mvaddstr(terminal_lines - 2, 0, HIT_ANY_KEY);
@@ -2685,7 +2685,7 @@ short execute_editv(short editv_type, bool editv_file, CHARTYPE * params) {
           continue;
         break;
       }
-      THERefresh((CHARTYPE *) "");
+      THERefresh((char_t *) "");
       restore_THE();
       break;
   }
@@ -2693,7 +2693,7 @@ short execute_editv(short editv_type, bool editv_file, CHARTYPE * params) {
   return (rc);
 }
 
-short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
+short prepare_dialog(char_t * params, bool alert, char_t * stemname) {
 #define STATE_START        0
 #define STATE_EDITFIELD    1
 #define STATE_TITLE        2
@@ -2701,29 +2701,29 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
 #define STATE_DEFBUTTON    4
 #define STATE_ICON         5
   short rc = RC_OK;
-  int len_params = strlen((DEFCHAR *) params);
-  CHARTYPE delimiter;
+  int len_params = strlen((char *) params);
+  char_t delimiter;
   int len_prompt, len_title, len_initial, i, j, k, state = STATE_START;
   short button = BUTTON_OK;
   short default_button = 1;
-  CHARTYPE *prompt = NULL, *initial = NULL, *title = NULL;
+  char_t *prompt = NULL, *initial = NULL, *title = NULL;
   bool editfield = FALSE;
   bool found;
   int button_len[4];
   int button_num[4];
-  DEFCHAR *button_text[4];
+  char *button_text[4];
   int icon_len[4];
-  DEFCHAR *icon_text[4];
-  DEFCHAR *strdefbutton = "defbutton";
-  DEFCHAR *streditfield = "editfield";
-  DEFCHAR num[20];
+  char *icon_text[4];
+  char *strdefbutton = "defbutton";
+  char *streditfield = "editfield";
+  char num[20];
   short icon;
 
   /*
    * Can only run from a Rexx macro...
    */
   if (!in_macro || !rexx_support) {
-    display_error(53, (CHARTYPE *) "", FALSE);
+    display_error(53, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   /*
@@ -2781,15 +2781,15 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
    * Did we get a delimiter ?
    */
   if (i == len_params) {        /* no, then use defaults */
-    prompt = (CHARTYPE *) (*the_malloc) (len_params * sizeof(CHARTYPE));
+    prompt = (char_t *) malloc(len_params * sizeof(char_t));
     if (prompt == NULL) {
       display_error(30, params, FALSE);
       return (RC_INVALID_OPERAND);
     }
-    strcpy((DEFCHAR *) prompt, (DEFCHAR *) params);
+    strcpy((char *) prompt, (char *) params);
   } else {                      /* yes, we may have other options... */
     len_prompt = i;
-    prompt = (CHARTYPE *) (*the_malloc) (1 + (len_prompt * sizeof(CHARTYPE)));
+    prompt = (char_t *) malloc(1 + (len_prompt * sizeof(char_t)));
     if (prompt == NULL) {
       display_error(30, params, FALSE);
       return (RC_INVALID_OPERAND);
@@ -2798,7 +2798,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
     prompt[len_prompt] = '\0';
     params += len_prompt + 1;
     strtrunc(params);
-    len_params = strlen((DEFCHAR *) params);
+    len_params = strlen((char *) params);
     for (i = 0; i < len_params;) {
       if (len_params == 0)
         break;
@@ -2853,7 +2853,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           }
           params += i;
           strtrunc(params);
-          len_params = strlen((DEFCHAR *) params);
+          len_params = strlen((char *) params);
           editfield = TRUE;
           delimiter = *(params);
           if (delimiter == 'T' || delimiter == 't' || delimiter == 'Y' || delimiter == 'y' || delimiter == 'O' || delimiter == 'o' || delimiter == 'D' || delimiter == 'd' || delimiter == 'I' || delimiter == 'i' || delimiter == '\0') {
@@ -2872,7 +2872,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
             break;
           }
           len_initial = i;
-          initial = (CHARTYPE *) (*the_malloc) (1 + (len_initial * sizeof(CHARTYPE)));
+          initial = (char_t *) malloc(1 + (len_initial * sizeof(char_t)));
           if (initial == NULL) {
             display_error(30, params, FALSE);
             rc = RC_INVALID_OPERAND;
@@ -2882,12 +2882,12 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           initial[len_initial] = '\0';
           params += (len_initial + 1);  /* add 1 for delimiter */
           strtrunc(params);
-          len_params = strlen((DEFCHAR *) params);
+          len_params = strlen((char *) params);
           state = STATE_START;
           i = 0;
           break;
         case STATE_TITLE:
-          if (len_params < 6 || memcmpi(params, (CHARTYPE *) "title ", 6) != 0) {
+          if (len_params < 6 || memcmpi(params, (char_t *) "title ", 6) != 0) {
             display_error(1, params, FALSE);
             rc = RC_INVALID_OPERAND;
             break;
@@ -2896,7 +2896,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           strtrunc(params);
           delimiter = *(params);
           params++;
-          len_params = strlen((DEFCHAR *) params);
+          len_params = strlen((char *) params);
           for (i = 0; i < len_params; i++) {
             if (*(params + i) == delimiter)
               break;
@@ -2907,7 +2907,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
             break;
           }
           len_title = i + 2;    /* allow for leading and trailing space */
-          title = (CHARTYPE *) (*the_malloc) (1 + (len_title * sizeof(CHARTYPE)));
+          title = (char_t *) malloc(1 + (len_title * sizeof(char_t)));
           if (title == NULL) {
             display_error(30, params, FALSE);
             rc = RC_INVALID_OPERAND;
@@ -2918,12 +2918,12 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           title[len_title] = '\0';
           params += (len_title - 1);    /* remove 2 spaces and add 1 for delimiter */
           strtrunc(params);
-          len_params = strlen((DEFCHAR *) params);
+          len_params = strlen((char *) params);
           i = 0;
           state = STATE_START;
           break;
         case STATE_ICON:
-          if (len_params >= 5 && memcmpi(params, (CHARTYPE *) "icon", 4) == 0) {
+          if (len_params >= 5 && memcmpi(params, (char_t *) "icon", 4) == 0) {
             /*
              * Find the first space, or end of string; set
              * the space to nul, and see if the "string" matches
@@ -2937,7 +2937,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
             }
             found = FALSE;
             for (k = 0; k < 4; k++) {
-              if (equal((CHARTYPE *) icon_text[k], params, 5)) {
+              if (equal((char_t *) icon_text[k], params, 5)) {
                 icon = k;
                 found = TRUE;
                 break;
@@ -2959,7 +2959,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           }
           params += icon_len[icon];
           strtrunc(params);
-          len_params = strlen((DEFCHAR *) params);
+          len_params = strlen((char *) params);
           state = STATE_START;
           i = 0;
           break;
@@ -2967,7 +2967,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           button = -1;
           for (i = 0; i < 4; i++) {
             if (len_params >= button_len[i]
-                && memcmpi(params, (CHARTYPE *) button_text[i], button_len[i]) == 0 && (len_params == button_len[i] || *(params + button_len[i]) == ' ')) {
+                && memcmpi(params, (char_t *) button_text[i], button_len[i]) == 0 && (len_params == button_len[i] || *(params + button_len[i]) == ' ')) {
               button = i;
               break;
             }
@@ -2979,7 +2979,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           }
           params += button_len[i];
           strtrunc(params);
-          len_params = strlen((DEFCHAR *) params);
+          len_params = strlen((char *) params);
           state = STATE_START;
           i = 0;
           break;
@@ -3005,7 +3005,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           }
           params += i;
           strtrunc(params);
-          len_params = strlen((DEFCHAR *) params);
+          len_params = strlen((char *) params);
           for (i = 0; i < len_params; i++) {
             if (*(params + i) == ' ')
               break;
@@ -3023,7 +3023,7 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
           default_button = atoi(num);
           params += i;
           strtrunc(params);
-          len_params = strlen((DEFCHAR *) params);
+          len_params = strlen((char *) params);
 
           state = STATE_START;
           i = 0;
@@ -3038,61 +3038,61 @@ short prepare_dialog(CHARTYPE * params, bool alert, CHARTYPE * stemname) {
     }
   }
   if (default_button < 1) {
-    display_error(5, (CHARTYPE *) num, FALSE);
+    display_error(5, (char_t *) num, FALSE);
     rc = RC_INVALID_OPERAND;
   }
   if (default_button > button_num[button]) {
-    display_error(6, (CHARTYPE *) num, FALSE);
+    display_error(6, (char_t *) num, FALSE);
     rc = RC_INVALID_OPERAND;
   }
   if (rc == RC_OK) {
     rc = execute_dialog(prompt, title, initial, editfield, button, (short) (default_button - 1), stemname, icon, alert);
   }
   if (prompt)
-    (*the_free) (prompt);
+    free(prompt);
   if (initial)
-    (*the_free) (initial);
+    free(initial);
   if (title)
-    (*the_free) (title);
+    free(title);
   return (rc);
 }
 
-short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bool editfield, short button, short default_button, CHARTYPE * stemname, short icon, bool alert) {
+short execute_dialog(char_t * prompt, char_t * title, char_t * initial, bool editfield, short button, short default_button, char_t * stemname, short icon, bool alert) {
   short rc = RC_OK;
   int key, num_buttons = 0, i;
   short title_length = 0, initial_length = 0, max_width, cursor_pos = 0;
   short prompt_length = 0, prompt_max_length = 0, prompt_lines = 0;
-  DEFCHAR *prompt_line[MAXIMUM_DIALOG_LINES + 2];
+  char *prompt_line[MAXIMUM_DIALOG_LINES + 2];
   WINDOW *dialog_win = NULL;
   WINDOW *save_command_window = NULL;
-  CHARTYPE *save_cmd_rec = NULL;
-  CHARTYPE *editfield_buf = NULL;
-  LENGTHTYPE save_cmd_rec_len;
+  char_t *save_cmd_rec = NULL;
+  char_t *editfield_buf = NULL;
+  length_t save_cmd_rec_len;
   short dw_lines, dw_cols, dw_y, dw_x;
   short editfield_col = -1;
-  DEFCHAR *button_text[3];
+  char *button_text[3];
   short button_len[3];
   short button_col[3];
   short max_button_len = 0;
   short item_selected = -1;
-  CHARTYPE button_buf[15];
+  char_t button_buf[15];
   bool in_editfield;
-  LINETYPE save_max_line_length = 0;
-  CHARTYPE save_current_window = CURRENT_VIEW->current_window;
+  line_t save_max_line_length = 0;
+  char_t save_current_window = CURRENT_VIEW->current_window;
 
   /*
    * Split the prompt up into multiple lines if applicable
    */
   if (prompt) {
-    prompt_line[prompt_lines] = (DEFCHAR *) prompt;
-    prompt_length = strlen((DEFCHAR *) prompt);
+    prompt_line[prompt_lines] = (char *) prompt;
+    prompt_length = strlen((char *) prompt);
     for (i = 0; i < prompt_length && prompt_lines < MAXIMUM_DIALOG_LINES; i++) {
       if (prompt[i] == 10) {
         prompt_lines++;
         prompt[i] = '\0';
         if (strlen(prompt_line[prompt_lines - 1]) > prompt_max_length)
           prompt_max_length = strlen(prompt_line[prompt_lines - 1]);
-        prompt_line[prompt_lines] = (DEFCHAR *) prompt + i + 1;
+        prompt_line[prompt_lines] = (char *) prompt + i + 1;
       }
     }
     prompt_lines++;
@@ -3105,9 +3105,9 @@ short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bo
    */
   max_width = terminal_cols - 2;
   if (title)
-    title_length = strlen((DEFCHAR *) title);
+    title_length = strlen((char *) title);
   if (initial)
-    initial_length = strlen((DEFCHAR *) initial);
+    initial_length = strlen((char *) initial);
   if (button == BUTTON_OK)
     max_button_len = 8;
   else if (button == BUTTON_YESNO)
@@ -3174,37 +3174,37 @@ short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bo
   dialog_win = newwin(dw_lines, dw_cols, dw_y, dw_x);
   if (dialog_win == NULL) {
     CURRENT_VIEW->current_window = save_current_window;
-    THERefresh((CHARTYPE *) "");
+    THERefresh((char_t *) "");
     restore_THE();
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   keypad(dialog_win, TRUE);
   if (editfield) {
-    editfield_buf = (CHARTYPE *) (*the_malloc) (dw_cols + 1);
+    editfield_buf = (char_t *) malloc(dw_cols + 1);
     if (editfield_buf == NULL) {
       CURRENT_VIEW->current_window = save_current_window;
       delwin(dialog_win);
-      display_error(30, (CHARTYPE *) "", FALSE);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     if (initial)
-      strcpy((DEFCHAR *) editfield_buf, (DEFCHAR *) initial);
+      strcpy((char *) editfield_buf, (char *) initial);
     else
-      strcpy((DEFCHAR *) editfield_buf, "");
+      strcpy((char *) editfield_buf, "");
     /*
      * Save the CMDLINE contents
      */
     save_cmd_rec_len = cmd_rec_len;
-    save_cmd_rec = (CHARTYPE *) (*the_malloc) (save_cmd_rec_len + 1);
+    save_cmd_rec = (char_t *) malloc(save_cmd_rec_len + 1);
     if (save_cmd_rec == NULL) {
       CURRENT_VIEW->current_window = save_current_window;
       delwin(dialog_win);
-      (*the_free) (editfield_buf);
-      display_error(30, (CHARTYPE *) "", FALSE);
+      free(editfield_buf);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    memcpy((DEFCHAR *) save_cmd_rec, (DEFCHAR *) cmd_rec, cmd_rec_len);
+    memcpy((char *) save_cmd_rec, (char *) cmd_rec, cmd_rec_len);
     save_cmd_rec[cmd_rec_len] = '\0';
     /*
      * Save the CMDLINE window and create a new one in our dialog window
@@ -3216,9 +3216,9 @@ short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bo
       delwin(CURRENT_WINDOW_COMMAND);
       CURRENT_WINDOW_COMMAND = save_command_window;
       delwin(dialog_win);
-      (*the_free) (save_cmd_rec);
-      (*the_free) (editfield_buf);
-      display_error(30, (CHARTYPE *) "", FALSE);
+      free(save_cmd_rec);
+      free(editfield_buf);
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     wattrset(CURRENT_WINDOW_COMMAND, set_colour(CURRENT_FILE->attr + ATTR_DIA_EDITFIELD));
@@ -3232,7 +3232,7 @@ short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bo
    */
   for (i = 0; i < prompt_lines; i++) {
     wmove(dialog_win, 2 + i, 2);
-    waddstr(dialog_win, (DEFCHAR *) prompt_line[i]);
+    waddstr(dialog_win, (char *) prompt_line[i]);
   }
   /*
    * Add the title to the window
@@ -3240,7 +3240,7 @@ short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bo
   if (title) {
     wattrset(dialog_win, set_colour(CURRENT_FILE->attr + ATTR_DIA_BORDER));
     wmove(dialog_win, 0, 1);
-    waddstr(dialog_win, (DEFCHAR *) title);
+    waddstr(dialog_win, (char *) title);
   }
   /*
    * Prepare the editfield if we have one
@@ -3281,7 +3281,7 @@ short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bo
        */
       draw_cursor(TRUE);
       rc = readv_cmdline(editfield_buf, dialog_win, editfield_col);
-      memcpy((DEFCHAR *) editfield_buf, (DEFCHAR *) cmd_rec, cmd_rec_len);
+      memcpy((char *) editfield_buf, (char *) cmd_rec, cmd_rec_len);
       editfield_buf[cmd_rec_len] = '\0';
       in_editfield = FALSE;
       draw_cursor(FALSE);
@@ -3390,21 +3390,21 @@ short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bo
   /*
    * Set DIALOG.2 to the button pressed
    */
-  strcpy((DEFCHAR *) button_buf, (DEFCHAR *) button_text[item_selected]);
+  strcpy((char *) button_buf, (char *) button_text[item_selected]);
   strtrunc(button_buf);
-  set_rexx_variable(stemname, button_buf, strlen((DEFCHAR *) button_buf), 2);
+  set_rexx_variable(stemname, button_buf, strlen((char *) button_buf), 2);
   /*
    * Set DIALOG.1 to value of editfield2
    */
   if (editfield) {
-    set_rexx_variable(stemname, editfield_buf, strlen((DEFCHAR *) editfield_buf), 1);
+    set_rexx_variable(stemname, editfield_buf, strlen((char *) editfield_buf), 1);
   } else {
-    set_rexx_variable(stemname, (CHARTYPE *) "", 0, 1);
+    set_rexx_variable(stemname, (char_t *) "", 0, 1);
   }
   /*
    * Set DIALOG.0 to 2
    */
-  set_rexx_variable(stemname, (CHARTYPE *) "2", 1, 0);
+  set_rexx_variable(stemname, (char_t *) "2", 1, 0);
   /*
    * If we had an editfield, restore the CMDLINE window and contents (if there
    * was a CMDLINE window)
@@ -3425,15 +3425,15 @@ short execute_dialog(CHARTYPE * prompt, CHARTYPE * title, CHARTYPE * initial, bo
       if (save_cmd_rec[0] == '&')
         Cmsg(save_cmd_rec);
     }
-    (*the_free) (save_cmd_rec);
-    (*the_free) (editfield_buf);
+    free(save_cmd_rec);
+    free(editfield_buf);
   }
-  THERefresh((CHARTYPE *) "");
+  THERefresh((char_t *) "");
   restore_THE();
   return (rc);
 }
 
-int get_non_separator_line(int current_line, int num_args, CHARTYPE ** args, int direction) {
+int get_non_separator_line(int current_line, int num_args, char_t ** args, int direction) {
   int i;
   int offset_lines = 0;
 
@@ -3456,7 +3456,7 @@ int get_non_separator_line(int current_line, int num_args, CHARTYPE ** args, int
   return offset_lines;
 }
 
-short prepare_popup(CHARTYPE * params) {
+short prepare_popup(char_t * params) {
 #define STATE_POPUP_START            0
 #define STATE_POPUP_ESCAPE           1
 #define STATE_POPUP_INITIAL          2
@@ -3468,18 +3468,18 @@ short prepare_popup(CHARTYPE * params) {
 #define STATE_POPUP_LOCATION_BELOW   8
 #define STATE_POPUP_KEYS             9
 
-  int len_params = strlen((DEFCHAR *) params);
-  CHARTYPE delimiter = ' ';
+  int len_params = strlen((char *) params);
+  char_t delimiter = ' ';
   int i, j, state = STATE_START, other_options = 0;
-  DEFCHAR _THE_FAR str_initial[20];
+  char str_initial[20];
   short rc = RC_OK, num_items = 0, len;
   short height = 0, width = 0, pad_height = 0, pad_width = 0;
   int x = -1, y = -1, args_allocated;
   unsigned short begy, begx;
-  CHARTYPE **args = NULL;
+  char_t **args = NULL;
   bool invalid_item = FALSE, trailing_delimiter;
   int initial = 0;
-  DEFCHAR _THE_FAR key_name[30];
+  char key_name[30];
   char location = 'C';
   char *keyname_start[MAXIMUM_POPUP_KEYS];
   int keyname_index = 0;
@@ -3488,12 +3488,12 @@ short prepare_popup(CHARTYPE * params) {
    * Must run from a Rexx macro...
    */
   if (!in_macro || !rexx_support) {
-    display_error(53, (CHARTYPE *) "", FALSE);
+    display_error(53, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
 
   strtrunc(params);
-  len_params = strlen((DEFCHAR *) params);
+  len_params = strlen((char *) params);
   for (i = 0; i < len_params;) {
     if (len_params == 0)
       break;
@@ -3543,14 +3543,14 @@ short prepare_popup(CHARTYPE * params) {
         state = STATE_POPUP_CONTENT;
         break;
       case STATE_POPUP_ESCAPE:
-        if (len_params < 6 || memcmpi(params, (CHARTYPE *) "escape", 6) != 0) {
+        if (len_params < 6 || memcmpi(params, (char_t *) "escape", 6) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
         params += 6;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
 
         for (j = 0; j < len_params; j++) {
           if (*(params + j) == ' ')
@@ -3558,35 +3558,35 @@ short prepare_popup(CHARTYPE * params) {
           key_name[j] = *(params + j);
         }
         key_name[j] = '\0';
-        popup_escape_key = find_key_name((CHARTYPE *) key_name);
+        popup_escape_key = find_key_name((char_t *) key_name);
         if (popup_escape_key == -1) {
-          display_error(13, (CHARTYPE *) key_name, FALSE);
+          display_error(13, (char_t *) key_name, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
 
         params += j;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         state = STATE_START;
         i = 0;
         break;
       case STATE_POPUP_KEYS:
-        if (len_params < 4 || memcmpi(params, (CHARTYPE *) "keys", 4) != 0) {
+        if (len_params < 4 || memcmpi(params, (char_t *) "keys", 4) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
         params += 4;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         keyname_start[keyname_index++] = key_name;
         for (j = 0; j < len_params; j++) {
           if (*(params + j) == ' ')
             break;
           if (*(params + j) == ',') {
             if (keyname_index >= 20) {
-              display_error(2, (CHARTYPE *) "Maximum of 20 KEYS allowed.", FALSE);
+              display_error(2, (char_t *) "Maximum of 20 KEYS allowed.", FALSE);
               rc = RC_INVALID_OPERAND;
               break;
             }
@@ -3604,9 +3604,9 @@ short prepare_popup(CHARTYPE * params) {
          * we have the list of keynames, now split them up into individual keys
          */
         for (j = 0; j < keyname_index; j++) {
-          popup_escape_keys[j] = find_key_name((CHARTYPE *) keyname_start[j]);
+          popup_escape_keys[j] = find_key_name((char_t *) keyname_start[j]);
           if (popup_escape_keys[j] == -1) {
-            display_error(13, (CHARTYPE *) keyname_start[j], FALSE);
+            display_error(13, (char_t *) keyname_start[j], FALSE);
             rc = RC_INVALID_OPERAND;
             break;
           }
@@ -3614,12 +3614,12 @@ short prepare_popup(CHARTYPE * params) {
         if (rc == RC_INVALID_OPERAND)
           break;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         state = STATE_START;
         i = 0;
         break;
       case STATE_POPUP_LOCATION_CENTRE:
-        if (len_params < 6 || (memcmpi(params, (CHARTYPE *) "centre", 6) != 0 && memcmpi(params, (CHARTYPE *) "center", 6) != 0)) {
+        if (len_params < 6 || (memcmpi(params, (char_t *) "centre", 6) != 0 && memcmpi(params, (char_t *) "center", 6) != 0)) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3630,12 +3630,12 @@ short prepare_popup(CHARTYPE * params) {
 
         params += 6;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         i = 0;
         state = STATE_START;
         break;
       case STATE_POPUP_LOCATION_TEXT:
-        if (len_params < 4 || memcmpi(params, (CHARTYPE *) "text", 4) != 0) {
+        if (len_params < 4 || memcmpi(params, (char_t *) "text", 4) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3646,12 +3646,12 @@ short prepare_popup(CHARTYPE * params) {
 
         params += 4;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         i = 0;
         state = STATE_START;
         break;
       case STATE_POPUP_LOCATION_ABOVE:
-        if (len_params < 4 || memcmpi(params, (CHARTYPE *) "above", 5) != 0) {
+        if (len_params < 4 || memcmpi(params, (char_t *) "above", 5) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3662,12 +3662,12 @@ short prepare_popup(CHARTYPE * params) {
 
         params += 5;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         i = 0;
         state = STATE_START;
         break;
       case STATE_POPUP_LOCATION_BELOW:
-        if (len_params < 4 || memcmpi(params, (CHARTYPE *) "below", 5) != 0) {
+        if (len_params < 4 || memcmpi(params, (char_t *) "below", 5) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3678,12 +3678,12 @@ short prepare_popup(CHARTYPE * params) {
 
         params += 5;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         i = 0;
         state = STATE_START;
         break;
       case STATE_POPUP_LOCATION_MOUSE:
-        if (len_params < 5 || memcmpi(params, (CHARTYPE *) "mouse", 5) != 0) {
+        if (len_params < 5 || memcmpi(params, (char_t *) "mouse", 5) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3694,19 +3694,19 @@ short prepare_popup(CHARTYPE * params) {
 
         params += 5;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         i = 0;
         state = STATE_START;
         break;
       case STATE_POPUP_INITIAL:
-        if (len_params < 7 || memcmpi(params, (CHARTYPE *) "initial", 7) != 0) {
+        if (len_params < 7 || memcmpi(params, (char_t *) "initial", 7) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
         params += 7;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
 
         for (j = 0; j < len_params; j++) {
           if (*(params + j) == ' ')
@@ -3714,14 +3714,14 @@ short prepare_popup(CHARTYPE * params) {
           str_initial[j] = *(params + j);
         }
         str_initial[j] = '\0';
-        if (!valid_positive_integer((CHARTYPE *) str_initial)) {
-          display_error(4, (CHARTYPE *) str_initial, FALSE);
+        if (!valid_positive_integer((char_t *) str_initial)) {
+          display_error(4, (char_t *) str_initial, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
-        initial = atoi((DEFCHAR *) str_initial);
+        initial = atoi((char *) str_initial);
         if (initial == 0) {
-          display_error(5, (CHARTYPE *) str_initial, FALSE);
+          display_error(5, (char_t *) str_initial, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
@@ -3730,12 +3730,12 @@ short prepare_popup(CHARTYPE * params) {
 
         params += j;
         strtrunc(params);
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         i = 0;
         state = STATE_START;
         break;
       case STATE_POPUP_CONTENT:
-        len_params = strlen((DEFCHAR *) params);
+        len_params = strlen((char *) params);
         /*
          * Check that we have at least one menu item...
          */
@@ -3761,9 +3761,9 @@ short prepare_popup(CHARTYPE * params) {
          * Allocate the first 100 pointers...
          */
         args_allocated = 100;
-        args = (CHARTYPE **) (*the_malloc) (sizeof(CHARTYPE *) * args_allocated);
+        args = (char_t **) malloc(sizeof(char_t *) * args_allocated);
         if (args == NULL) {
-          display_error(30, (CHARTYPE *) "", FALSE);
+          display_error(30, (char_t *) "", FALSE);
           rc = RC_OUT_OF_MEMORY;
           break;
         }
@@ -3777,9 +3777,9 @@ short prepare_popup(CHARTYPE * params) {
             args[num_items++] = params + j + 1;
             if (num_items > args_allocated) {
               args_allocated += 100;
-              args = (CHARTYPE **) (*the_realloc) (args, sizeof(CHARTYPE *) * args_allocated);
+              args = (char_t **) realloc(args, sizeof(char_t *) * args_allocated);
               if (args == NULL) {
-                display_error(30, (CHARTYPE *) "", FALSE);
+                display_error(30, (char_t *) "", FALSE);
                 rc = RC_OUT_OF_MEMORY;
                 break;
               }
@@ -3805,7 +3805,7 @@ short prepare_popup(CHARTYPE * params) {
          * Work out the maximum width of the menu items...
          */
         for (j = 0; j < num_items; j++) {
-          len = strlen((DEFCHAR *) args[j]);
+          len = strlen((char *) args[j]);
           if (len > width)
             width = len;
         }
@@ -3867,7 +3867,7 @@ short prepare_popup(CHARTYPE * params) {
         if (height + y > terminal_lines)
           height = terminal_lines - y - 1;
         if (height < 3) {
-          display_error(0, (CHARTYPE *) "No room to display POPUP window", FALSE);
+          display_error(0, (char_t *) "No room to display POPUP window", FALSE);
           return (RC_INVALID_OPERAND);
         }
         break;
@@ -3884,7 +3884,7 @@ short prepare_popup(CHARTYPE * params) {
           height = y;
         y = y - height + 1;
         if (height < 3) {
-          display_error(0, (CHARTYPE *) "No room to display POPUP window", FALSE);
+          display_error(0, (char_t *) "No room to display POPUP window", FALSE);
           return (RC_INVALID_OPERAND);
         }
         break;
@@ -3896,8 +3896,8 @@ short prepare_popup(CHARTYPE * params) {
      * mouse key, or no mouse support is available, return an error.
      */
     if (x == -1) {
-      (*the_free) (args);
-      display_error(0, (CHARTYPE *) "No mouse support", FALSE);
+      free(args);
+      display_error(0, (char_t *) "No mouse support", FALSE);
       return (RC_INVALID_ENVIRON);
     }
     /*
@@ -3905,8 +3905,8 @@ short prepare_popup(CHARTYPE * params) {
      * in the content
      */
     if (initial > num_items) {
-      (*the_free) (args);
-      display_error(6, (CHARTYPE *) str_initial, FALSE);
+      free(args);
+      display_error(6, (char_t *) str_initial, FALSE);
       return (RC_INVALID_OPERAND);
     }
     /*
@@ -3923,13 +3923,13 @@ short prepare_popup(CHARTYPE * params) {
     /*
      * Free up the memory used by args
      */
-    (*the_free) (args);
+    free(args);
   }
 
   return (rc);
 }
 
-short execute_popup(int y, int x, int height, int width, int pad_height, int pad_width, int initial, int num_args, CHARTYPE ** args, int keyname_index) {
+short execute_popup(int y, int x, int height, int width, int pad_height, int pad_width, int initial, int num_args, char_t ** args, int keyname_index) {
 /*
  * num_args number of lines in popup
  * highlighted_line 0 based index into list of lines in popup
@@ -3941,7 +3941,7 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
   WINDOW *dialog_win = NULL;
   WINDOW *pad;
   short item_selected = -1, highlighted_line;
-  char _THE_FAR buf[20];        /* enough for a number */
+  char buf[20];        /* enough for a number */
   bool time_to_quit;
   int x_offset = 0, y_offset = 0;
   int x_overlap, y_overlap;
@@ -3962,7 +3962,7 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
   } else {
     highlighted_line = initial - 1;
     if (args[highlighted_line][0] == '-') {
-      display_error(0, (CHARTYPE *) "Specified initial line is a separator", FALSE);
+      display_error(0, (char_t *) "Specified initial line is a separator", FALSE);
       return (RC_INVALID_OPERAND);
     }
     /*
@@ -3984,14 +3984,14 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
    */
   dialog_win = newwin(height, width, y, x);
   if (dialog_win == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   keypad(dialog_win, TRUE);
   pad = newpad(pad_height, pad_width);
   if (pad == NULL) {
     delwin(dialog_win);
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
 
@@ -4048,9 +4048,9 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
         else
           wattrset(pad, set_colour(CURRENT_FILE->attr + ATTR_POPUP));
         wmove(pad, i, 1);
-        waddstr(pad, (DEFCHAR *) args[i]);
-        wmove(pad, i, 1 + strlen((DEFCHAR *) args[i]));
-        for (j = 1 + strlen((DEFCHAR *) args[i]); j < pad_width - 3; j++) {
+        waddstr(pad, (char *) args[i]);
+        wmove(pad, i, 1 + strlen((char *) args[i]));
+        for (j = 1 + strlen((char *) args[i]); j < pad_width - 3; j++) {
           waddch(pad, ' ');
         }
       }
@@ -4101,7 +4101,7 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
         item_selected = i;
         wattrset(pad, set_colour(CURRENT_FILE->attr + ATTR_POPUP));
         wmove(pad, i, 1);
-        waddstr(pad, (DEFCHAR *) args[i]);
+        waddstr(pad, (char *) args[i]);
         touchwin(pad);
         break;
       }
@@ -4283,26 +4283,26 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
    * on whether an item was selected and which item.
    */
   if (item_selected == -1) {
-    set_rexx_variable((CHARTYPE *) "POPUP", (CHARTYPE *) "", 0, 1);
-    set_rexx_variable((CHARTYPE *) "POPUP", (CHARTYPE *) "0", 1, 2);
+    set_rexx_variable((char_t *) "POPUP", (char_t *) "", 0, 1);
+    set_rexx_variable((char_t *) "POPUP", (char_t *) "0", 1, 2);
   } else {
-    set_rexx_variable((CHARTYPE *) "POPUP", args[item_selected], strlen((DEFCHAR *) args[item_selected]), 1);
+    set_rexx_variable((char_t *) "POPUP", args[item_selected], strlen((char *) args[item_selected]), 1);
     i = sprintf(buf, "%d", item_selected + 1);
-    set_rexx_variable((CHARTYPE *) "POPUP", (CHARTYPE *) buf, i, 2);
+    set_rexx_variable((char_t *) "POPUP", (char_t *) buf, i, 2);
   }
   i = sprintf(buf, "%d", highlighted_line + 1);
-  set_rexx_variable((CHARTYPE *) "POPUP", (CHARTYPE *) buf, i, 3);
+  set_rexx_variable((char_t *) "POPUP", (char_t *) buf, i, 3);
   /*
    * Set the index to the escape key
    */
   i = sprintf(buf, "%d", escape_key_index);
-  set_rexx_variable((CHARTYPE *) "POPUP", (CHARTYPE *) buf, i, 4);
+  set_rexx_variable((char_t *) "POPUP", (char_t *) buf, i, 4);
   /*
    * Set the 0th value to the number of values in popup. array
    */
-  set_rexx_variable((CHARTYPE *) "POPUP", (CHARTYPE *) "4", 1, 0);
+  set_rexx_variable((char_t *) "POPUP", (char_t *) "4", 1, 0);
 
-  THERefresh((CHARTYPE *) "");
+  THERefresh((char_t *) "");
   restore_THE();
 
   return (rc);
@@ -4319,31 +4319,31 @@ short execute_preserve(VIEW_DETAILS * src_vd, PRESERVED_VIEW_DETAILS ** preserve
     /*
      * Allocate memory for preserved VIEW and FILE details
      */
-    if ((*preserved_view_details = (PRESERVED_VIEW_DETAILS *) (*the_malloc) (sizeof(PRESERVED_VIEW_DETAILS))) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
+    if ((*preserved_view_details = (PRESERVED_VIEW_DETAILS *) malloc(sizeof(PRESERVED_VIEW_DETAILS))) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    if ((*preserved_file_details = (PRESERVED_FILE_DETAILS *) (*the_malloc) (sizeof(PRESERVED_FILE_DETAILS))) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
-      (*the_free) (*preserved_view_details);
+    if ((*preserved_file_details = (PRESERVED_FILE_DETAILS *) malloc(sizeof(PRESERVED_FILE_DETAILS))) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
+      free(*preserved_view_details);
       *preserved_view_details = NULL;
       return (RC_OUT_OF_MEMORY);
     }
-    if (((*preserved_file_details)->attr = (COLOUR_ATTR *) (*the_malloc) (ATTR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
-      (*the_free) (*preserved_view_details);
+    if (((*preserved_file_details)->attr = (COLOUR_ATTR *) malloc(ATTR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
+      free(*preserved_view_details);
       *preserved_view_details = NULL;
-      (*the_free) (*preserved_file_details);
+      free(*preserved_file_details);
       *preserved_file_details = NULL;
       return (RC_OUT_OF_MEMORY);
     }
-    if (((*preserved_file_details)->ecolour = (COLOUR_ATTR *) (*the_malloc) (ECOLOUR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
-      display_error(30, (CHARTYPE *) "", FALSE);
-      (*the_free) ((*preserved_file_details)->attr);
+    if (((*preserved_file_details)->ecolour = (COLOUR_ATTR *) malloc(ECOLOUR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
+      free((*preserved_file_details)->attr);
       (*preserved_file_details)->attr = NULL;
-      (*the_free) (*preserved_view_details);
+      free(*preserved_view_details);
       *preserved_view_details = NULL;
-      (*the_free) (*preserved_file_details);
+      free(*preserved_file_details);
       *preserved_file_details = NULL;
       return (RC_OUT_OF_MEMORY);
     }
@@ -4446,7 +4446,7 @@ short execute_restore(VIEW_DETAILS * dst_vd, PRESERVED_VIEW_DETAILS ** preserved
    * If we don't have any preserved settings, return an error.
    */
   if (*preserved_view_details == NULL) {
-    display_error(51, (CHARTYPE *) "", FALSE);
+    display_error(51, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -4538,13 +4538,13 @@ short execute_restore(VIEW_DETAILS * dst_vd, PRESERVED_VIEW_DETAILS ** preserved
   /*
    * Free any memory for preserved VIEW and FILE details
    */
-  (*the_free) ((*preserved_view_details));
+  free((*preserved_view_details));
   (*preserved_view_details) = NULL;
-  (*the_free) ((*preserved_file_details)->attr);
+  free((*preserved_file_details)->attr);
   (*preserved_file_details)->attr = NULL;
-  (*the_free) ((*preserved_file_details)->ecolour);
+  free((*preserved_file_details)->ecolour);
   (*preserved_file_details)->ecolour = NULL;
-  (*the_free) (*preserved_file_details);
+  free(*preserved_file_details);
   (*preserved_file_details) = NULL;
   /*
    * Now that all the settings are back in place apply any screen

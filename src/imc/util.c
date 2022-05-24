@@ -1171,7 +1171,7 @@ void interactive() {            /* interactive tracing - called whenever the tra
 }
 
 /* The following function loads a source file from disk and returns the
-   block of memory allocated to hold it.  The return value is null if 
+   block of memory allocated to hold it.  The return value is null if
    an error occurred. */
 char *load(name, sourcelen)
 char *name;                     /* The path name of the program */
@@ -1248,7 +1248,7 @@ int line1;                      /* if nonzero, the first line is a comment */
   if (!interpret)
     source = (char **) allocm(sourcelen * sizeof(char *));
   prog = (program *) allocm(proglen * sizeof(program));
-  prgptr = prog[0].line = allocm(plen); /* plen=ilen+2 is a guaranteed upper 
+  prgptr = prog[0].line = allocm(plen); /* plen=ilen+2 is a guaranteed upper
                                            bound (the 2 extra are a line terminator and program terminator) */
   prog[0].source = input;
   prog[0].num = !interpret;

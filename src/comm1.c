@@ -37,12 +37,12 @@
 
 /*#define DEBUG 1*/
 
-short Add(CHARTYPE * params) {
+short Add(char_t * params) {
 #define ADD_PARAMS  1
-  CHARTYPE *word[ADD_PARAMS + 1];
-  CHARTYPE strip[ADD_PARAMS];
+  char_t *word[ADD_PARAMS + 1];
+  char_t strip[ADD_PARAMS];
   unsigned short num_params = 0;
-  LINETYPE num_lines = 0L;
+  line_t num_lines = 0L;
 
   /*
    * Validate the parameters that have been supplied. The one and only
@@ -53,7 +53,7 @@ short Add(CHARTYPE * params) {
   num_params = param_split(params, word, ADD_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params == 0) {
     num_params = 1;
-    word[0] = (CHARTYPE *) "1";
+    word[0] = (char_t *) "1";
   }
   if (num_params != 1) {
     display_error(1, word[1], FALSE);
@@ -63,14 +63,14 @@ short Add(CHARTYPE * params) {
     display_error(4, word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
-  num_lines = atol((DEFCHAR *) word[0]);
+  num_lines = atol((char *) word[0]);
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
-  insert_new_line(current_screen, CURRENT_VIEW, (CHARTYPE *) "", 0, num_lines, get_true_line(TRUE), FALSE, FALSE, TRUE, CURRENT_VIEW->display_low, TRUE, FALSE);
+  insert_new_line(current_screen, CURRENT_VIEW, (char_t *) "", 0, num_lines, get_true_line(TRUE), FALSE, FALSE, TRUE, CURRENT_VIEW->display_low, TRUE, FALSE);
   if (curses_started && CURRENT_VIEW->current_window == WINDOW_COMMAND)
     THEcursor_home(current_screen, CURRENT_VIEW, TRUE);
   return (RC_OK);
 }
-short Alert(CHARTYPE * params) {
+short Alert(char_t * params) {
   short rc = RC_OK;
 
   /*
@@ -78,22 +78,22 @@ short Alert(CHARTYPE * params) {
    */
   if (BEEPx)
     beep();
-  rc = prepare_dialog(params, TRUE, (CHARTYPE *) "ALERT");
+  rc = prepare_dialog(params, TRUE, (char_t *) "ALERT");
   return (rc);
 }
-short All(CHARTYPE * params) {
+short All(char_t * params) {
   short rc = RC_OK;
   LINE *curr = NULL;
   bool target_found = FALSE;
   short status = RC_OK;
   long target_type = TARGET_NORMAL | TARGET_REGEXP;
   TARGET target;
-  LINETYPE line_number = 0L;
+  line_t line_number = 0L;
   unsigned short x = 0, y = 0;
   bool save_scope = FALSE;
-  LINETYPE num_lines = 0L;
+  line_t num_lines = 0L;
 
-  if (strlen((DEFCHAR *) params) == 0) {
+  if (strlen((char *) params) == 0) {
     if (CURRENT_FILE->number_lines == 0L) {
       return (rc);
     }
@@ -197,12 +197,12 @@ short All(CHARTYPE * params) {
   free_target(&target);
   return (rc);
 }
-short Backward(CHARTYPE * params) {
+short Backward(char_t * params) {
 #define BAC_PARAMS  2
-  CHARTYPE *word[BAC_PARAMS + 1];
-  CHARTYPE strip[BAC_PARAMS];
+  char_t *word[BAC_PARAMS + 1];
+  char_t strip[BAC_PARAMS];
   unsigned short num_params = 0;
-  LINETYPE num_pages = 0L;
+  line_t num_pages = 0L;
   short scroll_by_page = 1;     /* by default we scroll pages */
   short rc = RC_OK;
 
@@ -220,14 +220,14 @@ short Backward(CHARTYPE * params) {
       /*
        * If parameter is '*', set current line equal to "Top of File".
        */
-      if (strcmp((DEFCHAR *) word[0], "*") == 0) {
-        rc = Top((CHARTYPE *) "");
+      if (strcmp((char *) word[0], "*") == 0) {
+        rc = Top((char_t *) "");
         return (rc);
       }
       /*
        * If parameter is 'HALF', advance half a page
        */
-      else if (equal((CHARTYPE *) "HALF", word[0], 4)) {
+      else if (equal((char_t *) "HALF", word[0], 4)) {
         scroll_by_page = 0;
         num_pages = CURRENT_SCREEN.rows[WINDOW_FILEAREA] / 2;
       }
@@ -235,30 +235,30 @@ short Backward(CHARTYPE * params) {
        * If the parameter is not a valid positive integer, error.
        */
       else if (!valid_positive_integer(word[0])) {
-        display_error(1, (CHARTYPE *) word[0], FALSE);
+        display_error(1, (char_t *) word[0], FALSE);
         return (RC_INVALID_OPERAND);
       } else {
         /*
          * Number of screens to scroll is set here.
          */
-        num_pages = atol((DEFCHAR *) word[0]);
+        num_pages = atol((char *) word[0]);
       }
       break;
     case 2:
-      if (equal((CHARTYPE *) "Lines", word[1], 1)) {
+      if (equal((char_t *) "Lines", word[1], 1)) {
         scroll_by_page = 0;
         if (!valid_positive_integer(word[0])) {
-          display_error(1, (CHARTYPE *) word[0], FALSE);
+          display_error(1, (char_t *) word[0], FALSE);
           return (RC_INVALID_OPERAND);
         }
       } else {
-        display_error(1, (CHARTYPE *) word[1], FALSE);
+        display_error(1, (char_t *) word[1], FALSE);
         return (RC_INVALID_OPERAND);
       }
-      num_pages = atol((DEFCHAR *) word[0]);
+      num_pages = atol((char *) word[0]);
       break;
     default:
-      display_error(2, (CHARTYPE *) "", FALSE);
+      display_error(2, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
       break;
   }
@@ -267,7 +267,7 @@ short Backward(CHARTYPE * params) {
    * 0, go to the bottom of the file.
    */
   if (num_pages == 0 || (CURRENT_TOF && PAGEWRAPx)) {
-    rc = Bottom((CHARTYPE *) "");
+    rc = Bottom((char_t *) "");
     return (rc);
   }
   /*
@@ -280,15 +280,15 @@ short Backward(CHARTYPE * params) {
   }
   return (rc);
 }
-short Bottom(CHARTYPE * params) {
+short Bottom(char_t * params) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
 
   /*
    * No arguments are allowed; error if any are present.
    */
-  if (strcmp((DEFCHAR *) params, "") != 0) {
-    display_error(1, (CHARTYPE *) params, FALSE);
+  if (strcmp((char *) params, "") != 0) {
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (CURRENT_VIEW->scope_all)
@@ -314,9 +314,9 @@ short Bottom(CHARTYPE * params) {
   }
   return (rc);
 }
-short Cancel(CHARTYPE * params) {
+short Cancel(char_t * params) {
   VIEW_DETAILS *save_current_view = (VIEW_DETAILS *) NULL;
-  LINETYPE save_number_of_files = number_of_files;
+  line_t save_number_of_files = number_of_files;
   VIEW_DETAILS **save_view;
   register int i = 0;
   short to_save = 0, rc;
@@ -324,25 +324,25 @@ short Cancel(CHARTYPE * params) {
   /*
    * One optional argument allowed
    */
-  if (strcmp("", (DEFCHAR *) params) == 0) {
+  if (strcmp("", (char *) params) == 0) {
     to_save = 0;
-  } else if (equal((CHARTYPE *) "save", params, 4)) {
+  } else if (equal((char_t *) "save", params, 4)) {
     to_save = 1;
   } else {
-    display_error(1, (CHARTYPE *) params, FALSE);
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
 
-  if ((save_view = (VIEW_DETAILS **) (*the_malloc) ((save_number_of_files) * sizeof(VIEW_DETAILS *))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((save_view = (VIEW_DETAILS **) malloc((save_number_of_files) * sizeof(VIEW_DETAILS *))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * Set the numbr of screens to 1; stops crashes when there are multiple
    * screens.  A hack yes.
    */
-  THEScreen((CHARTYPE *) "1");
+  THEScreen((char_t *) "1");
   CURRENT_VIEW = vd_first;
   for (i = 0; i < save_number_of_files; i++) {
     save_view[i] = CURRENT_VIEW;
@@ -354,7 +354,7 @@ short Cancel(CHARTYPE * params) {
     if (CURRENT_FILE->save_alt == 0) {
       free_view_memory(TRUE, FALSE);
     } else if (to_save == 1) {
-      if ((rc = save_file(CURRENT_FILE, (CHARTYPE *) "", FALSE, CURRENT_FILE->number_lines, 1L, NULL, FALSE, 0, max_line_length, TRUE, FALSE, FALSE)) != RC_OK) {
+      if ((rc = save_file(CURRENT_FILE, (char_t *) "", FALSE, CURRENT_FILE->number_lines, 1L, NULL, FALSE, 0, max_line_length, TRUE, FALSE, FALSE)) != RC_OK) {
         return (rc);
       }
       /*
@@ -367,7 +367,7 @@ short Cancel(CHARTYPE * params) {
     }
   }
   save_current_view = CURRENT_VIEW = vd_first;
-  (*the_free) (save_view);
+  free(save_view);
 
   if (save_current_view != (VIEW_DETAILS *) NULL) {
     CURRENT_VIEW = save_current_view;
@@ -385,23 +385,23 @@ short Cancel(CHARTYPE * params) {
     }
   }
   if (number_of_files > 0) {
-    sprintf((DEFCHAR *) temp_cmd, "%ld file(s) remain with outstanding changes", number_of_files);
-    display_error(0, (CHARTYPE *) temp_cmd, TRUE);
+    sprintf((char *) temp_cmd, "%ld file(s) remain with outstanding changes", number_of_files);
+    display_error(0, (char_t *) temp_cmd, TRUE);
   }
   return (QUIT);
 }
-short Cappend(CHARTYPE * params) {
+short Cappend(char_t * params) {
   short rc = RC_OK;
 
   rc = column_command(params, COLUMN_CAPPEND);
   return (rc);
 }
-short Ccancel(CHARTYPE * params) {
+short Ccancel(char_t * params) {
   /*
    * No arguments are allowed; error if any are present.
    */
-  if (strcmp((DEFCHAR *) params, "") != 0) {
-    display_error(1, (CHARTYPE *) params, FALSE);
+  if (strcmp((char *) params, "") != 0) {
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   CURRENT_VIEW = vd_first;
@@ -410,11 +410,11 @@ short Ccancel(CHARTYPE * params) {
   }
   return (QUIT);
 }
-short Cdelete(CHARTYPE * params) {
+short Cdelete(char_t * params) {
   short rc = RC_OK;
   short target_type = TARGET_ABSOLUTE | TARGET_RELATIVE | TARGET_STRING | TARGET_BLANK;
   TARGET target;
-  LENGTHTYPE start_col = 0, del_start = 0;
+  length_t start_col = 0, del_start = 0;
   unsigned int y = 0, x = 0;
 
   /*
@@ -425,13 +425,13 @@ short Cdelete(CHARTYPE * params) {
     rc = processable_line(CURRENT_VIEW, CURRENT_SCREEN.sl[y].line_number, CURRENT_SCREEN.sl[y].current);
     switch (rc) {
       case LINE_SHADOW:
-        display_error(87, (CHARTYPE *) "", FALSE);
+        display_error(87, (char_t *) "", FALSE);
         return (RC_INVALID_OPERAND);
         break;
 /*       case LINE_TOF_EOF: MH12 */
       case LINE_TOF:
       case LINE_EOF:
-        display_error(36, (CHARTYPE *) "", FALSE);
+        display_error(36, (char_t *) "", FALSE);
         return (RC_INVALID_OPERAND);
         break;
       default:
@@ -461,7 +461,7 @@ short Cdelete(CHARTYPE * params) {
    * Validate the parameters as valid targets...
    */
   initialise_target(&target);
-  rc = parse_target(params, (LINETYPE) start_col, &target, target_type, TRUE, TRUE, TRUE);
+  rc = parse_target(params, (line_t) start_col, &target, target_type, TRUE, TRUE, TRUE);
   if (rc != RC_OK) {
     free_target(&target);
     return (RC_INVALID_OPERAND);
@@ -505,15 +505,15 @@ short Cdelete(CHARTYPE * params) {
   free_target(&target);
   return (rc);
 }
-short Cfirst(CHARTYPE * params) {
+short Cfirst(char_t * params) {
   short rc = RC_OK;
   bool need_to_redisplay = FALSE;
 
   /*
    * No arguments are allowed; error if any are present.
    */
-  if (strcmp((DEFCHAR *) params, "") != 0) {
-    display_error(1, (CHARTYPE *) params, FALSE);
+  if (strcmp((char *) params, "") != 0) {
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (column_in_view(current_screen, CURRENT_VIEW->current_column - 1))
@@ -525,27 +525,27 @@ short Cfirst(CHARTYPE * params) {
     display_screen(current_screen);
   return (rc);
 }
-short Change(CHARTYPE * params) {
+short Change(char_t * params) {
   short rc = RC_OK;
 
   rc = execute_change_command(params, FALSE);
   return (rc);
 }
-short Cinsert(CHARTYPE * params) {
+short Cinsert(char_t * params) {
   short rc = RC_OK;
 
   rc = column_command(params, COLUMN_CINSERT);
   return (rc);
 }
-short Clast(CHARTYPE * params) {
+short Clast(char_t * params) {
   short rc = RC_OK;
   bool need_to_redisplay = FALSE;
 
   /*
    * No arguments are allowed; error if any are present.
    */
-  if (strcmp((DEFCHAR *) params, "") != 0) {
-    display_error(1, (CHARTYPE *) params, FALSE);
+  if (strcmp((char *) params, "") != 0) {
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (column_in_view(current_screen, CURRENT_VIEW->current_column - 1))
@@ -557,31 +557,31 @@ short Clast(CHARTYPE * params) {
     display_screen(current_screen);
   return (rc);
 }
-short THEClipboard(CHARTYPE * params) {
+short THEClipboard(char_t * params) {
   short rc = RC_OK;
 
   /*
    * Validate the argument
    */
-  if (equal((CHARTYPE *) "copy", params, 4)) {
+  if (equal((char_t *) "copy", params, 4)) {
     /*
      * We must be in the FILEAREA...
      */
     if (CURRENT_WINDOW != WINDOW_FILEAREA && MARK_VIEW != CURRENT_VIEW) {
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
-    rc = execute_put((CHARTYPE *) "block clip:", FALSE);
-  } else if (equal((CHARTYPE *) "cut", params, 3)) {
+    rc = execute_put((char_t *) "block clip:", FALSE);
+  } else if (equal((char_t *) "cut", params, 3)) {
     /*
      * We must be in the FILEAREA...
      */
     if (CURRENT_WINDOW != WINDOW_FILEAREA && MARK_VIEW != CURRENT_VIEW) {
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
-    rc = execute_put((CHARTYPE *) "block clip:", TRUE);
-  } else if (equal((CHARTYPE *) "paste", params, 5)) {
+    rc = execute_put((char_t *) "block clip:", TRUE);
+  } else if (equal((char_t *) "paste", params, 5)) {
     /*
      * If there is a marked block in the current view, we need to replace
      * the contents of the marked block with the contents of the clipboard
@@ -590,24 +590,24 @@ short THEClipboard(CHARTYPE * params) {
      * If no marked block, simply insert the text in the clipboard at the
      * cursor position, adding lines as required.
      */
-    display_error(82, (CHARTYPE *) "CLIP:", FALSE);
+    display_error(82, (char_t *) "CLIP:", FALSE);
     rc = RC_INVALID_ENVIRON;
-  } else if (equal((CHARTYPE *) "clear", params, 5)) {
-    display_error(82, (CHARTYPE *) "CLIP:", FALSE);
+  } else if (equal((char_t *) "clear", params, 5)) {
+    display_error(82, (char_t *) "CLIP:", FALSE);
     rc = RC_INVALID_ENVIRON;
   } else {
-    display_error(1, (CHARTYPE *) params, FALSE);
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   return (rc);
 }
-short Clocate(CHARTYPE * params) {
+short Clocate(char_t * params) {
   short rc = RC_OK;
   short target_type = TARGET_ABSOLUTE | TARGET_RELATIVE | TARGET_STRING | TARGET_BLANK;
   TARGET target;
-  CHARTYPE *line = NULL;
+  char_t *line = NULL;
   LINE *curr = NULL;
-  LENGTHTYPE len = 0, start_col = 0;
+  length_t len = 0, start_col = 0;
   unsigned int y = 0, x = 0;
 
   /*
@@ -617,7 +617,7 @@ short Clocate(CHARTYPE * params) {
   if (blank_field(params)) {
     params = lastop[LASTOP_CLOCATE].value;
     if (blank_field(params)) {
-      display_error(39, (CHARTYPE *) "", FALSE);
+      display_error(39, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
   }
@@ -658,14 +658,14 @@ short Clocate(CHARTYPE * params) {
    * Save the params as lastop for clocate
    */
   if (save_lastop(LASTOP_CLOCATE, params) != RC_OK) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * Validate the parameters as valid targets...
    */
   initialise_target(&target);
-  rc = parse_target(params, (LINETYPE) start_col, &target, target_type, TRUE, TRUE, TRUE);
+  rc = parse_target(params, (line_t) start_col, &target, target_type, TRUE, TRUE, TRUE);
   if (rc != RC_OK) {
     free_target(&target);
     return (RC_INVALID_OPERAND);
@@ -683,17 +683,17 @@ short Clocate(CHARTYPE * params) {
   free_target(&target);
   return (rc);
 }
-short Cmatch(CHARTYPE * params) {
-  static CHARTYPE *match = (CHARTYPE *) "[]{}<>()";
+short Cmatch(char_t * params) {
+  static char_t *match = (char_t *) "[]{}<>()";
   unsigned short x = 0, y = 0, current_y = 0;
-  CHARTYPE ch = 0, match_ch = 0;
-  LENGTHTYPE i = 0;
+  char_t ch = 0, match_ch = 0;
+  length_t i = 0;
   short direction_backward = 0;
-  LENGTHTYPE match_col = (-1L), start_col = 0L, focus_column = 0L;
+  length_t match_col = (-1L), start_col = 0L, focus_column = 0L;
   short matches = 1;
-  LINETYPE offset = 0L;
+  line_t offset = 0L;
   LINE *curr = NULL;
-  LINETYPE focus_line = 0L;
+  line_t focus_line = 0L;
   bool use_current = TRUE;
 
   if (curses_started)
@@ -719,21 +719,21 @@ short Cmatch(CHARTYPE * params) {
    */
   if (TOF(focus_line)
       || BOF(focus_line)) {
-    display_error(66, (CHARTYPE *) "", FALSE);
+    display_error(66, (char_t *) "", FALSE);
     return (RC_TOF_EOF_REACHED);
   }
   /*
    * This command cannot be entered on a shadow line.
    */
   if (CURRENT_SCREEN.sl[y].line_type == LINE_SHADOW) {
-    display_error(87, (CHARTYPE *) "", FALSE);
+    display_error(87, (char_t *) "", FALSE);
     return (RC_TARGET_NOT_FOUND);
   }
   /*
    * Check if the character under the cursor is a valid match character.
    */
   match_ch = 0;
-  for (i = 0; i < strlen((DEFCHAR *) match); i++) {
+  for (i = 0; i < strlen((char *) match); i++) {
     if (ch == *(match + i)) {
       direction_backward = (i % 2);
       match_ch = (direction_backward) ? *(match + i - 1) : *(match + i + 1);
@@ -741,7 +741,7 @@ short Cmatch(CHARTYPE * params) {
     }
   }
   if (match_ch == 0) {
-    display_error(67, (CHARTYPE *) "", FALSE);
+    display_error(67, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -798,7 +798,7 @@ short Cmatch(CHARTYPE * params) {
    * If no match found, return with error.
    */
   if (match_col == (-1)) {      /* no match found */
-    display_error(68, (CHARTYPE *) "", FALSE);
+    display_error(68, (char_t *) "", FALSE);
     return (RC_TARGET_NOT_FOUND);
   }
   /*
@@ -878,7 +878,7 @@ short Cmatch(CHARTYPE * params) {
       pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
       y = CURRENT_VIEW->current_row;
     } else {
-      display_error(68, (CHARTYPE *) "", FALSE);
+      display_error(68, (char_t *) "", FALSE);
       return (RC_TARGET_NOT_FOUND);
     }
   }
@@ -897,27 +897,27 @@ short Cmatch(CHARTYPE * params) {
   }
   return (RC_OK);
 }
-short Cmsg(CHARTYPE * params) {
+short Cmsg(char_t * params) {
   memset(cmd_rec, ' ', max_line_length);
-  cmd_rec_len = strlen((DEFCHAR *) params);
+  cmd_rec_len = strlen((char *) params);
   memcpy(cmd_rec, params, cmd_rec_len);
   display_cmdline(current_screen, CURRENT_VIEW);
-  Sos_endchar((CHARTYPE *) "");
+  Sos_endchar((char_t *) "");
   return (RC_OK);
 }
-short THECommand(CHARTYPE * params) {
+short THECommand(char_t * params) {
   short rc = RC_OK;
 
   rc = command_line(params, COMMAND_ONLY_TRUE);
   return (rc);
 }
-short Compress(CHARTYPE * params) {
+short Compress(char_t * params) {
   short rc = RC_OK;
 
   rc = execute_expand_compress(params, FALSE, TRUE, TRUE, TRUE);
   return (rc);
 }
-short ControlChar(CHARTYPE * params) {
+short ControlChar(char_t * params) {
   unsigned short y = 0, x = 0;
   int key = 0;
 
@@ -928,11 +928,11 @@ short ControlChar(CHARTYPE * params) {
    */
   if (CURRENT_VIEW->current_window == WINDOW_FILEAREA) {
     if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-      display_error(38, (CHARTYPE *) "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
     }
   }
-  display_prompt((CHARTYPE *) "Press the character you require.");
+  display_prompt((char_t *) "Press the character you require.");
   wmove(CURRENT_WINDOW, y, x);
   wrefresh(CURRENT_WINDOW);
   for (;;) {
@@ -946,13 +946,13 @@ short ControlChar(CHARTYPE * params) {
       && key <= (int) '_') {
     return ((RAW_KEY * 2) + (short) key - (short) '@');
   }
-  display_error(69, (CHARTYPE *) "- must be between 'A' and '_'", FALSE);
+  display_error(69, (char_t *) "- must be between 'A' and '_'", FALSE);
   return (RC_INVALID_OPERAND);
 }
-short Copy(CHARTYPE * params) {
-  CHARTYPE reset_block = SOURCE_UNKNOWN;
+short Copy(char_t * params) {
+  char_t reset_block = SOURCE_UNKNOWN;
   short rc = RC_OK;
-  LINETYPE start_line = 0L, end_line = 0L, true_line = 0L, lines_affected = 0L;
+  line_t start_line = 0L, end_line = 0L, true_line = 0L, lines_affected = 0L;
   VIEW_DETAILS *source_view = NULL, *dest_view = NULL;
   TARGET target1, target2;
   long target_type1 = TARGET_NORMAL | TARGET_BLOCK_ANY | TARGET_ALL | TARGET_SPARE;
@@ -972,12 +972,12 @@ short Copy(CHARTYPE * params) {
   if (target1.spare == (-1)) {
     if (target1.rt[0].target_type != TARGET_BLOCK_ANY && target1.rt[0].target_type != TARGET_BLOCK_CURRENT) {
       free_target(&target1);
-      display_error(3, (CHARTYPE *) "", FALSE);
+      display_error(3, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     } else
       reset_block = SOURCE_BLOCK;
   } else {
-    if (equal((CHARTYPE *) "reset", strtrunc(target1.rt[target1.spare].string), 5))
+    if (equal((char_t *) "reset", strtrunc(target1.rt[target1.spare].string), 5))
       reset_block = SOURCE_BLOCK_RESET;
     else
       reset_block = SOURCE_COMMAND;
@@ -1029,40 +1029,40 @@ short Copy(CHARTYPE * params) {
   if (BOF(true_line))
     true_line--;
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
-  rc = rearrange_line_blocks(COMMAND_COPY, (CHARTYPE) reset_block, start_line, end_line, true_line, 1L, source_view, dest_view, lines_based_on_scope, &lines_affected);
+  rc = rearrange_line_blocks(COMMAND_COPY, (char_t) reset_block, start_line, end_line, true_line, 1L, source_view, dest_view, lines_based_on_scope, &lines_affected);
 
   return (rc);
 }
-short Coverlay(CHARTYPE * params) {
+short Coverlay(char_t * params) {
   short rc = RC_OK;
 
   rc = column_command(params, COLUMN_COVERLAY);
   return (rc);
 }
-short Creplace(CHARTYPE * params) {
+short Creplace(char_t * params) {
   short rc = RC_OK;
 
   rc = column_command(params, COLUMN_CREPLACE);
   return (rc);
 }
-short Cursor(CHARTYPE * params) {
+short Cursor(char_t * params) {
   register short idx = 0;
 
 #define CUR_PARAMS  6
-  CHARTYPE *word[CUR_PARAMS + 1];
-  CHARTYPE strip[CUR_PARAMS];
+  char_t *word[CUR_PARAMS + 1];
+  char_t strip[CUR_PARAMS];
   unsigned short num_params = 0;
   bool time_to_leave = FALSE;
   short error_number = 1;
-  CHARTYPE *error_message = (CHARTYPE *) "";
+  char_t *error_message = (char_t *) "";
   short colno = 1;
   short rc = RC_OK;
   short state = CURSOR_START;
   short row = 0;
-  COLTYPE col = 0;
-  LINETYPE line = 0L;
-  LENGTHTYPE column = 0L;
-  CHARTYPE _THE_FAR buffer[100];
+  col_t col = 0;
+  line_t line = 0L;
+  length_t column = 0L;
+  char_t buffer[100];
 
   /* int priority; */
 
@@ -1074,7 +1074,7 @@ short Cursor(CHARTYPE * params) {
   strip[5] = STRIP_BOTH;
   num_params = param_split(params, word, CUR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params == 0) {
-    display_error(3, (CHARTYPE *) "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   error_message = word[0];
@@ -1083,17 +1083,17 @@ short Cursor(CHARTYPE * params) {
    * of args by 2
    */
   if (num_params > 2) {
-    if (equal((CHARTYPE *) "priority", word[num_params - 2], 1)) {
+    if (equal((char_t *) "priority", word[num_params - 2], 1)) {
       if ((error_number = valid_positive_integer_against_maximum(word[num_params - 1], 256)) != 0) {
         if (error_number == 4)
-          sprintf((DEFCHAR *) buffer, "%s", word[num_params - 1]);
+          sprintf((char *) buffer, "%s", word[num_params - 1]);
         else
-          sprintf((DEFCHAR *) buffer, "- MUST be <= %d", 256);
+          sprintf((char *) buffer, "- MUST be <= %d", 256);
         display_error(error_number, buffer, FALSE);
         rc = RC_INVALID_OPERAND;
         return (rc);
       }
-      /* priority = atoi( (DEFCHAR *)word[num_params-1] ); */
+      /* priority = atoi( (char *)word[num_params-1] ); */
       num_params = num_params - 2;
     }
   }
@@ -1102,22 +1102,22 @@ short Cursor(CHARTYPE * params) {
   while (1) {
     switch (state) {
       case CURSOR_START:
-        if (equal((CHARTYPE *) "escreen", word[idx], 1)) {
+        if (equal((char_t *) "escreen", word[idx], 1)) {
           state = CURSOR_ESCREEN;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "screen", word[idx], 1)) {
+        if (equal((char_t *) "screen", word[idx], 1)) {
           state = CURSOR_SCREEN;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "cua", word[idx], 3)) {
+        if (equal((char_t *) "cua", word[idx], 3)) {
           state = CURSOR_CUA;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "left", word[idx], 4)) {
+        if (equal((char_t *) "left", word[idx], 4)) {
           if (num_params > 1) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1128,7 +1128,7 @@ short Cursor(CHARTYPE * params) {
           time_to_leave = TRUE;
           break;
         }
-        if (equal((CHARTYPE *) "right", word[idx], 5)) {
+        if (equal((char_t *) "right", word[idx], 5)) {
           if (num_params > 1) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1139,7 +1139,7 @@ short Cursor(CHARTYPE * params) {
           time_to_leave = TRUE;
           break;
         }
-        if (equal((CHARTYPE *) "up", word[idx], 2)) {
+        if (equal((char_t *) "up", word[idx], 2)) {
           if (num_params > 1) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1150,7 +1150,7 @@ short Cursor(CHARTYPE * params) {
           time_to_leave = TRUE;
           break;
         }
-        if (equal((CHARTYPE *) "down", word[idx], 4)) {
+        if (equal((char_t *) "down", word[idx], 4)) {
           if (num_params > 1) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1161,42 +1161,42 @@ short Cursor(CHARTYPE * params) {
           time_to_leave = TRUE;
           break;
         }
-        if (equal((CHARTYPE *) "home", word[idx], 4)) {
+        if (equal((char_t *) "home", word[idx], 4)) {
           state = CURSOR_HOME;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "column", word[idx], 1)) {
+        if (equal((char_t *) "column", word[idx], 1)) {
           state = CURSOR_COLUMN;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "cmdline", word[idx], 2)) {
+        if (equal((char_t *) "cmdline", word[idx], 2)) {
           state = CURSOR_CMDLINE;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "file", word[idx], 1)) {
+        if (equal((char_t *) "file", word[idx], 1)) {
           state = CURSOR_FILE;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "goto", word[idx], 4)) {
+        if (equal((char_t *) "goto", word[idx], 4)) {
           state = CURSOR_GOTO;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "kedit", word[idx], 1)) {
+        if (equal((char_t *) "kedit", word[idx], 1)) {
           state = CURSOR_KEDIT;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "mouse", word[idx], 1)) {
+        if (equal((char_t *) "mouse", word[idx], 1)) {
           state = CURSOR_MOUSE;
           idx++;
           break;
         }
-        if (equal((CHARTYPE *) "prefix", word[idx], 1)) {
+        if (equal((char_t *) "prefix", word[idx], 1)) {
           state = CURSOR_PREFIX;
           idx++;
           break;
@@ -1210,7 +1210,7 @@ short Cursor(CHARTYPE * params) {
           error_number = 1;
           break;
         }
-        if (num_params == 2 && !equal((CHARTYPE *) "save", word[1], 4)) {
+        if (num_params == 2 && !equal((char_t *) "save", word[1], 4)) {
           state = CURSOR_ERROR;
           error_number = 1;
           error_message = word[idx];
@@ -1235,37 +1235,37 @@ short Cursor(CHARTYPE * params) {
       case CURSOR_FILE:
         if (num_params > 3) {
           state = CURSOR_ERROR;
-          error_message = (CHARTYPE *) "";
+          error_message = (char_t *) "";
           error_number = 2;
           break;
         }
         if (num_params < 2) {
           state = CURSOR_ERROR;
-          error_message = (CHARTYPE *) "";
+          error_message = (char_t *) "";
           error_number = 3;
           break;
         }
         if ((error_number = valid_positive_integer_against_maximum(word[1], CURRENT_FILE->number_lines)) != 0) {
           state = CURSOR_ERROR;
           if (error_number == 4)
-            sprintf((DEFCHAR *) buffer, "%s", word[1]);
+            sprintf((char *) buffer, "%s", word[1]);
           else
-            sprintf((DEFCHAR *) buffer, "- MUST be <= %ld", CURRENT_FILE->number_lines);
+            sprintf((char *) buffer, "- MUST be <= %ld", CURRENT_FILE->number_lines);
           error_message = buffer;
           break;
         }
-        line = atol((DEFCHAR *) word[1]);
+        line = atol((char *) word[1]);
         if (num_params == 3) {
           if ((error_number = valid_positive_integer_against_maximum(word[2], MAX_WIDTH_NUM)) != 0) {
             state = CURSOR_ERROR;
             if (error_number == 4)
-              sprintf((DEFCHAR *) buffer, "%s", word[2]);
+              sprintf((char *) buffer, "%s", word[2]);
             else
-              sprintf((DEFCHAR *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
+              sprintf((char *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
             error_message = buffer;
             break;
           }
-          column = atol((DEFCHAR *) word[2]);
+          column = atol((char *) word[2]);
         } else
           column = 0L;
         rc = THEcursor_file(TRUE, line, column);
@@ -1274,37 +1274,37 @@ short Cursor(CHARTYPE * params) {
       case CURSOR_GOTO:
         if (num_params > 3) {
           state = CURSOR_ERROR;
-          error_message = (CHARTYPE *) "";
+          error_message = (char_t *) "";
           error_number = 2;
           break;
         }
         if (num_params < 3) {
           state = CURSOR_ERROR;
-          error_message = (CHARTYPE *) "";
+          error_message = (char_t *) "";
           error_number = 3;
           break;
         }
         if ((error_number = valid_positive_integer_against_maximum(word[1], CURRENT_FILE->number_lines)) != 0) {
           state = CURSOR_ERROR;
           if (error_number == 4)
-            sprintf((DEFCHAR *) buffer, "%s", word[1]);
+            sprintf((char *) buffer, "%s", word[1]);
           else
-            sprintf((DEFCHAR *) buffer, "- MUST be <= %ld", CURRENT_FILE->number_lines);
+            sprintf((char *) buffer, "- MUST be <= %ld", CURRENT_FILE->number_lines);
           error_message = buffer;
           break;
         }
-        line = atol((DEFCHAR *) word[1]);
+        line = atol((char *) word[1]);
         if (num_params == 3) {
           if ((error_number = valid_positive_integer_against_maximum(word[2], MAX_WIDTH_NUM)) != 0) {
             state = CURSOR_ERROR;
             if (error_number == 4)
-              sprintf((DEFCHAR *) buffer, "%s", word[2]);
+              sprintf((char *) buffer, "%s", word[2]);
             else
-              sprintf((DEFCHAR *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
+              sprintf((char *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
             error_message = buffer;
             break;
           }
-          column = atol((DEFCHAR *) word[2]);
+          column = atol((char *) word[2]);
         } else
           column = 0;
         rc = THEcursor_goto(line, column);
@@ -1334,9 +1334,9 @@ short Cursor(CHARTYPE * params) {
           ;
         } else {
           if (CURRENT_VIEW->current_window == WINDOW_FILEAREA)
-            rc = Sos_prefix((CHARTYPE *) "");
+            rc = Sos_prefix((char_t *) "");
           else
-            rc = Sos_leftedge((CHARTYPE *) "");
+            rc = Sos_leftedge((char_t *) "");
         }
         time_to_leave = TRUE;
         break;
@@ -1348,7 +1348,7 @@ short Cursor(CHARTYPE * params) {
           break;
         }
         if (num_params == 2) {
-          colno = atoi((DEFCHAR *) word[idx]);
+          colno = atoi((char *) word[idx]);
           if (colno < 1) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1362,7 +1362,7 @@ short Cursor(CHARTYPE * params) {
       case CURSOR_SCREEN:
       case CURSOR_ESCREEN:
       case CURSOR_CUA:
-        if (equal((CHARTYPE *) "left", word[idx], 4)) {
+        if (equal((char_t *) "left", word[idx], 4)) {
           if (num_params > 2) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1373,7 +1373,7 @@ short Cursor(CHARTYPE * params) {
           time_to_leave = TRUE;
           break;
         }
-        if (equal((CHARTYPE *) "right", word[idx], 5)) {
+        if (equal((char_t *) "right", word[idx], 5)) {
           if (num_params > 2) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1384,7 +1384,7 @@ short Cursor(CHARTYPE * params) {
           time_to_leave = TRUE;
           break;
         }
-        if (equal((CHARTYPE *) "up", word[idx], 2)) {
+        if (equal((char_t *) "up", word[idx], 2)) {
           if (num_params > 2) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1395,7 +1395,7 @@ short Cursor(CHARTYPE * params) {
           time_to_leave = TRUE;
           break;
         }
-        if (equal((CHARTYPE *) "down", word[idx], 4)) {
+        if (equal((char_t *) "down", word[idx], 4)) {
           if (num_params > 2) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1425,7 +1425,7 @@ short Cursor(CHARTYPE * params) {
             error_number = 4;
             break;
           }
-          row = atoi((DEFCHAR *) word[idx]);
+          row = atoi((char *) word[idx]);
           if (row == 0) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1434,7 +1434,7 @@ short Cursor(CHARTYPE * params) {
           }
         }
         idx++;
-        if (strcmp((DEFCHAR *) word[idx], "") == 0) {
+        if (strcmp((char *) word[idx], "") == 0) {
           if (state == CURSOR_ESCREEN)
             col = 1;
           else
@@ -1449,7 +1449,7 @@ short Cursor(CHARTYPE * params) {
               error_number = 4;
               break;
             }
-            col = atoi((DEFCHAR *) word[idx]);
+            col = atoi((char *) word[idx]);
             if (col == 0) {
               state = CURSOR_ERROR;
               error_message = word[idx];
@@ -1462,7 +1462,7 @@ short Cursor(CHARTYPE * params) {
         time_to_leave = TRUE;
         break;
       case CURSOR_KEDIT:
-        if (equal((CHARTYPE *) "left", word[idx], 4)) {
+        if (equal((char_t *) "left", word[idx], 4)) {
           if (num_params > 2) {
             state = CURSOR_ERROR;
             error_message = word[idx];
@@ -1473,7 +1473,7 @@ short Cursor(CHARTYPE * params) {
           time_to_leave = TRUE;
           break;
         }
-        if (equal((CHARTYPE *) "right", word[idx], 5)) {
+        if (equal((char_t *) "right", word[idx], 5)) {
           if (num_params > 2) {
             state = CURSOR_ERROR;
             error_message = word[idx];

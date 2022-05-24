@@ -41,14 +41,14 @@
 #define SF_LEFT     3
 
 struct sort_field {
-  CHARTYPE order;               /* A - ascending, D - descending */
-  LENGTHTYPE left_col;          /* left column */
-  LENGTHTYPE right_col;         /* right column */
+  char_t order;               /* A - ascending, D - descending */
+  length_t left_col;          /* left column */
+  length_t right_col;         /* right column */
 };
 typedef struct sort_field SORT_FIELD;
 
-CHARTYPE *sort_field_1;
-CHARTYPE *sort_field_2;
+char_t *sort_field_1;
+char_t *sort_field_2;
 
 SORT_FIELD sort_fields[MAX_SORT_FIELDS];
 
@@ -57,10 +57,10 @@ short num_fields;
 static int cmp(const void *, const void *);
 
 static int cmp(const void *first, const void *second) {
-  LENGTHTYPE i = 0, j = 0;
+  length_t i = 0, j = 0;
   short rc = RC_OK;
-  LENGTHTYPE len = 0;
-  LENGTHTYPE right_col = 0, left_col = 0;
+  length_t len = 0;
+  length_t right_col = 0, left_col = 0;
   LINE *one = *(LINE **) first;
   LINE *two = *(LINE **) second;
 
@@ -120,7 +120,7 @@ static int cmp(const void *first, const void *second) {
      * the comparison value (if ASCENDING) or the comparison value negated
      * (if DESCENDING).
      */
-    if ((rc = strncmp((DEFCHAR *) sort_field_1, (DEFCHAR *) sort_field_2, len)) != 0)
+    if ((rc = strncmp((char *) sort_field_1, (char *) sort_field_2, len)) != 0)
       return ((sort_fields[i].order == 'A') ? rc : -rc);
   }
   /*
@@ -130,26 +130,26 @@ static int cmp(const void *first, const void *second) {
   return (0);
 }
 
-short execute_sort(CHARTYPE * params) {
+short execute_sort(char_t * params) {
 #define STATE_REAL   0
 #define STATE_SHADOW 1
 #define SOR_PARAMS  3+(MAX_SORT_FIELDS*3)
   register int i = 0;
-  CHARTYPE *word[SOR_PARAMS + 1];
-  CHARTYPE strip[SOR_PARAMS];
+  char_t *word[SOR_PARAMS + 1];
+  char_t strip[SOR_PARAMS];
   unsigned short num_params = 0;
   LINE **lfirst = NULL, **lp = NULL;
   LINE **origfirst = NULL, **origlp = NULL;
   LINE *curr = NULL, *first = NULL;
   LINE *curr_prev = NULL, *curr_next = NULL;
-  LINETYPE true_line = 0L, dest_line = 0L;
-  LINETYPE abs_num_lines = 0L;
-  LINETYPE j = 0L;
-  LINETYPE num_actual_lines = 0L;
-  LINETYPE num_sorted_lines = 0L, save_num_sorted_lines = 0L;
+  line_t true_line = 0L, dest_line = 0L;
+  line_t abs_num_lines = 0L;
+  line_t j = 0L;
+  line_t num_actual_lines = 0L;
+  line_t num_sorted_lines = 0L, save_num_sorted_lines = 0L;
   short rc = RC_OK, direction = DIRECTION_FORWARD;
-  LENGTHTYPE left_col = 0, right_col = 0, max_column_width = 0;
-  CHARTYPE order = 'A';
+  length_t left_col = 0, right_col = 0, max_column_width = 0;
+  char_t order = 'A';
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL | TARGET_SPARE;
   bool lines_based_on_scope = FALSE;
@@ -173,7 +173,7 @@ short execute_sort(CHARTYPE * params) {
    * Don't need to do anything if < 2 lines to be sorted.
    */
   if (abs_num_lines < 2L) {
-    display_error(55, (CHARTYPE *) "", FALSE);
+    display_error(55, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OK);
   }
@@ -214,8 +214,8 @@ short execute_sort(CHARTYPE * params) {
       /*
        * Processing for 2 parameters; validate ordering value.
        */
-      if (equal((CHARTYPE *) "ascending", word[0], 1)
-          || equal((CHARTYPE *) "descending", word[0], 1)) {
+      if (equal((char_t *) "ascending", word[0], 1)
+          || equal((char_t *) "descending", word[0], 1)) {
         order = word[0][0];
         if (islower(order))
           order = toupper(order);
@@ -225,7 +225,7 @@ short execute_sort(CHARTYPE * params) {
       /*
        * If the parameter is not Ascending or Descending, display error.
        */
-      display_error(1, (CHARTYPE *) word[0], FALSE);
+      display_error(1, (char_t *) word[0], FALSE);
       free_target(&target);
       return (RC_INVALID_OPERAND);
       break;
@@ -244,8 +244,8 @@ short execute_sort(CHARTYPE * params) {
               errornum = 75;
               break;
             }
-            if (equal((CHARTYPE *) "ascending", word[i], 1)
-                || equal((CHARTYPE *) "descending", word[i], 1)) {
+            if (equal((char_t *) "ascending", word[i], 1)
+                || equal((char_t *) "descending", word[i], 1)) {
               order = word[i][0];
               if (islower(order))
                 order = toupper(order);
@@ -254,7 +254,7 @@ short execute_sort(CHARTYPE * params) {
               i++;
               break;
             }
-            left_col = atol((DEFCHAR *) word[i]);
+            left_col = atol((char *) word[i]);
             if (left_col == 0) {
               state = SF_ERROR;
               break;
@@ -265,7 +265,7 @@ short execute_sort(CHARTYPE * params) {
             i++;
             break;
           case SF_ORDER:
-            left_col = atol((DEFCHAR *) word[i]);
+            left_col = atol((char *) word[i]);
             if (left_col < 1) {
               state = SF_ERROR;
               break;
@@ -275,7 +275,7 @@ short execute_sort(CHARTYPE * params) {
             i++;
             break;
           case SF_LEFT:
-            right_col = atol((DEFCHAR *) word[i]);
+            right_col = atol((char *) word[i]);
             if (right_col < 1) {
               state = SF_ERROR;
               break;
@@ -299,10 +299,10 @@ short execute_sort(CHARTYPE * params) {
         if (state == SF_ERROR) {
           switch (errornum) {
             case 75:
-              display_error(75, (CHARTYPE *) "", FALSE);
+              display_error(75, (char_t *) "", FALSE);
               break;
             default:
-              display_error(1, (CHARTYPE *) word[i], FALSE);
+              display_error(1, (char_t *) word[i], FALSE);
               break;
           }
           free_target(&target);
@@ -340,13 +340,13 @@ short execute_sort(CHARTYPE * params) {
    * Allocate memory for each of the temporary sort fields to the length
    * of the maximum field width.
    */
-  if ((sort_field_1 = (CHARTYPE *) (*the_malloc) (max_column_width)) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((sort_field_1 = (char_t *) malloc(max_column_width)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OUT_OF_MEMORY);
   }
-  if ((sort_field_2 = (CHARTYPE *) (*the_malloc) (max_column_width)) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((sort_field_2 = (char_t *) malloc(max_column_width)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OUT_OF_MEMORY);
   }
@@ -359,13 +359,13 @@ short execute_sort(CHARTYPE * params) {
    * Allocate memory for num_lines of LINE pointers and for a copy of
    * original lines.
    */
-  if ((lfirst = (LINE **) (*the_malloc) (abs_num_lines * sizeof(LINE *))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((lfirst = (LINE **) malloc(abs_num_lines * sizeof(LINE *))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OUT_OF_MEMORY);
   }
-  if ((origfirst = (LINE **) (*the_malloc) (3 * abs_num_lines * sizeof(LINE *))) == NULL) {
-    display_error(30, (CHARTYPE *) "", FALSE);
+  if ((origfirst = (LINE **) malloc(3 * abs_num_lines * sizeof(LINE *))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OUT_OF_MEMORY);
   }
@@ -379,7 +379,7 @@ short execute_sort(CHARTYPE * params) {
       if (abs_num_lines == j)
         break;
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (LINETYPE) (j * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (j * direction), curr);
     switch (rc) {
       case LINE_SHADOW:
         break;
@@ -413,7 +413,7 @@ short execute_sort(CHARTYPE * params) {
    * Don't need to do anything if < 2 lines to be sorted.
    */
   if (num_sorted_lines < 2L) {
-    display_error(55, (CHARTYPE *) "", FALSE);
+    display_error(55, (char_t *) "", FALSE);
   } else {
     /*
      * Sort the target array...
@@ -433,7 +433,7 @@ short execute_sort(CHARTYPE * params) {
         if (abs_num_lines == j)
           break;
       }
-      rc = processable_line(CURRENT_VIEW, true_line + (LINETYPE) (j * direction), curr);
+      rc = processable_line(CURRENT_VIEW, true_line + (line_t) (j * direction), curr);
       switch (rc) {
         case LINE_SHADOW:
           curr_prev = curr->prev;
@@ -502,17 +502,17 @@ short execute_sort(CHARTYPE * params) {
      */
     increment_alt(CURRENT_FILE);
 
-    sprintf((DEFCHAR *) temp_cmd, "%ld line(s) sorted", abs_num_lines);
+    sprintf((char *) temp_cmd, "%ld line(s) sorted", abs_num_lines);
     display_error(0, temp_cmd, TRUE);
   }
 
   /*
    * Free up the memory used for the sort fields and the target array.
    */
-  (*the_free) (sort_field_1);
-  (*the_free) (sort_field_2);
-  (*the_free) (lfirst);
-  (*the_free) (origfirst);
+  free(sort_field_1);
+  free(sort_field_2);
+  free(lfirst);
+  free(origfirst);
   free_target(&target);
   return (RC_OK);
 }
