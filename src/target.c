@@ -1065,15 +1065,15 @@ short parse_target(char_t * target_spec, line_t true_line, TARGET * target, long
         /*
          * Compile the RE
          */
-        memset(&target->rt[i].pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-        ptr = (char_t *) re_compile_pattern((char *) target->rt[i].string, strlen((char *) target->rt[i].string), &target->rt[i].pattern_buffer);
-        if (ptr) {
+        memset(&target->rt[i].pattern, 0, sizeof(regex_t));
+        if (0 != (rc = regcomp( &target->rt[i].pattern, (char*)target->rt[i].string, 0))) { 
           /*
            * If ptr returns something, it is an error string
            * Display it if we are allowed to...
            */
           if (display_parse_error && allow_error_display) {
-            sprintf((char *) trec, "%s in %s", ptr, target->rt[i].string);
+            rc = regerror(rc, &target->rt[i].pattern, (char*)trec, trec_len);
+            sprintf((char*)trec+rc, " in %s", target->rt[i].string);
             display_error(216, (char_t *) trec, FALSE);
             return RC_INVALID_OPERAND;
           }
@@ -1116,7 +1116,7 @@ void free_target(TARGET * target) {
     if (target->rt[i].string != NULL)
       free(target->rt[i].string);
     if (target->rt[i].have_compiled_re)
-      regfree(&target->rt[i].pattern_buffer);
+      regfree(&target->rt[i].pattern);
   }
   if (target->string != NULL)
     free(target->string);
@@ -1540,8 +1540,7 @@ short find_string_target(LINE * curr, RTARGET * rt, length_t start_col, int sear
 short find_regexp(LINE * curr, RTARGET * rt) {
   char_t *haystack = NULL;
   length_t len, i, haystack_length = 0, real_start = 0, real_end = 0;
-  short rc = RC_TARGET_NOT_FOUND;
-  long re_len;
+  regmatch_t match;
 
   /*
    * Search for the compiled RE
@@ -1564,19 +1563,21 @@ short find_regexp(LINE * curr, RTARGET * rt) {
   }
 
   for (i = 0; i < len;) {
-    re_len = re_match(&rt->pattern_buffer, (char *) haystack + i, len - i, 0, 0);
-    if (re_len > 0) {
-      rt->length = re_len;
+    if (0 == regexec( &rt->pattern, (char*) haystack + i, 1, &match, 0)) {
+      if (match.rm_eo > (len-i)) {
+        break; // match but past limit
+      }
+      rt->length = match.rm_eo - match.rm_so;
       rt->start = real_start + i;       /* ?? */
-      rt->found_length = re_len;
-      rc = RC_OK;
-      break;
-    } else
+      rt->found_length = rt->length;
+      return RC_OK;
+    } else {
       i++;
+    }
   }
-
-  return (rc);
+  return RC_TARGET_NOT_FOUND;
 }
+
 short find_rtarget_target(LINE * curr, TARGET * target, line_t true_line, line_t line_number, line_t * num_lines) {
   register short i = 0;
   bool target_found = FALSE, status = FALSE;

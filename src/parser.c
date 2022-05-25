@@ -1268,6 +1268,15 @@ static short parse_directory(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
   }
   return RC_OK;
 }
+
+static int match(regex_t *preg, char *string, int size) {
+  regmatch_t m;
+  if (0 == regexec(preg, string, 1, &m, 0) && m.rm_eo <= size) {
+    return m.rm_eo - m.rm_so;
+  }
+  return -1;
+}
+
 static short parse_postcompare(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   PARSE_POSTCOMPARE *curr;
   length_t i, j, vcol, len = scurr->length;
@@ -1298,7 +1307,7 @@ static short parse_postcompare(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
       individual_found = FALSE;
       if (curr->is_class_type == TRUE) {
         /* CLASS TYPE */
-        re_len = re_match(&curr->pattern_buffer, (char *) work + i, len - i, 0, 0);
+        re_len = match(&curr->pattern, (char *) work + i, len - i);
         if (re_len > 0) {
           individual_found = TRUE;
         }
@@ -1452,13 +1461,13 @@ static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) 
       /*
        * Find an identfier
        */
-      re_len = re_match(&fd->parser->body_pattern_buffer, (char *) work + i, len - i, 0, 0);
+      re_len = match(&fd->parser->body_pattern, (char *) work + i, len - i);
       if (re_len < 0) {
         /*
          * No identifier, is it a number ??
          */
-        if (fd->parser->have_number_pattern_buffer && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
-          re_len = re_match(&fd->parser->number_pattern_buffer, (char *) work + i, len - i, 0, 0);
+        if (fd->parser->have_number_pattern && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
+          re_len = match(&fd->parser->number_pattern, (char *) work + i, len - i);
           if (re_len > 0) {
             for (j = 0; j < re_len; j++, i++) {
               if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
@@ -1511,8 +1520,8 @@ static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) 
            * from the line so it can no longer match any further
            * token types.
            */
-          if (fd->parser->have_number_pattern_buffer && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
-            re_len = re_match(&fd->parser->number_pattern_buffer, (char *) work + i, len - i, 0, 0);
+          if (fd->parser->have_number_pattern && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
+            re_len = match(&fd->parser->number_pattern, (char *) work + i, len - i);
             if (re_len > 0) {
               for (j = 0; j < re_len; j++, i++) {
                 if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
@@ -1597,7 +1606,7 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
       /*
        * We have an indentfier
        */
-      re_len = re_match(&fd->parser->function_pattern_buffer, (char *) work + i, len - i, 0, 0);
+      re_len = match(&fd->parser->function_pattern, (char *) work + i, len - i);
       if (re_len < 0) {
         /*
          * If we have the option REXX setting, then the identifier
@@ -1607,7 +1616,7 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
          * the possible function.
          */
         if (fd->parser->rexx_option) {
-          re_len = re_match(&fd->parser->body_pattern_buffer, (char *) work + i, len - i, 0, 0);
+          re_len = match(&fd->parser->body_pattern, (char *) work + i, len - i);
           if (re_len < 0) {
             /*
              * No identifier found, try the next char...
@@ -1972,7 +1981,7 @@ short parse_line(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short start
   /*
    * Find keywords, numbers, and remove identifiers
    */
-  if (fd->parser->have_body_pattern_buffer && CURRENT_VIEW->syntax_headers & HEADER_KEYWORD) {
+  if (fd->parser->have_body_pattern && CURRENT_VIEW->syntax_headers & HEADER_KEYWORD) {
     parse_keywords(scrno, fd, scurr);
     if (number_blanks == len) {
       return RC_OK;
@@ -2741,13 +2750,14 @@ static short construct_option(char_t * line, int line_length, PARSER_DETAILS * p
   return rc;
 }
 
-static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONID_PARAMS  3
-  short rc = RC_OK;
+
+static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
   char_t *word[CONID_PARAMS + 1];
   char_t strip[CONID_PARAMS];
   unsigned short num_params = 0;
-  char_t *pattern = NULL, *ptr;
+  char_t *pattern = NULL;
+  int n;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
@@ -2778,18 +2788,18 @@ static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS
 /*      strcat((char *)pattern,"."); */
   }
   /* The following memset() is not meant to use wide character */
-  memset(&parser->body_pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-  ptr = (char_t *) re_compile_pattern((char *) pattern, strlen((char *) pattern), &parser->body_pattern_buffer);
-  if (ptr) {
+  memset(&parser->body_pattern, 0, sizeof(regex_t));
+  if (0 != (n = regcomp( &parser->body_pattern, (char*) pattern, 0))) {
     /*
      * If ptr returns something, it is an error string
      */
-    sprintf((char *) tmp, "%s in %s", ptr, pattern);
+    n = regerror(n, &parser->body_pattern, (char*)tmp, sizeof(tmp));
+    sprintf((char*)tmp+n, " in %s", pattern);
     display_error(216, (char_t *) tmp, FALSE);
     free(pattern);
     return RC_INVALID_OPERAND;
   }
-  parser->have_body_pattern_buffer = TRUE;
+  parser->have_body_pattern = TRUE;
   /*
    * Create the pattern buffer for functions...
    * If we said to in :option section
@@ -2809,21 +2819,21 @@ static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS
     tmp[1] = '\0';
     strcat((char *) pattern, (char *) tmp);
     /* The following memset() is not meant to use wide character */
-    memset(&parser->function_pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-    ptr = (char_t *) re_compile_pattern((char *) pattern, strlen((char *) pattern), &parser->function_pattern_buffer);
-    if (ptr) {
+    memset(&parser->function_pattern, 0, sizeof(regex_t));
+    if (0 != (n = regcomp( &parser->function_pattern, (char*)pattern, 0))) {
       /*
        * If ptr returns something, it is an error string
        */
-      sprintf((char *) tmp, "%s in %s", ptr, pattern);
+      n = regerror(n, &parser->function_pattern, (char*)tmp, sizeof(tmp));
+      sprintf((char*)tmp+n, " in %s", pattern);
       display_error(216, (char_t *) tmp, FALSE);
       free(pattern);
       return RC_INVALID_OPERAND;
     }
     free(pattern);
-    parser->have_function_pattern_buffer = TRUE;
+    parser->have_function_pattern = TRUE;
   }
-  return rc;
+  return RC_OK;
 }
 
 static short construct_directory(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
@@ -2989,15 +2999,17 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
   return rc;
 }
 
-static short construct_postcompare(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONPOST_PARAMS  4
+
+static short construct_postcompare(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
   char_t *word[CONPOST_PARAMS + 1];
   char_t strip[CONPOST_PARAMS + 1];
   unsigned short num_params = 0;
-  char_t *pattern = NULL, *ptr;
+  char_t *pattern = NULL;
+  int n;
   PARSE_POSTCOMPARE *curr;
   char_t alternate = 255;
-  struct re_pattern_buffer pattern_buffer;
+  regex_t pbuf;
   bool is_class_type;
 
   strip[0] = STRIP_BOTH;
@@ -3050,13 +3062,13 @@ static short construct_postcompare(char_t * line, int line_length, PARSER_DETAIL
      */
     strcpy((char *) pattern, (char *) word[1]);
     /* The following memset() is not meant to use wide character */
-    memset(&pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-    ptr = (char_t *) re_compile_pattern((char *) pattern, strlen((char *) pattern), &pattern_buffer);
-    if (ptr) {
+    memset(&pbuf, 0, sizeof(regex_t));
+    if (0 != (n = regcomp( &pbuf, (char*)pattern, 0))) {
       /*
        * If ptr returns something, it is an error string
        */
-      sprintf((char *) tmp, "%s in %s", ptr, pattern);
+      n = regerror(n, &pbuf, (char*)tmp, sizeof(tmp));
+      sprintf((char*)tmp+n, " in %s", pattern);
       display_error(216, (char_t *) tmp, FALSE);
       free(pattern);
       return RC_INVALID_OPERAND;
@@ -3087,7 +3099,7 @@ static short construct_postcompare(char_t * line, int line_length, PARSER_DETAIL
   parser->current_postcompare->string_length = 0;
   parser->current_postcompare->string = NULL;
   if (is_class_type) {
-    parser->current_postcompare->pattern_buffer = pattern_buffer;
+    parser->current_postcompare->pattern = pbuf;
   } else {
     parser->current_postcompare->string_length = strlen((char *) word[1]);
     parser->current_postcompare->string = (char_t *) malloc((1 + parser->current_postcompare->string_length) * sizeof(char_t));
@@ -3104,13 +3116,14 @@ static short construct_postcompare(char_t * line, int line_length, PARSER_DETAIL
   return (RC_OK);
 }
 
-static short construct_number(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONNUM_PARAMS  1
+
+static short construct_number(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
   char_t *word[CONNUM_PARAMS + 1];
   char_t strip[CONNUM_PARAMS + 1];
   unsigned short num_params = 0;
   char *pattern;
-  char *ptr;
+  int n;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
@@ -3142,18 +3155,18 @@ static short construct_number(char_t * line, int line_length, PARSER_DETAILS * p
   /*
    * Create the pattern buffer for the RE...
    */
-  memset(&parser->number_pattern_buffer, 0, sizeof(struct re_pattern_buffer));
-  ptr = (char *) re_compile_pattern(pattern, strlen(pattern), &parser->number_pattern_buffer);
-  if (ptr) {
+  memset(&parser->number_pattern, 0, sizeof(regex_t));
+  if (0 != (n = regcomp(&parser->number_pattern, (char*)pattern, 0))) {
     /*
      * If ptr returns something, it is an error string
      */
-    sprintf((char *) tmp, "%s in %s", ptr, pattern);
+    n = regerror(n, &parser->number_pattern, (char*)tmp, sizeof(tmp));
+    sprintf((char*)tmp+n, " in %s", pattern);
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
 
-  parser->have_number_pattern_buffer = TRUE;
+  parser->have_number_pattern = TRUE;
   return (RC_OK);
 }
 
@@ -3421,14 +3434,14 @@ short destroy_parser(PARSER_DETAILS * parser) {
   if (parser->first_header) {
     parser->first_header = parse_headerll_free(parser->first_header);
   }
-  if (parser->have_body_pattern_buffer) {
-    regfree(&parser->body_pattern_buffer);
+  if (parser->have_body_pattern) {
+    regfree(&parser->body_pattern);
   }
-  if (parser->have_function_pattern_buffer) {
-    regfree(&parser->function_pattern_buffer);
+  if (parser->have_function_pattern) {
+    regfree(&parser->function_pattern);
   }
-  if (parser->have_number_pattern_buffer) {
-    regfree(&parser->number_pattern_buffer);
+  if (parser->have_number_pattern) {
+    regfree(&parser->number_pattern);
   }
   if (parser->have_postcompare) {
     parser->first_postcompare = parse_postcomparell_free(parser->first_postcompare);

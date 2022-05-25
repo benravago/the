@@ -86,8 +86,6 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 
 #include <signal.h>
 
-/* NOTE: try to limit _GNU_SOURCE for regex.h */
-#define _GNU_SOURCE
 #include <regex.h>
 
 #define MAX_SLK    12
@@ -653,7 +651,7 @@ struct parse_postcompare {
   struct parse_postcompare *prev;
   struct parse_postcompare *next;
   bool is_class_type;
-  struct re_pattern_buffer pattern_buffer;
+  regex_t pattern;
   char_t *string;
   short string_length;
   char_t alternate;
@@ -668,8 +666,8 @@ struct parser_details {
    */
   char_t parser_name[MAX_PARSER_NAME_LENGTH + 1];
   char_t filename[MAX_FILE_NAME + 1];
-  struct re_pattern_buffer body_pattern_buffer;
-  bool have_body_pattern_buffer;
+  regex_t body_pattern;
+  bool have_body_pattern;
   /*
    * string features
    */
@@ -699,8 +697,8 @@ struct parser_details {
   PARSE_FUNCTIONS *first_function;
   PARSE_FUNCTIONS *current_function;
   short min_function_length;
-  struct re_pattern_buffer function_pattern_buffer;
-  bool have_function_pattern_buffer;
+  regex_t function_pattern;
+  bool have_function_pattern;
   bool have_function_option_alternate;
   char_t function_option_alternate;
   /*
@@ -763,8 +761,8 @@ struct parser_details {
   /*
    * number features
    */
-  struct re_pattern_buffer number_pattern_buffer;
-  bool have_number_pattern_buffer;
+  regex_t number_pattern;
+  bool have_number_pattern;
   /*
    *  link features
    */
@@ -813,7 +811,7 @@ struct rtarget {
   bool negative;                /* TRUE if direction backward */
   bool found;                   /* TRUE if this repeating target was found */
   bool have_compiled_re;        /* TRUE if we have a compiled RE */
-  struct re_pattern_buffer pattern_buffer;      /* compiled RE for REGEXP */
+  regex_t pattern;            /* compiled RE for REGEXP */
 };
 typedef struct rtarget RTARGET;
 
