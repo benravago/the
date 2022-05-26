@@ -217,8 +217,6 @@ short splitpath Args((char_t *));
 LINE *getclipboard Args((LINE *, int));
 short setclipboard Args((FILE_DETAILS *, char_t *, bool, line_t, line_t, line_t, line_t *, bool, length_t, length_t, bool, bool, int));
 void draw_cursor Args((bool));
-int is_a_dir_stat (mode_t);
-int is_a_dir_dir (mode_t);
 
                                                            /* parser.c */
 short parse_line Args((char_t, FILE_DETAILS *, SHOW_LINE *, short));

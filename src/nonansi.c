@@ -225,7 +225,7 @@ short splitpath(char_t * filename) {
   /*
    * First determine if the supplied filename is a directory.
    */
-  if ((stat((char *) work_filename, &stat_buf) == 0) && (is_a_dir_stat(stat_buf.st_mode))) {
+  if ((stat((char *) work_filename, &stat_buf) == 0) && S_ISDIR(stat_buf.st_mode)) {
     strcpy((char *) sp_path, (char *) work_filename);
     strcpy((char *) sp_fname, "");
   } else {                      /* here if the file doesn't exist or is not a directory */
@@ -516,26 +516,3 @@ void draw_cursor(bool visible) {
   return;
 }
 
-/*
- * is_a_dir_stat() used when the attributes are obtained from stat()
- */
-int is_a_dir_stat(mode_t attrs) {
-  mode_t ftype = (attrs & S_IFMT);
-
-  if (ftype == S_IFDIR) {
-    return (1);
-  }
-  return (0);
-}
-
-/*
- * is_a_dir_dir() used when the attributes are obtained from _findfirst() on Windows
- */
-int is_a_dir_dir(mode_t attrs) {
-  mode_t ftype = (attrs & S_IFMT);
-
-  if (ftype == S_IFDIR) {
-    return (1);
-  }
-  return (0);
-}

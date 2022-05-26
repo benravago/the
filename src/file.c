@@ -1605,7 +1605,7 @@ char_t *read_file_into_memory(char_t * filename, int *buffer_size) {
   char_t *buffer = NULL;
 
   if ((stat((char *) filename, &stat_buf) == 0)
-      && (is_a_dir_stat(stat_buf.st_mode))) {
+      && S_ISDIR(stat_buf.st_mode)) {
     display_error(8, (char_t *) "specified file is a directory", FALSE);
     return NULL;
   }

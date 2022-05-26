@@ -191,8 +191,8 @@ int dir_comp(const void *in_first, const void *in_next) {
   int rc = 0;
   struct dirfile *first = (struct dirfile *) in_first, *next = (struct dirfile *) in_next;
 
-  first_dir = is_a_dir_dir(first->fattr);
-  next_dir = is_a_dir_dir(next->fattr);
+  first_dir = S_ISDIR(first->fattr);
+  next_dir = S_ISDIR(next->fattr);
   if (first_dir && !next_dir) {
     rc = (-1);
   }
