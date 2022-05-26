@@ -4,7 +4,6 @@
 
 #define THE_VERSION "3.3r8"
 #define THE_VERSION_DATE "today"
-#define THE_HOME_DIRECTORY "/usr/local/share/THE/"
 
 /* Define this always; build number.  */
 /* When next build requires configure to be run again, increment this */

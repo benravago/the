@@ -320,10 +320,12 @@ int main(int argc, char *argv[]) {
   if ((envptr = getenv("THE_HOME_DIR")) != NULL) {
     strcpy((char *) the_home_dir, envptr);
     strrmdup(strtrans(the_home_dir, OSLASH, ISLASH), ISLASH, TRUE);
-    if ((the_home_dir[strlen((char *) the_home_dir) - 1]) != ISLASH)
+    if ((the_home_dir[strlen((char *) the_home_dir) - 1]) != ISLASH) {
       strcat((char *) the_home_dir, (char *) ISTR_SLASH);
+    }
   } else {
-    strcpy((char *) the_home_dir, (char *) THE_HOME_DIRECTORY);
+    strcpy((char *) the_home_dir, user_home_dir);
+    strcat((char *) the_home_dir, ".the/"); // was THE_HOME_DIRECTORY
   }
   /*
    * Get THE_MACRO_PATH environment variable. If not set set up default
