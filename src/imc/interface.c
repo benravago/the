@@ -197,7 +197,7 @@ PRXSTRING result;
   jmp_buf exbuf;                /* buffer for exitbuf */
 
 /* construct version string (should be constant, but it's easier this way) */
-  sprintf(version, "REXX/imc-%s %s %d %s %d", VER, LEVEL, DAY, month[MONTH - 1], YEAR + 1900);
+  sprintf(version, "REXX/imc-%s %s", VER, LEVEL);
   if (flags & RXVERSION) {
     puts(version);
     if (flags == RXVERSION)

@@ -142,7 +142,7 @@ int fileclose(char *name);      /* Free a file's hash table entry */
 /* in rxfn.c */
 int rxfn(char *name, int argc); /* Try to call a builtin function */
 int rxseterr(struct fileinfo *f);       /* Set rc to indicate a file's status */
-char *undelete(int *l);         /* Get last value without deleting it */
+char *nodelete(int *l);         /* Get last value without deleting it */
 
 /* in shell.c */
 int shell(char *command);       /* Interpret a shell command */

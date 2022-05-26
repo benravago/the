@@ -52,7 +52,7 @@ the.c: the.h proto.h thedefs.h
 util.c: the.h proto.h
 
 imc/%.o: imc/%.c
-	cc -c -O3 -Wall -fomit-frame-pointer -DNO_LDL -DFSTAT_FOR_CHARS -DDAY=25 -DMONTH=2 -DYEAR=102 -DREXXIMC=\"/usr/local/bin\" -DREXXLIB=\"/usr/local/lib\" -I. -o $@ $<
+	cc -c -O3 -Wall -fomit-frame-pointer -I. -o $@ $<
 
 imc/calc.c: imc/const.h imc/globals.h imc/functions.h imc/rexxsaa.h
 imc/globals.c: imc/const.h imc/globals.h imc/rexxsaa.h

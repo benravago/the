@@ -474,7 +474,7 @@ int delay;                      /* Whether to delay any signals */
             scanning(lineptr, &tmpchr, &len);
             lineptr += tmpchr;
             unplus(OPplus);     /* do "name = expri + 0" */
-            istart = undelete(&len) - cstackptr;
+            istart = nodelete(&len) - cstackptr;
             sllen = -1,         /* limit=default (=null) (length -1) */
                 sslen = -1,     /* step=default (=1)   */
                 fr = -1;        /* for=default (=null) */

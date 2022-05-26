@@ -221,7 +221,7 @@ char *s1, *s2;                  /* as required by bsearch()               */
   return strcmp(((struct fnlist *) s1)->name, ((struct fnlist *) s2)->name);
 }
 
-char *undelete(l)               /* A utility function like delete(l) except that */
+char *nodelete(l)               /* A utility function like delete(l) except that */
 int *l;                         /* the value isn't deleted from the stack */
 {
   char *ptr = cstackptr + ecstackptr - four;
@@ -2183,7 +2183,7 @@ int argc;
 
   if (argc != 1)
     die(Ecall);
-  s = undelete(&l);
+  s = nodelete(&l);
   l2 = l-- / 2;
   for (i = 0; i < l2; i++)
     c = s[i], s[i] = s[l - i], s[l - i] = c;
@@ -2287,7 +2287,7 @@ int argc;
     argc--, to = delete(&tol);
   if (argc != 1)
     die(Ecall);
-  s = undelete(&sl);
+  s = nodelete(&sl);
   if (sl < 0)
     die(Enoarg);
   if (tol == -1 && til == -1)

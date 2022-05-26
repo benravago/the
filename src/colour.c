@@ -437,7 +437,6 @@ static ATTRIBS valid_attribs[] = {
   { (char_t *) "reverse", 3, A_REVERSE, 0, TRUE, TRUE, FALSE },
   { (char_t *) "underline", 1, A_UNDERLINE, 0, TRUE, TRUE, FALSE },
   { (char_t *) "dark", 4, A_NORMAL, 0, TRUE, TRUE, FALSE },
-  { (char_t *) "italic", 1, A_ITALIC, 0, TRUE, TRUE, FALSE },
   { (char_t *) ",", 1, 8, 0, FALSE, TRUE, FALSE },
   { (char_t *) NULL, 0, 0, 0, FALSE, FALSE, FALSE },
 };
