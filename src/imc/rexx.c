@@ -853,13 +853,13 @@ int delay;                      /* Whether to delay any signals */
                 info->lastwr = 0;
                 c = sgstack[interplev].callon & (1 << Ihalt) | sgstack[interplev].delay & (1 << Ihalt);
                 if (!c)
-                  siginterrupt(2, 1);
+                  on_interrupt(2, 1);
                 l = 0;
                 while ((s = getc(info->fp)) != EOF && s != '\n') {
                   mtest(pull, pulllen, l + 1, 256);
                   pull[l++] = s;
                 }
-                siginterrupt(2, 0);
+                on_interrupt(2, 0);
                 if (delayed[Ihalt] && !c)
                   delayed[Ihalt] = 0, fseek(info->fp, info->rdpos, 0),  /* reset to */
                       die(Ehalt);       /* start of line, if possible */

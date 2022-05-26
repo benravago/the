@@ -1014,6 +1014,8 @@ int main(int argc, char *argv[]) {
   return (0);
 }
 
+int on_interrupt(int sig, int flag); /* in imc/util.c */
+
 static void init_signals(void) {
   signal(SIGQUIT, handle_signal);
   signal(SIGHUP, handle_signal);
@@ -1027,7 +1029,7 @@ static void init_signals(void) {
 #endif
   signal(SIGWINCH, handle_signal);
   signal(SIGWINCH, handle_signal);
-  siginterrupt(SIGWINCH, 1);
+  on_interrupt(SIGWINCH, 1);
 #if defined(SIGPIPE)
   signal(SIGPIPE, SIG_IGN);
 #endif

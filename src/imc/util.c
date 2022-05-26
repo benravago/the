@@ -13,6 +13,8 @@
 #include<sys/stat.h>
 #include<sys/file.h>
 #include<sys/param.h>
+#include <signal.h>
+
 #include"const.h"
 #include"globals.h"
 #include"functions.h"
@@ -2108,3 +2110,15 @@ char *name;                     /* return the code from close */
   ((hashent *) ptr)->value = 0;
   return ans;
 }
+
+int on_interrupt(int sig, int flag) {
+  struct sigaction act;
+  sigaction(sig, NULL, &act);
+  if (flag) {
+    act.sa_flags &= ~SA_RESTART;
+  } else {
+    act.sa_flags |= SA_RESTART;
+  }
+  return sigaction(sig, &act, NULL);
+}
+

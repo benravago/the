@@ -138,6 +138,7 @@ struct fileinfo *fileinit(char *name, char *filename, FILE * fp);       /* Store
 void funcinit(char *name, void *handle, int (*address)(), int saa);     /* Store an external function's details */
 void libsearch(void);           /* Ssearch for *.rxlib files */
 int fileclose(char *name);      /* Free a file's hash table entry */
+int on_interrupt(int sig, int flag); /* siginterrupt() */
 
 /* in rxfn.c */
 int rxfn(char *name, int argc); /* Try to call a builtin function */

@@ -21,9 +21,6 @@
 #include"functions.h"
 #define STDIN 0
 
-/* How to find the number of buffered bytes in a FILE *. */
-#define _CNT(fp) ((fp)->_IO_read_end - (fp)->_IO_read_ptr)
-
 void rxsource();
 void rxerror();
 void rxlength();
@@ -3374,12 +3371,12 @@ int argc;
   if (lines) {
     call = sgstack[interplev].callon & (1 << Ihalt) | sgstack[interplev].delay & (1 << Ihalt);
     if (!call)
-      siginterrupt(2, 1);       /* Allow ^C during read */
+      on_interrupt(2, 1);       /* Allow ^C during read */
     while ((ch = getc(fp)) != '\n' && ch != EOF) {
       mtest(pull, pulllen, len + 1, 256);
       pull[len++] = ch;
     }
-    siginterrupt(2, 0);
+    on_interrupt(2, 0);
     if (delayed[Ihalt] && !call)
       delayed[Ihalt] = 0, fseek(fp, info->rdpos, 0),    /* reset to start of line, if possible */
           die(Ehalt);
@@ -3638,10 +3635,10 @@ int argc;
   info->lastwr = 0;
   call = sgstack[interplev].callon & (1 << Ihalt) | sgstack[interplev].delay & (1 << Ihalt);
   if (!call)
-    siginterrupt(2, 1);         /* allow ^C to interrupt */
+    on_interrupt(2, 1);         /* allow ^C to interrupt */
   mtest(workptr, worklen, chars, chars - worklen);
   len = fread(workptr, 1, chars, fp);
-  siginterrupt(2, 0);
+  on_interrupt(2, 0);
   if (delayed[Ihalt] && !call)
     delayed[Ihalt] = 0, fseek(fp, info->rdpos, 0), die(Ehalt);
   if (len && info->rdline) {    /* Try to keep the line counter up to date */
@@ -3867,7 +3864,6 @@ int argc, line;
         fseek(info->fp, info->rdpos, 0);
       if (ioctl(fileno(info->fp), FIONREAD, &chars))
         chars = 0;
-      chars += _CNT(info->fp);  /* add the number of buffered chars */
     }
     if (line && info->persist && (filepos = ftell(info->fp)) >= 0) {
       lines = 0;
