@@ -37,8 +37,8 @@
 
 /*#define DEBUG 1*/
 
-static short sosdelback Args((bool));
-static short sosdelchar Args((bool));
+static short sosdelback (bool);
+static short sosdelchar (bool);
 
 short Sos_addline(char_t * params) {
   short rc = RC_OK;

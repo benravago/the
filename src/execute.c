@@ -577,7 +577,6 @@ short execute_os_command(char_t * cmd, bool quiet, bool pause) {
 #define SHELL "SHELL"
   short rc = 0;
 
-  STARTUPCONSOLE();
   if (!quiet && curses_started) {
     attrset(A_NORMAL);
     clear();

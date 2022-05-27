@@ -388,9 +388,7 @@ int main(int argc, char *argv[]) {
         slk_format = atoi(optarg);
         if (slk_format == 0) {
           cleanup();
-          STARTUPCONSOLE();
           display_error(4, (char_t *) optarg, FALSE);
-          CLOSEDOWNCONSOLE();
           return (4);
         }
         if (slk_format > MAX_SLK_FORMAT) {
@@ -398,9 +396,7 @@ int main(int argc, char *argv[]) {
 
           cleanup();
           sprintf((char *) buf, "SLK format must be >= 1 and <= %d", MAX_SLK_FORMAT);
-          STARTUPCONSOLE();
           display_error(6, (char_t *) buf, FALSE);
-          CLOSEDOWNCONSOLE();
           return (4);
         }
         slk_format_switch = slk_format;
@@ -428,9 +424,7 @@ int main(int argc, char *argv[]) {
         startup_line = (line_t) atol(optarg);
         if (startup_line < 0L) {
           cleanup();
-          STARTUPCONSOLE();
           display_error(5, (char_t *) "startup line MUST be > 0", FALSE);
-          CLOSEDOWNCONSOLE();
           return (4);
         }
         break;
@@ -438,9 +432,7 @@ int main(int argc, char *argv[]) {
         startup_column = (length_t) atoi(optarg);
         if (startup_column == 0) {
           cleanup();
-          STARTUPCONSOLE();
           display_error(5, (char_t *) "startup column MUST be > 0", FALSE);
-          CLOSEDOWNCONSOLE();
           return (4);
         }
         break;
@@ -459,9 +451,7 @@ int main(int argc, char *argv[]) {
       case 'p':                /* profile file name */
         if ((specified_prf = (char_t *) malloc((strlen(optarg) + 1) * sizeof(char_t))) == NULL) {
           cleanup();
-          STARTUPCONSOLE();
           display_error(30, (char_t *) "", FALSE);
-          CLOSEDOWNCONSOLE();
           return (2);
         }
         strcpy((char *) specified_prf, (char *) optarg);
@@ -469,9 +459,7 @@ int main(int argc, char *argv[]) {
       case 'a':                /* profile arguments */
         if ((prf_arg = (char_t *) malloc((strlen(optarg) + 1) * sizeof(char_t))) == NULL) {
           cleanup();
-          STARTUPCONSOLE();
           display_error(30, (char_t *) "", FALSE);
-          CLOSEDOWNCONSOLE();
           return (3);
         }
         strcpy((char *) prf_arg, (char *) optarg);
@@ -484,26 +472,20 @@ int main(int argc, char *argv[]) {
             sprintf(mygetopt_opts, "%s", optarg);
           else
             sprintf(mygetopt_opts, "- width MUST be <= %ld", MAX_WIDTH_NUM);
-          STARTUPCONSOLE();
           display_error(rc, (char_t *) mygetopt_opts, FALSE);
-          CLOSEDOWNCONSOLE();
           return (4);
         }
         max_line_length = atol(optarg);
         if (max_line_length < 10L) {
           cleanup();
-          STARTUPCONSOLE();
           display_error(5, (char_t *) "- width MUST be >= 10", FALSE);
-          CLOSEDOWNCONSOLE();
           return (4);
         }
         if (max_line_length > MAX_WIDTH_NUM) {
           cleanup();
           /* safe to use mygetopt_opts as we are bailing out */
           sprintf(mygetopt_opts, "- width MUST be <= %ld", MAX_WIDTH_NUM);
-          STARTUPCONSOLE();
           display_error(6, (char_t *) mygetopt_opts, FALSE);
-          CLOSEDOWNCONSOLE();
           return (5);
         }
         break;
@@ -511,17 +493,13 @@ int main(int argc, char *argv[]) {
         display_length = (unsigned short) atoi(optarg);
         if (display_length == 0) {
           cleanup();
-          STARTUPCONSOLE();
           display_error(5, (char_t *) "- display length MUST be > 0", FALSE);
-          CLOSEDOWNCONSOLE();
           return (4);
         }
         break;
       case 'h':
         cleanup();
-        STARTUPCONSOLE();
         display_info((char_t *) my_argv[0]);
-        CLOSEDOWNCONSOLE();
         return (0);
         break;
       case '1':                /* allow single instances */
@@ -549,9 +527,7 @@ int main(int argc, char *argv[]) {
       /* for each trailing arg; assumed to be filenames, add each to a list of filenames to be edited */
       if ((current_file_name = add_LINE(first_file_name, current_file_name, strrmdup(strtrans((char_t *) my_argv[optind], OSLASH, ISLASH), ISLASH, TRUE), strlen(my_argv[optind]), 0, TRUE)) == NULL) {
         cleanup();
-        STARTUPCONSOLE();
         display_error(30, (char_t *) "", FALSE);
-        CLOSEDOWNCONSOLE();
         return (6);
       }
       if (first_file_name == NULL)
@@ -562,9 +538,7 @@ int main(int argc, char *argv[]) {
     /* add the current dir to the list of files to be edited */
     if ((current_file_name = add_LINE(first_file_name, current_file_name, CURRENT_DIR, strlen((char *) CURRENT_DIR), 0, TRUE)) == NULL) {
       cleanup();
-      STARTUPCONSOLE();
       display_error(30, (char_t *) "", FALSE);
-      CLOSEDOWNCONSOLE();
       return (7);
     }
     if (first_file_name == NULL)
@@ -578,9 +552,7 @@ int main(int argc, char *argv[]) {
   rc = allocate_working_memory();
   if (rc) {
     cleanup();
-    STARTUPCONSOLE();
     display_error(30, (char_t *) "", FALSE);
-    CLOSEDOWNCONSOLE();
     return (rc);
   }
   /*
@@ -592,9 +564,7 @@ int main(int argc, char *argv[]) {
   linebuf_size = length;
   if ((linebuf = (char_t *) malloc(linebuf_size)) == NULL) {
     cleanup();
-    STARTUPCONSOLE();
     display_error(30, (char_t *) "", FALSE);
-    CLOSEDOWNCONSOLE();
     return (30);
   }
   /*
@@ -615,9 +585,7 @@ int main(int argc, char *argv[]) {
    */
   if (display_length > 0 && display_length > max_line_length) {
     cleanup();
-    STARTUPCONSOLE();
     display_error(6, (char_t *) "- width MUST be >= display length", FALSE);
-    CLOSEDOWNCONSOLE();
     return (8);
   }
   /*
@@ -662,9 +630,7 @@ int main(int argc, char *argv[]) {
    */
   if ((pre_rec = (char_t *) malloc((MAX_PREFIX_WIDTH + 1) * sizeof(char_t))) == NULL) {
     cleanup();
-    STARTUPCONSOLE();
     display_error(30, (char_t *) "", FALSE);
-    CLOSEDOWNCONSOLE();
     return (16);
   }
   memset(pre_rec, ' ', MAX_PREFIX_WIDTH + 1);
@@ -677,9 +643,7 @@ int main(int argc, char *argv[]) {
   strcat((char *) dir_pathname, (char *) dirfilename);
   if (splitpath(dir_pathname) != RC_OK) {
     cleanup();
-    STARTUPCONSOLE();
     display_error(7, dir_pathname, FALSE);
-    CLOSEDOWNCONSOLE();
     return (18);
   }
   strcpy((char *) dir_pathname, (char *) sp_path);
@@ -745,9 +709,7 @@ int main(int argc, char *argv[]) {
       if ((rc = get_file((char_t *) current_file_name->line)) != RC_OK) {
         cleanup();
         if (rc == RC_DISK_FULL) {
-          STARTUPCONSOLE();
           display_error(57, (char_t *) "...probably", FALSE);
-          CLOSEDOWNCONSOLE();
         }
         return (21);
       }
@@ -767,9 +729,7 @@ int main(int argc, char *argv[]) {
      */
     if (number_of_files != 0) {
       sprintf((char *) rec, "%ld", number_of_files);
-      STARTUPCONSOLE();
       display_error(77, rec, FALSE);
-      CLOSEDOWNCONSOLE();
     }
     cleanup();
     return (0);
@@ -850,16 +810,12 @@ int main(int argc, char *argv[]) {
    */
   if (create_statusline_window() != RC_OK) {
     cleanup();
-    STARTUPCONSOLE();
     display_error(0, (char_t *) "creating status line window", FALSE);
-    CLOSEDOWNCONSOLE();
     return (23);
   }
   if (create_filetabs_window() != RC_OK) {
     cleanup();
-    STARTUPCONSOLE();
     display_error(0, (char_t *) "creating filetabs window", FALSE);
-    CLOSEDOWNCONSOLE();
     return (23);
   }
   /*
@@ -996,7 +952,6 @@ int main(int argc, char *argv[]) {
   }
   last_option = first_option = lll_free(first_option);
   cleanup();
-  CLOSEDOWNCONSOLE();
   return (0);
 }
 
@@ -1313,7 +1268,6 @@ static void handle_signal(int err) {
   /*
    * Lets not push our luck in the signal handler, and just die...
    */
-  CLOSEDOWNCONSOLE();
   exit(25);
 }
 

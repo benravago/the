@@ -1,49 +1,27 @@
-/*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2001 Mark Hessling
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling,  M.Hessling@qut.edu.au  http://www.lightlink.com/hessling/
- */
+// SPDX-FileCopyrightText: 2001 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
 
-/*
-$Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
-*/
+#include <alloca.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <locale.h>
+#include <memory.h>
+#include <ncurses.h>
+#include <regex.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
+
 
 #include "thedefs.h"
-/*
- * Handle Win32 console when using PDCurses GUI
- */
-#define STARTUPCONSOLE()
-#define CLOSEDOWNCONSOLE()
-
-#include <ncurses.h>
-#define CURSES_H_INCLUDED
-
-#define Args(a) a
 
 #define ESLASH '/'
 #define ESTR_SLASH (char_t *)"/"
@@ -53,50 +31,10 @@ $Id: the.h,v 1.87 2020/05/31 06:09:13 mark Exp $
 #define ISTR_SLASH ESTR_SLASH
 #define CURRENT_DIR (char_t *)"."
 
-#include <errno.h>
-
-#include <ctype.h>
-
-#include <sys/types.h>
-
-#include <unistd.h>
-
-#include <stdlib.h>
-
-#include <alloca.h>
-
-/*
- * The following mess is because some versions of g++ (RedHat 7.1)
- * cannot compile <string.h> :-(
- */
-#include <string.h>
-
-#include <sys/stat.h>
-
-#include <sys/file.h>
-
-#include <memory.h>
-
-#include <fcntl.h>
-
-#include <locale.h>
-
-#include <time.h>
-#include <sys/time.h>
-
-#include <signal.h>
-
-#include <regex.h>
-
 #define MAX_SLK    12
 #define MAX_SLK_FORMAT 4
 
-/*---------------------------------------------------------------------*/
-/* End of OS-specific defines                                          */
-/*---------------------------------------------------------------------*/
-
-#define set_colour(attr) ((colour_support) ? (((attr)->pair) ? COLOR_PAIR((attr)->pair) | (attr)->mod : (attr)->mod) \
-                                           : ((attr)->mono))
+#define set_colour(attr) ((colour_support) ? (((attr)->pair) ? COLOR_PAIR((attr)->pair) | (attr)->mod : (attr)->mod) : ((attr)->mono))
 
 #define ATTR2PAIR(fg,bg) (bg|(fg<<3))
 #define FOREFROMPAIR(p)  (p>>3)
@@ -563,12 +501,12 @@ struct prefix_commands {
   bool valid_on_tof;            /* is command allowed on Top of File line */
   bool valid_on_bof;            /* is command allowed on Bottom of File line */
   bool valid_in_readonly;       /* TRUE if command valid in readonly mode */
-  short (*function) Args( (THE_PPC *, short, line_t));
+  short (*function)  (THE_PPC *, short, line_t);
   line_t default_target;      /* number of lines to process if not specified */
   bool ignore_scope;            /* TRUE if scope to be ignored when finding target */
   bool use_last_not_in_scope;   /* TRUE if starting at end of shadow lines */
   int priority;                 /* priority of prefix command */
-  short (*post_function) Args( (THE_PPC *, short, line_t));
+  short (*post_function)  (THE_PPC *, short, line_t);
   bool text_arg;                /* is argument a plain text arg like for '.' ? */
   bool allowed_on_shadow_line;  /* is command allowed on shadow line ? */
 };
@@ -1442,7 +1380,7 @@ struct window_areas {
 };
 typedef struct window_areas AREAS;
 
-typedef short (ExtractFunction) Args((short, short, char_t *, char_t, line_t, char_t *, line_t));
+typedef short (ExtractFunction) (short, short, char_t *, char_t, line_t, char_t *, line_t);
 
 /* structure for query and implied extract */
 struct query_item {
