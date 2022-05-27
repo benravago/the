@@ -870,7 +870,7 @@ int delay;                      /* Whether to delay any signals */
                 if (info->lastwr)
                   fseek(info->fp, info->rdpos, 0);
                 info->lastwr = 0;
-                c = sgstack[interplev].callon & (1 << Ihalt) | (sgstack[interplev].delay & (1 << Ihalt));
+                c = (sgstack[interplev].callon & (1 << Ihalt)) | (sgstack[interplev].delay & (1 << Ihalt));
                 if (!c)
                   on_interrupt(2, 1);
                 l = 0;

@@ -1684,12 +1684,12 @@ int stmt, after, error;
     tracestr("<EOL>\n");
     return;
   }
-  while (start < end && (start[0] == 0 || start[0] == ';' || (start[0] == ' ' | start[0] == '\t'))) {
+  while (start < end && (start[0] == 0 || start[0] == ';' || (start[0] == ' ') | (start[0] == '\t'))) {
     if (line && start + 1 == source[line + 1])
       ++line;
     start++;                    /* step past uninteresting chars */
   }
-  while (start < end && (end[-1] == 0 || end[-1] == ';' || (end[-1] == ' ' | end[-1] == '\t')))
+  while (start < end && (end[-1] == 0 || end[-1] == ';' || (end[-1] == ' ') | (end[-1] == '\t')))
     end--;                      /* delete uninteresting trailing chars */
   if (start >= end)
     return;                     /* Nothing to print. */
