@@ -1370,7 +1370,7 @@ short execute_set_point(char_t curr_screen, VIEW_DETAILS * curr_view, char_t * n
      */
     curr_name = find_line_name(curr, name);
     if (curr_name)
-      ll_del(&curr->first_name, NULL, curr_name, DIRECTION_FORWARD, the_free);
+      ll_del(&curr->first_name, NULL, curr_name, DIRECTION_FORWARD, free);
   }
   if (point_on) {
     /*

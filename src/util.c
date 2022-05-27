@@ -1094,7 +1094,7 @@ LINE *delete_LINE(LINE ** first, LINE ** last, LINE * curr, short direction, boo
 {
   if (delete_names) {
     if (curr->first_name != (THELIST *) NULL) {
-      ll_free(curr->first_name, the_free);
+      ll_free(curr->first_name, free);
       curr->first_name = NULL;
     }
     if (curr->name) {

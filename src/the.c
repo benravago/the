@@ -263,22 +263,6 @@ int main(int argc, char *argv[]) {
    */
   CURRENT_VIEW = (VIEW_DETAILS *) NULL;
   /*
-   * Set up our memory management calls. This is where you can specify a
-   * debugging memory manager.
-   */
-  if (getenv("NO_FLISTS")) {
-    the_malloc = malloc;
-    the_calloc = calloc;
-    the_free = free;
-    the_realloc = realloc;
-  } else {
-    the_malloc = get_a_block;
-    the_calloc = NULL;
-    the_free = give_a_block;
-    the_realloc = resize_a_block;
-    init_memory_table();
-  }
-  /*
    * Set up flag to indicate that we are not interactive...yet.
    */
   in_profile = TRUE;
@@ -1276,10 +1260,6 @@ void cleanup(void) {
     free(stdinprofile);
   }
 
-  /*
-   * Free up the working memory
-   */
-  the_free_flists();
   return;
 }
 

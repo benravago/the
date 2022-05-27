@@ -5,7 +5,7 @@ clean:
 	rm -f *.o imc/*.o
 	rm -f the
 
-the: box.o colour.o column.o comm1.o comm2.o comm3.o comm4.o comm5.o commset1.o commset2.o commsos.o commutil.o cursor.o default.o directry.o edit.o error.o execute.o file.o getch.o linked.o mouse.o memory.o nonansi.o parser.o prefix.o print.o query.o query1.o query2.o reserved.o rexx.o scroll.o show.o single.o sort.o target.o the.o util.o imc/calc.o imc/globals.o imc/interface.o imc/rexx.o imc/rxfn.o imc/shell.o imc/util.o
+the: box.o colour.o column.o comm1.o comm2.o comm3.o comm4.o comm5.o commset1.o commset2.o commsos.o commutil.o cursor.o default.o directry.o edit.o error.o execute.o file.o getch.o linked.o mouse.o nonansi.o parser.o prefix.o print.o query.o query1.o query2.o reserved.o rexx.o scroll.o show.o single.o sort.o target.o the.o util.o imc/calc.o imc/globals.o imc/interface.o imc/rexx.o imc/rxfn.o imc/shell.o imc/util.o
 	cc -lncurses -lm -o $@ $^
 
 %.o: %.c
@@ -32,7 +32,6 @@ execute.c: the.h proto.h
 file.c: the.h proto.h directry.h
 getch.c: getch.h
 linked.c: the.h proto.h
-memory.c: the.h proto.h
 mouse.c: the.h proto.h
 nonansi.c: the.h proto.h
 parser.c: the.h proto.h

@@ -1110,7 +1110,6 @@ struct show_line {
    * The following 2 array MUST be the same size
    */
   chtype highlighting[THE_MAX_SCREEN_WIDTH];    /* array of colours for syntax highlighting */
-//   char_t highlight_type[THE_MAX_SCREEN_WIDTH];    /* array of syntax types for later querying */
   unsigned char *highlight_type;
   bool is_highlighting;         /* TRUE if this line contains syntax highlighting */
   bool is_current_line;         /* TRUE if this line is the current line */
@@ -1469,20 +1468,6 @@ typedef struct {
   int the_header_name_len;
   line_t the_header;
 } the_header_mapping;
-
-#if defined(MAIN)
-#define _THE_FAR
-void *(*the_malloc)(size_t);    /* ptr to some malloc(size) */
-void *(*the_calloc)(size_t, size_t);    /* ptr to some calloc(num,size) */
-void (*the_free)(void *);       /* ptr to some free(ptr) */
-void *(*the_realloc)(void *, size_t);   /* ptr to some realloc(ptr,size) */
-#else
-#define _THE_FAR
-extern void *(*the_malloc)(unsigned long);
-extern void *(*the_calloc)(unsigned long);
-extern void (*the_free)(void *);
-extern void *(*the_realloc)(void *, unsigned long);
-#endif
 
 #include "vars.h"
 

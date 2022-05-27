@@ -464,14 +464,6 @@ int find_mouse_key_value_in_window Args((char_t *, char_t *));
 short ScrollbarHorz Args((char_t *));
 short ScrollbarVert Args((char_t *));
 
-                                                           /* memory.c */
-void init_memory_table Args((void));
-void free_memory_flists Args((void));
-void *get_a_block Args((size_t));
-void give_a_block Args((void *));
-void *resize_a_block Args((void *, size_t));
-void the_free_flists Args((void));
-
                                                            /* single.c */
 int initialise_fifo Args((LINE * first_file_name, line_t startup_line, length_t startup_column, bool ro));
 int process_fifo_input Args((int key));

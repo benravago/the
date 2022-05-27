@@ -334,9 +334,9 @@ char_t *mouse_key_number_to_name(int key_number, char_t * key_name, int *shift) 
 
 /* Function:
  *   find the matching mouse key value for the supplied name
- * Parameters:                                                         
- *   mnemonic: the key name to be matched                              
- *   win_name: the window to be matched                                
+ * Parameters:
+ *   mnemonic: the key name to be matched
+ *   win_name: the window to be matched
  * Returns:
  *   the mouse button, action and modifier or -1 if error
  */
@@ -456,13 +456,13 @@ int find_mouse_key_value(char_t * mnemonic) {
   return (key);
 }
 
-/* Function: 
- *   find the matching mouse key value for the supplied name in the specified window.                                
- * Parameters:                                                         
- *   mnemonic: the key name to be matched                              
- *   win_name: the window to be matched                                
+/* Function:
+ *   find the matching mouse key value for the supplied name in the specified window.
+ * Parameters:
+ *   mnemonic: the key name to be matched
+ *   win_name: the window to be matched
  * Returns:
- *   the mouse button, action, modifier and window or -1 if error.                                         
+ *   the mouse button, action, modifier and window or -1 if error.
  */
 int find_mouse_key_value_in_window(char_t * mnemonic, char_t * win_name) {
   register short i = 0;
