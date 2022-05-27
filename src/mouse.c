@@ -1,43 +1,18 @@
-/* MOUSE.C - THE mouse handling                                        */
-/* This file contains all commands that can be assigned to function    */
-/* keys or typed on the command line.                                  */
+// SPDX-FileCopyrightText: 2013 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
+
 /*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2013 Mark Hessling
+ * THE mouse handling.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling, mark@rexx.org  http://www.rexx.org/
+ * This file contains all commands that can be assigned to function keys or typed on the command line.
  */
 
-#include <the.h>
-#include <proto.h>
+#include "the.h"
+#include "proto.h"
 
 /*
- * Following #defines to cater for those platforms that don't
- * have mouse definitions in <curses.h>
+ * Following #defines to cater for those platforms that don't have mouse definitions in <curses.h>
  */
 #define MY_BUTTON_SHIFT           0010
 #define MY_BUTTON_CONTROL         0020
@@ -49,6 +24,7 @@ MEVENT ncurses_mouse_event;
  * 210987654321098765432109876543210
  *                maaaaabbbbb
  */
+
 /*
  * Button masks
  */
@@ -87,38 +63,37 @@ MEVENT ncurses_mouse_event;
 
 #define MOUSE_INFO_TO_KEY(w,b,ba,bm) ((w)|(b<<MOUSE_BUTTON_OFFSET)|(ba<<MOUSE_ACTION_OFFSET)|((bm>>3)<<MOUSE_MODIFIER_OFFSET))
 
-static char_t *button_names[] = {
-  (char_t *) "-button 0-",
-  (char_t *) "LB",            /* left button */
-  (char_t *) "MB",            /* middle button */
-  (char_t *) "RB",            /* right button */
-  (char_t *) "UW",            /* wheel up */
-  (char_t *) "DW",            /* wheel down */
-  (char_t *) "LW",            /* wheel left */
-  (char_t *) "RW",            /* wheel right */
+static char *button_names[] = {
+  "-button 0-",
+  "LB",            /* left button */
+  "MB",            /* middle button */
+  "RB",            /* right button */
+  "UW",            /* wheel up */
+  "DW",            /* wheel down */
+  "LW",            /* wheel left */
+  "RW",            /* wheel right */
 };
 
-static char_t *button_modifier_names[] = {
-  (char_t *) "",
-  (char_t *) "S-",            /* shift */
-  (char_t *) "C-",            /* control */
-  (char_t *) "?",             /* unknown */
-  (char_t *) "A-",            /* alt */
+static char *button_modifier_names[] = {
+  "",
+  "S-",            /* shift */
+  "C-",            /* control */
+  "?",             /* unknown */
+  "A-",            /* alt */
 };
 
-static char_t *button_action_names[] = {
-  (char_t *) "R",             /* release */
-  (char_t *) "P",             /* press */
-  (char_t *) "C",             /* clicked */
-  (char_t *) "2",             /* double clicked */
-  (char_t *) "3",             /* triple clicked */
-  (char_t *) "D",             /* dragged */
-  (char_t *) "S",             /* scrolled */
+static char *button_action_names[] = {
+  "R",             /* release */
+  "P",             /* press */
+  "C",             /* clicked */
+  "2",             /* double clicked */
+  "3",             /* triple clicked */
+  "D",             /* dragged */
+  "S",             /* scrolled */
 };
 
 /*
- * These two variables are saved by each mouse key press or reset to -1
- * when a normal key it pressed.
+ * These two variables are saved by each mouse key press or reset to -1 when a normal key it pressed.
  */
 static int last_mouse_x_pos = -1;
 static int last_mouse_y_pos = -1;
@@ -127,8 +102,7 @@ void wmouse_position(WINDOW * win, int *y, int *x) {
   int begy, begx, maxy, maxx;
 
   /*
-   * if the current mouse position is outside the provided window, put
-   * -1 in x and y
+   * if the current mouse position is outside the provided window, put -1 in x and y
    */
   if (win == (WINDOW *) NULL) {
     *y = *x = (-1);
@@ -144,6 +118,7 @@ void wmouse_position(WINDOW * win, int *y, int *x) {
   }
   return;
 }
+
 short get_mouse_info(int *button, int *button_action, int *button_modifier) {
   short rc = RC_OK;
 
@@ -154,40 +129,41 @@ short get_mouse_info(int *button, int *button_action, int *button_modifier) {
   last_mouse_x_pos = ncurses_mouse_event.x;
   last_mouse_y_pos = ncurses_mouse_event.y;
 
-  if (ncurses_mouse_event.bstate & BUTTON1_RELEASED || ncurses_mouse_event.bstate & BUTTON1_PRESSED || ncurses_mouse_event.bstate & BUTTON1_CLICKED || ncurses_mouse_event.bstate & BUTTON1_DOUBLE_CLICKED)
+  if (ncurses_mouse_event.bstate & BUTTON1_RELEASED || ncurses_mouse_event.bstate & BUTTON1_PRESSED || ncurses_mouse_event.bstate & BUTTON1_CLICKED || ncurses_mouse_event.bstate & BUTTON1_DOUBLE_CLICKED) {
     *button = 1;
-  else {
-    if (ncurses_mouse_event.bstate & BUTTON2_RELEASED || ncurses_mouse_event.bstate & BUTTON2_PRESSED || ncurses_mouse_event.bstate & BUTTON2_CLICKED || ncurses_mouse_event.bstate & BUTTON2_DOUBLE_CLICKED)
+  } else {
+    if (ncurses_mouse_event.bstate & BUTTON2_RELEASED || ncurses_mouse_event.bstate & BUTTON2_PRESSED || ncurses_mouse_event.bstate & BUTTON2_CLICKED || ncurses_mouse_event.bstate & BUTTON2_DOUBLE_CLICKED) {
       *button = 2;
-    else {
-      if (ncurses_mouse_event.bstate & BUTTON3_RELEASED || ncurses_mouse_event.bstate & BUTTON3_PRESSED || ncurses_mouse_event.bstate & BUTTON3_CLICKED || ncurses_mouse_event.bstate & BUTTON3_DOUBLE_CLICKED)
+    } else {
+      if (ncurses_mouse_event.bstate & BUTTON3_RELEASED || ncurses_mouse_event.bstate & BUTTON3_PRESSED || ncurses_mouse_event.bstate & BUTTON3_CLICKED || ncurses_mouse_event.bstate & BUTTON3_DOUBLE_CLICKED) {
         *button = 3;
-      else {
+      } else {
         *button = *button_action = *button_modifier = 0;
         return RC_INVALID_OPERAND;
       }
     }
   }
-  if (ncurses_mouse_event.bstate & BUTTON_SHIFT)
+  if (ncurses_mouse_event.bstate & BUTTON_SHIFT) {
     *button_modifier = MY_BUTTON_SHIFT;
-  else if (ncurses_mouse_event.bstate & BUTTON_CTRL)
+  } else if (ncurses_mouse_event.bstate & BUTTON_CTRL) {
     *button_modifier = MY_BUTTON_CONTROL;
-  else if (ncurses_mouse_event.bstate & BUTTON_ALT)
+  } else if (ncurses_mouse_event.bstate & BUTTON_ALT) {
     *button_modifier = MY_BUTTON_ALT;
-  else
+  } else {
     *button_modifier = 0;
-
-  if (ncurses_mouse_event.bstate & BUTTON1_RELEASED || ncurses_mouse_event.bstate & BUTTON2_RELEASED || ncurses_mouse_event.bstate & BUTTON3_RELEASED)
+  }
+  if (ncurses_mouse_event.bstate & BUTTON1_RELEASED || ncurses_mouse_event.bstate & BUTTON2_RELEASED || ncurses_mouse_event.bstate & BUTTON3_RELEASED) {
     *button_action = BUTTON_RELEASED;
-  else {
-    if (ncurses_mouse_event.bstate & BUTTON1_PRESSED || ncurses_mouse_event.bstate & BUTTON2_PRESSED || ncurses_mouse_event.bstate & BUTTON3_PRESSED)
+  } else {
+    if (ncurses_mouse_event.bstate & BUTTON1_PRESSED || ncurses_mouse_event.bstate & BUTTON2_PRESSED || ncurses_mouse_event.bstate & BUTTON3_PRESSED) {
       *button_action = BUTTON_PRESSED;
-    else {
-      if (ncurses_mouse_event.bstate & BUTTON1_CLICKED || ncurses_mouse_event.bstate & BUTTON2_CLICKED || ncurses_mouse_event.bstate & BUTTON3_CLICKED)
+    } else {
+      if (ncurses_mouse_event.bstate & BUTTON1_CLICKED || ncurses_mouse_event.bstate & BUTTON2_CLICKED || ncurses_mouse_event.bstate & BUTTON3_CLICKED) {
         *button_action = BUTTON_CLICKED;
-      else {
-        if (ncurses_mouse_event.bstate & BUTTON1_DOUBLE_CLICKED || ncurses_mouse_event.bstate & BUTTON2_DOUBLE_CLICKED || ncurses_mouse_event.bstate & BUTTON3_DOUBLE_CLICKED)
+      } else {
+        if (ncurses_mouse_event.bstate & BUTTON1_DOUBLE_CLICKED || ncurses_mouse_event.bstate & BUTTON2_DOUBLE_CLICKED || ncurses_mouse_event.bstate & BUTTON3_DOUBLE_CLICKED) {
           *button_action = BUTTON_DOUBLE_CLICKED;
+        }
       }
     }
   }
@@ -213,6 +189,7 @@ short THEMouse(char_t * params) {
   rc = execute_mouse_commands(MOUSE_INFO_TO_KEY(w, curr_button, curr_button_action, curr_button_modifier));
   return (rc);
 }
+
 void which_window_is_mouse_in(char_t * scrn, int *w) {
   char_t i = 0;
   int j = 0;
@@ -222,8 +199,7 @@ void which_window_is_mouse_in(char_t * scrn, int *w) {
     for (j = 0; j < VIEW_WINDOWS; j++) {
       if (screen[i].win[j] != (WINDOW *) NULL) {
         wmouse_position(screen[i].win[j], &y, &x);
-        if (y != (-1)
-            && x != (-1)) {
+        if (y != (-1) && x != (-1)) {
           *scrn = i;
           *w = j;
           return;
@@ -232,35 +208,29 @@ void which_window_is_mouse_in(char_t * scrn, int *w) {
     }
   }
   /*
-   * To get here, the mouse is NOT in any of the view windows; is it in
-   * the status line ?
+   * To get here, the mouse is NOT in any of the view windows; is it in the status line ?
    */
   wmouse_position(statarea, &y, &x);
-  if (y != (-1)
-      && x != (-1)) {
+  if (y != (-1) && x != (-1)) {
     *w = WINDOW_STATAREA;
     *scrn = current_screen;
     return;
   }
   /*
-   * To get here, the mouse is NOT in any of the view windows; or the
-   * status line. Is it in the FILETABS window ?
+   * To get here, the mouse is NOT in any of the view windows; or the status line. Is it in the FILETABS window ?
    */
   wmouse_position(filetabs, &y, &x);
-  if (y != (-1)
-      && x != (-1)) {
+  if (y != (-1) && x != (-1)) {
     *w = WINDOW_FILETABS;
     *scrn = current_screen;
     return;
   }
   /*
-   * To get here, the mouse is NOT in any of the view windows; or the
-   * status line, or the FILETABS window. Is it in the DIVIDER window ?
+   * To get here, the mouse is NOT in any of the view windows; or the status line, or the FILETABS window. Is it in the DIVIDER window ?
    */
   if (display_screens > 1 && !horizontal) {
     wmouse_position(divider, &y, &x);
-    if (y != (-1)
-        && x != (-1)) {
+    if (y != (-1) && x != (-1)) {
       *w = WINDOW_DIVIDER;
       *scrn = current_screen;
       return;
@@ -272,16 +242,19 @@ void which_window_is_mouse_in(char_t * scrn, int *w) {
   *w = WINDOW_ALL /* was (-1) */ ;
   return;
 }
+
 void reset_saved_mouse_pos(void) {
   last_mouse_x_pos = -1;
   last_mouse_y_pos = -1;
   return;
 }
+
 void get_saved_mouse_pos(int *y, int *x) {
   *x = last_mouse_x_pos;
   *y = last_mouse_y_pos;
   return;
 }
+
 void initialise_mouse_commands(void) {
 
   /*
@@ -314,9 +287,9 @@ void initialise_mouse_commands(void) {
    * Default mouse actions in STATAREA
    */
   add_define(&first_mouse_define, &last_mouse_define, WINDOW_STATAREA | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "STATUS", FALSE, FALSE, 0);
-/*
- * Default mouse actions in FILETABS
- */
+  /*
+   * Default mouse actions in FILETABS
+   */
   add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILETABS | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "TABFILE", FALSE, FALSE, 0);
   /*
    * Default mouse actions in IDLINE
@@ -330,10 +303,11 @@ void initialise_mouse_commands(void) {
 
   return;
 }
-int mouse_info_to_key(int w, int button, int button_action, int button_modifier) {
 
+int mouse_info_to_key(int w, int button, int button_action, int button_modifier) {
   return (MOUSE_INFO_TO_KEY(w, button, button_action, button_modifier));
 }
+
 char_t *mouse_key_number_to_name(int key_number, char_t * key_name, int *shift) {
   register int i = 0;
   int w = 0, b = 0, ba = 0, bm = 0;
@@ -344,9 +318,9 @@ char_t *mouse_key_number_to_name(int key_number, char_t * key_name, int *shift) 
   ba = (MOUSE_ACTION_MASK(key_number) >> MOUSE_ACTION_OFFSET);
   bm = (MOUSE_MODIFIER_MASK(key_number) >> MOUSE_MODIFIER_OFFSET);
   *shift = bm;
-  if (w == WINDOW_ALL)
+  if (w == WINDOW_ALL) {
     win_name = (char_t *) "*";
-  else {
+  } else {
     for (i = 0; i < ATTR_MAX; i++) {
       if (w == valid_areas[i].area_window && valid_areas[i].actual_window) {
         win_name = valid_areas[i].area;
@@ -358,13 +332,15 @@ char_t *mouse_key_number_to_name(int key_number, char_t * key_name, int *shift) 
   return (key_name);
 }
 
-int find_mouse_key_value(char_t * mnemonic)
-/*   Function: find the matching mouse key value for the supplied name */
-/* Parameters:                                                         */
-/*   mnemonic: the key name to be matched                              */
-/*   win_name: the window to be matched                                */
-/*    Returns: the mouse button, action and modifier or -1 if error    */
-{
+/* Function:
+ *   find the matching mouse key value for the supplied name
+ * Parameters:                                                         
+ *   mnemonic: the key name to be matched                              
+ *   win_name: the window to be matched                                
+ * Returns:
+ *   the mouse button, action and modifier or -1 if error
+ */
+int find_mouse_key_value(char_t * mnemonic) {
   int key = 0, len = 0;
   int b = 0, ba = 0, bm = 0;
   char_t tmp_buf[6];
@@ -392,22 +368,27 @@ int find_mouse_key_value(char_t * mnemonic)
    * Validate button modifier
    */
   switch (tmp_buf[0]) {
+
     case 'N':
     case 'n':
       bm = 0;
       break;
+
     case 'S':
     case 's':
       bm = MOUSE_SHIFT;
       break;
+
     case 'C':
     case 'c':
       bm = MOUSE_CONTROL;
       break;
+
     case 'A':
     case 'a':
       bm = MOUSE_ALT;
       break;
+
     default:
       display_error(1, mnemonic, FALSE);
       return (-1);
@@ -417,25 +398,31 @@ int find_mouse_key_value(char_t * mnemonic)
    * Validate button action
    */
   switch (tmp_buf[2]) {
+
     case 'P':
     case 'p':
       ba = MOUSE_PRESS;
       break;
+
     case 'C':
     case 'c':
       ba = MOUSE_CLICK;
       break;
+
     case 'R':
     case 'r':
       ba = MOUSE_RELEASE;
       break;
+
     case '2':
       ba = MOUSE_DOUBLE_CLICK;
       break;
+
     case 'D':
     case 'd':
       ba = MOUSE_DRAG;
       break;
+
     default:
       display_error(1, mnemonic, FALSE);
       return (-1);
@@ -449,14 +436,17 @@ int find_mouse_key_value(char_t * mnemonic)
     case 'l':
       b = MOUSE_LEFT;
       break;
+
     case 'R':
     case 'r':
       b = MOUSE_RIGHT;
       break;
+
     case 'M':
     case 'm':
       b = MOUSE_MIDDLE;
       break;
+
     default:
       display_error(1, mnemonic, FALSE);
       return (-1);
@@ -466,15 +456,15 @@ int find_mouse_key_value(char_t * mnemonic)
   return (key);
 }
 
-int find_mouse_key_value_in_window(char_t * mnemonic, char_t * win_name)
-/*   Function: find the matching mouse key value for the supplied name */
-/*             in the specified window.                                */
-/* Parameters:                                                         */
-/*   mnemonic: the key name to be matched                              */
-/*   win_name: the window to be matched                                */
-/*    Returns: the mouse button, action, modifier and window           */
-/*             or -1 if error.                                         */
-{
+/* Function: 
+ *   find the matching mouse key value for the supplied name in the specified window.                                
+ * Parameters:                                                         
+ *   mnemonic: the key name to be matched                              
+ *   win_name: the window to be matched                                
+ * Returns:
+ *   the mouse button, action, modifier and window or -1 if error.                                         
+ */
+int find_mouse_key_value_in_window(char_t * mnemonic, char_t * win_name) {
   register short i = 0;
   int w = (-1), key = 0;
   int mb;
@@ -489,12 +479,10 @@ int find_mouse_key_value_in_window(char_t * mnemonic, char_t * win_name)
   /*
    * Find a valid window name for win_name...
    */
-  {
-    for (i = 0; i < ATTR_MAX; i++) {
-      if (equal(valid_areas[i].area, win_name, valid_areas[i].area_min_len)) {
-        w = valid_areas[i].area_window;
-        break;
-      }
+  for (i = 0; i < ATTR_MAX; i++) {
+    if (equal(valid_areas[i].area, win_name, valid_areas[i].area_min_len)) {
+      w = valid_areas[i].area_window;
+      break;
     }
   }
   if (w == (-1)) {

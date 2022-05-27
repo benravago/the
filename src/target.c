@@ -1066,7 +1066,7 @@ short parse_target(char_t * target_spec, line_t true_line, TARGET * target, long
          * Compile the RE
          */
         memset(&target->rt[i].pattern, 0, sizeof(regex_t));
-        if (0 != (rc = regcomp( &target->rt[i].pattern, (char*)target->rt[i].string, 0))) { 
+        if (0 != (rc = regcomp( &target->rt[i].pattern, (char*)target->rt[i].string, 0))) {
           /*
            * If ptr returns something, it is an error string
            * Display it if we are allowed to...
