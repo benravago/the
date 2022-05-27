@@ -177,7 +177,7 @@ char *desc;                     /* Description for condition(d) */
 
   if (interact >= 0 && interact + 1 == interplev)
     return;                     /* no action for interactive commands */
-  if (rc && call == 0 && catch == 0 && (type == Efailure || type == Enotready && setrcflag))
+  if (rc && call == 0 && catch == 0 && (type == Efailure || (type == Enotready && setrcflag)))
     type = Eerror, bit = Ierror, catch = sgstack[interplev].bits & (1 << bit), call = sgstack[interplev].callon & (1 << bit);
   if (type != Enotready || setrcflag)   /* set rc after a command */
     varset("RC", 2, rcval, rclen);
@@ -650,7 +650,7 @@ int namelen, len, level;        /* a given value. Stem is the address */
   }
   if ((ext = alloc + align(namelen) + sizeof(varent))
       + ((varent *) stem)->vallen > ((varent *) stem)->valalloc) {
-    if (diff = makeroom(stem - vartab - varstk[level], ext + 256, level)) {
+    if ((diff = makeroom(stem - vartab - varstk[level], ext + 256, level))) {
       if (tailptr)
         tailptr += diff;
       stem += diff, e += diff, v += diff;
@@ -689,7 +689,7 @@ int len, varlen;                /* which has length `len'              */
       valptr = varptr + sizeof(varent) + align(((varent *) varptr)->namelen);
       /* valptr points to the default value */
       if ((ext = align(len - *(int *) valptr)) > 0)     /* extra mem needed for default */
-        if (diff = tailroom((varent *) varptr, -1, ext, level))
+        if ((diff = tailroom((varent *) varptr, -1, ext, level)))
           varptr += diff, valptr += diff;
       ((int *) valptr)[1] = len;        /* now copy the default value */
       if (len > 0)
@@ -854,7 +854,7 @@ char *name;                     /* when this procedure is called, varstkptr has 
         /* stem is not already exposed, so go ahead */
         oldptr = name, name = 1 + strchr(name, '.'), varlen -= name - oldptr, ext = sizeof(varent) + align(varlen), oldptr = vartab;
         if (((varent *) stemptr)->valalloc < ((varent *) stemptr)->vallen + ext) {
-          if (mtest_diff = makeroom(stemptr - vartab - varstk[varstkptr], ext + 256, varstkptr)) {
+          if ((mtest_diff = makeroom(stemptr - vartab - varstk[varstkptr], ext + 256, varstkptr))) {
             if (varptr)
               varptr += mtest_diff;
             stemptr += mtest_diff;
@@ -1164,7 +1164,7 @@ void interactive() {            /* interactive tracing - called whenever the tra
     returnfree = cstackptr;     /* The result's user will free it */
   else
     free(cstackptr);            /* Nothing of value was on the stack */
-  while (i = *((int *) (pstackptr + epstackptr) - 1) != 16)     /* Clear the program stack */
+  while ((i = *((int *) (pstackptr + epstackptr) - 1) != 16))     /* Clear the program stack */
     freestack(delpstack(), i);
   entry = (struct interactstack *) delpstack(); /* delete interactive()'s entry */
   cstackptr = entry->csp,       /* and restore the old stack */
@@ -1260,7 +1260,7 @@ int line1;                      /* if nonzero, the first line is a comment */
   stmts = 0;
   if (!interpret)
     lines = 0;
-  if (!interpret && (line1 || ilen > 2 && srcptr[0] == '#' && srcptr[1] == '!')) {
+  if (!interpret && (line1 || (ilen > 2 && srcptr[0] == '#' && srcptr[1] == '!'))) {
     source[++lines] = srcptr;
     while (ilen-- && srcptr++[0] != '\n');
     if (ilen < 0)
@@ -1275,7 +1275,7 @@ int line1;                      /* if nonzero, the first line is a comment */
     prog[++stmts].line = prgptr, prog[stmts].num = (interpret ? 0 : lines), prog[stmts].source = srcptr, prog[stmts].sourcend = 0, prog[stmts].related = 0;
   }
   ppc = 0;                      /* this must be a signal that no ppc is available */
-  while (ilen-- || !interpret && srcptr > source[lines] || wordlen || !start) {
+  while (ilen-- || (!interpret && srcptr > source[lines]) || wordlen || !start) {
     if (ilen < 0) {             /* we repeat the loop to finish off the source */
       ilen++;                   /* This happens when the last line is unterminated */
       /* The last byte of source will be overwritten with
@@ -1289,7 +1289,7 @@ int line1;                      /* if nonzero, the first line is a comment */
       srcptr[-1] = 0;
       if (!interpret) {
         if (sourcelen - 1 <= ++lines) {
-          if (ptr = (char *) realloc((char *) source, (sourcelen += 50) * sizeof(char *)))
+          if ((ptr = (char *) realloc((char *) source, (sourcelen += 50) * sizeof(char *))))
             source = (char **) ptr;
           else
             die(Emem);
@@ -1351,7 +1351,7 @@ int line1;                      /* if nonzero, the first line is a comment */
       *((int *) (labelptr + elabptr)) = wordlen, *((int *) (labelptr + elabptr) + 1) = stmts, memcpy(labelptr + (elabptr += 2 * four), word, wordlen), *(labelptr + elabptr + wordlen) = 0, elabptr += align(wordlen + 1);
       /* Add a LABEL clause to the program */
       if (stmts + 2 > proglen) {
-        if (ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program)))
+        if ((ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program))))
           prog = (program *) ptr;
         else
           die(Emem);
@@ -1449,10 +1449,11 @@ int line1;                      /* if nonzero, the first line is a comment */
         if (first == last && last == NUMERIC);
         else
           token = 0;
-      else if (token == THEN)
+      else if (token == THEN) {
         if (start || first == IF || first == WHEN);
         else
           token = 0;
+      }
       if (start)
         first = token;          /* Save first token in each line */
       if (token != UPPER)
@@ -1473,7 +1474,7 @@ int line1;                      /* if nonzero, the first line is a comment */
     /* Check for space in case we add a new statement or two */
     if (token == THEN || token == ELSE || token == OTHERWISE || c == ';')
       if (stmts + 3 >= proglen) {
-        if (ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program)))
+        if ((ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program))))
           prog = (program *) ptr;
         else
           die(Emem);
@@ -1634,16 +1635,16 @@ int line1;                      /* if nonzero, the first line is a comment */
     lines--;                    /* Discount the new line started at the last '\n' */
   /* It will remain in the line table, however. */
   /* Now shrink all areas to their correct sizes */
-  if (ptr = realloc((char *) prog, (1 + stmts) * sizeof(program)))
+  if ((ptr = realloc((char *) prog, (1 + stmts) * sizeof(program))))
     prog = (program *) ptr;
   if (!interpret && (ptr = realloc((char *) source, (2 + lines) * sizeof(char *))))
     source = (char **) ptr;
-  if (ptr = realloc(prog[0].line, prgptr - prog[0].line))
+  if ((ptr = realloc(prog[0].line, prgptr - prog[0].line)))
     if (ptr != prog[0].line)
       /* Oops, the program moved! */
       for (i = stmts; i--; prog[i].line += ptr - prog[0].line);
   if (!interpret) {
-    if (ptr = realloc(labelptr, elabptr + four))
+    if ((ptr = realloc(labelptr, elabptr + four)))
       labelptr = ptr;
     (*(int *) (labelptr + elabptr)) = 0;
   }
@@ -1683,12 +1684,12 @@ int stmt, after, error;
     tracestr("<EOL>\n");
     return;
   }
-  while (start < end && (start[0] == 0 || start[0] == ';' || start[0] == ' ' | start[0] == '\t')) {
+  while (start < end && (start[0] == 0 || start[0] == ';' || (start[0] == ' ' | start[0] == '\t'))) {
     if (line && start + 1 == source[line + 1])
       ++line;
     start++;                    /* step past uninteresting chars */
   }
-  while (start < end && (end[-1] == 0 || end[-1] == ';' || end[-1] == ' ' | end[-1] == '\t'))
+  while (start < end && (end[-1] == 0 || end[-1] == ';' || (end[-1] == ' ' | end[-1] == '\t')))
     end--;                      /* delete uninteresting trailing chars */
   if (start >= end)
     return;                     /* Nothing to print. */

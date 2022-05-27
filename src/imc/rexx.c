@@ -365,7 +365,7 @@ int delay;                      /* Whether to delay any signals */
    is trapped, 2 during SIGNAL (when the stack is cleared) and
    -1 when jumped to on EXIT */
   if (inherit) {
-    sgstack[interplev].bits = sgstack[interplev - 1].bits, sgstack[interplev].callon = sgstack[interplev - 1].callon, sgstack[interplev].delay = sgstack[interplev - 1].delay | (1 << delay) & ~1;
+    sgstack[interplev].bits = sgstack[interplev - 1].bits, sgstack[interplev].callon = sgstack[interplev - 1].callon, sgstack[interplev].delay = sgstack[interplev - 1].delay | ((1 << delay) & ~1);
     sgstack[interplev].type = sgstack[interplev - 1].type;
     sgstack[interplev].which = sgstack[interplev - 1].which;
     for (l = 0; l < Imax; l++)
@@ -758,7 +758,7 @@ int delay;                      /* Whether to delay any signals */
                 tmpchr = 0, scanning(lineptr, &tmpchr, &len), lineptr += tmpchr;
           else
             s = 0;              /* it is a standard SELECT with no value */
-          if (c = *lineptr)
+          if ((c = *lineptr))
             die(Edata);
           pstack(2, sizeof(struct minstack));   /*stack SELECT entry */
           if (++ppc == stmts)
@@ -772,7 +772,7 @@ int delay;                      /* Whether to delay any signals */
               rxdup();          /* duplicate the SELECT value */
             scanning(lineptr, &tmpchr, &len);   /* what comes after WHEN */
             lineptr += tmpchr;
-            if (c = *lineptr)
+            if ((c = *lineptr))
               die(Edata);
             doconds();          /* trap conditions before continuing  */
             if (1 + ppc == stmts)
@@ -870,7 +870,7 @@ int delay;                      /* Whether to delay any signals */
                 if (info->lastwr)
                   fseek(info->fp, info->rdpos, 0);
                 info->lastwr = 0;
-                c = sgstack[interplev].callon & (1 << Ihalt) | sgstack[interplev].delay & (1 << Ihalt);
+                c = sgstack[interplev].callon & (1 << Ihalt) | (sgstack[interplev].delay & (1 << Ihalt));
                 if (!c)
                   on_interrupt(2, 1);
                 l = 0;
@@ -960,7 +960,7 @@ int delay;                      /* Whether to delay any signals */
           if (*lineptr) {
             tmpchr = 0;
             returnval = scanning(lineptr, &tmpchr, &returnlen);
-            if (c = lineptr[tmpchr])
+            if ((c = lineptr[tmpchr]))
               die(Edata);
             returnfree = cstackptr;     /* this way the result doesn't get */
             cstackptr = allocm(cstacklen = returnlen + 16);
@@ -980,7 +980,7 @@ int delay;                      /* Whether to delay any signals */
           if (*lineptr) {
             tmpchr = 0;
             scanning(lineptr, &tmpchr, &len);
-            if (c = lineptr[tmpchr])
+            if ((c = lineptr[tmpchr]))
               die(Edata);
             return delete(anslen);
           }
@@ -1015,13 +1015,13 @@ int delay;                      /* Whether to delay any signals */
           i = m = 0;            /* i=arg count; m=last character was comma */
           if (*lineptr == ' ')
             lineptr++;          /* A space may follow the name */
-          while (c = *lineptr) {        /* now loop for arguments */
+          while ((c = *lineptr)) {        /* now loop for arguments */
             if (c == ',')
               stacknull();
             else
               tmpchr = 0, scanning(lineptr, &tmpchr, &len), lineptr += tmpchr;
             i++;
-            if (m = (*lineptr == ','))
+            if ((m = (*lineptr == ',')))
               lineptr++;
           }
           if (m)
@@ -1079,13 +1079,13 @@ int delay;                      /* Whether to delay any signals */
           break;
         case ITERATE:          /* Find the END and jump to it */
           tmpchr = epstackptr, istart = pstacklev, sllen = 1;
-          if (c = *lineptr) {
+          if ((c = *lineptr)) {
             if (rexxsymbol(c) < 1)
               die(Enosymbol);
             varref = lineptr;
             reflen = 0;
             skipvarname(lineptr, &reflen);
-            if (c = lineptr[reflen])
+            if ((c = lineptr[reflen]))
               die(Edata);
           } else {
             reflen = 0;
@@ -1097,7 +1097,7 @@ int delay;                      /* Whether to delay any signals */
                                    number of ENDs needed is counted in sllen */
             while (pstacklev && (stype = unpstack()) < 8)       /* not a loop */
               delpstack(), sllen++;
-            if (!pstacklev || stype > 10 && stype != 15)        /* function call */
+            if (!pstacklev || (stype > 10 && stype != 15))        /* function call */
               epstackptr = tmpchr, pstacklev = istart, die(Eleave);     /* so the required loop is not active */
             if (stype == 8 || stype == 15) {    /* un-named DO loop */
               if (!reflen)
@@ -1126,20 +1126,20 @@ int delay;                      /* Whether to delay any signals */
             svar = pstackptr + epstackptr - 4 * four, svar -= align(len = *(int *) svar);
             lineptr = prog[ppc].line + 1;
             testvarname(&lineptr, svar, len - 1);
-          } else if (c = prog[ppc].line[1])
+          } else if ((c = prog[ppc].line[1]))
             die(Edata);
           chkend = 0;           /* Already at the start of a statement */
           break;
         case LEAVE:            /* LEAVE is essentially the same as ITERATE, but it
                                    goes past the END after finding it */
           tmpchr = epstackptr, istart = pstacklev, sllen = 1;
-          if (c = *lineptr) {
+          if ((c = *lineptr)) {
             if (rexxsymbol(c) < 1)
               die(Enosymbol);
             varref = lineptr;
             reflen = 0;
             skipvarname(lineptr, &reflen);
-            if (c = lineptr[reflen])
+            if ((c = lineptr[reflen]))
               die(Edata);
           } else {
             reflen = 0;
@@ -1149,7 +1149,7 @@ int delay;                      /* Whether to delay any signals */
           while (1) {
             while (pstacklev && ((stype = unpstack()) < 8))
               delpstack(), sllen++;
-            if (!pstacklev || stype > 10 && stype != 15)
+            if (!pstacklev || (stype > 10 && stype != 15))
               epstackptr = tmpchr, pstacklev = istart, die(Eleave);
             if (stype == 8 || stype == 15) {
               if (!reflen)
@@ -1179,7 +1179,7 @@ int delay;                      /* Whether to delay any signals */
           if (stype == 10) {    /* test the name given after END */
             svar = pstackptr + epstackptr - 4 * four, svar -= align(len = *(int *) svar);
             testvarname(&lineptr, svar, len - 1);
-          } else if (c = *lineptr)
+          } else if ((c = *lineptr))
             die(Edata);
           delpstack();          /* delete stack entry and continue past the END */
         case LABEL:            /* same as NOP */
@@ -1321,7 +1321,7 @@ int delay;                      /* Whether to delay any signals */
             gettoken(lineptr, &tmpchr, varname, maxvarname, 1), lineptr += tmpchr;
           else
             varname[0] = 0;
-          if (!(trcflag & Tinteract) && interact < 0 || (interact == interplev - 1 && interact >= 0)) {
+          if ((!(trcflag & Tinteract) && interact < 0) || (interact == interplev - 1 && interact >= 0)) {
             /* if interactive trace is on, do not
                interpret any trace instruction except in the actual
                command.  Moreover, use the saved trace flag as the
@@ -1442,7 +1442,7 @@ int delay;                      /* Whether to delay any signals */
    set, we are already pointing to the next clause. */
     doconds();                  /* Test and carry out any signals */
     if (chkend) {
-      if (c = *lineptr)
+      if ((c = *lineptr))
         die(Edata);             /* if end-of-line not found, error */
       if (trcflag & Tclauses)
         printstmt(ppc, 1, 0);   /* Trace intervening comments */
@@ -1527,7 +1527,7 @@ int *ptr;                       /* The current character pointer positioned at t
         ++ * ptr;               /* A space may separate the previous piece
                                    of template from the next */
       startvar = *ptr;          /* collect space-separated list of symbols or dots */
-      while (rexxsymbol(c = line[*ptr]) == 1 || c == '.' && !rexxsymboldot(line[*ptr + 1])) {
+      while (rexxsymbol(c = line[*ptr]) == 1 || (c == '.' && !rexxsymboldot(line[*ptr + 1]))) {
         if (c != '.')
           skipvarname(line, ptr);
         else
@@ -1819,11 +1819,11 @@ int lit;                        /* whether or not the name was a quoted literal 
     if (lit || !l) {            /* no label, so try built-in and then external */
       if ((l = rxfn(name, argc)) > 0)
         return 1;               /* OK, builtin was executed */
-      if (callname = strrchr(name, '/'))        /* Get base name for "callname" */
+      if ((callname = strrchr(name, '/')))        /* Get base name for "callname" */
         callname++;
       else
         callname = name;
-      if (data = (funcinfo *) hashget(2, callname, &w)) {       /* function is hashed */
+      if ((data = (funcinfo *) hashget(2, callname, &w))) {       /* function is hashed */
         if (data->dlfunc) {     /* function has already been loaded */
           if (data->saa)        /* saa calling sequence */
             l = funccall((unsigned long (*)()) data->dlfunc, callname, argc);
@@ -1839,7 +1839,7 @@ int lit;                        /* whether or not the name was a quoted literal 
       } else {                  /* Make the file name in lower case in the workspace */
         ext = strlen(name);
         mtest(workptr, worklen, ext + 1, worklen - ext + 1);
-        for (l = 0; c = name[l]; l++)
+        for (l = 0; (c = name[l]); l++)
           workptr[l] = c >= 'A' && c <= 'Z' ? name[l] | 32 : name[l];
         workptr[l] = 0;
         flname = workptr;
@@ -2155,7 +2155,7 @@ int len;                        /* name, var, of length len.             */
   char *varref;
   int reflen;
 
-  if (c = **lineptr) {          /* if the symbol name is supplied: */
+  if ((c = **lineptr)) {          /* if the symbol name is supplied: */
     if (c < 0)
       die(Exend);               /* die if it is a keyword [SELECT] */
     if (rexxsymbol(c) < 1)

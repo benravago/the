@@ -899,7 +899,7 @@ char op;
       if (op == OPequ || op == OPleq || op == OPgeq)
         ans = 1;
     }                           /* This gives the     */
-    else if (op == OPgrtr && !m || op == OPneq)
+    else if ((op == OPgrtr && !m) || op == OPneq)
       ans = 1;                  /* correct result for */
     if (m) {
       if (op == OPless || op == OPleq)
@@ -1056,7 +1056,7 @@ int *minus, *exp, *zero, *len;
   else if (ch == '+')
     ptr1++, len1--;
   for (; ptr1[0] == ' ' && len1 > 0; len1--, ptr1++);   /* and spaces after it */
-  if (len1 <= 0 || (ch = ptr1[0]) > '9' || ch == '.' && (len1 == 1 || ptr1[1] > '9'))
+  if (len1 <= 0 || (ch = ptr1[0]) > '9' || (ch == '.' && (len1 == 1 || ptr1[1] > '9')))
     return -1;                  /* initial check for validity */
   for (; len1 > 0; ptr1++, len1--) {    /* Now, examine each character of the number */
     if ((ch = ptr1[0]) == '0' && myzero) {
@@ -1092,7 +1092,7 @@ int *minus, *exp, *zero, *len;
       }
       *len = ptr2 - ans;
       eworkptr = ptr2;
-      if (*zero = myzero)
+      if ((*zero = myzero))
         return *exp = *minus = 0, ans;  /* No exponent if zero */
       if (emin)
         etmp = -etmp;           /* Otherwise set the exponent and return. */
@@ -1102,7 +1102,7 @@ int *minus, *exp, *zero, *len;
       return -1;                /* Each character must be a digit or "E" or "." */
   }
   *len = ptr2 - ans;
-  if (*zero = myzero)
+  if ((*zero = myzero))
     *exp = *minus = 0;          /* no exponent or sign if zero */
   else
     *exp = myexp;
@@ -1142,7 +1142,7 @@ int isint(num, len, exp)        /* Given components of a number obtained by num(
 int num, len, exp;              /* tell whether it represents an integer.          */
 {
   for (; len > 0 && workptr[num + len - 1] == '0'; len--);
-  return len <= exp + 1 && exp < precision && (exp < 9 || exp == 9 && workptr[num] < '2');
+  return len <= exp + 1 && exp < precision && (exp < 9 || (exp == 9 && workptr[num] < '2'));
 }
 
 char *delete(len)               /* Delete an item from the calculator stack, returning */

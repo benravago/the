@@ -848,7 +848,7 @@ int *nl, *t;                    /* Return value is the name, nl is the length.  
     }
     if (p != i && !constsym) {  /* substitute it */
       name[i] = 0;
-      if (val = varget(name + p, i - p, &l)) {
+      if ((val = varget(name + p, i - p, &l))) {
         if (len + l >= maxvarname - 1)
           return *t = 0, name;
         memcpy(name + p, val, l), i = p + l;
@@ -910,7 +910,7 @@ int argc;
           varnamebuf[l] = arg[l];
       arg = varnamebuf;
       arg[len] = 0;
-      if (val = getenv(arg))
+      if ((val = getenv(arg)))
         stack(val, strlen(val));
       else
         stack(cnull, 0);
@@ -1263,7 +1263,7 @@ int argc;
   while (n-- > 0)
     if (len > 0) {
       num |= (sign = arg[--len]) << s;
-      if (sign && s >= 8 * four || (int) num < 0)
+      if ((sign && s >= 8 * four) || (int) num < 0)
         die(Ecall);
       s += 8;
     } else
@@ -1559,7 +1559,7 @@ int argc;
   arg = delete(&len);
   arg[len] = 0;
   len = 0;
-  if (p = popen(arg, "r")) {    /* Open a pipe, read the output, close the pipe */
+  if ((p = popen(arg, "r"))) {    /* Open a pipe, read the output, close the pipe */
     while (1) {
       c = getc(p);
       if (feof(p) || ferror(p))
@@ -2629,7 +2629,7 @@ int argc;
   }
   if (argc) {
     arg = delete(&len);
-    if (!(trcflag & Tinteract) && interact < 0 || (interact == interplev - 1 && interact >= 0)) {
+    if ((!(trcflag & Tinteract) && interact < 0) || (interact == interplev - 1 && interact >= 0)) {
       /* if interactive trace, only interpret
          trace in the actual command, also use old trace flag
          as the starting value */
@@ -2724,7 +2724,7 @@ int argc;
   ptr1 = cstackptr + ecstackptr;
   if (z)
     num1[0] = '0', m = e = 0, l = 1;    /* adjust zero to be just "0" */
-  if (exp = ((e < expt && !(e < 0 && l - e - 1 > 2 * expt)) || !expp)) {        /* no exponent */
+  if ((exp = ((e < expt && !(e < 0 && l - e - 1 > 2 * expt))) || !expp)) {        /* no exponent */
     if (e < 0)
       n = 1 + m;                /* calculate number of places before . */
     else
@@ -3022,7 +3022,7 @@ int argc;
     die(Ecall);
   arg = delete(&len);
   arg[len] = 0;
-  if (arg = getenv(arg))
+  if ((arg = getenv(arg)))
     stack(arg, strlen(arg));
   else
     stack(cnull, 0);
@@ -3095,7 +3095,7 @@ int mlen, plen;
       default:
         die(Ecall);
     }
-  if (info = (struct fileinfo *) hashget(1, stream, &rc)) {
+  if ((info = (struct fileinfo *) hashget(1, stream, &rc))) {
     fp = info->fp;              /* if "stream" already exists, perform freopen */
     free((char *) info);
     *(struct fileinfo **) hashfind(1, stream, &rc) = 0;
@@ -3184,7 +3184,7 @@ int modelen;
       default:
         die(Ecall);
     }
-  if (fp = fdopen(fd, fmode)) {
+  if ((fp = fdopen(fd, fmode))) {
     fileinit(workptr + nlen + 1, cnull, fp)->wr = fmode[1] == '+';
     errno = 0;
   }
@@ -3248,7 +3248,7 @@ int mlen, comlen;
     command[comlen] = 0;
   if (memchr(command, 0, comlen))
     die(Ecall);
-  if (fp = popen(command, fmode)) {
+  if ((fp = popen(command, fmode))) {
     info = fileinit(stream, cnull, fp);
     info->wr = -(fmode[0] == 'w'), info->lastwr = -(info->wr);
     rc = 0;
@@ -3385,7 +3385,7 @@ int argc;
   }
   len = 0;
   if (lines) {
-    call = sgstack[interplev].callon & (1 << Ihalt) | sgstack[interplev].delay & (1 << Ihalt);
+    call = (sgstack[interplev].callon & (1 << Ihalt)) | (sgstack[interplev].delay & (1 << Ihalt));
     if (!call)
       on_interrupt(2, 1);       /* Allow ^C during read */
     while ((ch = getc(fp)) != '\n' && ch != EOF) {
@@ -3649,7 +3649,7 @@ int argc;
   } else if (info->lastwr)
     fseek(fp, info->rdpos, 0);
   info->lastwr = 0;
-  call = sgstack[interplev].callon & (1 << Ihalt) | sgstack[interplev].delay & (1 << Ihalt);
+  call = (sgstack[interplev].callon & (1 << Ihalt)) | (sgstack[interplev].delay & (1 << Ihalt));
   if (!call)
     on_interrupt(2, 1);         /* allow ^C to interrupt */
   mtest(workptr, worklen, chars, chars - worklen);
