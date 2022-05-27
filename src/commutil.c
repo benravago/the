@@ -2912,7 +2912,7 @@ int readv_cmdline(char_t * initial, WINDOW * dw, int start_col) {
     wnoutrefresh(dw);
   wrefresh(CURRENT_WINDOW_COMMAND);
   while (1) {
-    key = my_getch(CURRENT_WINDOW_COMMAND);
+    key = wgetch(CURRENT_WINDOW_COMMAND);
     if (key == KEY_MOUSE) {
       int b, ba, bm, y, x;
 

@@ -683,7 +683,7 @@ short extract_readv(short number_variables, short itemno, char_t * itemargs, cha
       (void) THE_Resize(0, 0);
       (void) THERefresh((char_t *) "");
     }
-    key = my_getch(CURRENT_WINDOW);
+    key = wgetch(CURRENT_WINDOW);
     if (is_termresized())
       continue;
     if (key == KEY_MOUSE) {

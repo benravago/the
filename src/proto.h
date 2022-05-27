@@ -174,9 +174,6 @@ VIEW_DETAILS *find_pseudo_file (char_t);
 short execute_command_file (FILE *);
 char_t *read_file_into_memory (char_t *, int *);
 
-                                                            /* getch.c */
-int my_getch (WINDOW *);
-
                                                           /* nonansi.c */
 short file_readable (char_t *);
 short file_writable (char_t *);

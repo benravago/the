@@ -936,7 +936,7 @@ short ControlChar(char_t * params) {
   wmove(CURRENT_WINDOW, y, x);
   wrefresh(CURRENT_WINDOW);
   for (;;) {
-    key = my_getch(CURRENT_WINDOW);
+    key = wgetch(CURRENT_WINDOW);
     break;
   }
   clear_msgline(-1);

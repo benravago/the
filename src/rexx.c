@@ -433,7 +433,7 @@ short execute_macro_file(char_t * filename, char_t * params, short *macrorc, boo
         printf("\n%s", HIT_ANY_KEY);
         fflush(stdout);
         resume_curses();
-        (void) my_getch(stdscr);
+        wgetch(stdscr);
         if (number_of_files > 0) {
           restore_THE();
         }
@@ -521,7 +521,7 @@ short execute_macro_instore(char_t * commands, short *macrorc, char_t ** pcode, 
         printf("\n%s", HIT_ANY_KEY);
         fflush(stdout);
         resume_curses();
-        (void) my_getch(stdscr);
+        wgetch(stdscr);
         if (number_of_files > 0) {
           restore_THE();
         }

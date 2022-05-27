@@ -486,7 +486,7 @@ int expose_msgline(void) {
       put_string(error_window, (row_t) (msgline_rows - 1), 0, (char_t *) prompt, strlen((char *) prompt));
     }
     wrefresh(error_window);
-    if (my_getch(error_window) == ' ') {
+    if (wgetch(error_window) == ' ') {
       rc = RC_TERMINATE_MACRO;
     }
   }

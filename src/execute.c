@@ -103,7 +103,7 @@ static short selective_change(TARGET * target, char_t * old_str, length_t len_ol
     wmove(CURRENT_WINDOW_FILEAREA, y, x);
     wrefresh(CURRENT_WINDOW_FILEAREA);
 
-    key = my_getch(CURRENT_WINDOW_FILEAREA);
+    key = wgetch(CURRENT_WINDOW_FILEAREA);
     clear_msgline(-1);
     switch (key) {
       case 'N':
@@ -612,7 +612,7 @@ short execute_os_command(char_t * cmd, bool quiet, bool pause) {
 
   if (!quiet && curses_started) {
     if (pause)
-      (void) my_getch(stdscr);
+      (void) wgetch(stdscr);
     resume_curses();
     restore_THE();
   }
@@ -2677,7 +2677,7 @@ short execute_editv(short editv_type, bool editv_file, char_t * params) {
       mvaddstr(terminal_lines - 2, 0, HIT_ANY_KEY);
       refresh();
       while (1) {
-        key = my_getch(stdscr);
+        key = wgetch(stdscr);
         if (key == KEY_MOUSE)
           continue;
         if (is_termresized())
@@ -3306,7 +3306,7 @@ short execute_dialog(char_t * prompt, char_t * title, char_t * initial, bool edi
       if (editfield) {
         wrefresh(CURRENT_WINDOW_COMMAND);
       }
-      key = my_getch(CURRENT_WINDOW_COMMAND);
+      key = wgetch(CURRENT_WINDOW_COMMAND);
     }
     if (key == KEY_MOUSE) {
       int b, ba, bm, y, x;

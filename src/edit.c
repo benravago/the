@@ -58,7 +58,7 @@ int process_key(int key, bool mouse_details_present) {
     key = process_fifo_input(key);
   }
   if (key == (-1)) {
-    key = my_getch(CURRENT_WINDOW);
+    key = wgetch(CURRENT_WINDOW);
   }
   if (key != KEY_MOUSE) {
     if (!mouse_details_present) {

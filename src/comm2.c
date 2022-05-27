@@ -666,7 +666,7 @@ short Fillbox(char_t * params) {
     wmove(CURRENT_WINDOW_FILEAREA, y, x);
     wrefresh(CURRENT_WINDOW_FILEAREA);
     while (1) {
-      key = my_getch(CURRENT_WINDOW);
+      key = wgetch(CURRENT_WINDOW);
       if (!is_modifier_key(key))
         break;
     }

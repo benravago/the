@@ -1039,7 +1039,7 @@ short ShowKey(char_t * params) {
           (void) THE_Resize(0, 0);
           (void) THERefresh((char_t *) "");
         }
-        key = my_getch(CURRENT_WINDOW);
+        key = wgetch(CURRENT_WINDOW);
         if (is_termresized())
           continue;
         if (key == KEY_MOUSE) {
@@ -1211,7 +1211,7 @@ short Status(char_t * params) {
           (void) THE_Resize(0, 0);
           (void) show_status();
         }
-        key = my_getch(stdscr);
+        key = wgetch(stdscr);
         if (key == KEY_MOUSE)
           continue;
         if (is_termresized())
