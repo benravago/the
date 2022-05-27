@@ -1,24 +1,26 @@
 /* The builtin functions of REXX/imc         (C) Ian Collier 1992 */
 
-#include<stdio.h>
-#include<string.h>
-#include<memory.h>
-#include<unistd.h>
-#include<stdlib.h>              /* includes bsearch, random */
-#include<time.h>
-#include<pwd.h>
-#include<errno.h>
-#include<fcntl.h>
-#include<setjmp.h>
-#include<sys/types.h>
-#include<sys/time.h>
-#include<sys/ioctl.h>
-#include<sys/param.h>
-#include<sys/stat.h>
-#include<termios.h>
-#include"const.h"
-#include"globals.h"
-#include"functions.h"
+#include <stdio.h>
+#include <string.h>
+#include <memory.h>
+#include <unistd.h>
+#include <stdlib.h>              /* includes bsearch, random */
+#include <time.h>
+#include <pwd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <setjmp.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/ioctl.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <termios.h>
+
+#include "const.h"
+#include "globals.h"
+#include "functions.h"
+
 #define STDIN 0
 
 void rxsource();
@@ -111,92 +113,94 @@ int rxfn(name, argc)            /* does function if possible; returns 1 if succe
  /* function, and 0 if the name was unrecognised.      */
 char *name;                     /* Name of the function to call */
 int argc;                       /* Number of arguments passed to it */
+
 {
   static struct fnlist names[] = {      /* The name and address of ever builtin */
-    "ABBREV", rxabbrev,         /* function, in alphabetical order      */
-    "ABS", rxabs,
-    "ADDRESS", rxaddress,
-    "ARG", rxarg,
-    "B2D", b2d,
-    "B2X", b2x,
-    "BITAND", rxbitand,
-    "BITOR", rxbitor,
-    "BITXOR", rxbitxor,
-    "C2D", c2d,
-    "C2X", c2x,
-    "CENTER", rxcentre,
-    "CENTRE", rxcentre,
-    "CHARIN", rxcharin,
-    "CHAROUT", rxcharout,
-    "CHARS", rxchars,
-    "CHDIR", rxchdir,
-    "CLOSE", rxclose,
-    "COMPARE", rxcompare,
-    "CONDITION", rxcondition,
-    "COPIES", rxcopies,
-    "D2B", d2b,
-    "D2C", d2c,
-    "D2X", d2x,
-    "DATATYPE", rxdatatype,
-    "DATE", rxdate,
-    "DELSTR", rxdelstr,
-    "DELWORD", rxdelword,
-    "DIGITS", rxdigits,
-    "ERRORTEXT", rxerror,
-    "FDOPEN", rxfdopen,
-    "FILENO", rxfileno,
-    "FORM", rxform,
-    "FORMAT", rxformat,
-    "FTELL", rxftell,
-    "FUZZ", rxfuzz,
-    "GETCWD", rxgetcwd,
-    "GETENV", rxgetenv,
-    "INSERT", rxinsert,
-    "JUSTIFY", rxjustify,
-    "LASTPOS", rxlastpos,
-    "LEFT", rxleft,
-    "LENGTH", rxlength,
-    "LINEIN", rxlinein,
-    "LINEOUT", rxlineout,
-    "LINES", rxlines,
-    "LINESIZE", rxlinesize,
-    "MAX", rxmax,
-    "MIN", rxmin,
-    "OPEN", rxopen,
-    "OVERLAY", rxoverlay,
-    "PCLOSE", rxpclose,
-    "POPEN", rxpopen,
-    "POS", rxpos,
-    "PUTENV", rxputenv,
-    "RANDOM", rxrandom,
-    "REVERSE", rxreverse,
-    "RIGHT", rxright,
-    "SIGN", rxsign,
-    "SOURCELINE", rxsource,
-    "SPACE", rxspace,
-    "STREAM", rxstream,
-    "STRIP", rxstrip,
-    "SUBSTR", rxsubstr,
-    "SUBWORD", rxsubword,
-    "SYMBOL", rxsymbol,
-    "SYSTEM", rxsystem,
-    "TIME", rxtime,
-    "TRACE", rxtrace,
-    "TRANSLATE", rxlate,
-    "TRUNC", rxtrunc,
-    "USERID", rxuserid,
-    "VALUE", rxvalue,
-    "VERIFY", rxverify,
-    "WORD", rxword,
-    "WORDINDEX", rxwordindex,
-    "WORDLENGTH", rxwordlength,
-    "WORDPOS", rxwordpos,
-    "WORDS", rxwords,
-    "X2B", x2b,
-    "X2C", x2c,
-    "X2D", x2d,
-    "XRANGE", rxrange
+    { "ABBREV", rxabbrev },       /* function, in alphabetical order      */
+    { "ABS", rxabs },
+    { "ADDRESS", rxaddress },
+    { "ARG", rxarg },
+    { "B2D", b2d },
+    { "B2X", b2x },
+    { "BITAND", rxbitand },
+    { "BITOR", rxbitor },
+    { "BITXOR", rxbitxor },
+    { "C2D", c2d },
+    { "C2X", c2x },
+    { "CENTER", rxcentre },
+    { "CENTRE", rxcentre },
+    { "CHARIN", rxcharin },
+    { "CHAROUT", rxcharout },
+    { "CHARS", rxchars },
+    { "CHDIR", rxchdir },
+    { "CLOSE", rxclose },
+    { "COMPARE", rxcompare },
+    { "CONDITION", rxcondition },
+    { "COPIES", rxcopies },
+    { "D2B", d2b },
+    { "D2C", d2c },
+    { "D2X", d2x },
+    { "DATATYPE", rxdatatype },
+    { "DATE", rxdate },
+    { "DELSTR", rxdelstr },
+    { "DELWORD", rxdelword },
+    { "DIGITS", rxdigits },
+    { "ERRORTEXT", rxerror },
+    { "FDOPEN", rxfdopen },
+    { "FILENO", rxfileno },
+    { "FORM", rxform },
+    { "FORMAT", rxformat },
+    { "FTELL", rxftell },
+    { "FUZZ", rxfuzz },
+    { "GETCWD", rxgetcwd },
+    { "GETENV", rxgetenv },
+    { "INSERT", rxinsert },
+    { "JUSTIFY", rxjustify },
+    { "LASTPOS", rxlastpos },
+    { "LEFT", rxleft },
+    { "LENGTH", rxlength },
+    { "LINEIN", rxlinein },
+    { "LINEOUT", rxlineout },
+    { "LINES", rxlines },
+    { "LINESIZE", rxlinesize },
+    { "MAX", rxmax },
+    { "MIN", rxmin },
+    { "OPEN", rxopen },
+    { "OVERLAY", rxoverlay },
+    { "PCLOSE", rxpclose },
+    { "POPEN", rxpopen },
+    { "POS", rxpos },
+    { "PUTENV", rxputenv },
+    { "RANDOM", rxrandom },
+    { "REVERSE", rxreverse },
+    { "RIGHT", rxright },
+    { "SIGN", rxsign },
+    { "SOURCELINE", rxsource },
+    { "SPACE", rxspace },
+    { "STREAM", rxstream },
+    { "STRIP", rxstrip },
+    { "SUBSTR", rxsubstr },
+    { "SUBWORD", rxsubword },
+    { "SYMBOL", rxsymbol },
+    { "SYSTEM", rxsystem },
+    { "TIME", rxtime },
+    { "TRACE", rxtrace },
+    { "TRANSLATE", rxlate },
+    { "TRUNC", rxtrunc },
+    { "USERID", rxuserid },
+    { "VALUE", rxvalue },
+    { "VERIFY", rxverify },
+    { "WORD", rxword },
+    { "WORDINDEX", rxwordindex },
+    { "WORDLENGTH", rxwordlength },
+    { "WORDPOS", rxwordpos },
+    { "WORDS", rxwords },
+    { "X2B", x2b },
+    { "X2C", x2c },
+    { "X2D", x2d },
+    { "XRANGE", rxrange }
   };
+
 #define nofun 0                 /* "nofun" means "this function ain't here" */
 #define numfun 87               /* The number of builtin functions */
 
@@ -376,9 +380,9 @@ int argc;
   char type = 0;
   char *arg;
   long e1;
-  long e2;
+  int e2;
   int l;
-  long usec;
+  int usec;
 
   if (!(timeflag & 2))
     gettimeofday(&timestamp, &tz);      /* Make a timestamp if necessary */
@@ -890,7 +894,7 @@ int argc;
   }
   if (argc != 1)
     die(Ecall);
-  if (pool)                     /* The pool name determines what we do here */
+  if (pool) {                     /* The pool name determines what we do here */
     if (!strcasecmp(pool, "ENVIRONMENT") || !strcmp(pool, "SYSTEM")) {
       arg = delete(&len);
       if (len < 1 || len > varnamelen - 1)
@@ -935,6 +939,7 @@ int argc;
   /* here add more "else if"s */
     else if (strcasecmp(pool, "REXX"))
       die(Ecall);
+  }
   arg = rxgetname(&len, &t);    /* Get the symbol name, then try to get its value */
   if (t > 1)
     stack(arg, len);            /* for constant symbol stack its name */
@@ -950,11 +955,12 @@ int argc;
     arg[0] |= l;
     len = oldlen;
   }
-  if (new)
+  if (new) {
     if (t > 1)
       die(Ecall);               /* can't set a constant symbol */
     else
       varset(arg, len, new, newlen);
+  }
 }
 
 void rxdatatype(argc)
@@ -1180,19 +1186,21 @@ int argc;
     die(Ecall);
   if (argc > 1) {
     arg = (unsigned char *) delete(&len);
-    if (len >= 0)
+    if (len >= 0) {
       if (len != 1)
         die(Ecall);
       else
         c2 = arg[0];
+    }
   }
   if (argc) {
     arg = (unsigned char *) delete(&len);
-    if (len >= 0)
+    if (len >= 0) {
       if (len != 1)
         die(Ecall);
       else
         c1 = arg[0];
+    }
   }
   if (c1 > c2)
     c2 += 256;
@@ -1664,11 +1672,12 @@ int argc;
     die(Ecall);
   if (argc == 4) {
     arg = delete(&len);
-    if (len >= 0)
+    if (len >= 0) {
       if (len != 1)
         die(Ecall);
       else
         pad = arg[0];
+    }
   }
   if (argc > 2 && isnull())
     delete(&len1), argc = 2;
@@ -1709,11 +1718,12 @@ int argc;
 
   if (argc == 3) {
     arg = delete(&len);
-    if (len >= 0)
+    if (len >= 0) {
       if (len != 1)
         die(Ecall);
       else
         pad = arg[0];
+    }
     argc--;
   }
   if (argc != 2)
@@ -1749,11 +1759,12 @@ int argc;
 
   if (argc == 3) {
     arg = delete(&len);
-    if (len >= 0)
+    if (len >= 0) {
       if (len != 1)
         die(Ecall);
       else
         pad = arg[0];
+    }
     argc--;
   }
   if (argc != 2)
@@ -1884,11 +1895,12 @@ int argc;
 
   if (argc == 3) {
     s1 = delete(&l1);
-    if (l1 >= 0)
+    if (l1 >= 0) {
       if (l1 != 1)
         die(Ecall);
       else
         pad = s1[0];
+    }
     argc--;
   }
   if (argc != 2)
@@ -1998,11 +2010,12 @@ int argc;
   if (argc == 5) {
     argc--;
     new = delete(&nl);
-    if (nl >= 0)
+    if (nl >= 0) {
       if (nl == 1)
         pad = new[0];
       else
         die(Ecall);
+    }
   }
   if (argc == 4) {
     argc--;
@@ -2088,11 +2101,12 @@ int argc;
   if (argc == 5) {
     argc--;
     new = delete(&nl);
-    if (nl >= 0)
+    if (nl >= 0) {
       if (nl == 1)
         pad = new[0];
       else
         die(Ecall);
+    }
   }
   if (argc == 4) {
     argc--;
@@ -2157,11 +2171,12 @@ int argc;
     argc--, delete(&dummy);
   if (argc)
     argc--, max = getint(1);
-  if (argc)
+  if (argc) {
     if (isnull())
       delete(&dummy);
     else
       min = getint(1);
+  }
   if (min > max || max - min > 100000)
     die(Ecall);
   if (min == max)
@@ -3185,11 +3200,12 @@ int argc;
   if (argc == 3) {
     argc--;
     stream = delete(&len);
-    if (len > 0)
+    if (len > 0) {
       if (memchr(stream, 0, len))
         die(Ecall);
       else
         stream[len] = 0;
+    }
     if (len == 0)
       die(Ecall);
     stream[len] = 0;

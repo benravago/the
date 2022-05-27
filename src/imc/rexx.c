@@ -1,22 +1,40 @@
 /* The basic interpreter functions of REXX/imc    (C) Ian Collier 1992 */
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<memory.h>
-#include<string.h>
-#include<signal.h>
-#include<setjmp.h>
-#include<sys/types.h>
-#include<sys/time.h>
-#include<sys/stat.h>
-#include<sys/file.h>
-#include<sys/socket.h>
-#include"const.h"
-#include"globals.h"
-#include"functions.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <memory.h>
+#include <string.h>
+#include <signal.h>
+#include <setjmp.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+#include <sys/socket.h>
+
+#include "const.h"
+#include "globals.h"
+#include "functions.h"
 #define INCL_REXXSAA
 #include "rexxsaa.h"
+
+static void doaddress(char **line, int env);    /* Address a command to an environment */
+static void parse(char *list[], int len[], int up, char *line, int *ptr);       /* PARSE strings with a template */
+static char uc1(int c, int up); /* Uppercase c, if up */
+static void pset1(char *list, int listlen, char *val, int len, int up); /* Tokenise a string into variables */
+static void pset(char *varname, int namelen, char *val, int len, int up);       /* Assign a PARSE result to a variable */
+static int findsigl(int *level);        /* Find most recent line number */
+static void getcallargs(char *args[], int arglen[], int argc);  /* Unstack parameters in a CALL instruc */
+static void doconds(void);      /* Check for delayed conditions and trap them */
+static int gettrap(char **lineptr, int on, int *stmt);  /* Get a trap name after "call/signal on" */
+static void testvarname(char **line, char *var, int len);       /* Test the symbol against a stored name */
+static void skipstmt(void);     /* Skip the current instruction */
+static void stepdo(void);       /* Step past the current DO */
+static void stepselect(void);   /* Step past the current SELECT */
+static void stepif(void);       /* Step past the current IF */
+static void stepwhen(void);     /* Step past the current WHEN */
+static void findend(void);      /* Find the next END */
 
 static program *oldprog = 0;    /* while loading a new one */
 static int oldstmts = 0;        /* Old number of statements */
@@ -719,11 +737,12 @@ int delay;                      /* Whether to delay any signals */
           if (!z)
             break;              /* true: continue with THEN  */
           skipstmt();           /* false: skip THEN          */
-          if (prog[ppc].line[0] == ELSE)        /* if the next word is ELSE  */
+          if (prog[ppc].line[0] == ELSE) {      /* if the next word is ELSE  */
             if (++ppc == stmts)
               die(Eprogend);    /* check for more statements */
             else
               break;            /* Do the stmt after the ELSE. */
+          }
           /* Usually it would be skipped */
           break;
         case ELSE:
@@ -976,11 +995,12 @@ int delay;                      /* Whether to delay any signals */
             if (i == Isyntax || i == Inovalue)
               die(Etrap);
             if (c == ON) {
-              if (!l)
+              if (!l) {
                 if (prog[ppc].num)
                   l = -ppc;
                 else
                   sprintf(workptr, ": \'%s\'", varnamebuf), errordata = workptr, die(Elabel);
+              }
               for (e = istart; e <= interplev; e++)
                 sgstack[e].bits &= ~(1 << i), sgstack[e].bitson &= ~(1 << i), sgstack[e].delay &= ~(1 << i), sgstack[e].callon |= (1 << i), sgstack[e].ppc[i] = l;
             } else
@@ -1022,11 +1042,12 @@ int delay;                      /* Whether to delay any signals */
           if ((c = *lineptr) == ON || c == OFF) {       /* set or clear a trap */
             i = gettrap(&lineptr, c == ON, &l); /* Get the trap name */
             if (c == ON) {
-              if (!l)
+              if (!l) {
                 if (prog[ppc].num)
                   l = -ppc;     /* flag the stmt in error */
                 else
                   sprintf(workptr, ": \'%s\'", varnamebuf), errordata = workptr, die(Elabel);   /* die if we are interpreted */
+              }
               sgstack[istart].ppc[i] = l;
               sgstack[istart].bitson |= (1 << i);
               for (l = istart; l <= interplev; l++)
@@ -1078,13 +1099,14 @@ int delay;                      /* Whether to delay any signals */
               delpstack(), sllen++;
             if (!pstacklev || stype > 10 && stype != 15)        /* function call */
               epstackptr = tmpchr, pstacklev = istart, die(Eleave);     /* so the required loop is not active */
-            if (stype == 8 || stype == 15)      /* un-named DO loop */
+            if (stype == 8 || stype == 15) {    /* un-named DO loop */
               if (!reflen)
                 break;          /* OK if no name found */
               else {
                 delpstack(), sllen++;
                 continue;
               }
+            }
             /* otherwise the top stack entry is a DO with variable */
             svar = pstackptr + epstackptr - 4 * four, svar -= align(len = *(int *) svar);       /* point to the name */
             if (!(reflen && (len - 1 != reflen || memcmp(varref, svar, reflen))))
@@ -1129,13 +1151,14 @@ int delay;                      /* Whether to delay any signals */
               delpstack(), sllen++;
             if (!pstacklev || stype > 10 && stype != 15)
               epstackptr = tmpchr, pstacklev = istart, die(Eleave);
-            if (stype == 8 || stype == 15)
+            if (stype == 8 || stype == 15) {
               if (!reflen)
                 break;
               else {
                 delpstack(), sllen++;
                 continue;
               }
+            }
             svar = pstackptr + epstackptr - 4 * four, svar -= align(len = *(int *) svar);
             if (!(reflen && (len - 1 != reflen || memcmp(varref, svar, reflen))))
               break;

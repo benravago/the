@@ -10,12 +10,20 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/param.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+
 #include "const.h"
 #include "globals.h"
 #include "functions.h"
+
 #define INCL_REXXSAA
 #include "rexxsaa.h"
-#include <sys/socket.h>
+
+static void halt_handler();     /* handle halt signals */
+static void pipe_handler();     /* handle broken pipe signals */
+static void error_handler();    /* handle error signals */
+static void sigtrace();         /* Go into trace mode, or exit */
 
 struct status {                 /* Saved things from a previous incarnation of REXX */
   int stmt;
@@ -185,7 +193,7 @@ PRXSTRING result;
   extern char *month[];         /* from rxdate() in rxfn.c */
   char **arglist = 0;           /* a copy of the argument addresses */
   int *arglens = 0;             /* a copy of the argument lengths */
-  int i, j, l;
+  int i, j;
   long n;
   char *howcall;                /* string to represent calltype */
   char sourcestring[200];       /* string for "parse source" */
@@ -209,11 +217,12 @@ PRXSTRING result;
     return 1;                   /* no tokenised program.  May be fixed later... */
   if (instore && !(instore[0].strptr && instore[0].strlength))
     return 1;                   /* no macros.  May possibly be fixed later... */
-  if (!name)
+  if (!name) {
     if (instore)
       name = "anonymous";
     else
       return 1;
+  }
   if (envname && strlen(envname) > maxenviron)
     return 1;
   if (calltype != RXCOMMAND && calltype != RXFUNCTION && calltype != RXSUBROUTINE)

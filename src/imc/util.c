@@ -203,12 +203,12 @@ int i;
 }
 
 /* An exit handling routine */
-int exitcall(main, sub, parm)
-long main;
+int exitcall(fn, sub, parm)
+long fn;
 long sub;
 PEXIT parm;
-{                               /* very simple. */
-  long exrc = exitlist[main] (main, sub, parm);
+{                          /* very simple. */
+  long exrc = exitlist[fn] (fn, sub, parm);
 
   if (exrc == RXEXIT_RAISE_ERROR)
     die(Esys);
@@ -873,11 +873,12 @@ char *name;                     /* when this procedure is called, varstkptr has 
   }
   /* stems are like ordinary symbols; both are treated here. */
   varptr = varsearch(name, varlen, &level, &l);
-  if (!l)                       /* create in old level before exposing to new level */
+  if (!l) {                     /* create in old level before exposing to new level */
     if (isstem)
       stemcreate(varptr, name, cnull, varlen, -1, 1);
     else
       varcreate(varptr, name, cnull, varlen, -1, 1);
+  }
   ext = varstkptr;
   varptr = varsearch(name, varlen, &ext, &l);
   if (!l) {                     /* not already exposed, so go ahead */
@@ -1287,11 +1288,12 @@ int line1;                      /* if nonzero, the first line is a comment */
     if (c == '\n') {
       srcptr[-1] = 0;
       if (!interpret) {
-        if (sourcelen - 1 <= ++lines)
+        if (sourcelen - 1 <= ++lines) {
           if (ptr = (char *) realloc((char *) source, (sourcelen += 50) * sizeof(char *)))
             source = (char **) ptr;
           else
             die(Emem);
+        }
         source[lines] = srcptr;
         if (comma) {
           if (!ilen)
@@ -1348,11 +1350,12 @@ int line1;                      /* if nonzero, the first line is a comment */
       mtest(labelptr, lablen, elabptr + wordlen + 4 * four, 256 + wordlen);
       *((int *) (labelptr + elabptr)) = wordlen, *((int *) (labelptr + elabptr) + 1) = stmts, memcpy(labelptr + (elabptr += 2 * four), word, wordlen), *(labelptr + elabptr + wordlen) = 0, elabptr += align(wordlen + 1);
       /* Add a LABEL clause to the program */
-      if (stmts + 2 > proglen)
+      if (stmts + 2 > proglen) {
         if (ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program)))
           prog = (program *) ptr;
         else
           die(Emem);
+      }
       prgptr++[0] = LABEL;
       prgptr++[0] = 0;
       prog[stmts].source = prevptr;
@@ -1469,11 +1472,12 @@ int line1;                      /* if nonzero, the first line is a comment */
     }
     /* Check for space in case we add a new statement or two */
     if (token == THEN || token == ELSE || token == OTHERWISE || c == ';')
-      if (stmts + 3 >= proglen)
+      if (stmts + 3 >= proglen) {
         if (ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program)))
           prog = (program *) ptr;
         else
           die(Emem);
+      }
     if (token == THEN || token == ELSE || token == OTHERWISE) {
       /* these tokens start new statements */
       if (!start) {

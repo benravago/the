@@ -1,15 +1,17 @@
 /* A Command Shell for REXX/imc                 (C) Ian Collier 1992 */
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<errno.h>
-#include<setjmp.h>
-#include<sys/types.h>
-#include<sys/wait.h>
-#include<sys/param.h>
-#include"const.h"
-#include"functions.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <setjmp.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/param.h>
+
+#include "const.h"
+#include "functions.h"
 
 typedef struct _hashitem {      /* An item in the hash table of path names */
   struct _hashitem *next;       /* The next item in the bucket */
@@ -24,7 +26,6 @@ static hashitem **hashcreate(); /* Create a hash table */
 static void *search();          /* search in the hash table */
 static char *locate();          /* find out the path for a command */
 static void hashcmd();          /* Execute the "hash" builtin command */
-static void hashdel();          /* Delete an element from the hash table */
 
 char **arguments = 0;           /* An array to hold the argument list */
 unsigned argnum = 0;            /* The number of elements allocated so far */
@@ -46,7 +47,7 @@ char *command;                  /* and zero-terminated */
   while (command[0] == ' ')
     command++;                  /* Ignore leading spaces */
   arguments[argc++] = command;  /* Store the start of arg[0] */
-  for (i = j = 0; c = command[j]; j++) {        /* Start tokenising... */
+  for (i = j = 0; (c = command[j]); j++) {        /* Start tokenising... */
     if (c == quote) {
       quote = 0;
       continue;
@@ -137,7 +138,7 @@ int *exist;                     /* the item; if exist=0 the result is a   */
 
   if (!(j = *i))
     return *exist = 0, (void *) i;      /* No elements in this bucket */
-  while (c = strcmp(name, (char *) (j + 1))) {  /* stop when correct element found */
+  while ((c = strcmp(name, (char *) (j + 1)))) {  /* stop when correct element found */
     if (c < 0)
       return *exist = 0, (void *) i;    /* gone too far down the list */
     i = &(j->next);
@@ -200,27 +201,6 @@ char *name;
   }
   return name;                  /* if the name contains '/' or wasn't found in the path,
                                    return it unchanged. */
-}
-
-static void hashdel(name)       /* delete name from hash table, if present */
-char *name;
-{
-  int h = hashfn(name, hashbuckets);
-  hashitem **i = &hashtable[h];
-  hashitem *j;
-  int c;
-
-  if (!(j = *i))
-    return;                     /* No items in this bucket */
-  while (c = strcmp(name, (char *) (j + 1))) {  /* search for the given name */
-    if (c < 0)
-      return;
-    i = &(j->next);
-    if (!(j = *i))
-      return;
-  }
-  *i = j->next;                 /* link the next item to the previous  */
-  free(j);                      /* so deleting this one from the chain */
 }
 
 void hashclear() {              /* Clear the hash table (eg when PATH changes) */
