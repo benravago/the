@@ -1,39 +1,16 @@
-/* UTIL.C - Utility routines                                           */
+// SPDX-FileCopyrightText: 2013 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
+
 /*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2013 Mark Hessling
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling, mark@rexx.org  http://www.rexx.org/
+ * Utility routines 
  */
 
 #include "the.h"
 #include "proto.h"
 
 /*--------------------------- common data -----------------------------*/
+
 static char_t *rcvry[MAX_RECV];
 static length_t rcvry_len[MAX_RECV];
 static short add_rcvry = (-1);
@@ -119,254 +96,94 @@ static unsigned char ebc2asc_table[256] = {
   0x38, 0x39, 0xB3, 0xF7, 0xF0, 0xFA, 0xA7, 0xFF
 };
 
-char_t *asc2ebc(char_t * str, int len, int start, int end)
-/* Function  : Converts an ASCII string to an EBCDIC string.           */
-/* Parameters: str      - ASCII string                                 */
-/*             len      - length of string to convert                  */
-/* Return    : *str     - the same string converted                    */
-{
+char_t *asc2ebc(char_t * str, int len, int start, int end) {
   register int i = 0;
 
-  for (i = 0; i < len; i++)
+  for (i = 0; i < len; i++) {
     str[i] = asc2ebc_table[str[i]];
+  }
   return (str);
 }
 
-char_t *ebc2asc(char_t * str, int len, int start, int end)
-/* Function  : Converts an EBCDIC string to an ASCII string.           */
-/* Parameters: str      - EBCDIC string                                */
-/*             len      - length of string to convert                  */
-/* Return    : *str     - the same string converted                    */
-{
+char_t *ebc2asc(char_t * str, int len, int start, int end) {
   register int i = 0;
 
-  for (i = start; i < min(len, end + 1); i++)
+  for (i = start; i < min(len, end + 1); i++) {
     str[i] = ebc2asc_table[str[i]];
+  }
   return (str);
 }
 
-/*man***************************************************************************
-NAME
-     memreveq - search buffer reversed for character
-
-SYNOPSIS
-     length_t memreveq(buffer,chr,max_length)
-     char_t *buffer;
-     char_t ch;
-     length_t max_length;
-
-DESCRIPTION
-     The memreveq function searches the buffer from the right for the
-     first character equal to the supplied character.
-
-RETURN VALUE
-     If successful, returns the position of first matching character
-     or (-1) if unsuccessful.
-
-SEE ALSO
-     strzreveq, memrevne
-*******************************************************************************/
 length_t memreveq(char_t * buffer, char_t ch, length_t max_len) {
   length_t len = max_len;
 
-  for (--len; len >= 0 && buffer[len] != ch; len--);
+  for (--len; len >= 0 && buffer[len] != ch; len--) {} // no-op
   return (len);
 }
 
-/*man***************************************************************************
-NAME
-     memrevne - search buffer reversed for NOT character
-
-SYNOPSIS
-     length_t memrevne(buffer,known_char,max_len)
-     char_t *buffer;
-     char_t known_char;
-     length_t max_len;
-
-DESCRIPTION
-     The memrevne function searches the buffer from the right for first
-     character NOT equal to the supplied character.
-
-RETURN VALUE
-     If successful, returns the position of first NON-matching character
-     or (-1) if unsuccessful.
-
-SEE ALSO
-     strzrevne, strzne
-*******************************************************************************/
 length_t memrevne(char_t * buffer, char_t known_char, length_t max_len) {
   length_t len = max_len;
 
-  for (--len; len >= 0 && buffer[len] == known_char; len--);
+  for (--len; len >= 0 && buffer[len] == known_char; len--) {} // no-op
   return (len);
 }
 
-/*man***************************************************************************
-NAME
-     meminschr - insert character into buffer
-
-SYNOPSIS
-     char_t *meminschr(buffer,chr,location,max_length,curr_length)
-     char_t *buffer;
-     char_t chr;
-     length_t location,max_length,curr_length;
-
-DESCRIPTION
-     The meminschr inserts the supplied 'chr' into the buffer 'buffer'
-     before the 'location' specified. 'location' is an offset (0 based)
-     from the start of 'buffer'.
-     The 'buffer' will not be allowed to have more than 'max_length'
-     characters, so if the insertion of the character causes the
-     'max_length' to be exceeded, the last character of 'buffer' will
-     be lost.
-
-RETURN VALUE
-     A pointer to the same 'buffer' as was supplied.
-
-SEE ALSO
-    meminsstr, memdeln
-
-*******************************************************************************/
 char_t *meminschr(char_t * buffer, char_t chr, length_t location, length_t max_length, length_t curr_length) {
   length_t i = 0;
 
   for (i = curr_length; i > location; i--) {
-    if (i < max_length)
+    if (i < max_length) {
       buffer[i] = buffer[i - 1];
+    }
   }
-  if (location < max_length)
+  if (location < max_length) {
     buffer[location] = chr;
+  }
   return (buffer);
 }
 
-/*man***************************************************************************
-NAME
-     meminsmem - insert memory into buffer
-
-SYNOPSIS
-     #include "the.h"
-
-     char_t *meminsmem(buffer,str,len,location,max_length,curr_length)
-     char_t *buffer;
-     char_t *str;
-     length_t len,location,max_length,curr_length;
-
-DESCRIPTION
-     The meminsmem function inserts the supplied 'str' into the buffer 'buffer'
-     before the 'location' specified. 'location' is an offset (0 based)
-     from the start of 'buffer'.
-     The 'buffer' will not be allowed to have more than 'max_length'
-     characters, so if the insertion of the string causes the
-     'max_length' to be exceeded, the last character(s) of 'buffer' will
-     be lost.
-
-RETURN VALUE
-     A pointer to the same 'buffer' as was supplied.
-
-SEE ALSO
-    meminschr
-
-*******************************************************************************/
 char_t *meminsmem(char_t * buffer, char_t * str, length_t len, length_t location, length_t max_length, length_t curr_length) {
   length_t i = 0;
 
   for (i = curr_length; i > location; i--) {
-    if (i + len - 1 < max_length)
+    if (i + len - 1 < max_length) {
       buffer[i + len - 1] = buffer[i - 1];
+    }
   }
   for (i = 0; i < len; i++) {
-    if (location + i < max_length)
+    if (location + i < max_length) {
       buffer[location + i] = str[i];
+    }
   }
   return (buffer);
 }
 
-/*man***************************************************************************
-NAME
-     memdeln - delete a number of character(s) from buffer
-
-SYNOPSIS
-     char_t *memdeln(buffer,location,curr_length,num_chars)
-     char_t *buffer;
-     length_t location,curr_length,num_chars;
-
-DESCRIPTION
-     The memdeln deletes the supplied number of characters from the
-     buffer starting at the 'location' specified. 'location' is an offset (0 based)
-     from the start of 'buffer'.
-     For each character deleted, what was the last character in buffer;
-     based on 'curr_length' will be replaced with a space.
-
-RETURN VALUE
-     A pointer to the same 'buffer' as was supplied.
-
-SEE ALSO
-    meminschr, strdelchr
-
-*******************************************************************************/
 char_t *memdeln(char_t * buffer, length_t location, length_t curr_length, length_t num_chars) {
   length_t i = 0;
 
   for (i = location; i < curr_length; i++) {
-    if (i + num_chars >= curr_length)
+    if (i + num_chars >= curr_length) {
       buffer[i] = ' ';
-    else
+    } else {
       buffer[i] = buffer[i + num_chars];
+    }
   }
   return (buffer);
 }
 
-/*man***************************************************************************
-NAME
-     strdelchr - delete all supplied character from buffer
-
-SYNOPSIS
-     char_t *memdeln(buffer,chr)
-     char_t *buffer;
-     char_t chr;
-
-DESCRIPTION
-     The memdeln deletes all occurrences of chr from the ASCIIZ buffer.
-
-RETURN VALUE
-     A pointer to the same 'buffer' as was supplied.
-
-SEE ALSO
-    meminschr, memdeln
-
-*******************************************************************************/
 char_t *strdelchr(char_t * buffer, char_t chr) {
   length_t i = 0, j = 0;
   length_t len = strlen((char *) buffer);
 
   for (i = 0; i < len; i++) {
-    if (buffer[i] != chr)
+    if (buffer[i] != chr) {
       buffer[j++] = buffer[i];
+    }
   }
   buffer[j] = (char_t) '\0';
   return (buffer);
 }
 
-/*man***************************************************************************
-NAME
-     memrmdup - remove duplicate, contiguous characters
-
-SYNOPSIS
-     char_t *memrmdup(buf,len,chr)
-     char_t *buf;
-     length_t *len;
-     char_t ch;
-
-DESCRIPTION
-     The memrmdup function removes all duplicate, contiguous characters
-     from the supplied buffer.
-     e.g. memrmdup("abc$$$def$$ghi$",15,'$')
-     will return pointer to buf equal to "abc$def$ghi$" and new length
-     in len.
-
-RETURN VALUE
-     Returns the new buf.
-*******************************************************************************/
 char_t *memrmdup(char_t * buf, length_t * len, char_t ch) {
   length_t i = 0, num_dups = 0, newlen = *len;
   char_t *src = buf, *dst = buf;
@@ -380,321 +197,127 @@ char_t *memrmdup(char_t * buf, length_t * len, char_t ch) {
       } else {
         dup = TRUE;
       }
-    } else
+    } else {
       dup = FALSE;
+    }
     *dst++ = *src;
   }
   *len = newlen - num_dups;
   return (buf);
 }
 
-/*man***************************************************************************
-NAME
-     strrmdup - remove duplicate, contiguous characters
-
-SYNOPSIS
-     char_t *strrmdup(buf,chr)
-     char_t *buf;
-     char_t ch;
-     bool exclude_leading;
-
-DESCRIPTION
-     The strrmdup function removes all duplicate, contiguous characters
-     from the supplied string.  if exclude_leading is TRUE, no removal
-     is done of leading characters.
-     e.g. strrmdup("abc$$$def$$ghi$",'$')
-     will return pointer to buf equal to "abc$def$ghi$".
-
-RETURN VALUE
-     Returns the new buf.
-*******************************************************************************/
 char_t *strrmdup(char_t * buf, char_t ch, bool exclude_leading) {
   char_t *src = buf, *dst = buf;
   bool dup = FALSE;
 
   if (exclude_leading) {
-    while (*src == ch)
+    while (*src == ch) {
       *dst++ = *src++;
+    }
   }
   while (*src) {
     if (*src == ch) {
       if (dup) {
         src++;
         continue;
-      } else
+      } else {
         dup = TRUE;
-    } else
+      }
+    } else {
       dup = FALSE;
+    }
     *dst++ = *src++;
   }
   *dst = '\0';
   return (buf);
 }
 
-/*man***************************************************************************
-NAME
-     strzne - search string for NOT character
-
-SYNOPSIS
-     length_t strzne(str,chr)
-     char_t *str;
-     char_t ch;
-
-DESCRIPTION
-     The strzne function searches the string from the left for the first
-     character NOT equal to the supplied character.
-
-RETURN VALUE
-     If successful, returns the position of first NON-matching character
-     or (-1) if unsuccessful.
-
-SEE ALSO
-     strzrevne, memrevne
-*******************************************************************************/
 length_t strzne(char_t * str, char_t ch) {
   length_t len = 0;
   length_t i = 0;
 
   len = strlen((char *) str);
   for (; i < len && str[i] == ch; i++);
-  if (i >= len)
+  if (i >= len) {
     i = (-1);
+  }
   return (i);
 }
 
-/*man***************************************************************************
-NAME
-     my_strdup - equivalent to strdup
-
-SYNOPSIS
-     char_t *my_strdup(str)
-     char_t *str;
-
-DESCRIPTION
-     The my_strdup function duplicates the supplied string.
-
-RETURN VALUE
-     If successful, returns a pointer to the copy of the supplied string
-     or NULL if unsuccessful.
-*******************************************************************************/
 char_t *my_strdup(char_t * str) {
   length_t len = 0;
   char_t *tmp = NULL;
 
   len = strlen((char *) str);
-  if ((tmp = (char_t *) malloc((len + 1) * sizeof(char_t))) == (char_t *) NULL)
+  if ((tmp = (char_t *) malloc((len + 1) * sizeof(char_t))) == (char_t *) NULL) {
     return ((char_t *) NULL);
+  }
   strcpy((char *) tmp, (char *) str);
   return (tmp);
 }
 
-/*man***************************************************************************
-NAME
-     memne - search buffer for NOT character
-
-SYNOPSIS
-     #include "the.h"
-
-     length_t memne(buffer,chr,length)
-     char_t *buffer;
-     char_t chr;
-     length_t length;
-
-DESCRIPTION
-     The memne function searches the buffer from the left for the first
-     character NOT equal to the supplied character.
-
-RETURN VALUE
-     If successful, returns the position of first NON-matching character
-     or (-1) if unsuccessful.
-
-SEE ALSO
-     strzrevne, memrevne, strzne
-*******************************************************************************/
 length_t memne(char_t * buffer, char_t chr, length_t length) {
   length_t i = 0;
 
   for (; i < length && buffer[i] == chr; i++);
-  if (i >= length)
+  if (i >= length) {
     i = (-1);
+  }
   return (i);
 }
 
-/*man***************************************************************************
-NAME
-     strzrevne - search string reversed for NOT character
-
-SYNOPSIS
-     #include "the.h"
-
-     length_t strzrevne(str,chr)
-     char_t *str;
-     char_t ch;
-
-DESCRIPTION
-     The strzrevne function searches the string from the right for the
-     first character NOT equal to the supplied character.
-
-RETURN VALUE
-     If successful, returns the position of first NON-matching character
-     or (-1) if unsuccessful.
-
-SEE ALSO
-     strzne, memrevne
-*******************************************************************************/
 length_t strzrevne(char_t * str, char_t ch) {
   length_t len = 0;
 
   len = strlen((char *) str);
-  for (--len; len >= 0 && str[len] == ch; len--);
+  for (--len; len >= 0 && str[len] == ch; len--) {} // no-op
   return (len);
 }
 
-/*man***************************************************************************
-NAME
-     strzreveq - search string reversed for character
-
-SYNOPSIS
-     length_t strzreveq(str,chr)
-     char_t *str;
-     char_t ch;
-
-DESCRIPTION
-     The strzreveq function searches the string from the right for the
-     first character equal to the supplied character.
-
-RETURN VALUE
-     If successful, returns the position of first matching character
-     or (-1) if unsuccessful.
-
-SEE ALSO
-     strzrevne
-*******************************************************************************/
 length_t strzreveq(char_t * str, char_t ch) {
   length_t len = 0;
 
   len = strlen((char *) str);
-  for (--len; len >= 0 && str[len] != ch; len--);
+  for (--len; len >= 0 && str[len] != ch; len--) {} // no-op
   return (len);
 }
 
-/*man***************************************************************************
-NAME
-     strtrunc - truncate leading and trailing spaces from string
-
-SYNOPSIS
-     #include "the.h"
-
-     char_t *strtrunc(string)
-     char_t *string;
-
-DESCRIPTION
-     The strtrunc function truncates all leading and trailing spaces
-     from the supplied string.
-
-RETURN VALUE
-     A pointer to the original string, now truncated.
-
-SEE ALSO
-
-*******************************************************************************/
 char_t *strtrunc(char_t * string) {
   return (MyStrip(string, STRIP_BOTH, ' '));
 }
 
-/*man***************************************************************************
-NAME
-     MyStrip - truncate leading and/or trailing spaces from string
-
-SYNOPSIS
-     #include "the.h"
-
-     char_t *MyStrip(string,option,ch)
-     char_t *string;
-     char option;
-     char ch;
-
-DESCRIPTION
-     The MyStrip function truncates all leading and/or trailing ch
-     from the supplied string.
-     The value of the "option" argument can be one of:
-        STRIP_LEADING
-        STRIP_TRAILING
-        STRIP_BOTH
-        STRIP_ALL
-        STRIP_NONE
-     These are defined elsewhere with the values:
-        STRIP_LEADING    1
-        STRIP_TRAILING   2
-        STRIP_INTERNAL   4
-        STRIP_BOTH       STRIP_LEADING|STRIP_TRAILING
-        STRIP_ALL        STRIP_LEADING|STRIP_TRAILING|STRIP_INTERNAL
-        STRIP_NONE       0
-
-RETURN VALUE
-     A pointer to the original string, now truncated.
-
-SEE ALSO
-
-*******************************************************************************/
 char_t *MyStrip(char_t * string, char option, char ch) {
   length_t i = 0;
   length_t pos = 0;
 
-  if (strlen((char *) string) == 0)
+  if (strlen((char *) string) == 0) {
     return (string);
+  }
   if (option & STRIP_TRAILING) {
     pos = strzrevne(string, ch);
-    if (pos == (-1))
+    if (pos == (-1)) {
       *(string) = '\0';
-    else
+    } else {
       *(string + pos + 1) = '\0';
+    }
   }
   if (option & STRIP_LEADING) {
     pos = strzne(string, ch);
-    if (pos == (-1))
+    if (pos == (-1)) {
       *(string) = '\0';
-    else {
-/*       for (i=0;*(string+i)!='\0';i++) */
-      for (i = 0; *(string + i + pos) != '\0'; i++)     /* fixed by FGC */
+    } else {
+      for (i = 0; *(string + i + pos) != '\0'; i++) {
         *(string + i) = *(string + i + pos);
+      }
       *(string + i) = '\0';
     }
   }
-  if (option == STRIP_ALL)
+  if (option == STRIP_ALL) {
     string = strdelchr(string, ' ');
+  }
   return (string);
 }
 
-/*man***************************************************************************
-NAME
-     memfind - finds a needle in a haystack respecting case and arbitrary
-               characters if set.
-
-SYNOPSIS
-     length_t memfind(haystack,needle,hay_len,nee_len,case_ignore,arbsts,arb)
-     char_t *haystack;                            string to be searched
-     char_t *needle;        string to search for - may contain arbchars
-     length_t hay_len;                               length of haystack
-     length_t nee_len;                                 length of needle
-     bool case_ignore;                      TRUE if search to ignore case
-     bool arbsts;          TRUE if need to check for arbitrary characters
-     char_t single                       the single arbitrary character
-     char_t multiple                   the multiple arbitrary character
-     length_t *target_len       return the length of the matched string
-
-DESCRIPTION
-     The memfind function locates a needle in a haystack. Both the needle
-     and haystack may contain null characters. If case_ignore is TRUE,
-     then upper and lower case characters are treated equal. If arbsts
-     is ON, any arbitrary character, specified by arb, in needle, will
-     match ANY character in the haystack.
-
-RETURN VALUE
-     The first occurrence (0 based) of needle in haystack, or (-1) if
-     the needle does not appear in the haystack. The length of the matched
-     string is returned in target_len
-*******************************************************************************/
 length_t memfind(char_t * haystack, char_t * needle, length_t hay_len, length_t nee_len, bool case_ignore, bool arbsts, char_t arb_single, char_t arb_multiple, length_t * target_len) {
   register char_t c1 = 0, c2 = 0;
   register char_t *buf1 = NULL, *buf2 = NULL;
@@ -704,8 +327,7 @@ length_t memfind(char_t * haystack, char_t * needle, length_t hay_len, length_t 
   bool need_free = FALSE;
 
   /*
-   * Strip any duplicate, contiguous occurrences of arb_multiple if
-   * we are handling arbchars.
+   * Strip any duplicate, contiguous occurrences of arb_multiple if we are handling arbchars.
    */
   if (arbsts && strzeq(needle, arb_multiple) != (-1)) {
     if ((new_needle = (char_t *) my_strdup(needle)) == NULL) {
@@ -722,24 +344,22 @@ length_t memfind(char_t * haystack, char_t * needle, length_t hay_len, length_t 
     matches = 0;
     for (j = 0; j < nee_len; j++) {
       if (case_ignore) {
-        if (isupper(*buf1))
+        if (isupper(*buf1)) {
           c1 = tolower(*buf1);
-        else
+        } else {
           c1 = *buf1;
-        if (isupper(*buf2))
+        }
+        if (isupper(*buf2)) {
           c2 = tolower(*buf2);
-        else
+        } else {
           c2 = *buf2;
+        }
       } else {
         c1 = *buf1;
         c2 = *buf2;
       }
       if (arbsts) {
-/* Next lines added by R.BOSSUT */
         if (c2 == arb_multiple) {
-          /*
-           *
-           */
           length_t new_hay_len = hay_len - (buf1 - haystack);
           length_t new_nee_len = nee_len - (buf2 + 1 - new_needle);
           length_t new_tar = 0;
@@ -749,8 +369,9 @@ length_t memfind(char_t * haystack, char_t * needle, length_t hay_len, length_t 
 
           new_start = memfind(buf1, buf2 + 1, new_hay_len, new_nee_len, case_ignore, arbsts, arb_single, arb_multiple, &new_tar);
           if (new_start != (-1)) {
-            if (need_free)
+            if (need_free) {
               free(new_needle);
+            }
             *target_len = *target_len + new_tar + new_start;
             if (new_needle[nee_len - 1] == arb_multiple && new_start == 0) {
               *target_len = hay_len - *target_len - 1;
@@ -758,53 +379,36 @@ length_t memfind(char_t * haystack, char_t * needle, length_t hay_len, length_t 
             return (i);
           }
         } else {
-/* Up to here... */
-          if (c1 != c2 && c2 != arb_single)
+          if (c1 != c2 && c2 != arb_single) {
             break;
-          else
+          } else {
             matches++;
+          }
         }
-/* Next lines added by R.BOSSUT */
-      }
-/* Up to here... */
-      else {
-        if (c1 != c2)
+      } else {
+        if (c1 != c2) {
           break;
-        else
+        } else {
           matches++;
+        }
       }
       ++buf1;
       ++buf2;
     }
     if (matches == nee_len) {
-      if (need_free)
+      if (need_free) {
         free(new_needle);
+      }
       *target_len = *target_len + matches;
       return (i);
     }
   }
-  if (need_free)
+  if (need_free) {
     free(new_needle);
+  }
   return (-1);
 }
 
-/*man***************************************************************************
-NAME
-     memrev - reverses a buffer's contents
-
-SYNOPSIS
-     void memrev(dest,source,len)
-     char_t *dest;
-     char_t *source;
-     length_t length;
-
-DESCRIPTION
-     The memrev function reverses the contents of the source buffer
-     and places the result in dest.
-
-RETURN VALUE
-     None
-*******************************************************************************/
 void memrev(char_t * dest, char_t * src, length_t length) {
   length_t i, j;
 
@@ -813,70 +417,42 @@ void memrev(char_t * dest, char_t * src, length_t length) {
   }
 }
 
-length_t memcmpi(char_t * buf1, char_t * buf2, length_t len)
-/* Function  : Compares two memory buffers for equality;               */
-/*             case insensitive. Same as memicmp() Microsoft C.        */
-/* Parameters: buf1     - first buffer                                 */
-/*             buf2     - second buffer                                */
-/*             len      - number of characters to compare.             */
-/* Return    : <0 if buf1 < buf2,                                      */
-/*             =0 if buf1 = buf2,                                      */
-/*             >0 if buf1 > buf2,                                      */
-{
+length_t memcmpi(char_t * buf1, char_t * buf2, length_t len) {
   length_t i = 0;
   char_t c1, c2;
 
   for (i = 0; i < len; i++) {
-    if (isupper(*buf1))
+    if (isupper(*buf1)) {
       c1 = tolower(*buf1);
-    else
+    } else {
       c1 = *buf1;
-    if (isupper(*buf2))
+    }
+    if (isupper(*buf2)) {
       c2 = tolower(*buf2);
-    else
+    } else {
       c2 = *buf2;
-    if (c1 != c2)
+    }
+    if (c1 != c2) {
       return (c1 - c2);
+    }
     ++buf1;
     ++buf2;
   }
   return (0);
 }
 
-char_t *make_upper(char_t * str)
-/* Function  : Makes the supplied string uppercase.                    */
-/*             Equivalent to strupr() on some platforms.               */
-/* Parameters: str      - string to uppercase                          */
-/* Return    : str uppercased                                          */
-{
+char_t *make_upper(char_t * str) {
   char_t *save_str = str;
 
   while (*str) {
-    if (islower(*str))
+    if (islower(*str)) {
       *str = toupper(*str);
+    }
     ++str;
   }
   return (save_str);
 }
 
-/*man***************************************************************************
-NAME
-     equal - determine if strings are equal up to specified length
-
-SYNOPSIS
-     bool equal(con,str,min_len)
-     char_t *con,*str;
-     length_t min_len;
-
-DESCRIPTION
-     The equal function determines if a two strings are equal, irrespective
-     of case, up to the length of the second string. The length of the
-     second string must be greater than or equal to the specified minimum
-     length for the strings to be considered equal.
-
-RETURN VALUE
-     If 'equal' TRUE else FALSE.
-*******************************************************************************/
 bool equal(char_t * con, char_t * str, length_t min_len) {
   length_t i = 0, lenstr = 0;
   char_t c1, c2;
@@ -889,14 +465,16 @@ bool equal(char_t * con, char_t * str, length_t min_len) {
   }
   lenstr = strlen((char *) str);
   for (i = 0; i < lenstr; i++) {
-    if (isupper(*con))
+    if (isupper(*con)) {
       c1 = tolower(*con);
-    else
+    } else {
       c1 = *con;
-    if (isupper(*str))
+    }
+    if (isupper(*str)) {
       c2 = tolower(*str);
-    else
+    } else {
       c2 = *str;
+    }
     if (c1 != c2) {
       return (FALSE);
     }
@@ -904,21 +482,16 @@ bool equal(char_t * con, char_t * str, length_t min_len) {
     ++str;
   }
   return (TRUE);
-
 }
 
-bool valid_integer(char_t * str)
-/* Function  : Checks that string contains only 0-9,- or +.            */
-/* Parameters: *str     - string to be checked                         */
-/* Return    : TRUE or FALSE                                           */
-{
+bool valid_integer(char_t * str) {
   length_t i = 0;
   length_t num_signs = 0;
 
   for (i = 0; i < strlen((char *) str); i++) {
-    if (*(str + i) == '-' || *(str + i) == '+')
+    if (*(str + i) == '-' || *(str + i) == '+') {
       num_signs++;
-    else {
+    } else {
       if (!isdigit(*(str + i))) {
         return (FALSE);
       }
@@ -930,15 +503,12 @@ bool valid_integer(char_t * str)
   return (TRUE);
 }
 
-bool valid_positive_integer(char_t * str)
-/* Function  : Checks that string contains only 0-9, or +.             */
-/* Parameters: *str     - string to be checked                         */
-/* Return    : TRUE or FALSE                                           */
-{
+bool valid_positive_integer(char_t * str) {
   length_t i = 0;
 
-  if (*str == '+')
+  if (*str == '+') {
     str++;
+  }
   for (i = 0; i < strlen((char *) str); i++) {
     if (!isdigit(*(str + i))) {
       return (FALSE);
@@ -947,27 +517,23 @@ bool valid_positive_integer(char_t * str)
   return (TRUE);
 }
 
-short valid_positive_integer_against_maximum(char_t * str, length_t maximum)
-/* Function  : Checks that string contains only 0-9, or +              */
-/*             and is less than supplied string maximum                */
-/* Parameters: *str     - string to be checked                         */
-/* Return    : TRUE or FALSE                                           */
-{
+short valid_positive_integer_against_maximum(char_t * str, length_t maximum) {
   length_t i, len_str, len_max;
   char_t buffer[50];
   char_t *buf;
   short rc = 0;
 
   if (!valid_positive_integer(str)) {
-    return (4);                 /* invlaid number */
+    return (4);                 /* invalid number */
   }
   /*
    * Now check against the maximum
    */
   buf = buffer;
   sprintf((char *) buf, "%ld", maximum);
-  if (*str == '+')
+  if (*str == '+') {
     str++;
+  }
   len_max = strlen((char *) buf);
   len_str = strlen((char *) str);
   if (len_str > len_max) {
@@ -989,49 +555,30 @@ short valid_positive_integer_against_maximum(char_t * str, length_t maximum)
   return (rc);
 }
 
-length_t strzeq(char_t * str, char_t ch)
-/* Function  : Locate in ASCIIZ string, character                      */
-/* Parameters: *str     - string to be searched                        */
-/*             ch       - character to be searched for                 */
-/* Return    : position in string of character - (-1) if not found     */
-{
+length_t strzeq(char_t * str, char_t ch) {
   length_t len = 0;
   length_t i = 0;
 
   len = strlen((char *) str);
-  for (; i < len && str[i] != ch; i++);
-  if (i >= len)
+  for (; i < len && str[i] != ch; i++) {} // no-op
+  if (i >= len) {
     i = (-1L);
+  }
   return (i);
 }
 
-char_t *strtrans(char_t * str, char_t oldch, char_t newch)
-/* Function  : Translate all occurrences of oldch to newch in str      */
-/* Parameters: *str     - string to be amendedd                        */
-/*             oldch    - character to be replaced                     */
-/*             newch    - character to replace oldch                   */
-/* Return    : same string but with characters translated              */
-{
+char_t *strtrans(char_t * str, char_t oldch, char_t newch) {
   length_t i = 0;
 
   for (i = 0; i < strlen((char *) str); i++) {
-    if (*(str + i) == oldch)
+    if (*(str + i) == oldch) {
       *(str + i) = newch;
+    }
   }
   return (str);
 }
 
-LINE *add_LINE(LINE * first, LINE * curr, char_t * line, length_t len, select_t select, bool new_flag)
-/* Adds a member of the linked list for the specified file containing  */
-/* the line contents and length.                                       */
-/* PARAMETERS:                                                         */
-/* first      - pointer to first line for the file                     */
-/* curr       - pointer to current line for the file                   */
-/* line       - contents of line to be added                           */
-/* len        - length of line to be added                             */
-/* select     - select level of new line                               */
-/* RETURN:    - pointer to current item in linked list or NULL if error*/
-{
+LINE *add_LINE(LINE * first, LINE * curr, char_t * line, length_t len, select_t select, bool new_flag) {
   /*
    * Validate that the line being added is shorter than the maximum line length
    */
@@ -1056,21 +603,21 @@ LINE *add_LINE(LINE * first, LINE * curr, char_t * line, length_t len, select_t 
   curr_line->save_select = select;
   curr_line->pre = NULL;
   curr_line->first_name = NULL;
-  curr_line->name = NULL;       /* TODO - get rid of this when all uses of this structure for
-                                   other purposes are changed */
+  curr_line->name = NULL;       /* TODO - get rid of this when all uses of this structure for other purposes are changed */
   curr_line->flags.new_flag = new_flag;
   curr_line->flags.changed_flag = FALSE;
   curr_line->flags.tag_flag = FALSE;
   curr_line->flags.save_tag_flag = FALSE;
   /*
-   * If this is the first line of the file, and the current parser for the
-   * file is NULL, see if we can use one of the magic string parsers...
+   * If this is the first line of the file, and the current parser for the file is NULL,
+   * see if we can use one of the magic string parsers...
    */
   if (curr_line->prev && curr_line->prev->prev == NULL && CURRENT_VIEW && CURRENT_FILE && CURRENT_FILE->parser == NULL) {
     find_auto_parser(CURRENT_FILE);
   }
   return (curr_line);
 }
+
 LINE *append_LINE(LINE * curr, char_t * line, length_t len) {
   curr->line = (char_t *) realloc(curr->line, (curr->length + len + 1) * sizeof(char_t));
   if (curr->line == NULL) {
@@ -1082,16 +629,7 @@ LINE *append_LINE(LINE * curr, char_t * line, length_t len) {
   return (curr);
 }
 
-LINE *delete_LINE(LINE ** first, LINE ** last, LINE * curr, short direction, bool delete_names)
-/* Deletes a member of the linked list for the specified file.         */
-/* PARAMETERS:                                                         */
-/* first      - pointer to first line for the file                     */
-/* first      - pointer to last  line for the file                     */
-/* curr       - pointer to current line for the file                   */
-/* direction  - direction in which to delete.                          */
-/* delete_names - if 1 delete the names linked list                    */
-/* RETURN:    - pointer to current item in linked list or NULL if error*/
-{
+LINE *delete_LINE(LINE ** first, LINE ** last, LINE * curr, short direction, bool delete_names) {
   if (delete_names) {
     if (curr->first_name != (THELIST *) NULL) {
       ll_free(curr->first_name, free);
@@ -1117,23 +655,24 @@ void put_string(WINDOW * win, row_t row, col_t col, char_t * string, length_t le
   for (i = 0; i < len; i++) {
     waddch(win, etmode_table[*(string + i)]);
   }
-  return;
 }
+
 void put_char(WINDOW * win, chtype ch, char_t add_ins) {
   chtype chr = 0;
 
   chr = ch & A_CHARTEXT;
-  if (etmode_flag[chr])         /* etmode character has attributes, use them */
+  if (etmode_flag[chr]) {        /* etmode character has attributes, use them */
     ch = etmode_table[chr];
-  else
+  } else {
     ch = etmode_table[chr] | (ch & A_ATTRIBUTES);
-
-  if (add_ins == ADDCHAR)
+  }
+  if (add_ins == ADDCHAR) {
     waddch(win, ch);
-  else
+  } else {
     winsch(win, ch);
-  return;
+  }
 }
+
 short set_up_windows(short scrn) {
   register short i = 0;
   short y = 0, x = 0;
@@ -1162,9 +701,8 @@ short set_up_windows(short scrn) {
     my_prefix_width = prefix_width;
   }
   /*
-   * Save the position of the cursor in each window, and then delete the
-   * window. Recreate each window, that has a valid size and move the
-   * cursor back to the position it had in each window.
+   * Save the position of the cursor in each window, and then delete the window.
+   * Recreate each window, that has a valid size and move the cursor back to the position it had in each window.
    */
   for (i = 0; i < VIEW_WINDOWS; i++) {
     y = x = 0;
@@ -1188,24 +726,23 @@ short set_up_windows(short scrn) {
 
   if (screen[scrn].win[WINDOW_ARROW] != (WINDOW *) NULL) {
     wattrset(screen[scrn].win[WINDOW_ARROW], set_colour(fp.attr + ATTR_ARROW));
-    for (i = 0; i < my_prefix_width - 2; i++)
+    for (i = 0; i < my_prefix_width - 2; i++) {
       mvwaddch(screen[scrn].win[WINDOW_ARROW], 0, i, '=');
+    }
     mvwaddstr(screen[scrn].win[WINDOW_ARROW], 0, my_prefix_width - 2, "> ");
     wnoutrefresh(screen[scrn].win[WINDOW_ARROW]);
   }
-
   if (screen[scrn].win[WINDOW_IDLINE] != (WINDOW *) NULL) {
     wattrset(screen[scrn].win[WINDOW_IDLINE], set_colour(fp.attr + ATTR_IDLINE));
     wmove(screen[scrn].win[WINDOW_IDLINE], 0, 0);
     my_wclrtoeol(screen[scrn].win[WINDOW_IDLINE]);
   }
-
-  if (screen[scrn].win[WINDOW_PREFIX] != (WINDOW *) NULL)
+  if (screen[scrn].win[WINDOW_PREFIX] != (WINDOW *) NULL) {
     wattrset(screen[scrn].win[WINDOW_PREFIX], set_colour(fp.attr + ATTR_PENDING));
-
-  if (screen[scrn].win[WINDOW_GAP] != (WINDOW *) NULL)
+  }
+  if (screen[scrn].win[WINDOW_GAP] != (WINDOW *) NULL) {
     wattrset(screen[scrn].win[WINDOW_GAP], set_colour(fp.attr + ATTR_GAP));
-
+  }
   if (screen[scrn].win[WINDOW_COMMAND] != (WINDOW *) NULL) {
     wattrset(screen[scrn].win[WINDOW_COMMAND], set_colour(fp.attr + ATTR_CMDLINE));
     getyx(screen[scrn].win[WINDOW_COMMAND], y, x);
@@ -1231,9 +768,7 @@ short set_up_windows(short scrn) {
       return (RC_OUT_OF_MEMORY);
     }
     keypad(divider, TRUE);
-
     wattrset(divider, set_colour(fp.attr + ATTR_DIVIDER));
-
     draw_divider();
   }
   if (max_slk_labels) {
@@ -1241,11 +776,12 @@ short set_up_windows(short scrn) {
     slk_noutrefresh();
   }
   /*
-   * Free up  space for a file descriptor colour attributes...
+   * Free up space for a file descriptor colour attributes...
    */
   free(fp.attr);
   return (RC_OK);
 }
+
 short draw_divider(void) {
 
   wmove(divider, 0, 0);
@@ -1254,38 +790,44 @@ short draw_divider(void) {
   wvline(divider, 0, screen[1].screen_rows);
   return (RC_OK);
 }
+
 short create_statusline_window(void) {
   COLOUR_ATTR attr;
 
   if (!curses_started) {
     return (RC_OK);
   }
-  if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL)
+  if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL) {
     set_up_default_colours((FILE_DETAILS *) NULL, &attr, ATTR_STATAREA);
-  else
+  } else {
     memcpy(&attr, CURRENT_FILE->attr + ATTR_STATAREA, sizeof(COLOUR_ATTR));
+  }
   if (statarea != (WINDOW *) NULL) {
     delwin(statarea);
     statarea = (WINDOW *) NULL;
   }
   switch (STATUSLINEx) {
+
     case 'B':
       statarea = newwin(1, COLS, terminal_lines - 1, 0);
       keypad(statarea, TRUE);
       wattrset(statarea, set_colour(&attr));
       clear_statarea();
       break;
+
     case 'T':
       statarea = newwin(1, COLS, (FILETABSx) ? 1 : 0, 0);
       keypad(statarea, TRUE);
       wattrset(statarea, set_colour(&attr));
       clear_statarea();
       break;
+
     default:
       break;
   }
   return (RC_OK);
 }
+
 short create_filetabs_window(void) {
   if (!curses_started) {
     return (RC_OK);
@@ -1305,15 +847,16 @@ short create_filetabs_window(void) {
   }
   return (RC_OK);
 }
+
 void pre_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * known_curr) {
   LINE *curr = known_curr;
 
   /*
-   * If we haven't been passed a valid LINE*, go and get one for the
-   * supplied line_number.
+   * If we haven't been passed a valid LINE*, go and get one for the supplied line_number.
    */
-  if (curr == (LINE *) NULL)
+  if (curr == (LINE *) NULL) {
     curr = lll_find(the_view->file_for_view->first_line, the_view->file_for_view->last_line, line_number, the_view->file_for_view->number_lines);
+  }
   memset(rec, ' ', max_line_length);
   memcpy(rec, curr->line, curr->length);
   rec_len = curr->length;
@@ -1330,8 +873,8 @@ void pre_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * known_
     pre_rec[pre_rec_len] = ' ';
     pre_rec[MAX_PREFIX_WIDTH] = '\0';
   }
-  return;
 }
+
 short post_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * known_curr, bool set_alt) {
   LINE *curr = known_curr;
   short rc = RC_OK;
@@ -1343,18 +886,18 @@ short post_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * know
     return (RC_OK);
   }
   /*
-   * If we haven't been passed a valid LINE*, go and get one for the
-   * supplied line_number.
+   * If we haven't been passed a valid LINE*, go and get one for the supplied line_number.
    */
-  if (curr == (LINE *) NULL)
+  if (curr == (LINE *) NULL) {
     curr = lll_find(the_view->file_for_view->first_line, the_view->file_for_view->last_line, line_number, the_view->file_for_view->number_lines);
+  }
   /*
    * First copy the pending prefix command to the linked list.
-   * Only do it if the prefix command has a value or there is already a
-   * pending prefix command for that line.
+   * Only do it if the prefix command has a value or there is already a pending prefix command for that line.
    */
-  if (prefix_changed)
+  if (prefix_changed) {
     add_prefix_command(current_screen, CURRENT_VIEW, curr, line_number, FALSE, FALSE);
+  }
   /*
    * If the line hasn't changed, return.
    */
@@ -1368,13 +911,15 @@ short post_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * know
   /*
    * Increment the alteration counters, if requested to do so...
    */
-  if (set_alt)
+  if (set_alt) {
     increment_alt(the_view->file_for_view);
+  }
   /*
    * Add the old line contents to the line recovery list.
    */
-  if (the_view->file_for_view->undoing)
+  if (the_view->file_for_view->undoing) {
     add_to_recovery_list(curr->line, curr->length);
+  }
   /*
    * Realloc the dynamic memory for the line if the line is now longer.
    */
@@ -1400,6 +945,7 @@ short post_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * know
   }
   return (rc);
 }
+
 bool blank_field(char_t * field) {
   if (field == NULL) {
     return (TRUE);              /* field is NULL */
@@ -1409,20 +955,20 @@ bool blank_field(char_t * field) {
   }
   return (FALSE);
 }
+
 void adjust_marked_lines(bool binsert_line, line_t base_line, line_t num_lines) {
   int iinsert_line = binsert_line;
 
-/*
- * When lines are deleted, the base line is the first line in the file
- * irrespective of the direction that the delete is done.
- */
   /*
+   * When lines are deleted, the base line is the first line in the file irrespective of the direction that the delete is done.
+   *
    * If there are no marked lines in the current view, return.
    */
   if (MARK_VIEW != CURRENT_VIEW) {
     return;
   }
   switch (iinsert_line) {
+
     case TRUE:                 /* INSERT */
       if (base_line < CURRENT_VIEW->mark_start_line) {
         CURRENT_VIEW->mark_start_line += num_lines;
@@ -1434,6 +980,7 @@ void adjust_marked_lines(bool binsert_line, line_t base_line, line_t num_lines) 
         break;
       }
       break;
+
     case FALSE:                /* DELETE */
       if (base_line <= CURRENT_VIEW->mark_start_line && base_line + num_lines - 1L >= CURRENT_VIEW->mark_end_line) {
         CURRENT_VIEW->marked_line = FALSE;
@@ -1460,14 +1007,13 @@ void adjust_marked_lines(bool binsert_line, line_t base_line, line_t num_lines) 
       CURRENT_VIEW->mark_end_line -= num_lines;
       break;
   }
-  return;
 }
+
 void adjust_pending_prefix(VIEW_DETAILS * view, bool binsert_line, line_t base_line, line_t num_lines) {
   int iinsert_line = binsert_line;
 
   /*
-   * When lines are deleted, the base line is the first line in the file
-   * irrespective of the direction that the delete is done.
+   * When lines are deleted, the base line is the first line in the file irrespective of the direction that the delete is done.
    */
   THE_PPC *curr_ppc = NULL;
 
@@ -1480,36 +1026,42 @@ void adjust_pending_prefix(VIEW_DETAILS * view, bool binsert_line, line_t base_l
   curr_ppc = view->file_for_view->first_ppc;
   while (curr_ppc != NULL) {
     switch (iinsert_line) {
+
       case TRUE:               /* INSERT */
         if (base_line < curr_ppc->ppc_line_number) {
           curr_ppc->ppc_line_number += num_lines;
           break;
         }
         break;
+
       case FALSE:              /* DELETE */
         if (base_line + num_lines - 1L < curr_ppc->ppc_line_number) {
           curr_ppc->ppc_line_number -= num_lines;
           break;
         }
-        if (base_line > curr_ppc->ppc_line_number)
+        if (base_line > curr_ppc->ppc_line_number) {
           break;
+        }
         clear_pending_prefix_command(curr_ppc, view->file_for_view, (LINE *) NULL);
         break;
     }
     curr_ppc = curr_ppc->next;
   }
-  return;
 }
+
 char_t case_translate(char_t key) {
   char_t case_type = CURRENT_VIEW->case_enter;
 
   switch (CURRENT_VIEW->current_window) {
+
     case WINDOW_COMMAND:
       case_type = CURRENT_VIEW->case_enter_cmdline;
       break;
+
     case WINDOW_PREFIX:
       case_type = CURRENT_VIEW->case_enter_prefix;
       break;
+
     default:
       break;
   }
@@ -1521,6 +1073,7 @@ char_t case_translate(char_t key) {
   }
   return (key);
 }
+
 void add_to_recovery_list(char_t * line, length_t len) {
   register short i = 0;
 
@@ -1531,12 +1084,13 @@ void add_to_recovery_list(char_t * line, length_t len) {
     return;
   }
   /*
-   * First time through, set line array to NULL,  to indicated unused.
+   * First time through, set line array to NULL, to indicated unused.
    * This setup MUST occur before the freeing up code.
    */
   if (add_rcvry == (-1)) {
-    for (i = 0; i < MAX_RECV; i++)
+    for (i = 0; i < MAX_RECV; i++) {
       rcvry[i] = NULL;
+    }
     add_rcvry = 0;              /* set to point to next available slot */
   }
   /*
@@ -1558,9 +1112,8 @@ void add_to_recovery_list(char_t * line, length_t len) {
   retr_rcvry = add_rcvry;
   add_rcvry = (++add_rcvry >= MAX_RECV) ? 0 : add_rcvry;
   num_rcvry = (++num_rcvry > MAX_RECV) ? MAX_RECV : num_rcvry;
-
-  return;
 }
+
 void get_from_recovery_list(short num) {
   register short i = 0;
   short num_retr = min(num, num_rcvry);
@@ -1585,13 +1138,13 @@ void get_from_recovery_list(short num) {
   /*
    * If one or more lines were retrieved, increment the alteration counts
    */
-  if (num_retr)
+  if (num_retr) {
     increment_alt(CURRENT_FILE);
-
+  }
   sprintf((char *) temp_cmd, "%d line(s) recovered", num_retr);
   display_error(0, temp_cmd, TRUE);
-  return;
 }
+
 void free_recovery_list(void) {
   register short i = 0;
 
@@ -1604,27 +1157,28 @@ void free_recovery_list(void) {
   add_rcvry = (-1);
   retr_rcvry = (-1);
   num_rcvry = 0;
-  return;
 }
 
 short my_wclrtoeol(WINDOW * win) {
   register short i = 0;
-  short x = 0, y = 0, maxx = 0, maxy = 0;
+  short x = 0, y = 0, maxx = 0;
 
   if (win != (WINDOW *) NULL) {
     getyx(win, y, x);
-    getmaxyx(win, maxy, maxx);
-    for (i = x; i < maxx; i++)
+    maxx = getmaxx(win);
+    for (i = x; i < maxx; i++) {
       waddch(win, ' ');
+    }
     wmove(win, y, x);
   }
   return (0);
 }
+
 short my_wdelch(WINDOW * win) {
-  short x = 0, y = 0, maxx = 0, maxy = 0;
+  short x = 0, y = 0, maxx = 0;
 
   getyx(win, y, x);
-  getmaxyx(win, maxy, maxx);
+  maxx = getmaxx(win);
   wdelch(win);
   mvwaddch(win, y, maxx - 1, ' ');
   wmove(win, y, x);
@@ -1632,35 +1186,27 @@ short my_wdelch(WINDOW * win) {
   return (0);
 }
 
-short get_word(char_t * string, length_t length, length_t curr_pos, length_t * first_col, length_t * last_col)
-/*
- * A "word" is based on the SET WORD settings
- * Returns the portion of the string containing a "word" to the right
- * of the current position. Used in SOS DELWORD and MARK WORD
- * If the current position is a blank, the the "word" is all blanks
- * the left or right of the current position.
- * If in a "word", all characters in the word and any following
- * blanks (to the next "word") are included
+/* A "word" is based on the SET WORD settings.
+ *
+ * Returns the portion of the string containing a "word" to the right of the current position. Used in SOS DELWORD and MARK WORD
+ * If the current position is a blank, the the "word" is all blanks the left or right of the current position.
+ * If in a "word", all characters in the word and any following blanks (to the next "word") are included
  */
-{
+short get_word(char_t * string, length_t length, length_t curr_pos, length_t * first_col, length_t * last_col) {
   short state = 0;
   length_t i = 0;
 
   /*
-   * If we are after the last column of the line, then just ignore the
-   * command and leave the cursor where it is.
+   * If we are after the last column of the line, then just ignore the command and leave the cursor where it is.
    */
   if (curr_pos >= length) {
     return (0);
   }
   /*
-   * Determine the end of the next word, or go to the end of the line
-   * if already at or past beginning of last word.
-   */
-  /*
+   * Determine the end of the next word, or go to the end of the line if already at or past beginning of last word.
+   *
    * If the current character is a space, mark all spaces as the word.
-   * The beahiour is the same for this situation regardless of WORD
-   * setting.
+   * The beahiour is the same for this situation regardless of WORD setting.
    */
   if (*(string + curr_pos) == ' ') {
     for (i = curr_pos; i < length; i++) {
@@ -1677,8 +1223,9 @@ short get_word(char_t * string, length_t length, length_t curr_pos, length_t * f
         break;
       }
     }
-    if (i < 0)
+    if (i < 0) {
       *first_col = 0;
+    }
     return (1);
   }
   /*
@@ -1695,8 +1242,9 @@ short get_word(char_t * string, length_t length, length_t curr_pos, length_t * f
         break;
       }
     }
-    if (i < 0)
+    if (i < 0) {
       *first_col = 0;
+    }
     /*
      * Get last column
      */
@@ -1714,8 +1262,9 @@ short get_word(char_t * string, length_t length, length_t curr_pos, length_t * f
         }
       }
     }
-    if (i == length)
+    if (i == length) {
       *last_col = length - 1;
+    }
   } else {
     /*
      * Get first column
@@ -1726,8 +1275,9 @@ short get_word(char_t * string, length_t length, length_t curr_pos, length_t * f
         break;
       }
     }
-    if (i < 0)
+    if (i < 0) {
       *first_col = 0;
+    }
     /*
      * Get last column
      */
@@ -1745,20 +1295,22 @@ short get_word(char_t * string, length_t length, length_t curr_pos, length_t * f
         }
       }
     }
-    if (i == length)
+    if (i == length) {
       *last_col = length - 1;
+    }
   }
 
   return (1);
 }
 
-short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_t * first_col, length_t * last_col)
-/*
- * A "word" is based on the SET WORD settings
- * Returns the portion of the string containing a "word" nearest
- * the current position. Used in EXTRACT FIELDWORD
- * If the current position is a blank, the the "word" is looked for starting
- * at the left of the current position, and then to the right.
+#define LOOK_LEFT 0
+#define LOOK_BOTH 1
+
+/* A "word" is based on the SET WORD settings
+ *
+ * Returns the portion of the string containing a "word" nearest the current position.
+ * Used in EXTRACT FIELDWORD 
+ * If the current position is a blank, the the "word" is looked for starting at the left of the current position, and then to the right.
  *
  * eg:
  *    abc def
@@ -1781,9 +1333,7 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
  *           ^  cursor location
  *   "def"      "word" obtained
  */
-{
-#define LOOK_LEFT 0
-#define LOOK_BOTH 1
+short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_t * first_col, length_t * last_col) {
   short look;
   short state = 0;
   length_t i = 0, j = 0;
@@ -1794,20 +1344,20 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
   if (curr_pos >= length) {
     look = LOOK_LEFT;
     curr_pos = length - 1;
-  } else
+  } else {
     look = LOOK_BOTH;
+  }
   /*
-   * If the current character is a space, then look for the closest word
-   * starting at the left, and possibly to the right.
+   * If the current character is a space, then look for the closest word starting at the left, and possibly to the right.
    */
   if (*(string + curr_pos) == ' ') {
-    if (curr_pos != 0)
+    if (curr_pos != 0) {
       i = curr_pos - 1;
-    if (curr_pos < length)
+    }
+    if (curr_pos < length) {
       j = curr_pos + 1;
-    for (;; i--, j++)
-/*      for ( ; i >= 0, j < length; i--,j++ )*/
-    {
+    }
+    for (;; i--, j++) {
       /*
        * Look left
        */
@@ -1824,10 +1374,12 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
           break;
         }
       }
-      if (i > 0)
+      if (i > 0) {
         i--;
-      if (j < length)
+      }
+      if (j < length) {
         j++;
+      }
     }
   }
   /*
@@ -1836,7 +1388,7 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
   state = my_isalphanum(*(string + curr_pos));
   if (CURRENT_VIEW->word == 'N') {
     /*
-     * Get first column
+     * Get first column.
      * Character to the right of the first blank found
      */
     for (i = curr_pos; i > (-1); i--) {
@@ -1845,10 +1397,11 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
         break;
       }
     }
-    if (i < 0)
+    if (i < 0) {
       *first_col = 0;
+    }
     /*
-     * Get last column
+     * Get last column.
      * Character to the left of the first blank found
      */
     for (i = curr_pos; i < length; i++) {
@@ -1857,11 +1410,12 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
         break;
       }
     }
-    if (i == length)
+    if (i == length) {
       *last_col = length - 1;
+    }
   } else {
     /*
-     * Get first column
+     * Get first column.
      * Character to the right of the first blank found
      */
     for (i = curr_pos; i > (-1); i--) {
@@ -1870,10 +1424,11 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
         break;
       }
     }
-    if (i < 0)
+    if (i < 0) {
       *first_col = 0;
+    }
     /*
-     * Get last column
+     * Get last column.
      * Character to the left of the first blank found
      */
     for (i = curr_pos; i < length; i++) {
@@ -1882,8 +1437,9 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
         break;
       }
     }
-    if (i == length)
+    if (i == length) {
       *last_col = length - 1;
+    }
   }
 
   return (1);
@@ -1892,13 +1448,12 @@ short get_fieldword(char_t * string, length_t length, length_t curr_pos, length_
 short my_isalphanum(char_t chr) {
   short char_type = CHAR_OTHER;
 
-  if (chr == ' ')
+  if (chr == ' ') {
     char_type = CHAR_SPACE;
-  else {
-    if (isalpha(chr)
-        || isdigit(chr)
-        || chr == '_' || chr > 128)
+  } else {
+    if (isalpha(chr) || isdigit(chr) || chr == '_' || chr > 128) {
       char_type = CHAR_ALPHANUM;
+    }
   }
   return (char_type);
 }
@@ -1909,25 +1464,22 @@ short my_wmove(WINDOW * win, short scridx, short winidx, short y, short x) {
   /*
    * If the scridx or winidx are -1, do not try to save the x/y position.
    */
-  if (scridx != (-1)
-      && winidx != (-1)) {
+  if (scridx != (-1) && winidx != (-1)) {
     screen[scridx].screen_view->x[winidx] = x;
     screen[scridx].screen_view->y[winidx] = y;
   }
-  if (curses_started)
+  if (curses_started) {
     wmove(win, y, x);
+  }
   return (rc);
 }
 
 short get_row_for_tof_eof(short row, char_t scridx) {
   if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_ABOVE) {
-    for (; screen[scridx].sl[row].line_type != LINE_TOF; row++)
-/*    for(;screen[scridx].sl[row].line_type != LINE_TOF_EOF;row++) MH12 */
-      ;
+    for (; screen[scridx].sl[row].line_type != LINE_TOF; row++) {} // no-op
   }
   if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_BELOW) {
-/*    for(;screen[scridx].sl[row].line_type != LINE_TOF_EOF;row--) MH12 */
-    for (; screen[scridx].sl[row].line_type != LINE_EOF; row--);
+    for (; screen[scridx].sl[row].line_type != LINE_EOF; row--) {} // no-op 
   }
   return (row);
 }
@@ -1941,23 +1493,30 @@ static int query_item_compare(const void *inkey, const void *intpl) {
   const QUERY_ITEM *tpl = (QUERY_ITEM *) intpl;
   int rc = 0, m = CompareLen;
 
-  if (m > tpl->name_length)
+  if (m > tpl->name_length) {
     m = tpl->name_length;
+  }
   rc = memcmp(key, (char *) tpl->name, m);
-  if (rc != 0)
+  if (rc != 0) {
     return (rc);
+  }
   if (CompareExact) {
-    if (CompareLen > tpl->name_length)
+    if (CompareLen > tpl->name_length) {
       return (1);
-    if (CompareLen < tpl->name_length)
+    }
+    if (CompareLen < tpl->name_length) {
       return (-1);
+    }
   } else {
-    if (equal(tpl->name, (char_t *) key, tpl->min_len))
+    if (equal(tpl->name, (char_t *) key, tpl->min_len)) {
       return 0;
-    if (CompareLen > tpl->name_length)
+    }
+    if (CompareLen > tpl->name_length) {
       return (1);
-    if (CompareLen < tpl->name_length)
+    }
+    if (CompareLen < tpl->name_length) {
       return (-1);
+    }
   }
   return (0);
 }
@@ -1989,8 +1548,7 @@ int split_function_name(char_t * funcname, int *funcname_length) {
   int itemno = 0, pos = 0;
 
   pos = memreveq((char_t *) funcname, (char_t) '.', functionname_length);
-  if (pos == (-1)
-      || functionname_length == pos - 1) {
+  if (pos == (-1) || functionname_length == pos - 1) {
     /*
      * Not a valid implied extract function; could be a boolean
      */
@@ -2004,8 +1562,7 @@ int split_function_name(char_t * funcname, int *funcname_length) {
     } else {
       itemno = atoi((char *) funcname + pos + 1);
       /*
-       * If the tail is > maximum number of variables that we can
-       * handle, exit with error.
+       * If the tail is > maximum number of variables that we can handle, exit with error.
        */
       functionname_length = pos;
     }
@@ -2016,8 +1573,7 @@ int split_function_name(char_t * funcname, int *funcname_length) {
 
 VIEW_DETAILS *find_filetab(int x) {
   /*
-   * Now we know where the mouse was clicked, determine which tab
-   * or scroll arrow was clicked.
+   * Now we know where the mouse was clicked, determine which tab or scroll arrow was clicked.
    */
   VIEW_DETAILS *curr;
   FILE_DETAILS *first_view_file = NULL;
@@ -2040,17 +1596,19 @@ VIEW_DETAILS *find_filetab(int x) {
       Tabfile((char_t *) "-");
       return NULL;
     }
-    if (filetabs_start_view == NULL)
+    if (filetabs_start_view == NULL) {
       curr = vd_current;
-    else
+    } else {
       curr = filetabs_start_view;
+    }
     for (j = 0; j < number_of_files;) {
       process_view = TRUE;
       if (curr->file_for_view->file_views > 1) {
-        if (first_view_file == curr->file_for_view)
+        if (first_view_file == curr->file_for_view) {
           process_view = FALSE;
-        else
-          first_view_file = curr->file_for_view;
+        } else {
+           first_view_file = curr->file_for_view;
+        }
       }
       if (process_view) {
         j++;
@@ -2058,8 +1616,7 @@ VIEW_DETAILS *find_filetab(int x) {
           fname_len = strlen((char *) curr->file_for_view->fname);
           if (first) {
             /*
-             * If run from command line, return the VIEW_DETAILS
-             * pointer to the first view.
+             * If run from command line, return the VIEW_DETAILS pointer to the first view.
              */
             if (x == -1) {
               return curr;
@@ -2068,8 +1625,9 @@ VIEW_DETAILS *find_filetab(int x) {
           } else {
             fname_start += DEFAULT_FILETABS_GAP_WIDTH;
           }
-          if (fname_start + fname_len > COLS - 2)
+          if (fname_start + fname_len > COLS - 2) {
             break;
+          }
           if (x >= fname_start && x <= fname_start + fname_len) {
             return curr;
           }
@@ -2077,34 +1635,38 @@ VIEW_DETAILS *find_filetab(int x) {
         }
       }
       curr = curr->next;
-      if (curr == NULL)
+      if (curr == NULL) {
         curr = vd_first;
+      }
     }
   }
   return NULL;
 }
+
 VIEW_DETAILS *find_next_file(VIEW_DETAILS * curr, short direction) {
   /*
-   * Starts in the ring at the specified location and finds the next
-   * file that isn't the file in the current view or the starting view
+   * Starts in the ring at the specified location and finds the next file that isn't the file in the current view or the starting view
    */
   VIEW_DETAILS *save_current_view = curr;
   int i;
 
   for (i = 0; i < number_of_files; i++) {
     if (direction == DIRECTION_FORWARD) {
-      if (curr->next == (VIEW_DETAILS *) NULL)
+      if (curr->next == (VIEW_DETAILS *) NULL) {
         curr = vd_first;
-      else
+      } else {
         curr = curr->next;
+      }
     } else {
-      if (curr->prev == (VIEW_DETAILS *) NULL)
+      if (curr->prev == (VIEW_DETAILS *) NULL) {
         curr = vd_last;
-      else
+      } else {
         curr = curr->prev;
+      }
     }
-    if (curr != save_current_view && curr != vd_current)
+    if (curr != save_current_view && curr != vd_current) {
       break;
+    }
   }
   return curr;
 }

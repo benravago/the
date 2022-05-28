@@ -5,6 +5,7 @@
 /*
  * Function to display error messages.
  */
+
 #include "the.h"
 #include "proto.h"
 

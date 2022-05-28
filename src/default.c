@@ -90,22 +90,22 @@ DEFAULT_PARSERS default_parsers[] = {
     "* C\n:case\nrespect\n:option\npreprocessor #\n:number\nc\n:identifier\n[a-zA-Z_] [a-zA-Z0-9_]\n" ":string\nsingle backslash\ndouble backslash\n:comment\npaired /* */ nonest\nline // any\n"
     ":label\ndelimiter : column 1\n:match\n( )\n{ }\n#ifdef,#if,#ifndef #endif #else,#elif,#elseif\n" ":keyword\n#define\n#elif\n#else\n#endif\n#error\n#if\n#ifdef\n#ifndef\n#include\n#line\n#pragma\n#undef\n"
     "auto\nbool\nbreak\ncase\nchar\nconst\ncontinue\ndefault\ndefined alt f\ndelete\ndo\ndouble\nelse\nenum\n" "extern\nfloat\nfor\ngoto\nif\nint\nlong\nnew\nregister\nreturn\nshort\nsigned\nsizeof\nstatic\nstruct\n"
-    "switch\nthis\ntypedef\nunion\nunsigned\nvoid\nvolatile\nwhile\nclass\nprivate\npublic\n" ":postcompare\nclass [-\\/\\+\\=\\*\\<\\>|%&!,] alt x\n" 
+    "switch\nthis\ntypedef\nunion\nunsigned\nvoid\nvolatile\nwhile\nclass\nprivate\npublic\n" ":postcompare\nclass [-\\/\\+\\=\\*\\<\\>|%&!,] alt x\n"
     },
   { "*SH.TLD", "SH",
     "* SH\n:case\nrespect\n:number\nc\n" ":string\nsingle backslash\ndouble backslash\n:identifier\n[a-zA-Z_] [a-zA-Z0-9_]\n" ":comment\nline # any\n:header\nline #! column 1\n"
     ":keyword\nif\nfi\nelif\nfor\nuntil\ncase\nesac\nwhile\nthen\nelse\ntest alt 4\nshift alt 4\ndo\ndone\nin\n" "continue alt 4\nbreak alt 4\ncd alt 4\necho alt 4\neval alt 4\nexec alt 4\n"
-    "exit alt 4\nexport alt 4\ngetopts alt 4\nset alt 4\nunset alt 4\ntrap alt 4\n" 
+    "exit alt 4\nexport alt 4\ngetopts alt 4\nset alt 4\nunset alt 4\ntrap alt 4\n"
     },
   { "*TLD.TLD", "TLD",
     "* TLD\n:case\nignore\n" ":comment\nline * firstnonblank\n" ":header\nline : column 1\n"
     },
   { "*HTML.TLD", "HTML",
-    "* HTML\n" ":case\nignore\n" ":identifier\n[a-zA-Z] [a-zA-Z0-9]\n" ":string\ndouble\n" ":comment\npaired <!-- --> nonest\n" ":markup\ntag < >\nreference & ;\n" 
+    "* HTML\n" ":case\nignore\n" ":identifier\n[a-zA-Z] [a-zA-Z0-9]\n" ":string\ndouble\n" ":comment\npaired <!-- --> nonest\n" ":markup\ntag < >\nreference & ;\n"
     },
   { "*DIR.TLD", "DIR",
     "* DIR\n" ":case\nignore\n" ":directory\n" "directory alt a\n" "executable\n" "link\n" "extensions .bak alt 8\n" "extensions .the alt 1\n" "extensions .c .cc .cpp .h .hpp alt 2\n" "extensions .rex .rexx .cmd alt 3\n"
-    "extensions .exe .dll alt 6\n" "extensions .zip .Z .gz .tgz alt w\n" "extensions Makefile .mak alt 4\n" 
+    "extensions .exe .dll alt 6\n" "extensions .zip .Z .gz .tgz alt w\n" "extensions Makefile .mak alt 4\n"
     },
   { NULL, NULL, NULL }
 };
@@ -813,7 +813,7 @@ short default_file_attributes(FILE_DETAILS * fd) {
   CURRENT_FILE->parser = NULL;
   /*
    * Set defaults for the current file based on the settings for the previous file.
-   * The defaults to copy are: 
+   * The defaults to copy are:
    * - colours, reserved lines.
    */
   if (fd != NULL) {

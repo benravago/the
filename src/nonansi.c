@@ -274,11 +274,6 @@ short splitpath(char_t * filename) {
   return (RC_OK);
 }
 
-/*
- * Function  : Reads the contents of the clipboard into the file.
- * Parameters: pointer to line after which lines are to be added
- * Return    : 0 on success.
- */
 LINE *getclipboard(LINE * now, int from_get) {
   LINE *curr = now;
   /* !!! seems to be only for PDCurses */
