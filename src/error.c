@@ -11,7 +11,7 @@
 
 /*-------------------------- global   data -----------------------------*/
 
-char_t *last_message = NULL;  /* contents of last error message */
+char *last_message = NULL;  /* contents of last error message */
 int last_message_length = 0;
 static int errors_displayed = 0;        /* number of errors displayed */
 static LINE *first_error = NULL;        /* first error message */
@@ -239,8 +239,8 @@ static char* error_message[] = {
   "Error 0216: TLD error:",
 };
 
-int display_error(unsigned short err_num, char_t * mess, bool ignore_bell) {
-  char_t *last_cmd_name = NULL;
+int display_error(unsigned short err_num, char * mess, bool ignore_bell) {
+  char *last_cmd_name = NULL;
   bool set_command = FALSE, sos_command = FALSE;
   int new_last_message_length = 0;
   int x = 0, y = 0, ee_len = 0;
@@ -252,39 +252,39 @@ int display_error(unsigned short err_num, char_t * mess, bool ignore_bell) {
   if (ERRORFORMATx == 'E') {
     last_cmd_name = get_command_name(last_command_index, &set_command, &sos_command);
     if (last_cmd_name != NULL) {
-      ee_len = 2 + strlen((char *) last_cmd_name) + ((set_command) ? 4 : 0) + ((sos_command) ? 4 : 0);
+      ee_len = 2 + strlen(last_cmd_name) + ((set_command) ? 4 : 0) + ((sos_command) ? 4 : 0);
     }
   }
   /*
    * Always save message text, even if MSGMODE is OFF...
    * If no error number, display text only...
    */
-  new_last_message_length = 2 + ((err_num == 0) ? strlen((char *) mess) : strlen((char *) mess) + strlen((char *) error_message[err_num]) + 1) + ee_len;
+  new_last_message_length = 2 + ((err_num == 0) ? strlen(mess) : strlen(mess) + strlen(error_message[err_num]) + 1) + ee_len;
   if (last_message == NULL) {
     last_message_length = new_last_message_length;
-    last_message = (char_t *) malloc(last_message_length * sizeof(char_t));
+    last_message = (char *) malloc(last_message_length * sizeof(char));
     if (last_message == NULL) {
       return rc;
     }
   } else {
     if (new_last_message_length > last_message_length) {
       last_message_length = new_last_message_length;
-      last_message = (char_t *) realloc(last_message, last_message_length * sizeof(char_t));
+      last_message = (char *) realloc(last_message, last_message_length * sizeof(char));
       if (last_message == NULL) {
         return rc;
       }
     }
   }
   if (err_num == 0) {
-    strcpy((char *) last_message, (char *) mess);
+    strcpy(last_message, mess);
   } else {
     if (last_cmd_name == NULL) {
-      sprintf((char *) last_message, "%s %s", error_message[err_num], mess);
+      sprintf(last_message, "%s %s", error_message[err_num], mess);
     } else {
       if (set_command || sos_command) {
-        sprintf((char *) last_message, "%s %s: %s %s", (set_command) ? "set" : "sos", last_cmd_name, error_message[err_num], mess);
+        sprintf(last_message, "%s %s: %s %s", (set_command) ? "set" : "sos", last_cmd_name, error_message[err_num], mess);
       } else {
-        sprintf((char *) last_message, "%s: %s %s", last_cmd_name, error_message[err_num], mess);
+        sprintf(last_message, "%s: %s %s", last_cmd_name, error_message[err_num], mess);
       }
     }
   }
@@ -327,12 +327,12 @@ int display_error(unsigned short err_num, char_t * mess, bool ignore_bell) {
   if (last_error == NULL) {
     return rc;
   }
-  last_error->line = (char_t *) malloc((strlen((char *) last_message) + 1) * sizeof(char_t));
+  last_error->line = (char *) malloc((strlen(last_message) + 1) * sizeof(char));
   if (last_error->line == NULL) {
     return rc;
   }
-  strcpy((char *) last_error->line, (char *) last_message);
-  last_error->length = strlen((char *) last_message);
+  strcpy(last_error->line, last_message);
+  last_error->length = strlen(last_message);
   if (first_error == NULL) {
     first_error = last_error;
   }
@@ -343,7 +343,7 @@ int display_error(unsigned short err_num, char_t * mess, bool ignore_bell) {
    */
   if (CAPREXXOUTx && rexx_output) {
     rexxout_number_lines++;
-    rexxout_curr = add_LINE(rexxout_first_line, rexxout_curr, last_message, strlen((char *) last_message), 0, FALSE);
+    rexxout_curr = add_LINE(rexxout_first_line, rexxout_curr, last_message, strlen(last_message), 0, FALSE);
   }
   if (BEEPx && !ignore_bell) {
     beep();
@@ -392,7 +392,7 @@ void clear_msgline(int key) {
     }
     first_error = last_error = lll_free(first_error);
     if (display_screens > 1) {
-      redraw_screen((char_t) (other_screen));
+      redraw_screen((char) (other_screen));
     }
     redraw_screen(current_screen);
     doupdate();
@@ -400,11 +400,11 @@ void clear_msgline(int key) {
   return;
 }
 
-void display_prompt(char_t * prompt) {
+void display_prompt(char * prompt) {
   open_msgline(CURRENT_VIEW->msgline_base, CURRENT_VIEW->msgline_off, 1);
   wmove(error_window, 0, 0);
   my_wclrtoeol(error_window);
-  put_string(error_window, 0, 0, prompt, strlen((char *) prompt));
+  put_string(error_window, 0, 0, prompt, strlen(prompt));
   wrefresh(error_window);
   error_on_screen = TRUE;
   return;
@@ -417,11 +417,11 @@ int expose_msgline(void) {
   LINE *curr_error = NULL;
   register int i = 0;
   row_t errors_to_display = 0;
-  char_t msgline_base = POSITION_TOP;
+  char msgline_base = POSITION_TOP;
   short msgline_off = 2;
   row_t msgline_rows = 5, max_rows, start_row;
   int rc = RC_OK;
-  char_t *prompt;
+  char *prompt;
 
   /*
    * If msgmode is off, don't display any errors.
@@ -465,7 +465,7 @@ int expose_msgline(void) {
     wmove(error_window, i, 0);
     my_wclrtoeol(error_window);
     if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL) {
-      mvwaddstr(error_window, i, 0, (char *) curr_error->line);
+      mvwaddstr(error_window, i, 0, curr_error->line);
     } else {
       put_string(error_window, (row_t) i, 0, curr_error->line, curr_error->length);
     }
@@ -475,16 +475,16 @@ int expose_msgline(void) {
   error_on_screen = TRUE;
   if (errors_to_display && errors_to_display == msgline_rows && (errors_displayed % errors_to_display) == 1 && curr_error != NULL) {
     if (in_macro) {
-      prompt = (char_t *) IN_MACRO_PROMPT;
+      prompt = IN_MACRO_PROMPT;
     } else {
-      prompt = (char_t *) NORMAL_PROMPT;
+      prompt = NORMAL_PROMPT;
     }
     wmove(error_window, msgline_rows - 1, 0);
     my_wclrtoeol(error_window);
     if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL) {
-      mvwaddstr(error_window, msgline_rows - 1, 0, (char *) prompt);
+      mvwaddstr(error_window, msgline_rows - 1, 0, prompt);
     } else {
-      put_string(error_window, (row_t) (msgline_rows - 1), 0, (char_t *) prompt, strlen((char *) prompt));
+      put_string(error_window, (row_t) (msgline_rows - 1), 0, prompt, strlen(prompt));
     }
     wrefresh(error_window);
     if (wgetch(error_window) == ' ') {

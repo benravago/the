@@ -1317,7 +1317,7 @@ short Spill(char_t * params) {
   display_error(0, (char_t *) "This command not yet implemented", FALSE);
   return (rc);
 }
-short Statopt(char_t * params) {
+short Statopt(char * params) {
 #define OPT_PARAMS  5
   char_t *word[OPT_PARAMS + 1];
   char_t strip[OPT_PARAMS];
@@ -2159,7 +2159,7 @@ short Trunc(char_t * params) {
   display_error(0, (char_t *) "This command not yet implemented", FALSE);
   return (rc);
 }
-short THETypeahead(char_t * params) {
+short THETypeahead(char * params) {
   short rc = RC_OK;
   bool setting = FALSE;
 

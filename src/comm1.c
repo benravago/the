@@ -314,7 +314,7 @@ short Bottom(char_t * params) {
   }
   return (rc);
 }
-short Cancel(char_t * params) {
+short Cancel(char * params) {
   VIEW_DETAILS *save_current_view = (VIEW_DETAILS *) NULL;
   line_t save_number_of_files = number_of_files;
   VIEW_DETAILS **save_view;

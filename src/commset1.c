@@ -1788,7 +1788,7 @@ short Erroroutput(char_t * params) {
   rc = execute_set_on_off(params, &ERROROUTPUTx, TRUE);
   return (rc);
 }
-short Etmode(char_t * params) {
+short Etmode(char * params) {
 #define ETM_PARAMS  21
   char_t *word[ETM_PARAMS + 1];
   char_t strip[ETM_PARAMS];
@@ -2821,7 +2821,7 @@ short Macroext(char_t * params) {
   }
   return (RC_OK);
 }
-short Macropath(char_t * params) {
+short Macropath(char * params) {
 #define PATH_DELIM ':'
   register int len = 0;
   int num_dirs, i;

@@ -42,7 +42,7 @@ short valid_command_type (bool, char_t *);
 short allocate_temp_space (length_t, char_t);
 void free_temp_space (char_t);
 char_t calculate_actual_row (short, short, row_t, bool);
-short get_valid_macro_file_name (char_t *, char_t *, char_t *, short *);
+short get_valid_macro_file_name (char *, char *, char *, short *);
 bool define_command (char_t *);
 int find_key_name (char_t *);
 int readv_cmdline (char_t *, WINDOW *, int);
@@ -132,7 +132,7 @@ void set_global_look_defaults (void);
 void set_global_feel_defaults (void);
 void set_file_defaults (FILE_DETAILS *);
 void set_view_defaults (VIEW_DETAILS *);
-short get_profile (char_t *, char_t *);
+short get_profile (char *, char *);
 short defaults_for_first_file (void);
 short defaults_for_other_files (VIEW_DETAILS *);
 short default_file_attributes (FILE_DETAILS *);
@@ -152,9 +152,9 @@ int process_key (int, bool);
 short EditFile (char_t *, bool);
 
                                                             /* error.c */
-int display_error (unsigned short, char_t *, bool);
+int display_error (unsigned short, char *, bool);
 void clear_msgline (int);
-void display_prompt (char_t *);
+void display_prompt (char *);
 int expose_msgline (void);
 
                                                              /* file.c */
@@ -175,13 +175,13 @@ short execute_command_file (FILE *);
 char_t *read_file_into_memory (char_t *, int *);
 
                                                           /* nonansi.c */
-short file_readable (char_t *);
-short file_writable (char_t *);
-short file_exists (char_t *);
-short remove_file (char_t *);
-short splitpath (char_t *);
+short file_readable (char *);
+short file_writable (char *);
+short file_exists (char *);
+short remove_file (char *);
+short splitpath (char *);
 LINE *getclipboard (LINE *, int);
-short setclipboard (FILE_DETAILS *, char_t *, bool, line_t, line_t, line_t, line_t *, bool, length_t, length_t, bool, bool, int);
+short setclipboard (FILE_DETAILS *, char *, bool, line_t, line_t, line_t, line_t *, bool, length_t, length_t, bool, bool, int);
 void draw_cursor (bool);
 
                                                            /* parser.c */
@@ -238,7 +238,7 @@ short scroll_line (char_t, VIEW_DETAILS *, short, line_t, bool, short);
 
                                                               /* the.c */
 void init_colour_pairs (void);
-int setup_profile_files (char_t *);
+int setup_profile_files (char *);
 void cleanup (void);
 int allocate_working_memory (void);
 char **StringToArgv (int *, char *);
@@ -450,7 +450,7 @@ short BeepSound (char_t *);
 short Bottom (char_t *);
 short Boundmark (char_t *);
 short Cappend (char_t *);
-short Cancel (char_t *);
+short Cancel (char *);
 short Case (char_t *);
 short Ccancel (char_t *);
 short Cdelete (char_t *);
@@ -495,7 +495,7 @@ short Eolout (char_t *);
 short Equivchar (char_t *);
 short Errorformat (char_t *);
 short Erroroutput (char_t *);
-short Etmode (char_t *);
+short Etmode (char *);
 short Expand (char_t *);
 short Extract (char_t *);
 short Ffile (char_t *);
@@ -536,7 +536,7 @@ short Lowercase (char_t *);
 short Macro (char_t *);
 short SetMacro (char_t *);
 short Macroext (char_t *);
-short Macropath (char_t *);
+short Macropath (char *);
 short Margins (char_t *);
 short Mark (char_t *);
 short Modify (char_t *);
@@ -658,7 +658,7 @@ short Spill (char_t *);
 short Split (char_t *);
 short Spltjoin (char_t *);
 short Ssave (char_t *);
-short Statopt (char_t *);
+short Statopt (char *);
 short Status (char_t *);
 short Statusline (char_t *);
 short Stay (char_t *);
@@ -681,7 +681,7 @@ short Tofeof (char_t *);
 short Top (char_t *);
 short Trailing (char_t *);
 short Trunc (char_t *);
-short THETypeahead (char_t *);
+short THETypeahead (char *);
 short Undoing (char_t *);
 short Untaa (char_t *);
 short Up (char_t *);

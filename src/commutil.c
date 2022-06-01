@@ -2740,47 +2740,7 @@ char_t calculate_actual_row(short base, short off, row_t rows, bool force_in_vie
   return ((char_t) row - 1);
 }
 
-/*man***************************************************************************
-NAME
-     get_valid_macro_file_name
-
-SYNOPSIS
-     short get_valid_macro_file_name(macroname,filename,errnum)
-     char_t *macroname;
-     char_t *filename;
-     char_t *macro_ext;
-     short *errnum;
-
-DESCRIPTION
-     The get_valid_macro_file_name function determines the fully qualified
-     file name for the supplied macroname.
-
-     This routine is also used to find THE Language Definition files.
-
-     If the macroname contains any path specifiers, then the macro name
-     is used as the filename and a check is made to ensure that the file
-     exists and is readable.
-
-     If the macroname does not contain any path specifiers, each
-     directory in the MACROPATH variable is searched for a file that
-     consists of the macroname appended with the current value for
-     macro_ext. If a file is found, it is checked to ensure it is
-     readable.
-
-RETURN VALUE
-     If a file is found based on the above matching process, the fully
-     qualified file name is copied into filename, errnum is set to 0
-     and the function returns with RC_OK.
-
-     If a file is not found, the macroname is copied into filename, the
-     error number of the error message is copied into errnum and the
-     function returns with RC_FILE_NOT_FOUND.
-
-     If a file is found but the file is not readable, the macroname is
-     copied into filename, the error number of the error message is
-     copied into errnum and the function returns with RC_ACCESS_DENIED.
-*******************************************************************************/
-short get_valid_macro_file_name(char_t * inmacroname, char_t * filename, char_t * macro_ext, short *errnum) {
+short get_valid_macro_file_name(char * inmacroname, char * filename, char * macro_ext, short *errnum) {
   register short i = 0;
   char_t delims[3];
   bool file_found = FALSE;

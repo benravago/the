@@ -505,7 +505,7 @@ void set_view_defaults(VIEW_DETAILS * viewp) {
   }
 }
 
-short get_profile(char_t * prf_file, char_t * prf_arg) {
+short get_profile(char * prf_file, char * prf_arg) {
   FILE *fp = NULL;
   short rc = RC_OK;
   bool save_in_macro = in_macro;

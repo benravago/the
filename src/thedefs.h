@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-#define THE_VERSION "3.3r8"
+#define THE_VERSION      "3.3r8"
 #define THE_VERSION_DATE "today"
+#define THE_COPYRIGHT    "Copyright 1991-2020 Mark Hessling";
 
 /* Define this always; build number.  */
 /* When next build requires configure to be run again, increment this */
@@ -30,16 +31,16 @@
  */
 typedef unsigned short row_t;
 typedef unsigned short col_t;
-typedef unsigned char char_t;
-typedef long length_t;        /* was unsigned short *//* MUST be signed!!! */
+typedef long length_t;        /* was unsigned short -- MUST be signed!!! */
 typedef long line_t;
 typedef unsigned char select_t;
+typedef unsigned char uchar;
 
 /*
  * A default char type to avoid compiler warnings.
  */
 typedef char DEFCHAR;
-
+typedef unsigned char char_t;
 typedef unsigned short ROWTYPE;
 typedef unsigned short COLTYPE;
 typedef unsigned char CHARTYPE;
