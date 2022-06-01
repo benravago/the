@@ -56,8 +56,8 @@
 #define MAX_LONG            2147483001L /* maximum size for long */
 #define WORD_DELIMS        (uchar *)" \t"
 
-#define TOP_OF_FILE        (uchar *)"*** Top of File ***"
-#define BOTTOM_OF_FILE     (uchar *)"*** Bottom of File ***"
+#define TOP_OF_FILE        "*** Top of File ***"
+#define BOTTOM_OF_FILE     "*** Bottom of File ***"
 
 #define DIRECTION_NONE      0
 #define DIRECTION_FORWARD   1

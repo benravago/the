@@ -353,15 +353,15 @@ PARSE_EXTENSION *parse_extensionll_del (PARSE_EXTENSION **, PARSE_EXTENSION **, 
 PARSE_EXTENSION *parse_extensionll_free (PARSE_EXTENSION *);
 
                                                              /* rexx.c */
-unsigned long MyRexxRegisterFunctionExe (char_t *);
-unsigned long MyRexxDeregisterFunction (char_t *);
+unsigned long MyRexxRegisterFunctionExe (char *);
+unsigned long MyRexxDeregisterFunction (char *);
 short initialise_rexx (void);
 short finalise_rexx (void);
-short execute_macro_file (char_t *, char_t *, short *, bool);
-short execute_macro_instore (char_t *, short *, char_t **, int *, int *, int);
-short get_rexx_variable (char_t *, char_t **, int *);
-short set_rexx_variable (char_t *, char_t *, length_t, int);
-char_t *get_rexx_interpreter_version (char_t *);
+short execute_macro_file (char *, char *, short *, bool);
+short execute_macro_instore (char *, short *, char **, int *, int *, int);
+short get_rexx_variable (char *, char **, int *);
+short set_rexx_variable (char *, char *, length_t, int);
+char *get_rexx_interpreter_version (char *);
 
                                                            /* os2eas.c */
                                                             /* query.c */
@@ -691,5 +691,5 @@ short Width (char_t *);
 short Word (char_t *);
 short Wordwrap (char_t *);
 short Wrap (char_t *);
-short Xedit (char_t *);
+short Xedit (char *);
 short Zone (char_t *);

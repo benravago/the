@@ -681,7 +681,7 @@ short Uppercase(char_t * params) {
   rc = execute_change_case(params, CASE_UPPER);
   return (rc);
 }
-short Xedit(char_t * params) {
+short Xedit(char * params) {
   short rc = RC_OK;
 
   /*
