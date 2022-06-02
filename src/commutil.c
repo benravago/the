@@ -104,7 +104,7 @@ static length_t length_tmp_cmd = 0;
  * temp_cmd    is > length_temp_cmd   , reallocate a larger area and
  * set the value of length_temp_cmd    to reflect the new size.
  */
-char_t *temp_cmd = NULL;
+char *temp_cmd = NULL;
 static length_t length_temp_cmd = 0;
 
 /*

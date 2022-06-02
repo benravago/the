@@ -9,7 +9,8 @@ extern the_header_mapping thm[];
 extern bool rexx_output;
 
 /* commutil.c */
-extern char *last_command_for_reexecute, * last_command_for_repeat, * last_command_for_repeat_in_macro, *temp_cmd;
+extern char_t *last_command_for_reexecute, * last_command_for_repeat, * last_command_for_repeat_in_macro;
+extern char *temp_cmd;
 extern DEFINE *first_define, *last_define, *first_mouse_define, *last_mouse_define, *first_synonym, *last_synonym;
 extern LINE *key_first_line, *key_last_line;
 extern line_t key_number_lines;
