@@ -388,7 +388,7 @@ static COLOUR_DEF keditw_ecolours[ECOLOUR_MAX] =
 
 struct attributes
 {
-  char *attrib;
+  char* attrib;
   short attrib_min_len;
   int actual_attrib;
   chtype colour_modifier;
@@ -426,15 +426,15 @@ static ATTRIBS valid_attribs[] =
   { NULL, 0,0,0,FALSE,FALSE,FALSE},
 };
 
-short parse_colours(char_t * attrib, COLOUR_ATTR * pattr, char_t ** rem, bool spare, bool *any_colours) {
+short parse_colours(char* attrib, COLOUR_ATTR* pattr, char** rem, bool spare, bool* any_colours) {
   register short i = 0;
   short num_colours = 0;
   chtype mono = pattr->mono;
   chtype specified_mod = 0L;
   chtype fg = FOREFROMPAIR(pattr->pair);
   chtype bg = BACKFROMPAIR(pattr->pair);
-  char_t *string = NULL;
-  char_t *p = NULL, *oldp = NULL;
+  char* string = NULL;
+  char *p = NULL, *oldp = NULL;
   bool found = FALSE, any_found = FALSE;
   bool spare_pos = FALSE;
   int offset = 0;
@@ -442,19 +442,19 @@ short parse_colours(char_t * attrib, COLOUR_ATTR * pattr, char_t ** rem, bool sp
   /*
    * Get a copy of the passed string and wreck it rather than the passed string.
    */
-  if ((string = (char_t *) my_strdup(attrib)) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((string = my_strdup(attrib)) == NULL) {
+    display_error(30, "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   oldp = string;
-  p = (char_t *) strtok((char *) string, " \t");
+  p = strtok(string, " \t");
   while (p != NULL) {
     found = FALSE;
     for (i = 0; valid_attribs[i].attrib != NULL; i++) {
-      if (equal((char_t*)valid_attribs[i].attrib, p, valid_attribs[i].attrib_min_len)) {
+      if (equal(valid_attribs[i].attrib, p, valid_attribs[i].attrib_min_len)) {
         any_found = found = TRUE;
         if (!valid_attribs[i].attrib_allowed_on_mono && !colour_support) {
-          display_error(61, (char_t *) p, FALSE);
+          display_error(61, p, FALSE);
           free(string);
           return (RC_INVALID_OPERAND);
         }
@@ -464,14 +464,14 @@ short parse_colours(char_t * attrib, COLOUR_ATTR * pattr, char_t ** rem, bool sp
           } else {
             mono = (valid_attribs[i].actual_attrib == A_NORMAL) ? A_NORMAL : mono | valid_attribs[i].actual_attrib;
           }
-          offset = p - oldp + strlen((char *) p) + 1;
+          offset = p - oldp + strlen(p) + 1;
           break;
         } else {
           switch (num_colours) {
 
             case 0:
               if (!colour_support && valid_attribs[i].actual_attrib != COLOR_WHITE) {
-                display_error(61, (char_t *) p, FALSE);
+                display_error(61, p, FALSE);
                 free(string);
                 return (RC_INVALID_OPERAND);
               }
@@ -480,12 +480,12 @@ short parse_colours(char_t * attrib, COLOUR_ATTR * pattr, char_t ** rem, bool sp
                 specified_mod |= valid_attribs[i].colour_modifier;
               }
               num_colours++;
-              offset = p - oldp + strlen((char *) p) + 1;
+              offset = p - oldp + strlen(p) + 1;
               break;
 
             case 1:
               if (!colour_support && valid_attribs[i].actual_attrib != COLOR_BLACK) {
-                display_error(61, (char_t *) p, FALSE);
+                display_error(61, p, FALSE);
                 free(string);
                 return (RC_INVALID_OPERAND);
               }
@@ -493,16 +493,16 @@ short parse_colours(char_t * attrib, COLOUR_ATTR * pattr, char_t ** rem, bool sp
                 bg = valid_attribs[i].actual_attrib;
               }
               num_colours++;
-              offset = p - oldp + strlen((char *) p) + 1;
+              offset = p - oldp + strlen(p) + 1;
               break;
 
             default:
               if (spare) {
                 spare_pos = TRUE;
-                *rem = (char_t *) attrib + offset;
+                *rem = attrib + offset;
                 break;
               }
-              display_error(1, (char_t *) p, FALSE);
+              display_error(1, p, FALSE);
               free(string);
               return (RC_INVALID_OPERAND);
               break;
@@ -518,19 +518,19 @@ short parse_colours(char_t * attrib, COLOUR_ATTR * pattr, char_t ** rem, bool sp
       break;
     }
     if (!found) {
-      if (equal((char_t *) "on", p, 2) && num_colours == 1) {
+      if (equal("on", p, 2) && num_colours == 1) {
         // ok
       } else {
         if (spare) {
-          *rem = (char_t *) attrib + offset;
+          *rem = attrib + offset;
           break;
         }
-        display_error(1, (char_t *) p, FALSE);
+        display_error(1, p, FALSE);
         free(string);
         return (RC_INVALID_OPERAND);
       }
     }
-    p = (char_t *) strtok(NULL, " \t");
+    p = strtok(NULL, " \t");
   }
 
   if (num_colours == 0) {
@@ -545,29 +545,29 @@ short parse_colours(char_t * attrib, COLOUR_ATTR * pattr, char_t ** rem, bool sp
   return (RC_OK);
 }
 
-short parse_modifiers(char_t * attrib, COLOUR_ATTR * pattr) {
+short parse_modifiers(char* attrib, COLOUR_ATTR* pattr) {
   register short i = 0;
   chtype mono = pattr->mono;
   chtype specified_mod = 0L;
-  char_t *string = NULL;
-  char_t *p = NULL, *last_word = NULL;
+  char* string = NULL;
+  char *p = NULL, *last_word = NULL;
   bool found = FALSE;
 
   /*
    * Get a copy of the passed string and wreck it rather than the passed string.
    */
-  if ((string = (char_t *) my_strdup(attrib)) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((string = my_strdup(attrib)) == NULL) {
+    display_error(30, "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  p = (char_t *) strtok((char *) string, " \t");
+  p = strtok(string, " \t");
   while (p != NULL) {
     found = FALSE;
     for (i = 0; valid_attribs[i].attrib != NULL; i++) {
-      if (equal((char_t*)valid_attribs[i].attrib, p, valid_attribs[i].attrib_min_len) && valid_attribs[i].attrib_modifier) {
+      if (equal(valid_attribs[i].attrib, p, valid_attribs[i].attrib_min_len) && valid_attribs[i].attrib_modifier) {
         found = TRUE;
         if (!valid_attribs[i].attrib_allowed_on_mono && !colour_support) {
-          display_error(61, (char_t *) p, FALSE);
+          display_error(61, p, FALSE);
           free(string);
           return (RC_INVALID_OPERAND);
         }
@@ -580,21 +580,21 @@ short parse_modifiers(char_t * attrib, COLOUR_ATTR * pattr) {
       }
     }
     if (!found) {
-      if (equal((char_t *) "on", p, 2) || equal((char_t *) "off", p, 3)) {
+      if (equal("on", p, 2) || equal("off", p, 3)) {
         last_word = p;
       } else {
-        display_error(1, (char_t *) p, FALSE);
+        display_error(1, p, FALSE);
         free(string);
         return (RC_INVALID_OPERAND);
       }
     }
-    p = (char_t *) strtok(NULL, " \t");
+    p = strtok(NULL, " \t");
   }
 
-  if (equal((char_t *) "on", last_word, 2) || equal((char_t *) "off", last_word, 3)) {
+  if (equal("on", last_word, 2) || equal("off", last_word, 3)) {
     free(string);
   } else {
-    display_error(1, (char_t *) p, FALSE);
+    display_error(1, p, FALSE);
     /*
      * Free the memory after we finish referencing it; p points to somewhere in string.
      */
@@ -607,7 +607,7 @@ short parse_modifiers(char_t * attrib, COLOUR_ATTR * pattr) {
   return (RC_OK);
 }
 
-chtype merge_curline_colour(COLOUR_ATTR * attr, COLOUR_ATTR * ecolour) {
+chtype merge_curline_colour(COLOUR_ATTR* attr, COLOUR_ATTR* ecolour) {
 /*
  * Combines the foreground of ecolour colour with the background of the attr colour.
  * Also combines the modifiers from both colours to become the new modifier for the combined colours.
@@ -625,7 +625,7 @@ chtype merge_curline_colour(COLOUR_ATTR * attr, COLOUR_ATTR * ecolour) {
 /*
  * This function is called as part of reading in a new file.
  */
-void set_up_default_colours(FILE_DETAILS * fd, COLOUR_ATTR * attr, int colour_num) {
+void set_up_default_colours(FILE_DETAILS* fd, COLOUR_ATTR* attr, int colour_num) {
   register short i = 0;
 
   /*
@@ -695,7 +695,7 @@ void set_up_default_colours(FILE_DETAILS * fd, COLOUR_ATTR * attr, int colour_nu
 /*
  * This function is called as part of reading in a new file.
  */
-void set_up_default_ecolours(FILE_DETAILS * fd) {
+void set_up_default_ecolours(FILE_DETAILS* fd) {
   register short i = 0;
 
   /*
@@ -746,9 +746,9 @@ void set_up_default_ecolours(FILE_DETAILS * fd) {
  * This function returns a pointer to an allocated block of memory with textual descriptions of the colours associated with the attr.
  * The caller is responsible for freeing up the allocated memory.
  */
-char_t *get_colour_strings(COLOUR_ATTR * attr) {
+char* get_colour_strings(COLOUR_ATTR* attr) {
   register int i = 0, j = 0;
-  char_t *attr_string = NULL;
+  char* attr_string = NULL;
   int fg = FOREFROMPAIR(attr->pair), bg = BACKFROMPAIR(attr->pair);
   chtype mod = attr->mono;
   int start_with = 0;
@@ -761,12 +761,12 @@ char_t *get_colour_strings(COLOUR_ATTR * attr) {
     start_with = GET_MOD;
     mod = attr->mod;
   }
-  attr_string = (char_t *) malloc(sizeof(char_t) * 70);
-  if (attr_string == (char_t *) NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  attr_string = malloc(sizeof(char) * 70);
+  if (attr_string == NULL) {
+    display_error(30, "", FALSE);
     return (NULL);
   }
-  strcpy((char *) attr_string, "");
+  strcpy(attr_string, "");
   /*
    * If mono, we start with the modifier (GET_MOD) and end with the modifier (GET_MOD).
    * For colour, we start with the modifier (GET_MOD) and end with the background (GET_BG)
@@ -780,7 +780,7 @@ char_t *get_colour_strings(COLOUR_ATTR * attr) {
         break;
 
       case GET_BG:
-        strcat((char *) attr_string, "on ");
+        strcat(attr_string, "on ");
         colour_only = TRUE;
         match_value = (chtype) bg;
         break;
@@ -796,8 +796,8 @@ char_t *get_colour_strings(COLOUR_ATTR * attr) {
          * Foreground or background
          */
         if (!valid_attribs[i].attrib_modifier && match_value == (chtype) valid_attribs[i].actual_attrib && valid_attribs[i].colour_modifier == 0) {
-          strcat((char *) attr_string, (char *) valid_attribs[i].attrib);
-          strcat((char *) attr_string, " ");
+          strcat(attr_string, (char *) valid_attribs[i].attrib);
+          strcat(attr_string, " ");
           break;
         }
       } else {
@@ -805,8 +805,8 @@ char_t *get_colour_strings(COLOUR_ATTR * attr) {
          * Modifiers only - find all non-duplicate modifiers
          */
         if (valid_attribs[i].attrib_modifier && (match_value & valid_attribs[i].actual_attrib) && !(matched_modifiers & valid_attribs[i].actual_attrib)) {
-          strcat((char *) attr_string, (char *) valid_attribs[i].attrib);
-          strcat((char *) attr_string, " ");
+          strcat(attr_string, (char *) valid_attribs[i].attrib);
+          strcat(attr_string, " ");
           matched_modifiers |= valid_attribs[i].actual_attrib;
         }
       }
@@ -818,11 +818,11 @@ char_t *get_colour_strings(COLOUR_ATTR * attr) {
 /*
  * This function determines if a colour name is passed as the only argument.
  */
-int is_valid_colour(char_t * colour) {
+int is_valid_colour(char* colour) {
   int i;
 
   for (i = 0; valid_attribs[i].attrib != NULL; i++) {
-    if (equal((char_t*)valid_attribs[i].attrib, colour, valid_attribs[i].attrib_min_len) && valid_attribs[i].actual_colour) {
+    if (equal(valid_attribs[i].attrib, colour, valid_attribs[i].attrib_min_len) && valid_attribs[i].actual_colour) {
       return valid_attribs[i].actual_attrib;
     }
   }

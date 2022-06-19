@@ -1937,7 +1937,7 @@ line_t find_last_not_in_scope(VIEW_DETAILS * view, LINE * in_curr, line_t line_n
   }
   return (line_number + offset);
 }
-short validate_target(char_t * string, TARGET * target, long target_type, line_t true_line, bool display_parse_error, bool allow_error_display) {
+short validate_target(char* string, TARGET* target, long target_type, line_t true_line, bool display_parse_error, bool allow_error_display) {
   short rc = RC_OK;
 
   rc = parse_target(string, true_line, target, target_type, display_parse_error, allow_error_display, FALSE);

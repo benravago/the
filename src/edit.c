@@ -21,7 +21,7 @@ void editor(void) {
   startup_line = startup_column = 0;
 
   if (display_screens > 1) {
-    display_screen((char_t) (other_screen));
+    display_screen(other_screen);
   }
   getyx(CURRENT_WINDOW, y, x);
   wmove(CURRENT_WINDOW, y, x);
@@ -46,13 +46,13 @@ void editor(void) {
 int process_key(int key, bool mouse_details_present) {
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
-  char_t string_key[2];
+  char string_key[2];
 
   string_key[1] = '\0';
 
   if (is_termresized()) {
     (void) THE_Resize(0, 0);
-    (void) THERefresh((char_t *) "");
+    (void) THERefresh("");
   }
   if (single_instance_server) {
     key = process_fifo_input(key);
@@ -140,8 +140,8 @@ int process_key(int key, bool mouse_details_present) {
     if (rc > RAW_KEY) {
       key = rc - (RAW_KEY * 2);
     }
-    if (key < 256 && key >= 0) {
-      string_key[0] = (char_t) key;
+    if ((byte)key < 256 && key >= 0) {
+      string_key[0] = key;
       /*
        * If operating in CUA mode, and a CUA block exists, check
        * if the block should be reset or deleted before executing the command.
@@ -156,9 +156,9 @@ int process_key(int key, bool mouse_details_present) {
   show_statarea();
 
   if (display_screens > 1 && SCREEN_FILE(0) == SCREEN_FILE(1)) {
-    build_screen((char_t) (other_screen));
-    display_screen((char_t) (other_screen));
-    show_heading((char_t) (other_screen));
+    build_screen(other_screen);
+    display_screen(other_screen);
+    show_heading(other_screen);
   }
   refresh_screen(current_screen);
   if (error_on_screen) {
@@ -175,11 +175,11 @@ int process_key(int key, bool mouse_details_present) {
   return (RC_OK);
 }
 
-short EditFile(char_t * fn, bool external_command_line) {
+short EditFile(char* fn, bool external_command_line) {
   short rc = RC_OK, y = 0, x = 0;
   VIEW_DETAILS *save_current_view = NULL;
   VIEW_DETAILS *previous_current_view = NULL;
-  char_t save_prefix = 0;
+  char save_prefix = 0;
   short save_gap = 0;
   row_t save_cmd_line = 0;
   bool save_id_line = 0;
@@ -187,14 +187,14 @@ short EditFile(char_t * fn, bool external_command_line) {
   /*
    * With no arguments, edit the next file in the ring...
    */
-  if (strcmp((char *) fn, "") == 0) {
+  if (strcmp(fn, "") == 0) {
     rc = advance_view(NULL, DIRECTION_FORWARD);
     return (rc);
   }
   /*
    * With "-" as argument, edit the previous file in the ring...
    */
-  if (strcmp((char *) fn, "-") == 0) {
+  if (strcmp(fn, "-") == 0) {
     rc = advance_view(NULL, DIRECTION_BACKWARD);
     return (rc);
   }
@@ -203,7 +203,7 @@ short EditFile(char_t * fn, bool external_command_line) {
    * save any changes to the focus line.
    */
   if (number_of_files > 0) {
-    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
+    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
     memset(cmd_rec, ' ', max_line_length);
     cmd_rec_len = 0;
   }
@@ -262,7 +262,7 @@ short EditFile(char_t * fn, bool external_command_line) {
      */
     prepare_view(current_screen);
   }
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
   build_screen(current_screen);
   /*
    * Position the cursor in the main window depending on the type of file
@@ -290,7 +290,7 @@ short EditFile(char_t * fn, bool external_command_line) {
     profile_file_executions++;
     in_reprofile = TRUE;
     if (execute_profile) {
-      if (local_prf != (char_t *) NULL) {
+      if (local_prf != NULL) {
         rc = get_profile(local_prf, prf_arg);
       }
     }
@@ -339,9 +339,9 @@ short EditFile(char_t * fn, bool external_command_line) {
    * x is the number of files in the ring.
    */
   if (rexx_support) {
-    char_t tmp[20];
+    char tmp[20];
 
-    sprintf((char *) tmp, "ring.%ld", number_of_files + ((compatible_feel == COMPAT_XEDIT) ? 1 : 0));
+    sprintf(tmp, "ring.%ld", number_of_files + ((compatible_feel == COMPAT_XEDIT) ? 1 : 0));
     MyRexxRegisterFunctionExe(tmp);
   }
   return (rc);

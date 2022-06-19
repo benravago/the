@@ -54,7 +54,7 @@
 #define VIEW_WINDOWS        6   /* number of windows per view */
 #define MAX_INT             32766       /* maximum size for integer */
 #define MAX_LONG            2147483001L /* maximum size for long */
-#define WORD_DELIMS        (uchar *)" \t"
+#define WORD_DELIMS        " \t"
 
 #define TOP_OF_FILE        "*** Top of File ***"
 #define BOTTOM_OF_FILE     "*** Bottom of File ***"
@@ -475,9 +475,9 @@ typedef struct {
 struct line {
   struct line *prev;          /* pointer to previous line */
   struct line *next;          /* pointer to next line */
-  uchar *name;                /* used for other structures; NOT for a LINE in THE */
+  char *name;                 /* used for other structures; NOT for a LINE in THE */
   THELIST *first_name;        /* pointer to first name for list of names */
-  uchar *line;                /* pointer to contents of line */
+  char *line;                 /* pointer to contents of line */
   length_t length;            /* number of characters in line */
   THE_PPC *pre;
   select_t select;            /* select level for each line */
@@ -496,9 +496,9 @@ typedef struct colour_attr COLOUR_ATTR;
 struct reserved {
   struct reserved *prev;        /* pointer to previous reserved line */
   struct reserved *next;        /* pointer to next reserved line */
-  uchar *line;                  /* pointer to contents of line */
-  uchar *disp;                  /* pointer to contents of line after CTLCHAR applied */
-  uchar *spec;                  /* row position specification */
+  char *line;                   /* pointer to contents of line */
+  char *disp;                   /* pointer to contents of line after CTLCHAR applied */
+  char *spec;                   /* row position specification */
   short length;                 /* length of reserved line */
   short disp_length;            /* length of reserved line after CTLCHAR applied */
   short base;                   /* row base */
@@ -621,8 +621,8 @@ struct parser_details {
   /*
    * Parser-level features
    */
-  uchar parser_name[MAX_PARSER_NAME_LENGTH + 1];
-  uchar filename[MAX_FILE_NAME + 1];
+  char parser_name[MAX_PARSER_NAME_LENGTH + 1];
+  char filename[MAX_FILE_NAME + 1];
   regex_t body_pattern;
   bool have_body_pattern;
   /*
@@ -747,9 +747,9 @@ typedef struct parser_details PARSER_DETAILS;
 struct parser_mapping {
   struct parser_mapping *prev;
   struct parser_mapping *next;
-  uchar *parser_name;
-  uchar *filemask;
-  uchar *magic_number;
+  char* parser_name;
+  char* filemask;
+  char* magic_number;
   int magic_number_length;
   PARSER_DETAILS *parser;
 };
@@ -757,7 +757,7 @@ typedef struct parser_mapping PARSER_MAPPING;
 
 /* structure for repeating targets */
 struct rtarget {
-  uchar *string;                /* pointer to target */
+  char* string;                 /* pointer to target */
   length_t length;              /* length of specified target: string */
   length_t found_length;        /* length of matching string */
   length_t start;               /* starting column of found string target */
@@ -774,7 +774,7 @@ typedef struct rtarget RTARGET;
 
 /* structure for targets */
 struct target {
-  uchar *string;                /* pointer to original target */
+  char* string;                 /* pointer to original target */
   line_t num_lines;             /* number of lines to target */
   line_t true_line;             /* line number to start with */
   line_t last_line;             /* line number of last line in target */
@@ -830,10 +830,10 @@ typedef struct {
   uchar disposition;            /* indicates if file is new or existing */
   unsigned short autosave_alt;  /* number of alterations since last autosave */
   unsigned short save_alt;      /* number of alterations since last save */
-  uchar *autosave_fname;        /* file name for AUTOSAVE file */
+  char *autosave_fname;         /* file name for AUTOSAVE file */
   FILE *fp;                     /* file handle for this file */
-  uchar *fname;                 /* file name */
-  uchar *fpath;                 /* file path */
+  char* fname;                  /* file name */
+  char* fpath;                  /* file path */
   uchar *actualfname;           /* filename specified */
   uchar *efileid;               /* original full filename */
   unsigned short fmode;         /* file mode of file */
@@ -1384,7 +1384,7 @@ extern length_t max_line_length;
 
 /* structure for passing queryable values parameters */
 struct query_values {
-  uchar *value;               /* value of item */
+  char *value;                /* value of item */
   length_t len;               /* length of string representation of value */
 };
 typedef struct query_values VALUE;
@@ -1405,7 +1405,7 @@ typedef struct defines DEFINE;
 
 /* structure for window areas */
 struct window_areas {
-  uchar *area;                  /* window area - used for COLOUR command */
+  char *area;                   /* window area - used for COLOUR command */
   short area_min_len;           /* min abbrev for area name */
   short area_window;            /* window where area is */
   bool actual_window;           /* TRUE if area is a window */

@@ -16,14 +16,14 @@
  * Replace non-ANSI defs with ANSI ones
  */
 
-short file_readable(char * filename) {
+short file_readable(char*  filename) {
   if (access(filename, R_OK) == (-1)) {
     return (FALSE);
   }
   return (TRUE);
 }
 
-short file_writable(char * filename) {
+short file_writable(char*  filename) {
   if (file_exists(filename) != THE_FILE_EXISTS) {
     return (TRUE);
   }
@@ -33,7 +33,7 @@ short file_writable(char * filename) {
   return (TRUE);
 }
 
-short file_exists(char * filename) {
+short file_exists(char*  filename) {
   int rc;
 
   if (access(filename, F_OK) == (-1)) {
@@ -54,7 +54,7 @@ short file_exists(char * filename) {
   }
 }
 
-short remove_file(char * filename) {
+short remove_file(char*  filename) {
   if (filename == NULL) {
     return (RC_OK);
   }
@@ -64,7 +64,7 @@ short remove_file(char * filename) {
   return (RC_OK);
 }
 
-void convert_equals_in_filename(char * outfilename, char * infilename) {
+void convert_equals_in_filename(char*  outfilename, char*  infilename) {
   /*
    * Support an = in the following circumstances:
    *  In filename      Current           Current         Substitutes
@@ -162,7 +162,7 @@ void convert_equals_in_filename(char * outfilename, char * infilename) {
   return;
 }
 
-short splitpath(char * filename) {
+short splitpath(char*  filename) {
   short len = 0;
   char work_filename[MAX_FILE_NAME + 1];
   char conv_filename[MAX_FILE_NAME + 1];
@@ -199,7 +199,7 @@ short splitpath(char * filename) {
    */
   if (*(conv_filename) == '~') {
     if (*(conv_filename + 1) == ISLASH || *(conv_filename + 1) == '\0') {
-      char *home = getenv("HOME");
+      char* home = getenv("HOME");
 
       if (((home == NULL) ? 0 : strlen(home)) + strlen(conv_filename) > MAX_FILE_NAME) {
         return (RC_BAD_FILEID);
@@ -274,8 +274,8 @@ short splitpath(char * filename) {
   return (RC_OK);
 }
 
-LINE *getclipboard(LINE * now, int from_get) {
-  LINE *curr = now;
+LINE* getclipboard(LINE* now, int from_get) {
+  LINE* curr = now;
   /* !!! seems to be only for PDCurses */
   display_error(82, "CLIP:", FALSE);
   curr = NULL;
@@ -286,20 +286,20 @@ LINE *getclipboard(LINE * now, int from_get) {
 #define CLIP_TYPE_BOX    2
 #define CLIP_TYPE_STREAM 3
 
-short setclipboard(FILE_DETAILS * cf, char * new_fname, bool force, line_t in_lines, line_t start_line_in, line_t end_line_in, line_t * num_file_lines, bool append, length_t start_col_in, length_t end_col_in, bool ignore_scope, bool lines_based_on_scope, int target_type) {
+short setclipboard(FILE_DETAILS* cf, char*  new_fname, bool force, line_t in_lines, line_t start_line_in, line_t end_line_in, line_t * num_file_lines, bool append, length_t start_col_in, length_t end_col_in, bool ignore_scope, bool lines_based_on_scope, int target_type) {
   line_t i = 0L;
   line_t abs_num_lines = (in_lines < 0L ? -in_lines : in_lines);
   line_t num_actual_lines = 0L;
   line_t my_num_file_lines = 0L;
   line_t current_line;
   short direction = (in_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
-  LINE *curr = NULL;
+  LINE* curr = NULL;
   short rc = RC_OK;
   bool save_scope_all = CURRENT_VIEW->scope_all;
-  char *eol = "\n";
+  char* eol = "\n";
   int eol_len = 1;
   long clip_size = 1024;
-  char *ptr = NULL;
+  char* ptr = NULL;
   long len = 0, pos = 0;
   int clip_type;
   length_t start_col = start_col_in, end_col = end_col_in;

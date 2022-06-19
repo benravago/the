@@ -47,11 +47,11 @@ static bool save_target(TARGET *);
 static char_t *cmd_history[MAX_SAVED_COMMANDS];
 static short cmd_history_len[MAX_SAVED_COMMANDS];
 static short last_cmd = (-1), current_cmd = 0, number_cmds = 0, offset_cmd = 0;
-char_t *last_command_for_reexecute;
+char *last_command_for_reexecute;
 short last_command_for_reexecute_len;
-char_t *last_command_for_repeat;
+char *last_command_for_repeat;
 short last_command_for_repeat_len;
-char_t *last_command_for_repeat_in_macro;
+char *last_command_for_repeat_in_macro;
 short last_command_for_repeat_in_macro_len;
 
 #define KEY_REDEF "/* Key re-definitions */"
@@ -978,7 +978,7 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
   *number_keys_return = number_keys;
   return (RC_OK);
 }
-short command_line(char_t * cmd_line, bool command_only) {
+short command_line(char* cmd_line, bool command_only) {
   bool valid_command = FALSE;
   bool target_found;
   bool linend_status = (number_of_files) ? CURRENT_VIEW->linend_status : LINEND_STATUSx;
@@ -1342,7 +1342,7 @@ void split_command(char_t * cmd_line, char_t * cmd, char_t * param) {
   *(param_ptr) = '\0';
   return;
 }
-short param_split(char_t * params, char_t * word[], int words, char_t * delims, char_t param_type, char_t * strip, bool trailing_spaces_is_arg) {
+short param_split(char* params, char* word[], int words, char* delims, char param_type, char* strip, bool trailing_spaces_is_arg) {
 #define STATE_START    0
 #define STATE_WORD     1
 #define STATE_DELIM    2
@@ -1723,7 +1723,7 @@ char_t next_char(LINE * curr, long *off, length_t end_col) {
   return (0);
 }
 
-short add_define(DEFINE ** first, DEFINE ** last, int key_value, char_t * commands, bool instore, char_t * synonym, char_t linend)
+short add_define(DEFINE** first, DEFINE** last, int key_value, char* commands, bool instore, char* synonym, char linend)
 /* Parameters:                                                         */
 /*  key_value: numeric representation of function key                  */
 /*   commands: commands and parameters                                 */
@@ -2380,7 +2380,7 @@ static int pack_hex(char *string, char *out) {
 
   return res_ptr - out;
 }
-short convert_hex_strings(char_t * str) {
+short convert_hex_strings(char* str) {
   length_t i = 0;
   char_t *p = NULL;
   bool dec_char = FALSE;
@@ -3314,7 +3314,7 @@ int save_lastop(int idx, char_t * op) {
   return rc;
 }
 
-char_t *get_command_name(int idx, bool *set_command, bool *sos_command) {
+char* get_command_name(int idx, bool* set_command, bool* sos_command) {
 
   if (idx < 0 || idx >= sizeof(command) / sizeof(struct commands) - 1) {
     return NULL;

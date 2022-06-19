@@ -37,7 +37,7 @@
 
 /*#define DEBUG 1*/
 
-short Define(char_t * params) {
+short Define(char* params) {
 #define DEF_PARAMS  2
 #define DEF_MOUSE_PARAMS  4
   char_t *word[DEF_MOUSE_PARAMS + 1];

@@ -3265,7 +3265,7 @@ static short construct_column(char_t * line, int line_length, PARSER_DETAILS * p
   return (RC_OK);
 }
 
-short construct_parser(char_t * contents, int contents_length, PARSER_DETAILS ** parser, char_t * parser_name, char_t * filename) {
+short construct_parser(char* contents, int contents_length, PARSER_DETAILS** parser, char* parser_name, char* filename) {
   int i, j, line_len;
   int state = 0;
   char_t line[250];

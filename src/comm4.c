@@ -542,7 +542,7 @@ short Redraw(char_t * params) {
   refresh();
   return (RC_OK);
 }
-short THERefresh(char_t * params) {
+short THERefresh(char* params) {
   bool save_in_macro = in_macro;
   unsigned short y = 0, x = 0;
   line_t new_focus_line = 0L;

@@ -11,7 +11,7 @@
 
 /*-------------------------- global   data -----------------------------*/
 
-char *last_message = NULL;  /* contents of last error message */
+char* last_message = NULL;  /* contents of last error message */
 int last_message_length = 0;
 static int errors_displayed = 0;        /* number of errors displayed */
 static LINE *first_error = NULL;        /* first error message */
@@ -239,8 +239,8 @@ static char* error_message[] = {
   "Error 0216: TLD error:",
 };
 
-int display_error(unsigned short err_num, char * mess, bool ignore_bell) {
-  char *last_cmd_name = NULL;
+int display_error(unsigned short err_num, char* mess, bool ignore_bell) {
+  char* last_cmd_name = NULL;
   bool set_command = FALSE, sos_command = FALSE;
   int new_last_message_length = 0;
   int x = 0, y = 0, ee_len = 0;
@@ -262,14 +262,14 @@ int display_error(unsigned short err_num, char * mess, bool ignore_bell) {
   new_last_message_length = 2 + ((err_num == 0) ? strlen(mess) : strlen(mess) + strlen(error_message[err_num]) + 1) + ee_len;
   if (last_message == NULL) {
     last_message_length = new_last_message_length;
-    last_message = (char *) malloc(last_message_length * sizeof(char));
+    last_message = (char*) malloc(last_message_length * sizeof(char));
     if (last_message == NULL) {
       return rc;
     }
   } else {
     if (new_last_message_length > last_message_length) {
       last_message_length = new_last_message_length;
-      last_message = (char *) realloc(last_message, last_message_length * sizeof(char));
+      last_message = (char*) realloc(last_message, last_message_length * sizeof(char));
       if (last_message == NULL) {
         return rc;
       }
@@ -327,7 +327,7 @@ int display_error(unsigned short err_num, char * mess, bool ignore_bell) {
   if (last_error == NULL) {
     return rc;
   }
-  last_error->line = (char *) malloc((strlen(last_message) + 1) * sizeof(char));
+  last_error->line = (char*) malloc((strlen(last_message) + 1) * sizeof(char));
   if (last_error->line == NULL) {
     return rc;
   }
@@ -362,7 +362,7 @@ static void open_msgline(row_t base, row_t off, row_t rows) {
   COLOUR_ATTR attr;
 
   if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL) {
-    set_up_default_colours((FILE_DETAILS *) NULL, &attr, ATTR_MSGLINE);
+    set_up_default_colours((FILE_DETAILS*) NULL, &attr, ATTR_MSGLINE);
   } else {
     memcpy(&attr, CURRENT_FILE->attr + ATTR_MSGLINE, sizeof(COLOUR_ATTR));
   }
@@ -386,9 +386,9 @@ void clear_msgline(int key) {
   if (curses_started && (key == CLEARERRORKEYx || CLEARERRORKEYx == -1)) {
     errors_displayed = 0;
     error_on_screen = FALSE;
-    if (error_window != (WINDOW *) NULL) {
+    if (error_window != (WINDOW*) NULL) {
       delwin(error_window);
-      error_window = (WINDOW *) NULL;
+      error_window = (WINDOW*) NULL;
     }
     first_error = last_error = lll_free(first_error);
     if (display_screens > 1) {
@@ -400,7 +400,7 @@ void clear_msgline(int key) {
   return;
 }
 
-void display_prompt(char * prompt) {
+void display_prompt(char* prompt) {
   open_msgline(CURRENT_VIEW->msgline_base, CURRENT_VIEW->msgline_off, 1);
   wmove(error_window, 0, 0);
   my_wclrtoeol(error_window);
@@ -414,14 +414,14 @@ void display_prompt(char * prompt) {
 #define IN_MACRO_PROMPT "Press SPACE to terminate macro or any other key to continue..."
 
 int expose_msgline(void) {
-  LINE *curr_error = NULL;
+  LINE* curr_error = NULL;
   register int i = 0;
   row_t errors_to_display = 0;
   char msgline_base = POSITION_TOP;
   short msgline_off = 2;
   row_t msgline_rows = 5, max_rows, start_row;
   int rc = RC_OK;
-  char *prompt;
+  char* prompt;
 
   /*
    * If msgmode is off, don't display any errors.

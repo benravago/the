@@ -10,7 +10,7 @@
 #include "the.h"
 #include "proto.h"
 
-short column_command(char_t * cmd_text, int cmd_type) {
+short column_command(char* cmd_text, int cmd_type) {
   length_t i = 0;
   line_t true_line = 0L;
   short rc = RC_OK;
@@ -30,7 +30,7 @@ short column_command(char_t * cmd_text, int cmd_type) {
    * If on TOF or BOF, exit with error.
    */
   if (TOF(true_line) || BOF(true_line)) {
-    display_error(36, (char_t *) "", FALSE);
+    display_error(36, "", FALSE);
     return (RC_NO_LINES_CHANGED);
   }
   /*
@@ -46,7 +46,7 @@ short column_command(char_t * cmd_text, int cmd_type) {
         break;
 
       case -2:                 /* memory exhausted */
-        display_error(30, (char_t *) "", FALSE);
+        display_error(30, "", FALSE);
         return (RC_OUT_OF_MEMORY);
         break;
 
@@ -60,13 +60,13 @@ short column_command(char_t * cmd_text, int cmd_type) {
    * If on command line, copy current line into rec
    */
   if (CURRENT_VIEW->current_window == WINDOW_COMMAND || compatible_feel == COMPAT_XEDIT) {
-    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
-    pre_process_line(CURRENT_VIEW, CURRENT_VIEW->current_line, (LINE *) NULL);
+    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+    pre_process_line(CURRENT_VIEW, CURRENT_VIEW->current_line, (LINE*) NULL);
     x = CURRENT_VIEW->current_column - 1;
   } else {
     if (CURRENT_VIEW->current_window == WINDOW_PREFIX) {
       if (cmd_type != COLUMN_CAPPEND) {
-        display_error(36, (char_t *) "", FALSE);
+        display_error(36, "", FALSE);
         return (RC_NO_LINES_CHANGED);
       }
     }

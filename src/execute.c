@@ -573,7 +573,7 @@ short insert_new_line(char_t curr_screen, VIEW_DETAILS * curr_view, char_t * lin
 
   return (RC_OK);
 }
-short execute_os_command(char_t * cmd, bool quiet, bool pause) {
+short execute_os_command(char* cmd, bool quiet, bool pause) {
 #define SHELL "SHELL"
   short rc = 0;
 
@@ -2424,7 +2424,7 @@ short execute_modify_command(char_t * str) {
   return (RC_OK);
 }
 
-length_t calculate_rec_len(short action, char_t * rec, length_t current_rec_len, length_t start_col, line_t num_cols, short trailing)
+length_t calculate_rec_len(short action, char* rec, length_t current_rec_len, length_t start_col, line_t num_cols, short trailing)
 /*
  * start_col is 1 based; ie first column is column 1
  */

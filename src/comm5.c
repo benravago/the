@@ -312,7 +312,7 @@ short Tag(char_t * params) {
     free_target(&target);
   return (rc);
 }
-short Text(char_t * params) {
+short Text(char* params) {
   length_t i = 0L;
   char_t real_key = 0;
   chtype chtype_key = 0;

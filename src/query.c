@@ -696,7 +696,7 @@ short get_number_dynamic_items(int qitem) {
   return number_variables;
 }
 
-short get_item_values(int qitem, short itemno, char_t * itemargs, char_t query_type, line_t argc, char_t * arg, line_t arglen) {
+short get_item_values(int qitem, short itemno, char* itemargs, char query_type, line_t argc, char* arg, line_t arglen) {
   short number_variables = 1;
 
   /*

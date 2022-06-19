@@ -50,7 +50,7 @@ static short process_file_attributes(int restore_attributes, FILE_DETAILS * cf, 
     return RC_OK;
   }
 }
-short get_file(char_t * filename) {
+short get_file(char* filename) {
   LINE *curr = NULL;
   char_t *work_filename;
   VIEW_DETAILS *save_current_view = NULL, *found_file = NULL;
@@ -1487,7 +1487,7 @@ short read_directory(void) {
 
   return (RC_OK);
 }
-VIEW_DETAILS *find_file(char_t * fp, char_t * fn) {
+VIEW_DETAILS* find_file(char* fp, char* fn) {
   VIEW_DETAILS *save_current_view = NULL, *found_file = NULL;
 
   save_current_view = CURRENT_VIEW;

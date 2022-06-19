@@ -170,9 +170,9 @@ short get_mouse_info(int *button, int *button_action, int *button_modifier) {
   return (rc);
 }
 
-short THEMouse(char_t * params) {
+short THEMouse(char* params) {
   int w = 0;
-  char_t scrn = 0;
+  char scrn = 0;
   short rc = RC_OK;
   int curr_button_action = 0;
   int curr_button_modifier = 0;
@@ -190,15 +190,15 @@ short THEMouse(char_t * params) {
   return (rc);
 }
 
-void which_window_is_mouse_in(char_t * scrn, int *w) {
-  char_t i = 0;
+void which_window_is_mouse_in(char* scrn, int *w) {
+  char i = 0;
   int j = 0;
   int y = 0, x = 0;
 
   for (i = 0; i < display_screens; i++) {
     for (j = 0; j < VIEW_WINDOWS; j++) {
-      if (screen[i].win[j] != (WINDOW *) NULL) {
-        wmouse_position(screen[i].win[j], &y, &x);
+      if (screen[(byte)i].win[j] != (WINDOW *) NULL) {
+        wmouse_position(screen[(byte)i].win[j], &y, &x);
         if (y != (-1) && x != (-1)) {
           *scrn = i;
           *w = j;
@@ -260,46 +260,46 @@ void initialise_mouse_commands(void) {
   /*
    * Default mouse actions in FILEAREA
    */
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "CURSOR MOUSE", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_PRESS | MOUSE_SHIFT, (char_t *) "CURSOR MOUSE#RESET BLOCK#MARK LINE", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_PRESS | MOUSE_CONTROL, (char_t *) "CURSOR MOUSE#RESET BLOCK#MARK BOX", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DRAG | MOUSE_SHIFT, (char_t *) "CURSOR MOUSE#MARK LINE", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DRAG | MOUSE_CONTROL, (char_t *) "CURSOR MOUSE#MARK BOX", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_RIGHT | MOUSE_PRESS | MOUSE_SHIFT, (char_t *) "CURSOR MOUSE#MARK LINE", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_RIGHT | MOUSE_PRESS | MOUSE_CONTROL, (char_t *) "CURSOR MOUSE#MARK BOX", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_RIGHT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "CURSOR MOUSE#SOS MAKECURR", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DRAG | MOUSE_SHIFT, (char_t *) "CURSOR MOUSE#MARK LINE", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DRAG | MOUSE_CONTROL, (char_t *) "CURSOR MOUSE#MARK BOX", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DOUBLE_CLICK | MOUSE_NORMAL, (char_t *) "CURSOR MOUSE#SOS EDIT", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_CLICK | MOUSE_ALT, (char_t *) "BACKWARD", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_RIGHT | MOUSE_CLICK | MOUSE_ALT, (char_t *) "FORWARD", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, "CURSOR MOUSE", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_PRESS | MOUSE_SHIFT, "CURSOR MOUSE#RESET BLOCK#MARK LINE", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_PRESS | MOUSE_CONTROL, "CURSOR MOUSE#RESET BLOCK#MARK BOX", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DRAG | MOUSE_SHIFT, "CURSOR MOUSE#MARK LINE", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DRAG | MOUSE_CONTROL, "CURSOR MOUSE#MARK BOX", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_RIGHT | MOUSE_PRESS | MOUSE_SHIFT, "CURSOR MOUSE#MARK LINE", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_RIGHT | MOUSE_PRESS | MOUSE_CONTROL, "CURSOR MOUSE#MARK BOX", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_RIGHT | MOUSE_CLICK | MOUSE_NORMAL, "CURSOR MOUSE#SOS MAKECURR", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DRAG | MOUSE_SHIFT, "CURSOR MOUSE#MARK LINE", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DRAG | MOUSE_CONTROL, "CURSOR MOUSE#MARK BOX", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_DOUBLE_CLICK | MOUSE_NORMAL, "CURSOR MOUSE#SOS EDIT", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_LEFT | MOUSE_CLICK | MOUSE_ALT, "BACKWARD", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILEAREA | MOUSE_RIGHT | MOUSE_CLICK | MOUSE_ALT, "FORWARD", FALSE, FALSE, 0);
   /*
    * Default mouse actions in PREFIX area
    */
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_PREFIX | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "CURSOR MOUSE", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_PREFIX | MOUSE_RIGHT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "CURSOR MOUSE#SOS MAKECURR", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_PREFIX | MOUSE_LEFT | MOUSE_DOUBLE_CLICK | MOUSE_NORMAL, (char_t *) "CURSOR MOUSE#SOS EDIT", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_PREFIX | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, "CURSOR MOUSE", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_PREFIX | MOUSE_RIGHT | MOUSE_CLICK | MOUSE_NORMAL, "CURSOR MOUSE#SOS MAKECURR", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_PREFIX | MOUSE_LEFT | MOUSE_DOUBLE_CLICK | MOUSE_NORMAL, "CURSOR MOUSE#SOS EDIT", FALSE, FALSE, 0);
   /*
    * Default mouse actions in COMMAND line
    */
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_COMMAND | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "CURSOR MOUSE", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_COMMAND | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, "CURSOR MOUSE", FALSE, FALSE, 0);
   /*
    * Default mouse actions in STATAREA
    */
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_STATAREA | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "STATUS", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_STATAREA | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, "STATUS", FALSE, FALSE, 0);
   /*
    * Default mouse actions in FILETABS
    */
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILETABS | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "TABFILE", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_FILETABS | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, "TABFILE", FALSE, FALSE, 0);
   /*
    * Default mouse actions in IDLINE
    */
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_IDLINE | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "XEDIT", FALSE, FALSE, 0);
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_IDLINE | MOUSE_RIGHT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "XEDIT -", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_IDLINE | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, "XEDIT", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_IDLINE | MOUSE_RIGHT | MOUSE_CLICK | MOUSE_NORMAL, "XEDIT -", FALSE, FALSE, 0);
   /*
    * Default mouse actions in DIVIDER
    */
-  add_define(&first_mouse_define, &last_mouse_define, WINDOW_DIVIDER | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, (char_t *) "SCREEN 1", FALSE, FALSE, 0);
+  add_define(&first_mouse_define, &last_mouse_define, WINDOW_DIVIDER | MOUSE_LEFT | MOUSE_CLICK | MOUSE_NORMAL, "SCREEN 1", FALSE, FALSE, 0);
 
   return;
 }
@@ -308,10 +308,10 @@ int mouse_info_to_key(int w, int button, int button_action, int button_modifier)
   return (MOUSE_INFO_TO_KEY(w, button, button_action, button_modifier));
 }
 
-char_t *mouse_key_number_to_name(int key_number, char_t * key_name, int *shift) {
+char* mouse_key_number_to_name(int key_number, char* key_name, int* shift) {
   register int i = 0;
   int w = 0, b = 0, ba = 0, bm = 0;
-  char_t *win_name = (char_t *) "*** unknown ***";
+  char* win_name = "*** unknown ***";
 
   w = MOUSE_WINDOW_MASK(key_number);
   b = (MOUSE_BUTTON_MASK(key_number) >> MOUSE_BUTTON_OFFSET);
@@ -319,7 +319,7 @@ char_t *mouse_key_number_to_name(int key_number, char_t * key_name, int *shift) 
   bm = (MOUSE_MODIFIER_MASK(key_number) >> MOUSE_MODIFIER_OFFSET);
   *shift = bm;
   if (w == WINDOW_ALL) {
-    win_name = (char_t *) "*";
+    win_name = "*";
   } else {
     for (i = 0; i < ATTR_MAX; i++) {
       if (w == valid_areas[i].area_window && valid_areas[i].actual_window) {
@@ -328,7 +328,7 @@ char_t *mouse_key_number_to_name(int key_number, char_t * key_name, int *shift) 
       }
     }
   }
-  sprintf((char *) key_name, "%s%s%s in %s", button_modifier_names[bm], button_action_names[ba], button_names[b], win_name);
+  sprintf(key_name, "%s%s%s in %s", button_modifier_names[bm], button_action_names[ba], button_names[b], win_name);
   return (key_name);
 }
 
@@ -340,21 +340,21 @@ char_t *mouse_key_number_to_name(int key_number, char_t * key_name, int *shift) 
  * Returns:
  *   the mouse button, action and modifier or -1 if error
  */
-int find_mouse_key_value(char_t * mnemonic) {
+int find_mouse_key_value(char* mnemonic) {
   int key = 0, len = 0;
   int b = 0, ba = 0, bm = 0;
-  char_t tmp_buf[6];
+  char tmp_buf[6];
 
   /*
    * Parse the mnemonic for a valid mouse key definition...
    */
-  len = strlen((char *) mnemonic);
+  len = strlen(mnemonic);
   if (len == 3) {
-    strcpy((char *) tmp_buf, "N-");
-    strcat((char *) tmp_buf, (char *) mnemonic);
+    strcpy(tmp_buf, "N-");
+    strcat(tmp_buf, (char *) mnemonic);
   } else {
     if (len == 5) {
-      strcpy((char *) tmp_buf, (char *) mnemonic);
+      strcpy(tmp_buf, (char *) mnemonic);
     } else {
       display_error(1, mnemonic, FALSE);
       return (-1);
@@ -464,7 +464,7 @@ int find_mouse_key_value(char_t * mnemonic) {
  * Returns:
  *   the mouse button, action, modifier and window or -1 if error.
  */
-int find_mouse_key_value_in_window(char_t * mnemonic, char_t * win_name) {
+int find_mouse_key_value_in_window(char* mnemonic, char* win_name) {
   register short i = 0;
   int w = (-1), key = 0;
   int mb;

@@ -661,8 +661,9 @@ int main(int argc, char *argv[]) {
       return (8);
     }
   }
-  if (specified_prf != NULL)
+  if (specified_prf != NULL) {
     free(specified_prf);
+  }
   /*
    * Allocate memory to pre_rec and set it to blanks.
    */

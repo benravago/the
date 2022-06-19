@@ -128,7 +128,7 @@ length_t memrevne(char_t * buffer, char_t known_char, length_t max_len) {
   return (len);
 }
 
-char_t *meminschr(char_t * buffer, char_t chr, length_t location, length_t max_length, length_t curr_length) {
+char* meminschr(char* buffer, char chr, length_t location, length_t max_length, length_t curr_length) {
   length_t i = 0;
 
   for (i = curr_length; i > location; i--) {
@@ -142,7 +142,7 @@ char_t *meminschr(char_t * buffer, char_t chr, length_t location, length_t max_l
   return (buffer);
 }
 
-char_t *meminsmem(char_t * buffer, char_t * str, length_t len, length_t location, length_t max_length, length_t curr_length) {
+char* meminsmem(char* buffer, char* str, length_t len, length_t location, length_t max_length, length_t curr_length) {
   length_t i = 0;
 
   for (i = curr_length; i > location; i--) {
@@ -206,7 +206,7 @@ char_t *memrmdup(char_t * buf, length_t * len, char_t ch) {
   return (buf);
 }
 
-char_t *strrmdup(char_t * buf, char_t ch, bool exclude_leading) {
+char* strrmdup(char* buf, char ch, bool exclude_leading) {
   char_t *src = buf, *dst = buf;
   bool dup = FALSE;
 
@@ -244,15 +244,15 @@ length_t strzne(char_t * str, char_t ch) {
   return (i);
 }
 
-char_t *my_strdup(char_t * str) {
+char* my_strdup(char* str) {
   length_t len = 0;
-  char_t *tmp = NULL;
+  char *tmp = NULL;
 
-  len = strlen((char *) str);
-  if ((tmp = (char_t *) malloc((len + 1) * sizeof(char_t))) == (char_t *) NULL) {
-    return ((char_t *) NULL);
+  len = strlen(str);
+  if ((tmp = (char*) malloc((len + 1) * sizeof(char))) == NULL) {
+    return (NULL);
   }
-  strcpy((char *) tmp, (char *) str);
+  strcpy(tmp, str);
   return (tmp);
 }
 
@@ -274,15 +274,15 @@ length_t strzrevne(char_t * str, char_t ch) {
   return (len);
 }
 
-length_t strzreveq(char_t * str, char_t ch) {
+length_t strzreveq(char* str, char ch) {
   length_t len = 0;
 
-  len = strlen((char *) str);
+  len = strlen(str);
   for (--len; len >= 0 && str[len] != ch; len--) {} // no-op
   return (len);
 }
 
-char_t *strtrunc(char_t * string) {
+char* strtrunc(char* string) {
   return (MyStrip(string, STRIP_BOTH, ' '));
 }
 
@@ -441,8 +441,8 @@ length_t memcmpi(char_t * buf1, char_t * buf2, length_t len) {
   return (0);
 }
 
-char_t *make_upper(char_t * str) {
-  char_t *save_str = str;
+char *make_upper(char* str) {
+  char *save_str = str;
 
   while (*str) {
     if (islower(*str)) {
@@ -453,17 +453,17 @@ char_t *make_upper(char_t * str) {
   return (save_str);
 }
 
-bool equal(char_t * con, char_t * str, length_t min_len) {
+bool equal(char* con, char* str, length_t min_len) {
   length_t i = 0, lenstr = 0;
-  char_t c1, c2;
+  char c1, c2;
 
   if (min_len == 0) {
     return (FALSE);
   }
-  if (strlen((char *) str) < min_len || strlen((char *) con) < strlen((char *) str)) {
+  if (strlen(str) < min_len || strlen(con) < strlen(str)) {
     return (FALSE);
   }
-  lenstr = strlen((char *) str);
+  lenstr = strlen(str);
   for (i = 0; i < lenstr; i++) {
     if (isupper(*con)) {
       c1 = tolower(*con);
@@ -503,13 +503,13 @@ bool valid_integer(char_t * str) {
   return (TRUE);
 }
 
-bool valid_positive_integer(char_t * str) {
+bool valid_positive_integer(char* str) {
   length_t i = 0;
 
   if (*str == '+') {
     str++;
   }
-  for (i = 0; i < strlen((char *) str); i++) {
+  for (i = 0; i < strlen(str); i++) {
     if (!isdigit(*(str + i))) {
       return (FALSE);
     }
@@ -555,11 +555,11 @@ short valid_positive_integer_against_maximum(char_t * str, length_t maximum) {
   return (rc);
 }
 
-length_t strzeq(char_t * str, char_t ch) {
+length_t strzeq(char* str, char ch) {
   length_t len = 0;
   length_t i = 0;
 
-  len = strlen((char *) str);
+  len = strlen(str);
   for (; i < len && str[i] != ch; i++) {} // no-op
   if (i >= len) {
     i = (-1L);
@@ -567,10 +567,10 @@ length_t strzeq(char_t * str, char_t ch) {
   return (i);
 }
 
-char_t *strtrans(char_t * str, char_t oldch, char_t newch) {
+char* strtrans(char* str, char oldch, char newch) {
   length_t i = 0;
 
-  for (i = 0; i < strlen((char *) str); i++) {
+  for (i = 0; i < strlen(str); i++) {
     if (*(str + i) == oldch) {
       *(str + i) = newch;
     }
@@ -578,7 +578,7 @@ char_t *strtrans(char_t * str, char_t oldch, char_t newch) {
   return (str);
 }
 
-LINE *add_LINE(LINE * first, LINE * curr, char_t * line, length_t len, select_t select, bool new_flag) {
+LINE *add_LINE(LINE * first, LINE * curr, char* line, length_t len, select_t select, bool new_flag) {
   /*
    * Validate that the line being added is shorter than the maximum line length
    */
@@ -648,7 +648,7 @@ LINE *delete_LINE(LINE ** first, LINE ** last, LINE * curr, short direction, boo
   return (curr);
 }
 
-void put_string(WINDOW * win, row_t row, col_t col, char_t * string, length_t len) {
+void put_string(WINDOW* win, row_t row, col_t col, char* string, length_t len) {
   length_t i = 0;
 
   wmove(win, row, col);
@@ -1074,7 +1074,7 @@ char_t case_translate(char_t key) {
   return (key);
 }
 
-void add_to_recovery_list(char_t * line, length_t len) {
+void add_to_recovery_list(char* line, length_t len) {
   register short i = 0;
 
   /*
@@ -1543,24 +1543,24 @@ int search_query_item_array(void *base, size_t num, size_t width, const char *ne
   return ((int) (((long) result - (long) base) / width));
 }
 
-int split_function_name(char_t * funcname, int *funcname_length) {
-  int functionname_length = strlen((char *) funcname);
+int split_function_name(char* funcname, int *funcname_length) {
+  int functionname_length = strlen(funcname);
   int itemno = 0, pos = 0;
 
-  pos = memreveq((char_t *) funcname, (char_t) '.', functionname_length);
+  pos = memreveq(funcname, '.', functionname_length);
   if (pos == (-1) || functionname_length == pos - 1) {
     /*
      * Not a valid implied extract function; could be a boolean
      */
     itemno = -1;
   } else {
-    if (!valid_positive_integer((char_t *) funcname + pos + 1)) {
+    if (!valid_positive_integer(funcname + pos + 1)) {
       /*
        * Not a valid implied extract function; could be a boolean
        */
       itemno = -1;
     } else {
-      itemno = atoi((char *) funcname + pos + 1);
+      itemno = atoi(funcname + pos + 1);
       /*
        * If the tail is > maximum number of variables that we can handle, exit with error.
        */

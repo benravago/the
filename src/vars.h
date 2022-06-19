@@ -9,7 +9,7 @@ extern the_header_mapping thm[];
 extern bool rexx_output;
 
 /* commutil.c */
-extern char_t *last_command_for_reexecute, * last_command_for_repeat, * last_command_for_repeat_in_macro;
+extern char *last_command_for_reexecute, * last_command_for_repeat, * last_command_for_repeat_in_macro;
 extern char *temp_cmd;
 extern DEFINE *first_define, *last_define, *first_mouse_define, *last_mouse_define, *first_synonym, *last_synonym;
 extern LINE *key_first_line, *key_last_line;
@@ -18,15 +18,15 @@ extern AREAS valid_areas[ATTR_MAX];
 
 /* default.c */
 extern bool BEEPx, CAPREXXOUTx, ERROROUTPUTx, CLEARSCREENx, CLOCKx, HEXDISPLAYx, INSERTMODEx, LINEND_STATUSx, REPROFILEx, DONT_CALL_DEFSORTx, TYPEAHEADx, scroll_cursor_stay, MOUSEx, SLKx, SBx, UNTAAx, PAGEWRAPx, FILETABSx, CTLCHARx, save_for_repeat, inDIALOG;
-extern char_t CMDARROWSTABCMDx, EOLx, INTERFACEx, LINEND_VALUEx, NONDISPx, PREFIXx, TABI_ONx, TABI_Nx, EQUIVCHARx, EQUIVCHARstr[2], BACKUP_SUFFIXx[101], ERRORFORMATx;
+extern char CMDARROWSTABCMDx, EOLx, INTERFACEx, LINEND_VALUEx, NONDISPx, PREFIXx, TABI_ONx, TABI_Nx, EQUIVCHARx, EQUIVCHARstr[2], BACKUP_SUFFIXx[101], ERRORFORMATx;
 extern line_t CAPREXXMAXx;
 extern row_t STATUSLINEx;
 extern int DEFSORTx, DIRORDERx, CLEARERRORKEYx, TARGETSAVEx, REGEXPx, READONLYx, COMMANDCALLSx, FUNCTIONCALLSx, popup_escape_key, popup_escape_keys[MAXIMUM_POPUP_KEYS], last_command_index;
 extern PARSER_DETAILS *first_parser, *last_parser;
 extern PARSER_MAPPING *first_parser_mapping, *last_parser_mapping;
-extern char_t ctlchar_escape;
+extern char ctlchar_escape;
 extern COLOUR_ATTR ctlchar_attr[MAX_CTLCHARS];
-extern char_t ctlchar_char[MAX_CTLCHARS];
+extern char ctlchar_char[MAX_CTLCHARS];
 extern bool ctlchar_protect[MAX_CTLCHARS];
 extern struct regexp_syntax regexp_syntaxes[];
 

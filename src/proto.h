@@ -11,16 +11,16 @@ char_t *build_default_key_definition (int, char_t *);
 char_t *build_synonym_definition (DEFINE *, char_t *, char_t *, bool);
 short display_all_keys (void);
 int set_rexx_variables_for_all_keys (int, int *);
-short command_line (char_t *, bool);
+short command_line (char*, bool);
 void cleanup_command_line (void);
 void split_command (char_t *, char_t *, char_t *);
-short param_split (char_t *, char_t *[], int, char_t *, char_t, char_t *, bool);
+short param_split (char*, char*[], int, char*, char, char*, bool);
 short quoted_param_split (char_t *, char_t *[], int, char_t *, char_t, char_t *, bool, char_t *);
 short command_split (char_t *, char_t *[], int, char_t *, char_t *);
 line_t get_true_line (bool);
 length_t get_true_column (bool);
 char_t next_char (LINE *, long *, length_t);
-short add_define (DEFINE **, DEFINE **, int, char_t *, bool, char_t *, char_t);
+short add_define (DEFINE**, DEFINE**, int, char*, bool, char*, char);
 short remove_define (DEFINE **, DEFINE **, int, char_t *);
 short append_define (DEFINE **, DEFINE **, int, short, char_t *, char_t *, int, char_t *, char_t);
 short find_command (char_t *, bool);
@@ -32,7 +32,7 @@ bool is_tab_col (length_t);
 length_t find_next_tab_col (length_t);
 length_t find_prev_tab_col (length_t);
 short tabs_convert (LINE *, bool, bool, bool);
-short convert_hex_strings (char_t *);
+short convert_hex_strings (char*);
 short marked_block (bool);
 short suspend_curses (void);
 short resume_curses (void);
@@ -53,10 +53,10 @@ short execute_locate (char_t *, bool, bool, bool *);
 void adjust_other_screen_shadow_lines (void);
 int is_file_in_ring (char_t * fpath, char_t * fname);
 int save_lastop (int idx, char_t * lastop);
-char_t *get_command_name (int idx, bool *set_command, bool *sos_command);
+char* get_command_name (int idx, bool* set_command, bool* sos_command);
 
                                                             /* print.c */
-void print_line (bool, line_t, line_t, short, char_t *, char_t *, short);
+void print_line (bool, line_t, line_t, short, char*, char*, short);
 short setprintername (char *);
 short setfontname (char *);
 short setfontcpi (int);
@@ -78,23 +78,23 @@ short find_rtarget_target (LINE *, TARGET *, line_t, line_t, line_t *);
 bool find_rtarget_column_target (char_t *, length_t, TARGET *, length_t, length_t, line_t *);
 line_t find_next_in_scope (VIEW_DETAILS *, LINE *, line_t, short);
 line_t find_last_not_in_scope (VIEW_DETAILS *, LINE *, line_t, short);
-short validate_target (char_t *, TARGET *, long, line_t, bool, bool);
+short validate_target (char*, TARGET*, long, line_t, bool, bool);
 void calculate_scroll_values (char_t, VIEW_DETAILS *, short *, line_t *, line_t *, bool *, bool *, bool *, short);
 short find_first_focus_line (char_t, unsigned short *);
 short find_last_focus_line (char_t, unsigned short *);
 char_t find_unique_char (char_t *);
 
                                                          /* reserved.c */
-RESERVED *add_reserved_line (char_t *, char_t *, short, short, COLOUR_ATTR *, bool);
-RESERVED *find_reserved_line (char_t, bool, row_t, short, short);
+RESERVED* add_reserved_line (char*, char*, short, short, COLOUR_ATTR*, bool);
+RESERVED* find_reserved_line (char, bool, row_t, short, short);
 short delete_reserved_line (short, short);
 
                                                               /* box.c */
-void box_operations (short, char_t, bool, char_t);
+void box_operations (short, char, bool, char);
 void box_paste_from_clipboard (LINE *, line_t, line_t);
 
                                                           /* execute.c */
-short execute_os_command (char_t *, bool, bool);
+short execute_os_command (char*, bool, bool);
 short execute_change_command (char_t *, bool);
 short insert_new_line (char_t, VIEW_DETAILS *, char_t *, length_t, line_t, line_t, bool, bool, bool, char_t, bool, bool);
 short execute_makecurr (char_t, VIEW_DETAILS *, line_t);
@@ -117,7 +117,7 @@ short execute_select (char_t *, bool, short);
 short execute_move_cursor (char_t, VIEW_DETAILS *, length_t);
 short execute_find_command (char_t *, long);
 short execute_modify_command (char_t *);
-length_t calculate_rec_len (short, char_t *, length_t, length_t, line_t, short);
+length_t calculate_rec_len (short, char *, length_t, length_t, line_t, short);
 short execute_editv (short, bool, char_t *);
 short prepare_dialog (char_t *, bool, char_t *);
 short execute_dialog (char_t *, char_t *, char_t *, bool, short, short, char_t *, short, bool);
@@ -144,21 +144,21 @@ short set_KEDIT_key_defaults (int, int);
 short construct_default_parsers (void);
 short destroy_all_parsers (void);
 short construct_default_parser_mapping (void);
-char_t *find_default_parser (char_t *);
+char* find_default_parser (char*);
 
                                                              /* edit.c */
 void editor (void);
 int process_key (int, bool);
-short EditFile (char_t *, bool);
+short EditFile (char*, bool);
 
                                                             /* error.c */
-int display_error (unsigned short, char *, bool);
+int display_error (unsigned short, char*, bool);
 void clear_msgline (int);
 void display_prompt (char *);
 int expose_msgline (void);
 
                                                              /* file.c */
-short get_file (char_t *);
+short get_file (char*);
 LINE *read_file (FILE *, LINE *, char_t *, line_t, line_t, bool);
 LINE *read_fixed_file (FILE *, LINE *, char_t *, line_t, line_t);
 short save_file (FILE_DETAILS *, char_t *, bool, line_t, line_t, line_t *, bool, length_t, length_t, bool, bool, bool);
@@ -169,7 +169,7 @@ short free_view_memory (bool, bool);
 void free_a_view (void);
 short free_file_memory (bool);
 short read_directory (void);
-VIEW_DETAILS *find_file (char_t *, char_t *);
+VIEW_DETAILS *find_file (char*, char*);
 VIEW_DETAILS *find_pseudo_file (char_t);
 short execute_command_file (FILE *);
 char_t *read_file_into_memory (char_t *, int *);
@@ -187,7 +187,7 @@ void draw_cursor (bool);
                                                            /* parser.c */
 short parse_line (char_t, FILE_DETAILS *, SHOW_LINE *, short);
 short parse_paired_comments (char_t, FILE_DETAILS *);
-short construct_parser (char_t *, int, PARSER_DETAILS **, char_t *, char_t *);
+short construct_parser (char*, int, PARSER_DETAILS **, char*, char*);
 short destroy_parser (PARSER_DETAILS *);
 bool find_parser_mapping (FILE_DETAILS *, PARSER_MAPPING *);
 PARSER_DETAILS *find_auto_parser (FILE_DETAILS *);
@@ -234,7 +234,7 @@ short THE_Resize (int, int);
 
                                                            /* scroll.c */
 short scroll_page (short, line_t, bool);
-short scroll_line (char_t, VIEW_DETAILS *, short, line_t, bool, short);
+short scroll_line (char, VIEW_DETAILS*, short, line_t, bool, short);
 
                                                               /* the.c */
 void init_colour_pairs (void);
@@ -248,33 +248,33 @@ char_t *ebc2asc (char_t *, int, int, int);
 char_t *asc2ebc (char_t *, int, int, int);
 length_t memreveq (char_t *, char_t, length_t);
 length_t memrevne (char_t *, char_t, length_t);
-char_t *meminschr (char_t *, char_t, length_t, length_t, length_t);
-char_t *meminsmem (char_t *, char_t *, length_t, length_t, length_t, length_t);
+char *meminschr (char*, char, length_t, length_t, length_t);
+char *meminsmem (char*, char*, length_t, length_t, length_t, length_t);
 char_t *memdeln (char_t *, length_t, length_t, length_t);
 char_t *strdelchr (char_t *, char_t);
 char_t *memrmdup (char_t *, length_t *, char_t);
-char_t *strrmdup (char_t *, char_t, bool);
+char* strrmdup (char*, char, bool);
 length_t strzne (char_t *, char_t);
-char_t *my_strdup (char_t *);
+char* my_strdup (char*);
 length_t memne (char_t *, char_t, length_t);
 length_t strzrevne (char_t *, char_t);
-length_t strzreveq (char_t *, char_t);
-char_t *strtrunc (char_t *);
+length_t strzreveq (char*, char);
+char* strtrunc (char*);
 char_t *MyStrip (char_t *, char, char);
 length_t memfind (char_t *, char_t *, length_t, length_t, bool, bool, char_t, char_t, length_t *);
 void memrev (char_t *, char_t *, length_t);
 length_t memcmpi (char_t *, char_t *, length_t);
-char_t *make_upper (char_t *);
-bool equal (char_t *, char_t *, length_t);
+char* make_upper (char*);
+bool equal (char*, char*, length_t);
 bool valid_integer (char_t *);
-bool valid_positive_integer (char_t *);
+bool valid_positive_integer (char*);
 short valid_positive_integer_against_maximum (char_t *, length_t);
-length_t strzeq (char_t *, char_t);
-char_t *strtrans (char_t *, char_t, char_t);
-LINE *add_LINE (LINE *, LINE *, char_t *, length_t, select_t, bool);
+length_t strzeq (char*, char);
+char* strtrans (char*, char, char);
+LINE *add_LINE (LINE *, LINE *, char*, length_t, select_t, bool);
 LINE *append_LINE (LINE *, char_t *, length_t);
 LINE *delete_LINE (LINE **, LINE **, LINE *, short, bool);
-void put_string (WINDOW *, row_t, col_t, char_t *, length_t);
+void put_string (WINDOW*, row_t, col_t, char*, length_t);
 void put_char (WINDOW *, chtype, char_t);
 short set_up_windows (short);
 short draw_divider (void);
@@ -286,7 +286,7 @@ bool blank_field (char_t *);
 void adjust_marked_lines (bool, line_t, line_t);
 void adjust_pending_prefix (VIEW_DETAILS *, bool, line_t, line_t);
 char_t case_translate (char_t);
-void add_to_recovery_list (char_t *, length_t);
+void add_to_recovery_list (char *, length_t);
 void get_from_recovery_list (short);
 void free_recovery_list (void);
 short my_wmove (WINDOW *, short, short, short, short);
@@ -294,7 +294,7 @@ short my_isalphanum (char_t);
 short get_row_for_tof_eof (short, char_t);
 void set_compare_exact (bool);
 int search_query_item_array (void *, size_t, size_t, const char *, int);
-int split_function_name (char_t *, int *);
+int split_function_name (char*, int*);
 VIEW_DETAILS *find_filetab (int);
 VIEW_DETAILS *find_next_file (VIEW_DETAILS *, short);
 
@@ -370,13 +370,13 @@ short show_status (void);
 short save_status (char_t *);
 short set_extract_variables (short);
 short get_number_dynamic_items (int);
-short get_item_values (int, short, char_t *, char_t, line_t, char_t *, line_t);
+short get_item_values (int, short, char*, char, line_t, char*, line_t);
 int number_query_item (void);
 int number_function_item (void);
 void format_options (char_t *);
 
                                                              /* sort.c */
-short execute_sort (char_t *);
+short execute_sort (char*);
 
                                                            /* cursor.c */
 short THEcursor_cmdline (char_t, VIEW_DETAILS *, short);
@@ -404,31 +404,31 @@ short advance_current_or_focus_line (line_t);
 void resolve_current_and_focus_lines (char_t, VIEW_DETAILS *, line_t, line_t, short, bool, bool);
 
                                                            /* colour.c */
-short parse_colours (char_t *, COLOUR_ATTR *, char_t **, bool, bool *);
-short parse_modifiers (char_t *, COLOUR_ATTR *);
+short parse_colours (char*, COLOUR_ATTR*, char**, bool, bool*);
+short parse_modifiers (char*, COLOUR_ATTR*);
 chtype merge_curline_colour (COLOUR_ATTR *, COLOUR_ATTR *);
 void set_up_default_colours (FILE_DETAILS *, COLOUR_ATTR *, int);
 void set_up_default_ecolours (FILE_DETAILS *);
-char_t *get_colour_strings (COLOUR_ATTR *);
-int is_valid_colour (char_t * colour);
+char *get_colour_strings (COLOUR_ATTR*);
+int is_valid_colour (char* colour);
 
                                                            /* column.c */
-short column_command (char_t *, int);
+short column_command (char*, int);
 
                                                             /* mouse.c */
 void wmouse_position (WINDOW *, int *, int *);
-short THEMouse (char_t *);
+short THEMouse (char*);
 short get_mouse_info (int *, int *, int *);
-void which_window_is_mouse_in (char_t *, int *);
+void which_window_is_mouse_in (char*, int *);
 void reset_saved_mouse_pos (void);
 void get_saved_mouse_pos (int *, int *);
 void initialise_mouse_commands (void);
 int mouse_info_to_key (int, int, int, int);
-char_t *mouse_key_number_to_name (int, char_t *, int *);
-int find_mouse_key_value (char_t *);
-int find_mouse_key_value_in_window (char_t *, char_t *);
-short ScrollbarHorz (char_t *);
-short ScrollbarVert (char_t *);
+char* mouse_key_number_to_name (int, char*, int *);
+int find_mouse_key_value (char*);
+int find_mouse_key_value_in_window (char*, char*);
+short ScrollbarHorz (char*);
+short ScrollbarVert (char*);
 
                                                            /* single.c */
 int initialise_fifo (LINE * first_file_name, line_t startup_line, length_t startup_column, bool ro);
@@ -480,7 +480,7 @@ short Ctlchar (char_t *);
 short Curline (char_t *);
 short Cursor (char_t *);
 short CursorStay (char_t *);
-short Define (char_t *);
+short Define (char*);
 short Defsort (char_t *);
 short DeleteLine (char_t *);
 short Dialog (char_t *);
@@ -583,7 +583,7 @@ short Recover (char_t *);
 short Reexecute (char_t *);
 short Redit (char_t *);
 short Redraw (char_t *);
-short THERefresh (char_t *);
+short THERefresh (char*);
 short Repeat (char_t *);
 short Replace (char_t *);
 short Reprofile (char_t *);
@@ -673,7 +673,7 @@ short Tabsin (char_t *);
 short Tabsout (char_t *);
 short Tag (char_t *);
 short Targetsave (char_t *);
-short Text (char_t *);
+short Text (char*);
 short THighlight (char_t *);
 short Timecheck (char_t *);
 short Toascii (char_t *);

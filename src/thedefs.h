@@ -34,12 +34,14 @@ typedef unsigned short col_t;
 typedef long length_t;        /* was unsigned short -- MUST be signed!!! */
 typedef long line_t;
 typedef unsigned char select_t;
-typedef unsigned char uchar;
+
+typedef unsigned char byte;
 
 /*
  * A default char type to avoid compiler warnings.
  */
 typedef char DEFCHAR;
+typedef unsigned char uchar;
 typedef unsigned char char_t;
 typedef unsigned short ROWTYPE;
 typedef unsigned short COLTYPE;
