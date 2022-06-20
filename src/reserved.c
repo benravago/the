@@ -55,18 +55,18 @@ RESERVED* add_reserved_line(char* spec, char* line, short base, short off, COLOU
   return (curr);
 }
 
-RESERVED* find_reserved_line(char scrno, bool find_by_row, row_t row, short base, short off) {
-  RESERVED* curr = SCREEN_FILE((byte)scrno)->first_reserved;
+RESERVED* find_reserved_line(byte scrno, bool find_by_row, row_t row, short base, short off) {
+  RESERVED* curr = SCREEN_FILE(scrno)->first_reserved;
 
   while (curr != NULL) {
     if (find_by_row) {
       if (curr->base == POSITION_TOP && row == curr->off - 1) {
         break;
       }
-      if (curr->base == POSITION_BOTTOM && row == (curr->off + screen[(byte)scrno].rows[WINDOW_FILEAREA])) {
+      if (curr->base == POSITION_BOTTOM && row == (curr->off + screen[scrno].rows[WINDOW_FILEAREA])) {
         break;
       }
-      if (curr->base == POSITION_MIDDLE && row == (curr->off + (screen[(byte)scrno].rows[WINDOW_FILEAREA] / 2)) - 1) {
+      if (curr->base == POSITION_MIDDLE && row == (curr->off + (screen[scrno].rows[WINDOW_FILEAREA] / 2)) - 1) {
         break;
       }
     } else {

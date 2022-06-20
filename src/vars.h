@@ -121,5 +121,5 @@ extern char pid_name[MAX_FILE_NAME + 1];
 extern LASTOP lastop[LASTOP_MAX];
 extern FILE *record_fp;
 extern int record_key;
-extern uchar *record_status;
+extern char* record_status;
 

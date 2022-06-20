@@ -156,7 +156,7 @@ static short set_active_colour(short area) {
   return (RC_OK);
 }
 
-short Alt(char_t * params) {
+short Alt(char* params) {
 #define ALT_PARAMS  2
   char_t strip[ALT_PARAMS];
   char_t *word[ALT_PARAMS + 1];
@@ -200,7 +200,7 @@ short Alt(char_t * params) {
 
   return (RC_OK);
 }
-short Arbchar(char_t * params) {
+short Arbchar(char* params) {
 #define ARB_PARAMS  4
   char_t *word[ARB_PARAMS + 1];
   char_t strip[ARB_PARAMS];
@@ -290,7 +290,7 @@ short Arbchar(char_t * params) {
   }
   return (rc);
 }
-short Autocolour(char_t * params) {
+short Autocolour(char* params) {
 #define AUCO_PARAMS  3
   char_t *word[AUCO_PARAMS + 1];
   char_t strip[AUCO_PARAMS];
@@ -429,7 +429,7 @@ short Autocolour(char_t * params) {
 
   return (rc);
 }
-short Autosave(char_t * params) {
+short Autosave(char* params) {
 #define AUS_PARAMS  1
   char_t strip[AUS_PARAMS];
   char_t *word[AUS_PARAMS + 1];
@@ -456,7 +456,7 @@ short Autosave(char_t * params) {
   CURRENT_FILE->autosave = (char_t) atoi((char *) word[0]);
   return (RC_OK);
 }
-short Autoscroll(char_t * params) {
+short Autoscroll(char* params) {
 #define AUL_PARAMS  1
   char_t strip[AUL_PARAMS];
   char_t *word[AUL_PARAMS + 1];
@@ -487,7 +487,7 @@ short Autoscroll(char_t * params) {
   CURRENT_VIEW->autoscroll = (char_t) atol((char *) word[0]);
   return (RC_OK);
 }
-short Backup(char_t * params) {
+short Backup(char* params) {
   short rc = RC_OK;
 
 #define BAC_PARAMS  2
@@ -536,13 +536,13 @@ short Backup(char_t * params) {
   }
   return (rc);
 }
-short BeepSound(char_t * params) {
+short BeepSound(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &BEEPx, TRUE);
   return (rc);
 }
-short Boundmark(char_t * params) {
+short Boundmark(char* params) {
 #define BND_PARAMS  2
   char_t save_boundmark = CURRENT_VIEW->boundmark;
   char_t *word[BND_PARAMS + 1];
@@ -589,7 +589,7 @@ short Boundmark(char_t * params) {
 
   return (RC_OK);
 }
-short Case(char_t * params) {
+short Case(char* params) {
 #define CAS_PARAMS  6
   char_t parm[CAS_PARAMS];
   char_t *word[CAS_PARAMS + 1];
@@ -666,7 +666,7 @@ short Case(char_t * params) {
 
   return (RC_OK);
 }
-short Clearerrorkey(char_t * params) {
+short Clearerrorkey(char* params) {
   short rc = RC_OK;
   int key = 0;
 
@@ -682,13 +682,13 @@ short Clearerrorkey(char_t * params) {
   }
   return (rc);
 }
-short Clearscreen(char_t * params) {
+short Clearscreen(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CLEARSCREENx, TRUE);
   return (rc);
 }
-short Clock(char_t * params) {
+short Clock(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CLOCKx, TRUE);
@@ -696,7 +696,7 @@ short Clock(char_t * params) {
     clear_statarea();
   return (rc);
 }
-short Cmdarrows(char_t * params) {
+short Cmdarrows(char* params) {
   short rc = RC_OK;
 
   /*
@@ -713,7 +713,7 @@ short Cmdarrows(char_t * params) {
   }
   return (rc);
 }
-short Cmdline(char_t * params) {
+short Cmdline(char* params) {
   char_t cmd_place = '?';
   short rc = RC_OK;
 
@@ -757,7 +757,7 @@ short Cmdline(char_t * params) {
 
   return (rc);
 }
-short Colour(char_t * params) {
+short Colour(char* params) {
 #define COL_PARAMS_DEF 2
 #define COL_PARAMS_COLOUR 4
 #define COL_MODIFIER_NO_SET  0
@@ -937,7 +937,7 @@ short Colour(char_t * params) {
   return (RC_OK);
 }
 
-short Colouring(char_t * params) {
+short Colouring(char* params) {
 #define COLG_PARAMS  2
   char_t *word[COLG_PARAMS + 1];
   char_t strip[COLG_PARAMS];
@@ -1000,7 +1000,7 @@ short Colouring(char_t * params) {
   return (RC_OK);
 }
 
-short Compat(char_t * params) {
+short Compat(char* params) {
 #define COM_PARAMS  4
   char_t *word[COM_PARAMS + 1];
   char_t strip[COM_PARAMS];
@@ -1190,7 +1190,7 @@ short Compat(char_t * params) {
 
   return (rc);
 }
-short Ctlchar(char_t * params) {
+short Ctlchar(char* params) {
 #define CTL_PARAMS  3
   char_t *word[CTL_PARAMS + 1];
   char_t strip[CTL_PARAMS];
@@ -1341,7 +1341,7 @@ short Ctlchar(char_t * params) {
   return (RC_OK);
 }
 
-short Curline(char_t * params) {
+short Curline(char* params) {
 #define CUR_PARAMS  2
   char_t *word[CUR_PARAMS + 1];
   char_t strip[CUR_PARAMS];
@@ -1471,13 +1471,13 @@ short Curline(char_t * params) {
 
   return (RC_OK);
 }
-short CursorStay(char_t * params) {
+short CursorStay(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &scroll_cursor_stay, TRUE);
   return (rc);
 }
-short Defsort(char_t * params) {
+short Defsort(char* params) {
 #define DIR_PARAMS  2
   char_t *word[DIR_PARAMS + 1];
   char_t strip[DIR_PARAMS];
@@ -1550,7 +1550,7 @@ short Defsort(char_t * params) {
   return (rc);
 }
 
-short Display(char_t * params) {
+short Display(char* params) {
   short rc = RC_OK;
   short col1 = 0, col2 = 0;
 
@@ -1582,7 +1582,7 @@ short Display(char_t * params) {
 
   return (rc);
 }
-short Ecolour(char_t * params) {
+short Ecolour(char* params) {
 #define ECOL_PARAMS 2
   char_t *word[ECOL_PARAMS + 1];
   char_t strip[ECOL_PARAMS];
@@ -1721,7 +1721,7 @@ short Ecolour(char_t * params) {
   display_screen(current_screen);
   return (RC_OK);
 }
-short Eolout(char_t * params) {
+short Eolout(char* params) {
   char_t eolchar = 0;
 
   params = MyStrip(params, STRIP_BOTH, ' ');
@@ -1744,7 +1744,7 @@ short Eolout(char_t * params) {
   EOLx = CURRENT_FILE->eolout = eolchar;
   return (RC_OK);
 }
-short Equivchar(char_t * params) {
+short Equivchar(char* params) {
   short rc = RC_OK;
 
   /*
@@ -1767,7 +1767,7 @@ short Equivchar(char_t * params) {
   EQUIVCHARstr[0] = EQUIVCHARx = *(params);
   return (rc);
 }
-short Errorformat(char_t * params) {
+short Errorformat(char* params) {
   char_t errformat = 'N';
 
   params = MyStrip(params, STRIP_BOTH, ' ');
@@ -1782,7 +1782,7 @@ short Errorformat(char_t * params) {
   ERRORFORMATx = errformat;
   return (RC_OK);
 }
-short Erroroutput(char_t * params) {
+short Erroroutput(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &ERROROUTPUTx, TRUE);
@@ -1911,7 +1911,7 @@ short Etmode(char * params) {
   }
   return (rc);
 }
-short Fext(char_t * params) {
+short Fext(char* params) {
   char_t tmp_name[MAX_FILE_NAME + 1];
   short rc = RC_OK;
   int last_period = 0;
@@ -1980,7 +1980,7 @@ short Fext(char_t * params) {
   }
   return (rc);
 }
-short Filename(char_t * params) {
+short Filename(char* params) {
   char_t tmp_name[MAX_FILE_NAME + 1];
   short rc = RC_OK;
   int i = 0, cnt = 0, len_params = 0;
@@ -2096,7 +2096,7 @@ short Filename(char_t * params) {
   }
   return (rc);
 }
-short THEFiletabs(char_t * params) {
+short THEFiletabs(char* params) {
   short rc = RC_OK;
   bool save_filetabs = FILETABSx;
 
@@ -2132,7 +2132,7 @@ short THEFiletabs(char_t * params) {
   }
   return (rc);
 }
-short Fmode(char_t * params) {
+short Fmode(char* params) {
   short rc = RC_OK;
 
   /*
@@ -2142,7 +2142,7 @@ short Fmode(char_t * params) {
   rc = RC_INVALID_OPERAND;
   return (rc);
 }
-short Fname(char_t * params) {
+short Fname(char* params) {
   char_t tmp_name[MAX_FILE_NAME + 1];
   short rc = RC_OK;
   int last_period = 0;
@@ -2228,7 +2228,7 @@ short Fname(char_t * params) {
   }
   return (rc);
 }
-short Fpath(char_t * params) {
+short Fpath(char* params) {
   char_t tmp_name[MAX_FILE_NAME + 1];
   short rc = RC_OK;
 
@@ -2305,7 +2305,7 @@ short Fpath(char_t * params) {
   return (rc);
 }
 
-short Fullfname(char_t * params) {
+short Fullfname(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_FILE->display_actual_filename, TRUE);
@@ -2317,7 +2317,7 @@ short Fullfname(char_t * params) {
   }
   return (rc);
 }
-short THEHeader(char_t * params) {
+short THEHeader(char* params) {
   short rc = RC_OK;
 
 #define HEA_PARAMS  2
@@ -2369,13 +2369,13 @@ short THEHeader(char_t * params) {
 
   return (rc);
 }
-short Hex(char_t * params) {
+short Hex(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->hex, TRUE);
   return (rc);
 }
-short Hexdisplay(char_t * params) {
+short Hexdisplay(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &HEXDISPLAYx, TRUE);
@@ -2383,7 +2383,7 @@ short Hexdisplay(char_t * params) {
     clear_statarea();
   return (rc);
 }
-short Hexshow(char_t * params) {
+short Hexshow(char* params) {
 #define HEXS_PARAMS  2
   char_t *word[HEXS_PARAMS + 1];
   char_t strip[HEXS_PARAMS];
@@ -2434,7 +2434,7 @@ short Hexshow(char_t * params) {
   display_screen(current_screen);
   return (rc);
 }
-short Highlight(char_t * params) {
+short Highlight(char* params) {
 #define HIGH_PARAMS  2
   char_t *word[HIGH_PARAMS + 1];
   char_t strip[HIGH_PARAMS];
@@ -2490,7 +2490,7 @@ short Highlight(char_t * params) {
   }
   return (rc);
 }
-short Idline(char_t * params) {
+short Idline(char* params) {
   short rc = RC_OK;
   bool save_id_line = FALSE;
 
@@ -2522,19 +2522,19 @@ short Idline(char_t * params) {
   return (rc);
 }
 
-short Impmacro(char_t * params) {
+short Impmacro(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->imp_macro, TRUE);
   return (rc);
 }
-short Impos(char_t * params) {
+short Impos(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->imp_os, TRUE);
   return (rc);
 }
-short Inputmode(char_t * params) {
+short Inputmode(char* params) {
   params = MyStrip(params, STRIP_BOTH, ' ');
   if (equal((char_t *) "off", params, 3))
     CURRENT_VIEW->inputmode = INPUTMODE_OFF;
@@ -2548,7 +2548,7 @@ short Inputmode(char_t * params) {
   }
   return (RC_OK);
 }
-short Insertmode(char_t * params) {
+short Insertmode(char* params) {
   params = MyStrip(params, STRIP_BOTH, ' ');
   if (equal((char_t *) "off", params, 3))
     INSERTMODEx = FALSE;
@@ -2564,7 +2564,7 @@ short Insertmode(char_t * params) {
     draw_cursor(TRUE);
   return (RC_OK);
 }
-short THEInterface(char_t * params) {
+short THEInterface(char* params) {
   short rc = RC_OK;
 
   params = MyStrip(params, STRIP_BOTH, ' ');
@@ -2578,7 +2578,7 @@ short THEInterface(char_t * params) {
   }
   return (rc);
 }
-short Lastop(char_t * params) {
+short Lastop(char* params) {
 #define LOP_PARAMS  2
   char_t *word[LOP_PARAMS + 1];
   char_t strip[LOP_PARAMS];
@@ -2619,7 +2619,7 @@ short Lastop(char_t * params) {
   return (rc);
 }
 
-short Lineflag(char_t * params) {
+short Lineflag(char* params) {
 #define LF_PARAMS  4
   char_t *word[LF_PARAMS + 1];
   char_t strip[LF_PARAMS];
@@ -2754,7 +2754,7 @@ short Lineflag(char_t * params) {
   free(save_params);
   return (rc);
 }
-short Linend(char_t * params) {
+short Linend(char* params) {
 #define LE_PARAMS  2
   char_t *word[LE_PARAMS + 1];
   char_t strip[LE_PARAMS];
@@ -2798,13 +2798,13 @@ short Linend(char_t * params) {
   }
   return (rc);
 }
-short SetMacro(char_t * params) {
+short SetMacro(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->macro, TRUE);
   return (rc);
 }
-short Macroext(char_t * params) {
+short Macroext(char* params) {
   /*
    * If no value is specified for ext, set the value of macro_suffix to
    * "", otherwise set it to the supplied value, prefixed with '.'
@@ -2888,7 +2888,7 @@ short Macropath(char * params) {
   max_macro_dirs++;
   return (RC_OK);
 }
-short Margins(char_t * params) {
+short Margins(char* params) {
 #define MAR_PARAMS  3
   char_t *word[MAR_PARAMS + 1];
   char_t strip[MAR_PARAMS];
@@ -3026,14 +3026,14 @@ short Margins(char_t * params) {
   }
   return (RC_OK);
 }
-short Mouse(char_t * params) {
+short Mouse(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &MOUSEx, TRUE);
   mousemask((MOUSEx) ? ALL_MOUSE_EVENTS : 0, (mmask_t *) NULL);
   return (rc);
 }
-short Msgline(char_t * params) {
+short Msgline(char* params) {
 #define MSG_PARAMS  5
   char_t *word[MSG_PARAMS + 1];
   char_t strip[MSG_PARAMS];
@@ -3175,7 +3175,7 @@ short Msgline(char_t * params) {
   CURRENT_VIEW->msgline_rows = num_lines;
   return (rc);
 }
-short Msgmode(char_t * params) {
+short Msgmode(char* params) {
 #define MSGM_PARAMS  2
   char_t *word[MSGM_PARAMS + 1];
   char_t strip[MSGM_PARAMS];
@@ -3217,7 +3217,7 @@ short Msgmode(char_t * params) {
   CURRENT_VIEW->msgmode_status = new_msgmode;
   return (RC_OK);
 }
-short Newlines(char_t * params) {
+short Newlines(char* params) {
 #define NEW_PARAMS  1
   char_t parm[NEW_PARAMS];
   char_t *word[NEW_PARAMS + 1];
@@ -3247,7 +3247,7 @@ short Newlines(char_t * params) {
   CURRENT_VIEW->newline_aligned = parm[0];
   return (RC_OK);
 }
-short Nondisp(char_t * params) {
+short Nondisp(char* params) {
   if (strlen((char *) params) != 1) {
     display_error(1, params, FALSE);
     return (RC_INVALID_OPERAND);
@@ -3257,7 +3257,7 @@ short Nondisp(char_t * params) {
   display_screen(current_screen);
   return (RC_OK);
 }
-short Number(char_t * params) {
+short Number(char* params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->number, TRUE);

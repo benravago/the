@@ -40,7 +40,7 @@
 static short sosdelback (bool);
 static short sosdelchar (bool);
 
-short Sos_addline(char_t * params) {
+short Sos_addline(char* params) {
   short rc = RC_OK;
 
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
@@ -155,7 +155,7 @@ short Sos_blockstart(char_t * params) {
     execute_move_cursor(current_screen, CURRENT_VIEW, col - 1);
   return (rc);
 }
-short Sos_bottomedge(char_t * params) {
+short Sos_bottomedge(char* params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0, row = 0;
 
@@ -205,7 +205,7 @@ short Sos_cuadelchar(char_t * params) {
 short Sos_current(char_t * params) {
   return do_Sos_current(params, current_screen, CURRENT_VIEW);
 }
-short do_Sos_current(char_t * params, char_t curr_screen, VIEW_DETAILS * curr_view) {
+short do_Sos_current(char* params, byte curr_screen, VIEW_DETAILS* curr_view) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
   bool same_line = TRUE;
@@ -460,7 +460,7 @@ short Sos_delword(char_t * params) {
   }
   return (rc);
 }
-short Sos_doprefix(char_t * params) {
+short Sos_doprefix(char* params) {
   short rc = RC_OK;
 
   rc = execute_prefix_commands();
@@ -568,7 +568,7 @@ short Sos_edit(char_t * params) {
   pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   return (rc);
 }
-short Sos_endchar(char_t * params) {
+short Sos_endchar(char* params) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
   length_t charnum;
@@ -591,7 +591,7 @@ short Sos_endchar(char_t * params) {
   }
   return (rc);
 }
-short Sos_execute(char_t * params) {
+short Sos_execute(char* params) {
   length_t i;
   short rc = RC_OK;
   bool save_in_macro;
@@ -613,7 +613,7 @@ short Sos_execute(char_t * params) {
   }
   return (rc);
 }
-short Sos_firstchar(char_t * params) {
+short Sos_firstchar(char* params) {
   short rc = RC_OK;
   length_t new_col = 0;
   unsigned short y = 0, x = 0;
@@ -643,7 +643,7 @@ short Sos_firstchar(char_t * params) {
   rc = execute_move_cursor(current_screen, CURRENT_VIEW, new_col);
   return (rc);
 }
-short Sos_firstcol(char_t * params) {
+short Sos_firstcol(char* params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0;
 
@@ -694,7 +694,7 @@ short Sos_instab(char_t * params) {
   display_screen(current_screen);
   return (rc);
 }
-short Sos_lastcol(char_t * params) {
+short Sos_lastcol(char* params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0;
 
@@ -703,7 +703,7 @@ short Sos_lastcol(char_t * params) {
   wmove(CURRENT_WINDOW, y, x);
   return (rc);
 }
-short Sos_leftedge(char_t * params) {
+short Sos_leftedge(char* params) {
   unsigned short y = 0, x = 0;
 
   getyx(CURRENT_WINDOW, y, x);
@@ -720,7 +720,7 @@ short Sos_makecurr(char_t * params) {
     rc = execute_makecurr(current_screen, CURRENT_VIEW, CURRENT_VIEW->focus_line);
   return (rc);
 }
-short Sos_marginl(char_t * params) {
+short Sos_marginl(char* params) {
   short rc = RC_OK;
 
   if (Sos_leftedge((char_t *) "") == RC_OK)
@@ -796,10 +796,10 @@ short Sos_pastecmdline(char_t * params) {
   }
   return (rc);
 }
-short Sos_prefix(char_t * params) {
+short Sos_prefix(char* params) {
   return do_Sos_prefix(params, current_screen, CURRENT_VIEW);
 }
-short do_Sos_prefix(char_t * params, char_t curr_screen, VIEW_DETAILS * curr_view) {
+short do_Sos_prefix(char* params, byte curr_screen, VIEW_DETAILS* curr_view) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0;
 
@@ -830,7 +830,7 @@ short Sos_qcmnd(char_t * params) {
   }
   return (rc);
 }
-short Sos_rightedge(char_t * params) {
+short Sos_rightedge(char* params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0;
 
@@ -1402,7 +1402,7 @@ short Sos_tabwordf(char_t * params) {
 
   return (rc);
 }
-short Sos_topedge(char_t * params) {
+short Sos_topedge(char* params) {
   short rc = RC_OK;
   unsigned short y = 0, x = 0, row = 0;
 

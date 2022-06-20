@@ -71,7 +71,7 @@ short scroll_page(short direction, line_t num_pages, bool scrollbar) {
   return rc;
 }
 
-short scroll_line(char curr_screen, VIEW_DETAILS* curr_view, short direction, line_t num_lines, bool scrollbar, short escreen) {
+short scroll_line(byte curr_screen, VIEW_DETAILS* curr_view, short direction, line_t num_lines, bool scrollbar, short escreen) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0, iscrollbar = scrollbar;
   bool on_file_edge = FALSE, on_screen_edge = FALSE;
@@ -97,7 +97,7 @@ short scroll_line(char curr_screen, VIEW_DETAILS* curr_view, short direction, li
   switch (iscrollbar) {
 
     case FALSE:
-      getyx(SCREEN_WINDOW((byte)curr_screen), y, x);
+      getyx(SCREEN_WINDOW(curr_screen), y, x);
       if (direction == DIRECTION_FORWARD) {
         edge_line = curr_view->file_for_view->number_lines + 1L;
         yoff1 = y - ((leave_cursor) ? 0 : 1);
@@ -113,17 +113,17 @@ short scroll_line(char curr_screen, VIEW_DETAILS* curr_view, short direction, li
        * provided the command line is ON.
        */
       if (escreen == CURSOR_SCREEN && (on_screen_edge || on_file_edge)) {
-        if (SCREEN_WINDOW_COMMAND((byte)curr_screen) == NULL) {
-          getyx(SCREEN_WINDOW((byte)curr_screen), y, x);
+        if (SCREEN_WINDOW_COMMAND(curr_screen) == NULL) {
+          getyx(SCREEN_WINDOW(curr_screen), y, x);
           if (direction == DIRECTION_FORWARD) {
             rc = find_first_focus_line(curr_screen, &y);
           } else {
             rc = find_last_focus_line(curr_screen, &y);
           }
           if (rc == RC_OK) {
-            curr_view->focus_line = screen[(byte)curr_screen].sl[y].line_number;
+            curr_view->focus_line = screen[curr_screen].sl[y].line_number;
             pre_process_line(curr_view, curr_view->focus_line, (LINE*) NULL);
-            wmove(SCREEN_WINDOW((byte)curr_screen), y, x);
+            wmove(SCREEN_WINDOW(curr_screen), y, x);
           }
           break;
         }
@@ -148,7 +148,7 @@ short scroll_line(char curr_screen, VIEW_DETAILS* curr_view, short direction, li
         build_screen(curr_screen);
         display_screen(curr_screen);
         y = get_row_for_focus_line(curr_screen, curr_view->focus_line, curr_view->current_row);
-        wmove(SCREEN_WINDOW((byte)curr_screen), y, x);
+        wmove(SCREEN_WINDOW(curr_screen), y, x);
         break;
       }
       /*
@@ -161,14 +161,14 @@ short scroll_line(char curr_screen, VIEW_DETAILS* curr_view, short direction, li
         pre_process_line(curr_view, curr_view->focus_line, (LINE*) NULL);
         build_screen(curr_screen);
         display_screen(curr_screen);
-        wmove(SCREEN_WINDOW((byte)curr_screen), yoff1, x);
+        wmove(SCREEN_WINDOW(curr_screen), yoff1, x);
         break;
       }
       /*
        * We are in the middle of the window, so just move the cursor up or
        * down 1 line.
        */
-      wmove(SCREEN_WINDOW((byte)curr_screen), yoff2, x);
+      wmove(SCREEN_WINDOW(curr_screen), yoff2, x);
       rc = post_process_line(curr_view, curr_view->focus_line, (LINE*) NULL, TRUE);
       curr_view->focus_line = new_focus_line;
       pre_process_line(curr_view, curr_view->focus_line, (LINE*) NULL);
@@ -186,9 +186,9 @@ short scroll_line(char curr_screen, VIEW_DETAILS* curr_view, short direction, li
         THEcursor_move(curr_screen, curr_view, TRUE, TRUE, (short) longy, (short) longx);
         show_heading(curr_screen);
         if (curr_view->id_line) {
-          wnoutrefresh(SCREEN_WINDOW_IDLINE((byte)curr_screen));
+          wnoutrefresh(SCREEN_WINDOW_IDLINE(curr_screen));
         }
-        wrefresh(SCREEN_WINDOW((byte)curr_screen));
+        wrefresh(SCREEN_WINDOW(curr_screen));
       }
       break;
   }

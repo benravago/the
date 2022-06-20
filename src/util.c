@@ -3,7 +3,7 @@
 // SPDX-FileContributor: 2022 Ben Ravago
 
 /*
- * Utility routines 
+ * Utility routines
  */
 
 #include "the.h"
@@ -105,7 +105,7 @@ char_t *asc2ebc(char_t * str, int len, int start, int end) {
   return (str);
 }
 
-char_t *ebc2asc(char_t * str, int len, int start, int end) {
+char* ebc2asc(char* str, int len, int start, int end) {
   register int i = 0;
 
   for (i = start; i < min(len, end + 1); i++) {
@@ -121,7 +121,7 @@ length_t memreveq(char_t * buffer, char_t ch, length_t max_len) {
   return (len);
 }
 
-length_t memrevne(char_t * buffer, char_t known_char, length_t max_len) {
+length_t memrevne(char* buffer, char known_char, length_t max_len) {
   length_t len = max_len;
 
   for (--len; len >= 0 && buffer[len] == known_char; len--) {} // no-op
@@ -158,7 +158,7 @@ char* meminsmem(char* buffer, char* str, length_t len, length_t location, length
   return (buffer);
 }
 
-char_t *memdeln(char_t * buffer, length_t location, length_t curr_length, length_t num_chars) {
+char* memdeln(char* buffer, length_t location, length_t curr_length, length_t num_chars) {
   length_t i = 0;
 
   for (i = location; i < curr_length; i++) {
@@ -232,11 +232,11 @@ char* strrmdup(char* buf, char ch, bool exclude_leading) {
   return (buf);
 }
 
-length_t strzne(char_t * str, char_t ch) {
+length_t strzne(char* str, char ch) {
   length_t len = 0;
   length_t i = 0;
 
-  len = strlen((char *) str);
+  len = strlen(str);
   for (; i < len && str[i] == ch; i++);
   if (i >= len) {
     i = (-1);
@@ -286,7 +286,7 @@ char* strtrunc(char* string) {
   return (MyStrip(string, STRIP_BOTH, ' '));
 }
 
-char_t *MyStrip(char_t * string, char option, char ch) {
+char* MyStrip(char* string, char option, char ch) {
   length_t i = 0;
   length_t pos = 0;
 
@@ -417,7 +417,7 @@ void memrev(char_t * dest, char_t * src, length_t length) {
   }
 }
 
-length_t memcmpi(char_t * buf1, char_t * buf2, length_t len) {
+length_t memcmpi(char* buf1, char* buf2, length_t len) {
   length_t i = 0;
   char_t c1, c2;
 
@@ -484,7 +484,7 @@ bool equal(char* con, char* str, length_t min_len) {
   return (TRUE);
 }
 
-bool valid_integer(char_t * str) {
+bool valid_integer(char* str) {
   length_t i = 0;
   length_t num_signs = 0;
 
@@ -517,7 +517,7 @@ bool valid_positive_integer(char* str) {
   return (TRUE);
 }
 
-short valid_positive_integer_against_maximum(char_t * str, length_t maximum) {
+short valid_positive_integer_against_maximum(char* str, length_t maximum) {
   length_t i, len_str, len_max;
   char_t buffer[50];
   char_t *buf;
@@ -946,7 +946,7 @@ short post_process_line(VIEW_DETAILS * the_view, line_t line_number, LINE * know
   return (rc);
 }
 
-bool blank_field(char_t * field) {
+bool blank_field(char* field) {
   if (field == NULL) {
     return (TRUE);              /* field is NULL */
   }
@@ -1192,7 +1192,7 @@ short my_wdelch(WINDOW * win) {
  * If the current position is a blank, the the "word" is all blanks the left or right of the current position.
  * If in a "word", all characters in the word and any following blanks (to the next "word") are included
  */
-short get_word(char_t * string, length_t length, length_t curr_pos, length_t * first_col, length_t * last_col) {
+short get_word(char* string, length_t length, length_t curr_pos, length_t* first_col, length_t* last_col) {
   short state = 0;
   length_t i = 0;
 
@@ -1309,7 +1309,7 @@ short get_word(char_t * string, length_t length, length_t curr_pos, length_t * f
 /* A "word" is based on the SET WORD settings
  *
  * Returns the portion of the string containing a "word" nearest the current position.
- * Used in EXTRACT FIELDWORD 
+ * Used in EXTRACT FIELDWORD
  * If the current position is a blank, the the "word" is looked for starting at the left of the current position, and then to the right.
  *
  * eg:
@@ -1479,7 +1479,7 @@ short get_row_for_tof_eof(short row, char_t scridx) {
     for (; screen[scridx].sl[row].line_type != LINE_TOF; row++) {} // no-op
   }
   if (screen[scridx].sl[row].line_type == LINE_OUT_OF_BOUNDS_BELOW) {
-    for (; screen[scridx].sl[row].line_type != LINE_EOF; row--) {} // no-op 
+    for (; screen[scridx].sl[row].line_type != LINE_EOF; row--) {} // no-op
   }
   return (row);
 }

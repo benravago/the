@@ -140,7 +140,7 @@ int process_key(int key, bool mouse_details_present) {
     if (rc > RAW_KEY) {
       key = rc - (RAW_KEY * 2);
     }
-    if ((byte)key < 256 && key >= 0) {
+    if (key < 256 && key >= 0) {
       string_key[0] = key;
       /*
        * If operating in CUA mode, and a CUA block exists, check

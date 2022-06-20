@@ -396,7 +396,7 @@ short get_file(char* filename) {
     find_auto_parser(CURRENT_FILE);
   return (rc);
 }
-LINE *read_file(FILE * fp, LINE * curr, char_t * filename, line_t fromline, line_t numlines, bool called_from_get_command) {
+LINE* read_file(FILE* fp, LINE* curr, char* filename, line_t fromline, line_t numlines, bool called_from_get_command) {
 #define THE_CR '\r'
 #define THE_LF '\n'
 #define DOSEOF 26
@@ -579,7 +579,7 @@ LINE *read_fixed_file(FILE * fp, LINE * curr, char_t * filename, line_t fromline
   CURRENT_FILE->eolfirst = EOLOUT_NONE;
   return (temp);
 }
-short save_file(FILE_DETAILS * cf, char_t * new_fname, bool force, line_t in_lines, line_t start_line, line_t * num_file_lines, bool append, length_t start_col, length_t end_col, bool ignore_scope, bool lines_based_on_scope, bool autosave) {
+short save_file(FILE_DETAILS* cf, char* new_fname, bool force, line_t in_lines, line_t start_line, line_t* num_file_lines, bool append, length_t start_col, length_t end_col, bool ignore_scope, bool lines_based_on_scope, bool autosave) {
   char_t *bak_filename = NULL;
   char_t *write_fname = NULL;
   line_t i = 0L;

@@ -179,7 +179,7 @@ short split_change_params(char_t * cmd_line, char_t ** old_str, char_t ** new_st
   return (RC_OK);
 }
 
-short parse_target(char_t * target_spec, line_t true_line, TARGET * target, long target_types, bool display_parse_error, bool allow_error_display, bool column_target) {
+short parse_target(char* target_spec, line_t true_line, TARGET* target, long target_types, bool display_parse_error, bool allow_error_display, bool column_target) {
   short num_targets = 0;
   char_t boolean = ' ';
   short state = STATE_NEXT;
@@ -1293,7 +1293,7 @@ short find_target(TARGET * target, line_t true_line, bool display_parse_error, b
     rc = status;
   return (rc);
 }
-short find_column_target(char_t * line, length_t len, TARGET * target, length_t true_column, bool display_parse_error, bool allow_error_display) {
+short find_column_target(char* line, length_t len, TARGET* target, length_t true_column, bool display_parse_error, bool allow_error_display) {
   short rc = RC_OK;
   length_t column_number = 0L;
   length_t num_columns = 0L;

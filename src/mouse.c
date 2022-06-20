@@ -98,7 +98,7 @@ static char *button_action_names[] = {
 static int last_mouse_x_pos = -1;
 static int last_mouse_y_pos = -1;
 
-void wmouse_position(WINDOW * win, int *y, int *x) {
+void wmouse_position(WINDOW* win, int* y, int* x) {
   int begy, begx, maxy, maxx;
 
   /*
@@ -119,7 +119,7 @@ void wmouse_position(WINDOW * win, int *y, int *x) {
   return;
 }
 
-short get_mouse_info(int *button, int *button_action, int *button_modifier) {
+short get_mouse_info(int* button, int* button_action, int* button_modifier) {
   short rc = RC_OK;
 
   getmouse(&ncurses_mouse_event);
@@ -172,7 +172,7 @@ short get_mouse_info(int *button, int *button_action, int *button_modifier) {
 
 short THEMouse(char* params) {
   int w = 0;
-  char scrn = 0;
+  byte scrn = 0;
   short rc = RC_OK;
   int curr_button_action = 0;
   int curr_button_modifier = 0;
@@ -190,15 +190,15 @@ short THEMouse(char* params) {
   return (rc);
 }
 
-void which_window_is_mouse_in(char* scrn, int *w) {
-  char i = 0;
+void which_window_is_mouse_in(byte* scrn, int* w) {
+  byte i = 0;
   int j = 0;
   int y = 0, x = 0;
 
   for (i = 0; i < display_screens; i++) {
     for (j = 0; j < VIEW_WINDOWS; j++) {
-      if (screen[(byte)i].win[j] != (WINDOW *) NULL) {
-        wmouse_position(screen[(byte)i].win[j], &y, &x);
+      if (screen[i].win[j] != (WINDOW *) NULL) {
+        wmouse_position(screen[i].win[j], &y, &x);
         if (y != (-1) && x != (-1)) {
           *scrn = i;
           *w = j;
@@ -249,7 +249,7 @@ void reset_saved_mouse_pos(void) {
   return;
 }
 
-void get_saved_mouse_pos(int *y, int *x) {
+void get_saved_mouse_pos(int* y, int* x) {
   *x = last_mouse_x_pos;
   *y = last_mouse_y_pos;
   return;

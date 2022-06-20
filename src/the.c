@@ -27,11 +27,11 @@ VIEW_DETAILS *vd_mark = (VIEW_DETAILS *) NULL;
 
 VIEW_DETAILS *filetabs_start_view = (VIEW_DETAILS *) NULL;
 
-uchar number_of_views = 0;   /* number of views */
+byte number_of_views = 0;     /* number of views */
 line_t number_of_files = 0;   /* number of files */
 
-uchar display_screens = 1;   /* number of screens */
-uchar current_screen = 0;
+byte display_screens = 1;     /* number of screens */
+byte current_screen = 0;
 
 SCREEN_DETAILS screen[MAX_SCREENS];     /* 2 screen structures */
 
@@ -98,7 +98,7 @@ bool file_read = FALSE;            /* indicates if we have read the file */
 bool curses_started = FALSE;       /* indicates if curses has started */
 bool the_readonly = FALSE;         /* indicates if running THE in readonly mode */
 bool be_quiet = FALSE;             /* do not display error message header if TRUE */
-                                 
+
 char *the_version = THE_VERSION;
 char *the_release = THE_VERSION_DATE;
 char *the_copyright = THE_COPYRIGHT;
@@ -241,7 +241,7 @@ LASTOP lastop[LASTOP_MAX] = {
  */
 FILE *record_fp = NULL;
 int record_key = 0;
-uchar *record_status = NULL;
+char* record_status = NULL;
 
 /*
  * Globals to support 16 colours
@@ -330,7 +330,7 @@ int main(int argc, char *argv[]) {
     strcat(the_home_dir, ".the/"); // was THE_HOME_DIRECTORY
   }
   /*
-   * Get THE_MACRO_PATH environment variable. 
+   * Get THE_MACRO_PATH environment variable.
    * If not set set up default to be THE_HOME_DIR followed by the current directory.
    */
   if ((envptr = getenv("THE_MACRO_PATH")) != NULL) {
@@ -344,7 +344,7 @@ int main(int argc, char *argv[]) {
     Macropath(the_macro_path);
   }
   /*
-   * Get THE_WIDTH environment variable. 
+   * Get THE_WIDTH environment variable.
    * If not set use the builtin default or the value from -w command line switch.
    */
   if ((envptr = getenv("THE_WIDTH")) != NULL) {
@@ -358,8 +358,8 @@ int main(int argc, char *argv[]) {
   }
   /*
    * Add a hack for MacOS X to allow arguments to be passed as environment variables instead of on the command line.
-   * This is to allow the ncurses version of THE to accept files dropped on it from Finder. 
-   * We inject values into our own argv[] array from environment variables. 
+   * This is to allow the ncurses version of THE to accept files dropped on it from Finder.
+   * We inject values into our own argv[] array from environment variables.
    * Only do this if we only have 1 argument: argv[0] and THE_ARGC is set
    */
   the_arguments = getenv("THE_ARGC");
@@ -1204,13 +1204,13 @@ int allocate_working_memory(void) {
     return (13);
   }
   if (allocate_temp_space(max_line_length, TEMP_SET_PARAM) != RC_OK) {
-    return (21); 
+    return (21);
   }
   if (allocate_temp_space(max_line_length, TEMP_TMP_CMD) != RC_OK) {
     return (14);
   }
   if (allocate_temp_space(max_line_length, TEMP_TEMP_CMD) != RC_OK) {
-    return (15); 
+    return (15);
   }
   if (allocate_temp_space(max_line_length, TEMP_MACRO) != RC_OK) {
     return (19);

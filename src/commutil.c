@@ -195,7 +195,7 @@ char_t *get_key_name(int key, int *shift) {
   }
   return (keyname);
 }
-char_t *get_key_definition(int key, int define_format, bool default_keys, bool mouse_key) {
+char* get_key_definition(int key, int define_format, bool default_keys, bool mouse_key) {
   register short i = 0;
   DEFINE *curr = NULL;
   bool check_redefined = TRUE;
@@ -1464,7 +1464,7 @@ short param_split(char* params, char* word[], int words, char* delims, char para
   }
   return (j);
 }
-short quoted_param_split(char_t * params, char_t * word[], int words, char_t * delims, char_t param_type, char_t * strip, bool trailing_spaces_is_arg, char_t * quoted) {
+short quoted_param_split(char* params, char* word[], int words, char* delims, char param_type, char* strip, bool trailing_spaces_is_arg, char* quoted) {
 /*
  * Handle args like:
  * <  "filename with spaces" arg  arg >
@@ -2051,7 +2051,7 @@ void add_command(char_t * new_cmd) {
     number_cmds = MAX_SAVED_COMMANDS;
   return;
 }
-char_t *get_next_command(short direction, int num) {
+char* get_next_command(short direction, int num) {
   char_t *ret_cmd = NULL;
 
   if (number_cmds == 0) {
@@ -2528,7 +2528,7 @@ short restore_THE(void) {
   wmove(CURRENT_WINDOW, y, x);
   return (RC_OK);
 }
-short execute_set_sos_command(bool set_command, char_t * params) {
+short execute_set_sos_command(bool set_command, char* params) {
 #define SETSOS_PARAMS  2
   char_t *word[SETSOS_PARAMS + 1];
   char_t strip[SETSOS_PARAMS];
@@ -2837,7 +2837,7 @@ bool define_command(char_t * cmd_line) {
   }
   return (FALSE);
 }
-int find_key_name(char_t * keyname) {
+int find_key_name(char* keyname) {
   register int i = 0;
   int key = (-1);
 
@@ -2849,7 +2849,7 @@ int find_key_name(char_t * keyname) {
   }
   return (key);
 }
-int readv_cmdline(char_t * initial, WINDOW * dw, int start_col) {
+int readv_cmdline(char* initial, WINDOW* dw, int start_col) {
   int key = 0;
   short rc = RC_OK;
   char_t buf[3];
@@ -3116,7 +3116,7 @@ bool save_target(TARGET * target) {
   return string_target;
 }
 
-short execute_locate(char_t * cmd, bool display_parse_error, bool search_semantics, bool *target_found) {
+short execute_locate(char* cmd, bool display_parse_error, bool search_semantics, bool* target_found) {
   line_t save_focus_line = 0L;
   line_t save_current_line = 0L;
   TARGET target;
@@ -3296,7 +3296,7 @@ int is_file_in_ring(char_t * fpath, char_t * fname) {
   return FALSE;
 }
 
-int save_lastop(int idx, char_t * op) {
+int save_lastop(int idx, char* op) {
   int op_len;
   int rc = RC_OK;
 

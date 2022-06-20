@@ -900,7 +900,7 @@ short Scope(char_t * params) {
   }
   return (rc);
 }
-short THEScreen(char_t * params) {
+short THEScreen(char* params) {
 #define SCR_PARAMS  3
 #define SCR_MIN_LINES 3
 #define SCR_MIN_COLS 10

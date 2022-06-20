@@ -151,7 +151,7 @@ static short selective_change(TARGET * target, char_t * old_str, length_t len_ol
   }
   return (rc);
 }
-short execute_change_command(char_t * in_params, bool selective) {
+short execute_change_command(char* in_params, bool selective) {
   line_t num_lines = 0L, long_n = 0L, long_m = 0L;
   LINE *curr = NULL;
   char_t *old_str = NULL, *new_str = NULL;
@@ -455,7 +455,7 @@ short execute_change_command(char_t * in_params, bool selective) {
     rc = RC_OK;
   return rc;
 }
-short insert_new_line(char_t curr_screen, VIEW_DETAILS * curr_view, char_t * line, length_t len, line_t num_lines, line_t true_line, bool start_left_col, bool make_current, bool inc_alt, char_t select, bool move_cursor, bool sos_command) {
+short insert_new_line(byte curr_screen, VIEW_DETAILS* curr_view, char* line, length_t len, line_t num_lines, line_t true_line, bool start_left_col, bool make_current, bool inc_alt, char select, bool move_cursor, bool sos_command) {
   line_t i;
   LINE *curr = NULL, *save_curr = NULL;
   unsigned short x = 0, y = 0;
@@ -938,7 +938,7 @@ short do_actual_change_case(line_t true_line, line_t num_lines, char_t which_cas
   return rc;
 }
 
-short execute_change_case(char_t * params, char_t which_case) {
+short execute_change_case(char* params, char which_case) {
   line_t num_lines = 0L, true_line = 0L;
   short direction = 0;
   length_t start_col = 0, end_col = 0;
@@ -1709,7 +1709,7 @@ short execute_split_join(short action, bool aligned, bool cursorarg)
   display_screen(current_screen);
   return (RC_OK);
 }
-short execute_put(char_t * params, bool putdel) {
+short execute_put(char* params, bool putdel) {
   line_t num_lines = 0L, true_line = 0L, num_file_lines = 0L, end_line = 0L;
   bool append = FALSE;
   char_t *filename = NULL;
@@ -1806,7 +1806,7 @@ short execute_put(char_t * params, bool putdel) {
   free_target(&target);
   return (rc);
 }
-short execute_macro(char_t * params, bool error_on_not_found, short *macrorc) {
+short execute_macro(char* params, bool error_on_not_found, short* macrorc) {
   short rc = RC_OK;
   short errnum = 0;
   FILE *fp = NULL;
@@ -2069,7 +2069,7 @@ short processable_line(VIEW_DETAILS * view, line_t true_line, LINE * curr) {
   }
   return (LINE_SHADOW);
 }
-short execute_expand_compress(char_t * params, bool expand, bool inc_alt, bool use_tabs, bool add_to_recovery) {
+short execute_expand_compress(char* params, bool expand, bool inc_alt, bool use_tabs, bool add_to_recovery) {
   line_t i = 0L, num_actual_lines = 0L;
   line_t num_lines = 0L, true_line = 0L, num_file_lines = 0L;
   short direction = 0, rc = RC_OK;
@@ -2310,7 +2310,7 @@ short execute_move_cursor(char_t curr_screen, VIEW_DETAILS * curr_view, length_t
    */
   return (RC_OK);
 }
-short execute_find_command(char_t * str, long target_type) {
+short execute_find_command(char* str, long target_type) {
   short rc = RC_OK;
   length_t save_zone_start = CURRENT_VIEW->zone_start;
   length_t save_zone_end = CURRENT_VIEW->zone_end;
@@ -2404,7 +2404,7 @@ short execute_find_command(char_t * str, long target_type) {
     display_error(0, (char_t *) "Wrapped...", FALSE);
   return (rc);
 }
-short execute_modify_command(char_t * str) {
+short execute_modify_command(char* str) {
   register short i = 0;
   short itemno = 0;
   char_t item_type = 0;
@@ -2543,7 +2543,7 @@ static short set_editv(char_t * var, char_t * val, bool editv_file, bool rexx_va
   return (rc);
 }
 
-short execute_editv(short editv_type, bool editv_file, char_t * params) {
+short execute_editv(short editv_type, bool editv_file, char* params) {
 #define EDITV_PARAMS  2
   char_t *word[EDITV_PARAMS + 1];
   char_t strip[EDITV_PARAMS];
@@ -2692,7 +2692,7 @@ short execute_editv(short editv_type, bool editv_file, char_t * params) {
   return (rc);
 }
 
-short prepare_dialog(char_t * params, bool alert, char_t * stemname) {
+short prepare_dialog(char* params, bool alert, char* stemname) {
 #define STATE_START        0
 #define STATE_EDITFIELD    1
 #define STATE_TITLE        2
@@ -3455,7 +3455,7 @@ int get_non_separator_line(int current_line, int num_args, char_t ** args, int d
   return offset_lines;
 }
 
-short prepare_popup(char_t * params) {
+short prepare_popup(char* params) {
 #define STATE_POPUP_START            0
 #define STATE_POPUP_ESCAPE           1
 #define STATE_POPUP_INITIAL          2

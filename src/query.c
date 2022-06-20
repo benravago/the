@@ -517,7 +517,7 @@ short set_on_off_value(bool flag, short num) {
   return 1;
 }
 
-short find_query_item(char_t * item_name, int len, char_t * query_type) {
+short find_query_item(char* item_name, int len, char* query_type) {
   int rc = 0;
 
   /*
@@ -609,7 +609,7 @@ short show_status(void) {
 
   return (RC_OK);
 }
-short save_status(char_t * filename) {
+short save_status(char* filename) {
   register short i = 0, j = 0;
   short number_variables = 0, rc = RC_OK;
   FILE *fp = NULL;
