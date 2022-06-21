@@ -826,16 +826,16 @@ typedef struct {
    */
   PRESERVED_FILE_DETAILS *preserved_file_details;
   row_t status_row;             /* row on which status line is displayed */
-  uchar pseudo_file;            /* indicates if file is a "pseudo" file and if so, what sort */
-  uchar disposition;            /* indicates if file is new or existing */
+  byte pseudo_file;             /* indicates if file is a "pseudo" file and if so, what sort */
+  byte disposition;             /* indicates if file is new or existing */
   unsigned short autosave_alt;  /* number of alterations since last autosave */
   unsigned short save_alt;      /* number of alterations since last save */
   char *autosave_fname;         /* file name for AUTOSAVE file */
   FILE *fp;                     /* file handle for this file */
   char* fname;                  /* file name */
   char* fpath;                  /* file path */
-  uchar *actualfname;           /* filename specified */
-  uchar *efileid;               /* original full filename */
+  char *actualfname;            /* filename specified */
+  char *efileid;                /* original full filename */
   unsigned short fmode;         /* file mode of file */
   uid_t uid;                    /* userid of file */
   gid_t gid;                    /* groupid of file */
@@ -845,11 +845,11 @@ typedef struct {
   LINE *editv;                  /* pointer for EDITV variables */
   line_t number_lines;          /* number of actual lines in file */
   line_t max_line_length;       /* Maximum line length in file */
-  uchar file_views;             /* number of views of current file */
+  byte file_views;              /* number of views of current file */
   RESERVED *first_reserved;     /* pointer to first reserved line */
   THE_PPC *first_ppc;           /* first pending prefix command */
   THE_PPC *last_ppc;            /* last pending prefix command */
-  uchar eolfirst;               /* indicates termination of first line read */
+  byte eolfirst;                /* indicates termination of first line read */
   int readonly;                 /* have we set the file to be readonly */
 } FILE_DETAILS;
 

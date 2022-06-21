@@ -161,8 +161,8 @@ char *prf_arg = NULL;
 char *local_prf = NULL;
 char *specified_prf = NULL;
 
-uchar tabkey_insert = 'C';
-uchar tabkey_overwrite = 'T';
+char tabkey_insert = 'C';
+char tabkey_overwrite = 'T';
 
 struct stat stat_buf;
 
@@ -217,7 +217,7 @@ length_t startup_column = 0;
  */
 int gotOutput = 0;
 
-uchar *linebuf;              /* Buffer for one terminal line, at least 81 elems */
+char *linebuf;              /* Buffer for one terminal line, at least 81 elems */
 chtype *linebufch;              /* Buffer for one terminal line in chtype-mode, >= 81 */
 length_t linebuf_size = 0;
 
@@ -321,7 +321,7 @@ int main(int argc, char *argv[]) {
    */
   if ((envptr = getenv("THE_HOME_DIR")) != NULL) {
     strcpy(the_home_dir, envptr);
-    strrmdup(strtrans((uchar*)the_home_dir, OSLASH, ISLASH), ISLASH, TRUE);
+    strrmdup(strtrans(the_home_dir, OSLASH, ISLASH), ISLASH, TRUE);
     if ((the_home_dir[strlen((char *) the_home_dir) - 1]) != ISLASH) {
       strcat(the_home_dir, ISTR_SLASH);
     }
@@ -348,7 +348,7 @@ int main(int argc, char *argv[]) {
    * If not set use the builtin default or the value from -w command line switch.
    */
   if ((envptr = getenv("THE_WIDTH")) != NULL) {
-    if ((rc = valid_positive_integer_against_maximum((uchar*)envptr, MAX_WIDTH_NUM)) == 0) {
+    if ((rc = valid_positive_integer_against_maximum(envptr, MAX_WIDTH_NUM)) == 0) {
       length_t tmplen = atol(envptr);
 
       if (tmplen >= 10L && tmplen <= MAX_WIDTH_NUM) {
@@ -500,7 +500,7 @@ int main(int argc, char *argv[]) {
         break;
 
       case 'w':                /* width of line */
-        if ((rc = valid_positive_integer_against_maximum((uchar*)optarg, MAX_WIDTH_NUM)) != 0) {
+        if ((rc = valid_positive_integer_against_maximum(optarg, MAX_WIDTH_NUM)) != 0) {
           cleanup();
           /* safe to use mygetopt_opts as we are bailing out */
           if (rc == 4) {
@@ -564,7 +564,7 @@ int main(int argc, char *argv[]) {
   if (optind < my_argc) {
     while (optind < my_argc) {
       /* for each trailing arg; assumed to be filenames, add each to a list of filenames to be edited */
-      if ((current_file_name = add_LINE(first_file_name, current_file_name, strrmdup(strtrans((uchar*)my_argv[optind], OSLASH, ISLASH), ISLASH, TRUE), strlen(my_argv[optind]), 0, TRUE)) == NULL) {
+      if ((current_file_name = add_LINE(first_file_name, current_file_name, strrmdup(strtrans(my_argv[optind], OSLASH, ISLASH), ISLASH, TRUE), strlen(my_argv[optind]), 0, TRUE)) == NULL) {
         cleanup();
         display_error(30, "", FALSE);
         return (6);
@@ -576,7 +576,7 @@ int main(int argc, char *argv[]) {
     }
   } else {
     /* add the current dir to the list of files to be edited */
-    if ((current_file_name = add_LINE(first_file_name, current_file_name, (uchar*)CURRENT_DIR, strlen((char *) CURRENT_DIR), 0, TRUE)) == NULL) {
+    if ((current_file_name = add_LINE(first_file_name, current_file_name, CURRENT_DIR, strlen((char *) CURRENT_DIR), 0, TRUE)) == NULL) {
       cleanup();
       display_error(30, "", FALSE);
       return (7);
@@ -602,7 +602,7 @@ int main(int argc, char *argv[]) {
     length = THE_MAX_SCREEN_WIDTH + 1;
   }
   linebuf_size = length;
-  if ((linebuf = (uchar*) malloc(linebuf_size)) == NULL) {
+  if ((linebuf = (char*) malloc(linebuf_size)) == NULL) {
     cleanup();
     display_error(30, "", FALSE);
     return (30);
@@ -1102,7 +1102,7 @@ int setup_profile_files(char * specified_prf) {
    */
   strcpy(local_prf, user_home_dir);
   strcat(local_prf, THE_PROFILE_FILE);
-  strrmdup(strtrans((uchar*)local_prf, OSLASH, ISLASH), ISLASH, TRUE);
+  strrmdup(strtrans(local_prf, OSLASH, ISLASH), ISLASH, TRUE);
   if (file_readable(local_prf)) {
     return (rc);
   }
@@ -1111,7 +1111,7 @@ int setup_profile_files(char * specified_prf) {
    */
   strcpy(local_prf, the_home_dir);
   strcat(local_prf, THE_PROFILE_FILE);
-  strrmdup(strtrans((uchar*)local_prf, OSLASH, ISLASH), ISLASH, TRUE);
+  strrmdup(strtrans(local_prf, OSLASH, ISLASH), ISLASH, TRUE);
   if (file_readable(local_prf)) {
     return (rc);
   }
@@ -1246,8 +1246,9 @@ void cleanup(void) {
     endwin();
     curses_started = FALSE;
   }
-  if (!CLEARSCREENx && been_interactive)
+  if (!CLEARSCREENx && been_interactive) {
     printf("\n");
+  }
   /*
    * If we are the initial instance of THE running in single instance mode, remove the FIFO
    */

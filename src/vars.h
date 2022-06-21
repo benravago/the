@@ -98,7 +98,7 @@ extern char dir_pathname[MAX_FILE_NAME + 1], dir_filename[10], key_pathname[MAX_
 extern char curr_path[MAX_FILE_NAME + 1], sp_path[MAX_FILE_NAME + 1], sp_fname[MAX_FILE_NAME + 1], dir_path[MAX_FILE_NAME + 1], dir_files[MAX_FILE_NAME + 1], rexx_macro_name[MAX_FILE_NAME + 1], rexx_macro_parameters[MAX_FILE_NAME + 1], the_home_dir[MAX_FILE_NAME + 1], the_help_file[MAX_FILE_NAME + 1], the_macro_path[MAX_FILE_NAME + 1], the_macro_path_buf[MAX_FILE_NAME + 1], **the_macro_dir;
 extern int max_macro_dirs, total_macro_dirs;
 extern char *prf_arg, *local_prf, *specified_prf;
-extern uchar tabkey_insert, tabkey_overwrite;
+extern char tabkey_insert, tabkey_overwrite;
 extern char spooler_name[MAX_FILE_NAME + 1];
 extern struct stat stat_buf;
 extern length_t display_length;
@@ -108,7 +108,7 @@ extern bool etmode_flag[256];
 extern short terminal_lines, terminal_cols;
 extern line_t original_screen_line, original_screen_column, original_file_line, original_file_column, startup_line;
 extern length_t startup_column;
-extern uchar *linebuf;
+extern char* linebuf;
 extern chtype *linebufch;
 extern length_t linebuf_size;
 extern int lastkeys[8], lastkeys_is_mouse[8], current_key;
