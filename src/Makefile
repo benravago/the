@@ -9,7 +9,7 @@ the: box.o colour.o column.o comm1.o comm2.o comm3.o comm4.o comm5.o commset1.o 
 	cc -lncurses -lm -o $@ $^
 
 %.o: %.c
-	cc -c -O3 -Wall -fomit-frame-pointer -I. -I./imc -o $@ $<
+	cc -g -c -O3 -Wall -fomit-frame-pointer -I. -I./imc -o $@ $<
 
 box.c: the.h proto.h
 colour.c: the.h proto.h

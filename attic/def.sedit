@@ -1,0 +1,14 @@
+s|CHARTYPE|char_t|g
+s|DEFCHAR|char|g
+s|LENGTHTYPE|length_t|g
+s|LINETYPE|line_t|g
+s|ROWTYPE|row_t|g
+s|COLTYPE|col_t|g
+s|SELECTTYPE|select_t|g
+s|_THE_FAR||g
+s|TRACE_FUNCTION\(.*\);||
+s|TRACE_RETURN\(.*\);|| 
+s|^\/\**\/$||
+s| (\*the_free) | free |
+s| (\*the_malloc) | malloc |
+s| (\*the_realloc) | realloc |

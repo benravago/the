@@ -1,45 +1,13 @@
-/* QUERY.C - Functions related to QUERY,STATUS and EXTRACT             */
-/*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2013 Mark Hessling
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling, mark@rexx.org  http://www.rexx.org/
- */
+// SPDX-FileCopyrightText: 2013 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
 
-#include <the.h>
-#include <proto.h>
+/* Functions related to QUERY,STATUS and EXTRACT             */
 
-#include <query.h>
+#include "the.h"
+#include "proto.h"
 
-short extract_point_settings(short, char_t *);
-short extract_prefix_settings(short, char_t *, char_t);
-short extract_colour_settings(short, char_t *, char_t, char_t *, bool, bool);
-short extract_autocolour_settings(short, char_t *, char_t, char_t *, bool);
-void get_etmode(char_t *, char_t *);
+#include "query.h"
 
 extern ExtractFunction extract_after_function;
 extern ExtractFunction extract_alt;
@@ -81,6 +49,7 @@ extern ExtractFunction extract_define;
 extern ExtractFunction extract_defsort;
 extern ExtractFunction extract_dir_function;
 extern ExtractFunction extract_dirfileid;
+//tern ExtractFunction extract_dirinclude;
 extern ExtractFunction extract_end_function;
 extern ExtractFunction extract_display;
 extern ExtractFunction extract_ecolor;
@@ -105,6 +74,7 @@ extern ExtractFunction extract_fmode;
 extern ExtractFunction extract_fname;
 extern ExtractFunction extract_fpath;
 extern ExtractFunction extract_ftype;
+extern ExtractFunction extract_fdisplay;
 extern ExtractFunction extract_fullfname;
 extern ExtractFunction extract_getenv;
 extern ExtractFunction extract_hex;
@@ -140,6 +110,7 @@ extern ExtractFunction extract_margins;
 extern ExtractFunction extract_modifiable_function;
 extern ExtractFunction extract_monitor;
 extern ExtractFunction extract_mouse;
+extern ExtractFunction extract_mouseclick;
 extern ExtractFunction extract_msgline;
 extern ExtractFunction extract_msgmode;
 extern ExtractFunction extract_nbfile;
@@ -157,9 +128,11 @@ extern ExtractFunction extract_printer;
 extern ExtractFunction extract_profile;
 extern ExtractFunction extract_pscreen;
 extern ExtractFunction extract_reprofile;
+//tern ExtractFunction extract_regexp;
 extern ExtractFunction extract_readonly;
 extern ExtractFunction extract_readv;
 extern ExtractFunction extract_reserved;
+//tern ExtractFunction extract_rexx;
 extern ExtractFunction extract_rexxhalt;
 extern ExtractFunction extract_rexxoutput;
 extern ExtractFunction extract_rightedge_function;
@@ -199,6 +172,7 @@ extern ExtractFunction extract_ui;
 extern ExtractFunction extract_undoing;
 extern ExtractFunction extract_untaa;
 extern ExtractFunction extract_utf8;
+//tern ExtractFunction extract_variant;
 extern ExtractFunction extract_verify;
 extern ExtractFunction extract_vershift;
 extern ExtractFunction extract_verone_function;
@@ -207,6 +181,7 @@ extern ExtractFunction extract_width;
 extern ExtractFunction extract_word;
 extern ExtractFunction extract_wordwrap;
 extern ExtractFunction extract_wrap;
+//tern ExtractFunction extract_xterminal;
 extern ExtractFunction extract_zone;
 
 char_t query_num0[10];        /* DO NOT USE THIS FOR DATA !! */
@@ -218,6 +193,7 @@ char_t query_num5[10];
 char_t query_num6[10];
 char_t query_num7[10];
 char_t query_num8[10];
+
 char_t query_rsrvd[MAX_FILE_NAME + 1];
 
 /***********************************************************************
@@ -233,7 +209,8 @@ char_t query_rsrvd[MAX_FILE_NAME + 1];
  *   valid query types
  *   function to call to set item values
  ***********************************************************************/
-QUERY_ITEM query_item[] = {
+
+QUERY_ITEM  query_item[] = {
   { (char_t *) "alt", 3, 3, ITEM_ALT, 2, 2, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_alt },
   { (char_t *) "arbchar", 7, 3, ITEM_ARBCHAR, 3, 3, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_arbchar },
   { (char_t *) "autocolor", 9, 9, ITEM_AUTOCOLOR, 3, 0, LVL_FILE, QUERY_QUERY | QUERY_EXTRACT, extract_autocolor },
@@ -272,6 +249,7 @@ QUERY_ITEM query_item[] = {
   { (char_t *) "errorformat", 11, 6, ITEM_ERRORFORMAT, 1, 1, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_errorformat },
   { (char_t *) "erroroutput", 11, 8, ITEM_ERROROUTPUT, 1, 1, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_erroroutput },
   { (char_t *) "etmode", 6, 6, ITEM_ETMODE, 2, 2, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_etmode },
+  { (char_t *) "fdisplay", 8, 8, ITEM_FDISPLAY, 1, 1, LVL_FILE, QUERY_QUERY | QUERY_EXTRACT | QUERY_MODIFY, extract_fdisplay },
   { (char_t *) "fext", 4, 2, ITEM_FEXT, 1, 1, LVL_FILE, QUERY_QUERY | QUERY_EXTRACT | QUERY_MODIFY, extract_ftype },
   { (char_t *) "field", 5, 5, ITEM_FIELD, 4, 4, LVL_VIEW, QUERY_QUERY | QUERY_EXTRACT, extract_field },
   { (char_t *) "fieldword", 9, 9, ITEM_FIELDWORD, 3, 3, LVL_VIEW, QUERY_EXTRACT, extract_fieldword },
@@ -310,6 +288,7 @@ QUERY_ITEM query_item[] = {
   { (char_t *) "margins", 7, 3, ITEM_MARGINS, 3, 3, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_margins },
   { (char_t *) "monitor", 7, 7, ITEM_MONITOR, 2, 2, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_monitor },
   { (char_t *) "mouse", 5, 5, ITEM_MOUSE, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_mouse },
+  { (char_t *) "mouseclick", 10, 7, ITEM_MOUSECLICK, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_EXTRACT | QUERY_MODIFY, extract_mouseclick },
   { (char_t *) "msgline", 7, 4, ITEM_MSGLINE, 4, 4, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_msgline },
   { (char_t *) "msgmode", 7, 4, ITEM_MSGMODE, 2, 2, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_msgmode },
   { (char_t *) "nbfile", 6, 3, ITEM_NBFILE, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_nbfile },
@@ -328,15 +307,17 @@ QUERY_ITEM query_item[] = {
   { (char_t *) "pscreen", 7, 4, ITEM_PSCREEN, 2, 2, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_pscreen },
   { (char_t *) "readonly", 8, 8, ITEM_READONLY, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_readonly },
   { (char_t *) "readv", 5, 5, ITEM_READV, 4, 1, LVL_GLOB, QUERY_READV, extract_readv },
+//{ (char_t *) "regexp", 6, 6, ITEM_REGEXP, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_regexp },
   { (char_t *) "reprofile", 9, 6, ITEM_REPROFILE, 1, 1, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_reprofile },
   { (char_t *) "reserved", 8, 5, ITEM_RESERVED, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_reserved },
+//{ (char_t *) "rexx", 4, 4, ITEM_REXX, 1, 1, LVL_GLOB, QUERY_QUERY, extract_rexx },
   { (char_t *) "rexxhalt", 5, 5, ITEM_REXXHALT, 2, 2, LVL_GLOB, QUERY_QUERY | QUERY_EXTRACT, extract_rexxhalt },
   { (char_t *) "rexxoutput", 10, 7, ITEM_REXXOUTPUT, 2, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_rexxoutput },
   { (char_t *) "ring", 4, 4, ITEM_RING, 1, 0, LVL_GLOB, QUERY_QUERY | QUERY_EXTRACT, extract_ring },
   { (char_t *) "scale", 5, 4, ITEM_SCALE, 2, 1, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_scale },
   { (char_t *) "scope", 5, 5, ITEM_SCOPE, 1, 2, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_scope },
   { (char_t *) "screen", 6, 3, ITEM_SCREEN, 2, 2, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_screen },
-  { (char_t *) "select", 6, 3, ITEM_SELECT, 2, 2, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_select },
+  { (char_t *) "select", 6, 3, ITEM_SELECT, 3, 3, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_select },
   { (char_t *) "shadow", 6, 4, ITEM_SHADOW, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_shadow },
   { (char_t *) "showkey", 7, 4, ITEM_SHOWKEY, 1, 1, LVL_FILE, QUERY_EXTRACT, extract_showkey },
   { (char_t *) "size", 4, 2, ITEM_SIZE, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_size },
@@ -352,7 +333,7 @@ QUERY_ITEM query_item[] = {
   { (char_t *) "tabsin", 6, 5, ITEM_TABSIN, 2, 2, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_tabsin },
   { (char_t *) "tabsout", 7, 5, ITEM_TABSOUT, 2, 2, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_tabsout },
   { (char_t *) "targetsave", 10, 10, ITEM_TARGETSAVE, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_targetsave },
-  { (char_t *) "terminal", 8, 4, ITEM_TERMINAL, 1, 1, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_terminal },
+  { (char_t *) "terminal", 8, 4, ITEM_TERMINAL, 3, 3, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_terminal },
   { (char_t *) "thighlight", 5, 5, ITEM_THIGHLIGHT, 1, 1, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_thighlight },
   { (char_t *) "timecheck", 9, 9, ITEM_TIMECHECK, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_timecheck },
   { (char_t *) "tof", 3, 3, ITEM_TOF, 1, 1, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_tof },
@@ -363,6 +344,7 @@ QUERY_ITEM query_item[] = {
   { (char_t *) "undoing", 7, 7, ITEM_UNDOING, 1, 1, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_undoing },
   { (char_t *) "untaa", 5, 5, ITEM_UNTAA, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_untaa },
   { (char_t *) "utf8", 4, 4, ITEM_UTF8, 1, 1, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_utf8 },
+//{ (char_t *) "variant", 7, 3, ITEM_VARIANT, 1, 1, LVL_FILE, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_variant },
   { (char_t *) "verify", 6, 1, ITEM_VERIFY, 1, 1, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_verify },
   { (char_t *) "vershift", 8, 4, ITEM_VERSHIFT, 1, 1, LVL_VIEW, QUERY_QUERY | QUERY_EXTRACT, extract_vershift },
   { (char_t *) "version", 7, 7, ITEM_VERSION, 5, 5, LVL_GLOB, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT, extract_version },
@@ -372,10 +354,11 @@ QUERY_ITEM query_item[] = {
   { (char_t *) "wrap", 4, 2, ITEM_WRAP, 1, 1, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_wrap },
   { (char_t *) "zone", 4, 1, ITEM_ZONE, 2, 2, LVL_VIEW, QUERY_QUERY | QUERY_STATUS | QUERY_EXTRACT | QUERY_MODIFY, extract_zone },
 };
+// dirinclude, xterminal
 
 #define NUMBER_QUERY_ITEM ( sizeof( query_item ) / sizeof( QUERY_ITEM ) )
 
-QUERY_ITEM function_item[] = {
+QUERY_ITEM  function_item[] = {
   { (char_t *) "after", 5, 5, ITEM_AFTER_FUNCTION, 0, 1, LVL_VIEW, 0, extract_after_function },
   { (char_t *) "alt", 3, 3, ITEM_ALT_FUNCTION, 0, 1, LVL_FILE, 0, extract_alt_function },
   { (char_t *) "altkey", 6, 6, ITEM_ALTKEY_FUNCTION, 0, 1, LVL_GLOB, 0, extract_altkey_function },
@@ -413,7 +396,7 @@ QUERY_ITEM function_item[] = {
 
 #define NUMBER_FUNCTION_ITEM ( sizeof( function_item ) / sizeof( QUERY_ITEM ) )
 
-char_t *block_name[] = {
+char_t  *block_name[] = {
   (char_t *) "",
   (char_t *) "LINE",
   (char_t *) "BOX",
@@ -425,13 +408,15 @@ char_t *block_name[] = {
 
 VALUE item_values[MAX_VARIABLES_RETURNED];
 
-THE_PPC *in_range(THE_PPC * found_ppc, THE_PPC * curr_ppc, line_t first_in_range, line_t last_in_range) {
+THE_PPC *in_range(THE_PPC *found_ppc, THE_PPC *curr_ppc, line_t first_in_range, line_t last_in_range) {
   if (found_ppc == NULL) {
-    if (curr_ppc->ppc_line_number >= first_in_range && curr_ppc->ppc_line_number <= last_in_range)
+    if (curr_ppc->ppc_line_number >= first_in_range && curr_ppc->ppc_line_number <= last_in_range) {
       found_ppc = curr_ppc;
+    }
   } else {
-    if (curr_ppc->ppc_line_number < found_ppc->ppc_line_number && curr_ppc->ppc_line_number >= first_in_range && curr_ppc->ppc_line_number <= last_in_range)
+    if (curr_ppc->ppc_line_number < found_ppc->ppc_line_number && curr_ppc->ppc_line_number >= first_in_range && curr_ppc->ppc_line_number <= last_in_range) {
       found_ppc = curr_ppc;
+    }
   }
   return found_ppc;
 }
@@ -481,14 +466,18 @@ void set_key_values(int key, bool mouse_key) {
   memset((char *) query_num3, '0', 8);
   query_num3[8] = '\0';
   if (key != -1) {
-    if (INSERTMODEx)
+    if (INSERTMODEx) {
       query_num3[0] = '1';
-    if (shift & mod_alt)
+    }
+    if (shift & mod_alt) {
       query_num3[4] = '1';
-    if (shift & mod_ctrl)
+    }
+    if (shift & mod_ctrl) {
       query_num3[5] = '1';
-    if (shift & mod_shift)
+    }
+    if (shift & mod_shift) {
       query_num3[6] = query_num3[7] = '1';
+    }
   }
   item_values[4].value = query_num3;
   item_values[4].len = 8;
@@ -517,7 +506,7 @@ short set_on_off_value(bool flag, short num) {
   return 1;
 }
 
-short find_query_item(char* item_name, int len, char* query_type) {
+short find_query_item(char_t *item_name, int len, char_t *query_type) {
   int rc = 0;
 
   /*
@@ -528,12 +517,15 @@ short find_query_item(char* item_name, int len, char* query_type) {
    */
   set_compare_exact(FALSE);
   rc = search_query_item_array(query_item, number_query_item(), sizeof(QUERY_ITEM), (char *) item_name, len);
-  if (rc != (-1))
+  if (rc != (-1)) {
     *query_type = query_item[rc].query;
+  }
   return (rc);
 }
-short show_status(void) {
+
 #define STATUS_COLS 6
+
+short show_status(void) {
   register short i = 0, j = 0, k = 0;
   short lineno = 0, colno = 0;
   short number_variables = 0;
@@ -545,8 +537,9 @@ short show_status(void) {
   column = 0;
   column_width = COLS / STATUS_COLS;
   col[0] = 0;
-  for (i = 1; i < STATUS_COLS; i++)
+  for (i = 1; i < STATUS_COLS; i++) {
     col[i] = col[i - 1] + column_width + 1;
+  }
   wclear(stdscr);
   for (i = 0; i < NUMBER_QUERY_ITEM; i++) {
     /*
@@ -558,8 +551,9 @@ short show_status(void) {
       /*
        * Obtain the total length of the setting values...
        */
-      for (j = 0; j < number_variables + 1; j++)
+      for (j = 0; j < number_variables + 1; j++) {
         item_width += item_values[j].len + 1;
+      }
       item_width--;             /* reduce by 1 for last value's blank at end */
       /*
        * If the length of the variables is > the screen width, go to next
@@ -568,14 +562,16 @@ short show_status(void) {
       if (item_width + col[column] > COLS) {
         column = colno = 0;
         lineno++;
-      } else
+      } else {
         colno = col[column];
+      }
       /*
        * Display the variables. For the first value, display in BOLD.
        */
       for (j = 0; j < number_variables + 1; j++) {
-        if (j == 0)
+        if (j == 0) {
           attrset(A_BOLD);
+        }
         mvaddstr(lineno, colno, (char *) item_values[j].value);
         attrset(A_NORMAL);
         colno += item_values[j].len + 1;
@@ -606,10 +602,10 @@ short show_status(void) {
   }
   mvaddstr(terminal_lines - 2, 0, HIT_ANY_KEY);
   refresh();
-
   return (RC_OK);
 }
-short save_status(char* filename) {
+
+short save_status(char_t *filename) {
   register short i = 0, j = 0;
   short number_variables = 0, rc = RC_OK;
   FILE *fp = NULL;
@@ -659,14 +655,16 @@ short save_status(char* filename) {
   fclose(fp);
   return (RC_OK);
 }
+
 short set_extract_variables(short itemno) {
   register short i = 0;
   short rc = RC_OK, number_values = 0;
 
   number_values = atoi((char *) item_values[0].value);
   for (i = 0; i < number_values + 1; i++) {
-    if ((rc = set_rexx_variable(query_item[itemno].name, item_values[i].value, item_values[i].len, i)) != RC_OK)
+    if ((rc = set_rexx_variable(query_item[itemno].name, item_values[i].value, item_values[i].len, i)) != RC_OK) {
       break;
+    }
   }
   return (rc);
 }
@@ -678,25 +676,30 @@ short get_number_dynamic_items(int qitem) {
   DEFINE *synonym = NULL;
 
   switch (qitem) {
+
     case ITEM_RING:
       number_variables = number_of_files;
       break;
+
     case ITEM_PARSER:
       for (details = first_parser; details != NULL; details = details->next, number_variables++);
       break;
+
     case ITEM_AUTOCOLOR:
     case ITEM_AUTOCOLOUR:
       for (mapping = first_parser_mapping; mapping != NULL; mapping = mapping->next, number_variables++);
       break;
+
     case ITEM_SYNONYM:
       for (synonym = first_synonym; synonym != NULL; synonym = synonym->next, number_variables++);
+
     default:
       break;
   }
   return number_variables;
 }
 
-short get_item_values(int qitem, short itemno, char* itemargs, char query_type, line_t argc, char* arg, line_t arglen) {
+short get_item_values(int qitem, short itemno, char_t *itemargs, char_t query_type, line_t argc, char_t *arg, line_t arglen) {
   short number_variables = 1;
 
   /*
@@ -721,6 +724,7 @@ short get_item_values(int qitem, short itemno, char* itemargs, char query_type, 
       number_variables = get_number_dynamic_items(query_item[itemno].item_number);
     }
     switch (query_type) {
+
       case QUERY_EXTRACT:
       case QUERY_FUNCTION:
       case QUERY_READV:
@@ -728,19 +732,22 @@ short get_item_values(int qitem, short itemno, char* itemargs, char query_type, 
         item_values[0].value = query_num0;
         item_values[0].len = strlen((char *) query_num0);
         break;
+
       case QUERY_STATUS:
       case QUERY_QUERY:
       case QUERY_MODIFY:
         item_values[0].value = query_item[itemno].name;
         item_values[0].len = strlen((char *) query_item[itemno].name);
         break;
+
       default:
         break;
     }
   }
   return (number_variables);
 }
-short extract_point_settings(short itemno, char_t * params) {
+
+short extract_point_settings(short itemno, char_t *params) {
   register short i = 0;
   short number_variables = query_item[itemno].number_values;
   char_t num4[15];
@@ -753,9 +760,9 @@ short extract_point_settings(short itemno, char_t * params) {
   if (strcmp((char *) params, "") == 0) {    /* get name for focus line only */
     true_line = (compatible_feel == COMPAT_XEDIT) ? CURRENT_VIEW->current_line : get_true_line(TRUE);
     curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, true_line, CURRENT_FILE->number_lines);
-    if (curr->first_name == NULL)       /* line not named */
+    if (curr->first_name == NULL) {      /* line not named */
       number_variables = 0;
-    else {
+    } else {
       total_len = sprintf((char *) query_rsrvd, "%ld", true_line);
       curr_name = curr->first_name;
       while (curr_name) {
@@ -805,17 +812,18 @@ short extract_point_settings(short itemno, char_t * params) {
       if (rc == RC_SYSTEM_ERROR) {
         display_error(54, (char_t *) "", FALSE);
         number_variables = EXTRACT_ARG_ERROR;
-      } else
+      } else {
         number_variables = EXTRACT_VARIABLES_SET;
+      }
     }
   }
   return (number_variables);
 }
 
-short extract_prefix_settings(short itemno, char_t * params, char_t query_type) {
-  register short i = 0;
-
 #define PRE_PARAMS  3
+
+short extract_prefix_settings(short itemno, char_t *params, char_t query_type) {
+  register short i = 0;
   char_t *word[PRE_PARAMS + 1];
   char_t strip[PRE_PARAMS];
   unsigned short num_params = 0;
@@ -830,6 +838,7 @@ short extract_prefix_settings(short itemno, char_t * params, char_t query_type) 
   strip[2] = STRIP_BOTH;
   num_params = param_split(params, word, PRE_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   switch (num_params) {
+
       /*
        * None or 1 parameters, error.
        */
@@ -838,6 +847,7 @@ short extract_prefix_settings(short itemno, char_t * params, char_t query_type) 
       display_error(3, (char_t *) "", FALSE);
       number_variables = EXTRACT_ARG_ERROR;
       break;
+
       /*
        * 2  parameters, Synonym and name (or *).
        */
@@ -848,10 +858,11 @@ short extract_prefix_settings(short itemno, char_t * params, char_t query_type) 
         break;
       }
       break;
-    default:
+
       /*
        * Too many parameters, error.
        */
+    default:
       display_error(2, (char_t *) "", FALSE);
       number_variables = EXTRACT_ARG_ERROR;
       break;
@@ -867,7 +878,7 @@ short extract_prefix_settings(short itemno, char_t * params, char_t query_type) 
       curr = first_prefix_synonym;
       i = 0;
       while (curr != NULL) {
-        tmpbuf = (char_t *) malloc(sizeof(char_t) * (strlen((char *) curr->name) + strlen((char *) curr->line) + 2));
+        tmpbuf = (char_t *) malloc (sizeof(char_t) * (strlen((char *) curr->name) + strlen((char *) curr->line) + 2));
         if (tmpbuf == (char_t *) NULL) {
           display_error(30, (char_t *) "", FALSE);
           return (EXTRACT_ARG_ERROR);
@@ -875,13 +886,13 @@ short extract_prefix_settings(short itemno, char_t * params, char_t query_type) 
         strcpy((char *) tmpbuf, (char *) curr->name);
         strcat((char *) tmpbuf, " ");
         strcat((char *) tmpbuf, (char *) curr->line);
-        if (query_type == QUERY_EXTRACT)
+        if (query_type == QUERY_EXTRACT) {
           rc = set_rexx_variable(query_item[itemno].name, tmpbuf, strlen((char *) tmpbuf), ++i);
-        else {
+        } else {
           display_error(0, tmpbuf, FALSE);
           rc = RC_OK;
         }
-        free(tmpbuf);
+        free (tmpbuf);
         if (rc == RC_SYSTEM_ERROR) {
           display_error(54, (char_t *) "", FALSE);
           return (EXTRACT_ARG_ERROR);
@@ -894,8 +905,9 @@ short extract_prefix_settings(short itemno, char_t * params, char_t query_type) 
         if (rc == RC_SYSTEM_ERROR) {
           display_error(54, (char_t *) "", FALSE);
           number_variables = EXTRACT_ARG_ERROR;
-        } else
+        } else {
           number_variables = EXTRACT_VARIABLES_SET;
+        }
       } else {
         number_variables = EXTRACT_VARIABLES_SET;
       }
@@ -910,7 +922,8 @@ short extract_prefix_settings(short itemno, char_t * params, char_t query_type) 
   }
   return (number_variables);
 }
-void get_etmode(char_t * onoff, char_t * list) {
+
+void get_etmode(char_t *onoff, char_t *list) {
   bool on_flag = FALSE;
   bool off_flag = FALSE;
   bool last_state = FALSE;
@@ -920,10 +933,11 @@ void get_etmode(char_t * onoff, char_t * list) {
   strcpy((char *) list, "");
   last_state = TRUE;
   for (i = 0; i < 256; i++) {
-    if (etmode_flag[i] == TRUE)
+    if (etmode_flag[i] == TRUE) {
       off_flag = TRUE;
-    else
+    } else {
       on_flag = TRUE;
+    }
     if (last_state != etmode_flag[i]) {
       if (last_state == FALSE) {
         sprintf(tmp, "%d", i - 1);
@@ -941,15 +955,17 @@ void get_etmode(char_t * onoff, char_t * list) {
   }
   if (on_flag) {
     strcpy((char *) onoff, "ON");
-    if (!off_flag)
+    if (!off_flag) {
       strcpy((char *) list, "");
+    }
   } else {
     strcpy((char *) onoff, "OFF");
     strcpy((char *) list, "");
   }
   return;
 }
-short extract_colour_settings(short itemno, char_t * buffer, char_t query_type, char_t * params, bool us, bool isecolour) {
+
+short extract_colour_settings(short itemno, char_t *buffer, char_t query_type, char_t *params, bool us, bool isecolour) {
   short rc = RC_OK;
   register int i = 0, maxnum;
   int start = 0, end = 0, number_variables = 0, off = 0;
@@ -963,8 +979,7 @@ short extract_colour_settings(short itemno, char_t * buffer, char_t query_type, 
   tmparea[1] = '\0';
   maxnum = (isecolour) ? ECOLOUR_MAX : ATTR_MAX;
   attr = (isecolour) ? CURRENT_FILE->ecolour : CURRENT_FILE->attr;
-  if (blank_field(params)
-      || strcmp((char *) params, "*") == 0) {
+  if (blank_field(params) || strcmp((char *) params, "*") == 0) {
     start = 0;
     end = maxnum;
   } else {
@@ -972,13 +987,13 @@ short extract_colour_settings(short itemno, char_t * buffer, char_t query_type, 
       if (strlen((char *) params) != 1) {
         return (EXTRACT_ARG_ERROR);
       }
-      if (*params >= 'A' && *params <= 'Z')
+      if (*params >= 'A' && *params <= 'Z') {
         i = *params - 'A';
-      else if (*params >= 'a' && *params <= 'z')
+      } else if (*params >= 'a' && *params <= 'z') {
         i = *params - 'a';
-      else if (*params >= '1' && *params <= '9')
+      } else if (*params >= '1' && *params <= '9') {
         i = *params - '1' + 26;
-      else {
+      } else {
         return (EXTRACT_ARG_ERROR);
       }
       found = TRUE;
@@ -1001,38 +1016,39 @@ short extract_colour_settings(short itemno, char_t * buffer, char_t query_type, 
     CURRENT_VIEW->msgline_rows = min(terminal_lines - 1, end - start);
     CURRENT_VIEW->msgmode_status = TRUE;
   }
-
   for (i = start; i < end; i++) {
     attr_string = get_colour_strings(attr + i);
     if (attr_string == (char_t *) NULL) {
       return (EXTRACT_ARG_ERROR);
     }
     if (us) {
-      if (isecolour)
+      if (isecolour) {
         ptr = ecolor;
-      else
+      } else {
         ptr = color;
+      }
     } else {
-      if (isecolour)
+      if (isecolour) {
         ptr = ecolour;
-      else
+      } else {
         ptr = colour;
+      }
     }
     if (isecolour) {
-      if (i > 25)
+      if (i > 25) {
         tmparea[0] = (char_t) (i - 25) + '0';
-      else
+      } else {
         tmparea[0] = (char_t) (i + 'A');
+      }
       area = tmparea;
     } else {
       area = valid_areas[i].area;
     }
     sprintf((char *) query_rsrvd, "%s%s %s", (query_type == QUERY_QUERY) ? (char *) ptr : "", area, attr_string);
-    free(attr_string);
-
-    if (query_type == QUERY_QUERY)
+    free (attr_string);
+    if (query_type == QUERY_QUERY) {
       display_error(0, query_rsrvd, TRUE);
-    else {
+    } else {
       number_variables++;
       item_values[number_variables].len = strlen((char *) query_rsrvd);
       memcpy((char *) trec + off, (char *) query_rsrvd, (item_values[number_variables].len) + 1);
@@ -1044,11 +1060,13 @@ short extract_colour_settings(short itemno, char_t * buffer, char_t query_type, 
     CURRENT_VIEW->msgline_rows = save_msgline_rows;
     CURRENT_VIEW->msgmode_status = save_msgmode_status;
     rc = EXTRACT_VARIABLES_SET;
-  } else
+  } else {
     rc = number_variables;
+  }
   return (rc);
 }
-short extract_autocolour_settings(short itemno, char_t * buffer, char_t query_type, char_t * params, bool us) {
+
+short extract_autocolour_settings(short itemno, char_t *buffer, char_t query_type, char_t *params, bool us) {
   short rc = RC_OK;
   register int i = 0;
   int number_variables = 0, off = 0;
@@ -1059,20 +1077,17 @@ short extract_autocolour_settings(short itemno, char_t * buffer, char_t query_ty
   PARSER_MAPPING *curr;
 
   ptr = (us) ? (char_t *) "autocolor " : (char_t *) "autocolour ";
-  if (blank_field(params)
-      || strcmp((char *) params, "*") == 0) {
+  if (blank_field(params) || strcmp((char *) params, "*") == 0) {
     if (query_type == QUERY_QUERY) {
       for (i = 0, curr = first_parser_mapping; curr != NULL; curr = curr->next, i++);
       CURRENT_VIEW->msgline_rows = min(terminal_lines - 1, i);
       CURRENT_VIEW->msgmode_status = TRUE;
     }
     for (curr = first_parser_mapping; curr != NULL; curr = curr->next) {
-      sprintf((char *) query_rsrvd, "%s%s%s %s%s", (query_type == QUERY_QUERY) ? (char *) ptr : "", (curr->filemask) ? (char *) curr->filemask : "", (curr->magic_number) ? (char *) curr->magic_number : "", (char *) curr->parser->parser_name,
-              (curr->magic_number) ? " MAGIC" : "");
-
-      if (query_type == QUERY_QUERY)
+      sprintf((char *) query_rsrvd, "%s%s%s %s%s", (query_type == QUERY_QUERY) ? (char *) ptr : "", (curr->filemask) ? (char *) curr->filemask : "", (curr->magic_number) ? (char *) curr->magic_number : "", (char *) curr->parser->parser_name, (curr->magic_number) ? " MAGIC" : "");
+      if (query_type == QUERY_QUERY) {
         display_error(0, query_rsrvd, TRUE);
-      else {
+      } else {
         number_variables++;
         item_values[number_variables].len = strlen((char *) query_rsrvd);
         memcpy((char *) trec + off, (char *) query_rsrvd, (item_values[number_variables].len) + 1);
@@ -1102,9 +1117,9 @@ short extract_autocolour_settings(short itemno, char_t * buffer, char_t query_ty
         break;
       }
     }
-    if (found)
+    if (found) {
       ptr_parser = (char_t *) curr->parser->parser_name;
-    else {
+    } else {
       ptr_mask = params;
       ptr_magic = (char_t *) "";
       ptr_parser = (char_t *) "NULL";
@@ -1122,14 +1137,13 @@ short extract_autocolour_settings(short itemno, char_t * buffer, char_t query_ty
       number_variables = 3;
     }
   }
-
   if (query_type == QUERY_QUERY) {
     CURRENT_VIEW->msgline_rows = save_msgline_rows;
     CURRENT_VIEW->msgmode_status = save_msgmode_status;
     rc = EXTRACT_VARIABLES_SET;
-  } else
+  } else {
     rc = number_variables;
-
+  }
   return (rc);
 }
 
@@ -1141,7 +1155,7 @@ int number_query_item(void) {
   return NUMBER_QUERY_ITEM;
 }
 
-void format_options(char_t * buf) {
+void format_options(char_t *buf) {
   LINE *curr = first_option;
   int tail, col, itemno, linelen, valuelen, number_variables, max_col = 0, off;
 
@@ -1158,11 +1172,13 @@ void format_options(char_t * buf) {
       }
       memcpy(buf + col + linelen, (char *) item_values[tail].value, valuelen);
       off = col + linelen + valuelen;
-      if (off > max_col)
+      if (off > max_col) {
         max_col = off;
+      }
     }
     curr = curr->next;
   }
   buf[max_col] = '\0';
   return;
 }
+

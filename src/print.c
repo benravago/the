@@ -2,21 +2,19 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * Printing related functions
- */
+/* Printing related functions                                */
 
 #include "the.h"
 #include "proto.h"
 
-static void print_shadow_line(FILE*, char*, line_t);
+static void print_shadow_line(FILE *, char_t *, line_t);
 
-void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pagesize, char* text, char* line_term, short target_type) {
+void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pagesize, char_t *text, char_t *line_term, short target_type) {
   static bool spooler_open = FALSE;
-  static FILE* pp;
+  static FILE *pp;
   short rc = RC_OK;
   line_t j = 0L;
-  LINE* curr = NULL;
+  LINE *curr = NULL;
   short line_number = 0;
   line_t num_excluded = 0L;
   line_t num_actual_lines = 0L;
@@ -25,7 +23,7 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
   unsigned short y = 0, x = 0;
   bool lines_based_on_scope = (target_type == TARGET_BLOCK_CURRENT) ? FALSE : TRUE;
   line_t start = 0L, end = 0L, len = 0L;
-  char* ptr = NULL;
+  char_t *ptr = NULL;
 
   if (close_spooler) {
     if (spooler_open) {
@@ -36,7 +34,7 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
   }
 
   if (!spooler_open) {
-    pp = popen(spooler_name, "w");
+    pp = popen((char *) spooler_name, "w");
     if (pp == NULL) {
       return;
     }
@@ -47,10 +45,10 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
     fprintf(pp, "%s%s", text, line_term);
     return;
   }
-  /*
-   * Once we get here, we are to print lines from the file.
-   */
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+
+  /* Once we get here, we are to print lines from the file.              */
+
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   if (curses_started) {
     if (CURRENT_VIEW->current_window == WINDOW_COMMAND) {
       getyx(CURRENT_WINDOW_FILEAREA, y, x);
@@ -140,7 +138,7 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
             }
             break;
         }
-        fwrite(ptr, sizeof(char), len, pp);
+        fwrite((char *) ptr, sizeof(char_t), len, pp);
         fprintf(pp, "%s", line_term);
         line_number++;
         if (line_number == pagesize && pagesize != 0) {
@@ -150,9 +148,9 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
         num_actual_lines++;
         break;
     }
-    /*
-     * Proceed to the next record, even if the current record not in scope.
-     */
+
+    /* Proceed to the next record, even if the current record not in scope.*/
+
     if (direction == DIRECTION_BACKWARD) {
       curr = curr->prev;
     } else {
@@ -162,22 +160,22 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
       break;
     }
   }
-  /*
-   * If we have a shadow line remaining, print it...
-   */
+
+  /* If we have a shadow line remaining, print it...                     */
+
   if (num_excluded != 0) {
     print_shadow_line(pp, line_term, num_excluded);
     num_excluded = 0L;
   }
-  /*
-   * If STAY is OFF, change the current and focus lines by the number
-   * of lines calculated from the target.
-   */
+
+  /* If STAY is OFF, change the current and focus lines by the number    */
+  /* of lines calculated from the target.                                */
+
   if (!CURRENT_VIEW->stay) {    /* stay is off */
     CURRENT_VIEW->focus_line = min(CURRENT_VIEW->focus_line + num_lines - 1L, CURRENT_FILE->number_lines + 1L);
     CURRENT_VIEW->current_line = min(CURRENT_VIEW->current_line + num_lines - 1L, CURRENT_FILE->number_lines + 1L);
   }
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   build_screen(current_screen);
   display_screen(current_screen);
   if (curses_started) {
@@ -214,7 +212,7 @@ static void make_shadow_line(char *buf, line_t num_excluded, int width) {
   return;
 }
 
-static void print_shadow_line(FILE* pp, char* line_term, line_t num_excluded) {
+static void print_shadow_line(FILE *pp, char_t *line_term, line_t num_excluded) {
   register int width = 0;
   char buf[512];
 
@@ -222,7 +220,7 @@ static void print_shadow_line(FILE* pp, char* line_term, line_t num_excluded) {
     width = min(sizeof(buf) - 1, CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
     make_shadow_line(buf, num_excluded, width);
     fwrite(buf, width, 1, pp);
-    fputs(line_term, pp);
+    fputs((char *) line_term, pp);
   }
   return;
 }

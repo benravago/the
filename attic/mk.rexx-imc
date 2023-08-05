@@ -1,0 +1,12 @@
+#
+set -x
+g() {
+ gcc -c -O3 -Wall -fomit-frame-pointer -I. -o ${1}.o ./${1}.c
+}
+g calc
+g globals
+g interface
+g rexx
+g rxfn
+g shell
+g util

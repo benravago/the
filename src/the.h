@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
+
 #include <alloca.h>
 #include <ctype.h>
 #include <errno.h>
@@ -19,7 +20,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
 
 #include "thedefs.h"
 
@@ -54,10 +54,10 @@
 #define VIEW_WINDOWS        6   /* number of windows per view */
 #define MAX_INT             32766       /* maximum size for integer */
 #define MAX_LONG            2147483001L /* maximum size for long */
-#define WORD_DELIMS        " \t"
+#define WORD_DELIMS        (char_t *)" \t"
 
-#define TOP_OF_FILE        "*** Top of File ***"
-#define BOTTOM_OF_FILE     "*** Bottom of File ***"
+#define TOP_OF_FILE        (char_t *)"*** Top of File ***"
+#define BOTTOM_OF_FILE     (char_t *)"*** Bottom of File ***"
 
 #define DIRECTION_NONE      0
 #define DIRECTION_FORWARD   1
@@ -83,15 +83,17 @@
 #define MAX_THE_WINDOWS 12      /* one more than maximum window number */
 #define WINDOW_ALL      99
 
-#define MAX_PREFIX_WIDTH           20
-#define DEFAULT_PREFIX_WIDTH       6
-#define DEFAULT_PREFIX_GAP         0
+#define MAX_PREFIX_WIDTH     20
+#define DEFAULT_PREFIX_WIDTH  6
+#define DEFAULT_PREFIX_GAP    0
 #define DEFAULT_PREFIX_GAP_LINE    FALSE
 #define DEFAULT_FILETABS_GAP_WIDTH 1
 
 #define MAX_CTLCHARS                64
 #define MAX_DELIMITER_LENGTH        20
 #define MAX_PARSER_NAME_LENGTH      30
+
+#define MAX_SELECT_LEVEL            50000
 
 #define CURRENT_SCREEN              screen[current_screen]
 #define other_screen                ((current_screen==0)?1:0)
@@ -424,9 +426,9 @@ typedef void (*THELIST_DEL)(void *);
  * struct for LASTOP fields
  */
 struct lastop_struct {
-  char *value;
+  char_t *value;
   short value_len;
-  char *command;
+  char_t *command;
   int min_len;
 };
 typedef struct lastop_struct LASTOP;
@@ -447,17 +449,17 @@ typedef struct lastop_struct LASTOP;
 struct pending_prefix_command {
   struct pending_prefix_command *next;
   struct pending_prefix_command *prev;
-  uchar ppc_orig_command[MAX_PREFIX_WIDTH + 1];       /* prefix command */
-  uchar ppc_command[MAX_PREFIX_WIDTH + 1];            /* prefix command */
-  uchar ppc_op[PPC_OPERANDS][MAX_PREFIX_WIDTH + 1];   /* operands */
-  line_t ppc_line_number;                             /* line number in file */
-  line_t ppc_cmd_param;                               /* prefix command target */
-  short ppc_cmd_idx;                                  /* prefix command index */
-  bool ppc_block_command;                             /* is it a BLOCK command */
-  bool ppc_shadow_line;                               /* was command entered on SHADOW line ? */
-  bool ppc_set_by_pending;                            /* was command created by SET PENDING ? */
-  bool ppc_processed;                                 /* has command been processed ? */
-  bool ppc_current_command;                           /* is this command the current executing one ? */
+  char_t ppc_orig_command[MAX_PREFIX_WIDTH + 1];      /* prefix command */
+  char_t ppc_command[MAX_PREFIX_WIDTH + 1];   /* prefix command */
+  char_t ppc_op[PPC_OPERANDS][MAX_PREFIX_WIDTH + 1];  /* operands */
+  line_t ppc_line_number;     /* line number in file */
+  line_t ppc_cmd_param;       /* prefix command target */
+  short ppc_cmd_idx;            /* prefix command index */
+  bool ppc_block_command;       /* is it a BLOCK command */
+  bool ppc_shadow_line;         /* was command entered on SHADOW line ? */
+  bool ppc_set_by_pending;      /* was command created by SET PENDING ? */
+  bool ppc_processed;           /* has command been processed ? */
+  bool ppc_current_command;     /* is this command the current executing one ? */
 };
 typedef struct pending_prefix_command THE_PPC;
 
@@ -473,11 +475,11 @@ typedef struct {
 } lineflags;
 
 struct line {
-  struct line *prev;          /* pointer to previous line */
-  struct line *next;          /* pointer to next line */
-  char *name;                 /* used for other structures; NOT for a LINE in THE */
-  THELIST *first_name;        /* pointer to first name for list of names */
-  char *line;                 /* pointer to contents of line */
+  struct line *prev;            /* pointer to previous line */
+  struct line *next;            /* pointer to next line */
+  char_t *name;               /* used for other structures; NOT for a LINE in THE */
+  THELIST *first_name;          /* pointer to first name for list of names */
+  char_t *line;               /* pointer to contents of line */
   length_t length;            /* number of characters in line */
   THE_PPC *pre;
   select_t select;            /* select level for each line */
@@ -496,9 +498,9 @@ typedef struct colour_attr COLOUR_ATTR;
 struct reserved {
   struct reserved *prev;        /* pointer to previous reserved line */
   struct reserved *next;        /* pointer to next reserved line */
-  char *line;                   /* pointer to contents of line */
-  char *disp;                   /* pointer to contents of line after CTLCHAR applied */
-  char *spec;                   /* row position specification */
+  char_t *line;               /* pointer to contents of line */
+  char_t *disp;               /* pointer to contents of line after CTLCHAR applied */
+  char_t *spec;               /* row position specification */
   short length;                 /* length of reserved line */
   short disp_length;            /* length of reserved line after CTLCHAR applied */
   short base;                   /* row base */
@@ -510,8 +512,8 @@ struct reserved {
 typedef struct reserved RESERVED;
 
 struct prefix_commands {
-  uchar *cmd;                   /* prefix command */
-  length_t cmd_len;             /* length of prefix command */
+  char_t *cmd;                /* prefix command */
+  length_t cmd_len;           /* length of prefix command */
   bool action_prefix;           /* is command an action or a target */
   bool multiples_allowed;       /* are multiples allowed */
   bool full_target_allowed;     /* full target multiple allowed */
@@ -520,45 +522,45 @@ struct prefix_commands {
   bool valid_on_tof;            /* is command allowed on Top of File line */
   bool valid_on_bof;            /* is command allowed on Bottom of File line */
   bool valid_in_readonly;       /* TRUE if command valid in readonly mode */
-  short (*function)  (THE_PPC *, short, line_t);
-  line_t default_target;        /* number of lines to process if not specified */
+  short (*function) (THE_PPC *, short, line_t);
+  line_t default_target;      /* number of lines to process if not specified */
   bool ignore_scope;            /* TRUE if scope to be ignored when finding target */
   bool use_last_not_in_scope;   /* TRUE if starting at end of shadow lines */
   int priority;                 /* priority of prefix command */
-  short (*post_function)  (THE_PPC *, short, line_t);
+  short (*post_function) (THE_PPC *, short, line_t);
   bool text_arg;                /* is argument a plain text arg like for '.' ? */
   bool allowed_on_shadow_line;  /* is command allowed on shadow line ? */
 };
 typedef struct prefix_commands PREFIX_COMMAND;
 
-#define PC_IS_ACTION            TRUE
-#define PC_NOT_ACTION           FALSE
-#define PC_MULTIPLES            TRUE
-#define PC_NO_MULTIPLES         FALSE
-#define PC_FULL_TARGET          TRUE
-#define PC_NO_FULL_TARGET       FALSE
-#define PC_IS_BLOCK             TRUE
-#define PC_NOT_BLOCK            FALSE
-#define PC_TARGET_REQD          TRUE
-#define PC_TARGET_NOT_REQD      FALSE
-#define PC_VALID_TOF            TRUE
-#define PC_INVALID_TOF          FALSE
-#define PC_VALID_BOF            TRUE
-#define PC_INVALID_BOF          FALSE
-#define PC_VALID_RO             TRUE
-#define PC_INVALID_RO           FALSE
-#define PC_IGNORE_SCOPE         TRUE
-#define PC_RESPECT_SCOPE        FALSE
-#define PC_USE_LAST_IN_SCOPE    TRUE
-#define PC_NO_USE_LAST_IN_SCOPE FALSE
+#define PC_IS_ACTION      TRUE
+#define PC_NOT_ACTION     FALSE
+#define PC_MULTIPLES      TRUE
+#define PC_NO_MULTIPLES     FALSE
+#define PC_FULL_TARGET      TRUE
+#define PC_NO_FULL_TARGET     FALSE
+#define PC_IS_BLOCK      TRUE
+#define PC_NOT_BLOCK     FALSE
+#define PC_TARGET_REQD     TRUE
+#define PC_TARGET_NOT_REQD     FALSE
+#define PC_VALID_TOF      TRUE
+#define PC_INVALID_TOF         FALSE
+#define PC_VALID_BOF       TRUE
+#define PC_INVALID_BOF     FALSE
+#define PC_VALID_RO     TRUE
+#define PC_INVALID_RO     FALSE
+#define PC_IGNORE_SCOPE     TRUE
+#define PC_RESPECT_SCOPE     FALSE
+#define PC_USE_LAST_IN_SCOPE     TRUE
+#define PC_NO_USE_LAST_IN_SCOPE     FALSE
 
 struct parse_comments {
   struct parse_comments *prev;
   struct parse_comments *next;
   bool line_comment;            /* TRUE if this is a LINE comment */
   length_t column;            /* 0-ANY MAX_INT-FIRSTNONBLANK other-column */
-  uchar start_delim[MAX_DELIMITER_LENGTH + 1];        /* delimiter string for start of comment */
-  uchar end_delim[MAX_DELIMITER_LENGTH + 1];  /* delimiter string for end of comment */
+  char_t start_delim[MAX_DELIMITER_LENGTH + 1];       /* delimiter string for start of comment */
+  char_t end_delim[MAX_DELIMITER_LENGTH + 1]; /* delimiter string for end of comment */
   short len_start_delim;
   short len_end_delim;
   bool nested;                  /* can paired comments be nested */
@@ -569,38 +571,38 @@ typedef struct parse_comments PARSE_COMMENTS;
 struct parse_keywords {
   struct parse_keywords *prev;
   struct parse_keywords *next;
-  uchar *keyword;
+  char_t *keyword;
   short keyword_length;
-  uchar alternate;
-  uchar type;
+  char_t alternate;
+  char_t type;
 };
 typedef struct parse_keywords PARSE_KEYWORDS;
 
 struct parse_functions {
   struct parse_functions *prev;
   struct parse_functions *next;
-  uchar *function;
+  char_t *function;
   short function_length;
-  uchar alternate;
+  char_t alternate;
 };
 typedef struct parse_functions PARSE_FUNCTIONS;
 
 struct parse_extension {
   struct parse_extension *prev;
   struct parse_extension *next;
-  uchar *extension;
+  char_t *extension;
   short extension_length;
-  uchar alternate;
+  char_t alternate;
 };
 typedef struct parse_extension PARSE_EXTENSION;
 
 struct parse_headers {
   struct parse_headers *prev;
   struct parse_headers *next;
-  uchar header_delim[MAX_DELIMITER_LENGTH + 1];
+  char_t header_delim[MAX_DELIMITER_LENGTH + 1];
   short len_header_delim;
   length_t header_column;     /* 0-ANY MAX_INT-FIRSTNONBLANK other-column */
-  uchar alternate;
+  char_t alternate;
 };
 typedef struct parse_headers PARSE_HEADERS;
 
@@ -608,10 +610,10 @@ struct parse_postcompare {
   struct parse_postcompare *prev;
   struct parse_postcompare *next;
   bool is_class_type;
-  regex_t pattern;
-  uchar *string;
+  regex_t pattern_buffer;
+  char_t *string;
   short string_length;
-  uchar alternate;
+  char_t alternate;
 };
 typedef struct parse_postcompare PARSE_POSTCOMPARE;
 
@@ -621,10 +623,10 @@ struct parser_details {
   /*
    * Parser-level features
    */
-  char parser_name[MAX_PARSER_NAME_LENGTH + 1];
-  char filename[MAX_FILE_NAME + 1];
-  regex_t body_pattern;
-  bool have_body_pattern;
+  char_t parser_name[MAX_PARSER_NAME_LENGTH + 1];
+  char_t filename[MAX_FILE_NAME + 1];
+  regex_t body_pattern_buffer;
+  bool have_body_pattern_buffer;
   /*
    * string features
    */
@@ -633,7 +635,7 @@ struct parser_details {
   bool backslash_single_quote;
   bool check_double_quote;
   bool backslash_double_quote;
-  uchar string_delimiter;
+  char_t string_delimiter;
   bool backslash_delimiter;
   /*
    * comments features
@@ -654,10 +656,10 @@ struct parser_details {
   PARSE_FUNCTIONS *first_function;
   PARSE_FUNCTIONS *current_function;
   short min_function_length;
-  regex_t function_pattern;
-  bool have_function_pattern;
+  regex_t function_pattern_buffer;
+  bool have_function_pattern_buffer;
   bool have_function_option_alternate;
-  uchar function_option_alternate;
+  char_t function_option_alternate;
   /*
    * case features
    */
@@ -668,8 +670,8 @@ struct parser_details {
   bool rexx_option;
   bool preprocessor_option;
   bool function_option;
-  uchar preprocessor_char;
-  uchar function_char;
+  char_t preprocessor_char;
+  char_t function_char;
   bool function_blank;
   /*
    * match features - minimal at the moment
@@ -684,21 +686,21 @@ struct parser_details {
   /*
    * label features
    */
-  uchar label_delim[11];
+  char_t label_delim[11];
   short len_label_delim;
   length_t label_column;      /* 0-ANY MAX_INT-FIRSTNONBLANK other-column */
   /*
    * markup features
    */
   bool have_markup_tag;
-  uchar markup_tag_start_delim[MAX_DELIMITER_LENGTH + 1];
+  char_t markup_tag_start_delim[MAX_DELIMITER_LENGTH + 1];
   short len_markup_tag_start_delim;
-  uchar markup_tag_end_delim[MAX_DELIMITER_LENGTH + 1];
+  char_t markup_tag_end_delim[MAX_DELIMITER_LENGTH + 1];
   short len_markup_tag_end_delim;
   bool have_markup_reference;
-  uchar markup_reference_start_delim[MAX_DELIMITER_LENGTH + 1];
+  char_t markup_reference_start_delim[MAX_DELIMITER_LENGTH + 1];
   short len_markup_reference_start_delim;
-  uchar markup_reference_end_delim[MAX_DELIMITER_LENGTH + 1];
+  char_t markup_reference_end_delim[MAX_DELIMITER_LENGTH + 1];
   short len_markup_reference_end_delim;
   /*
    * postcompare features
@@ -714,22 +716,22 @@ struct parser_details {
   length_t first_column[MAX_PARSER_COLUMNS];
   length_t last_column[MAX_PARSER_COLUMNS];
   short number_columns;
-  uchar column_alternate[MAX_PARSER_COLUMNS];
+  char_t column_alternate[MAX_PARSER_COLUMNS];
   /*
    * number features
    */
-  regex_t number_pattern;
-  bool have_number_pattern;
+  regex_t number_pattern_buffer;
+  bool have_number_pattern_buffer;
   /*
    *  link features
    */
   bool have_directory_link;
-  uchar link_option_alternate;
+  char_t link_option_alternate;
   /*
    *  directory features
    */
   bool have_directory_directory;
-  uchar directory_option_alternate;
+  char_t directory_option_alternate;
   /*
    * extensions features
    */
@@ -740,16 +742,16 @@ struct parser_details {
    *  executable features
    */
   bool have_executable;
-  uchar executable_option_alternate;
+  char_t executable_option_alternate;
 };
 typedef struct parser_details PARSER_DETAILS;
 
 struct parser_mapping {
   struct parser_mapping *prev;
   struct parser_mapping *next;
-  char* parser_name;
-  char* filemask;
-  char* magic_number;
+  char_t *parser_name;
+  char_t *filemask;
+  char_t *magic_number;
   int magic_number_length;
   PARSER_DETAILS *parser;
 };
@@ -757,27 +759,27 @@ typedef struct parser_mapping PARSER_MAPPING;
 
 /* structure for repeating targets */
 struct rtarget {
-  char* string;                 /* pointer to target */
-  length_t length;              /* length of specified target: string */
-  length_t found_length;        /* length of matching string */
-  length_t start;               /* starting column of found string target */
-  uchar boolean;                /* boolean operator */
+  char_t *string;             /* pointer to target */
+  length_t length;            /* length of specified target: string */
+  length_t found_length;      /* length of matching string */
+  length_t start;             /* starting column of found string target */
+  char_t boolean;             /* boolean operator */
   bool not_target;              /* TRUE if NOT target */
-  line_t numeric_target;        /* numeric target value */
+  line_t numeric_target;      /* numeric target value */
   long target_type;             /* type of target */
   bool negative;                /* TRUE if direction backward */
   bool found;                   /* TRUE if this repeating target was found */
   bool have_compiled_re;        /* TRUE if we have a compiled RE */
-  regex_t pattern;              /* compiled RE for REGEXP */
+  regex_t pattern_buffer;      /* compiled RE for REGEXP */
 };
 typedef struct rtarget RTARGET;
 
 /* structure for targets */
 struct target {
-  char* string;                 /* pointer to original target */
-  line_t num_lines;             /* number of lines to target */
-  line_t true_line;             /* line number to start with */
-  line_t last_line;             /* line number of last line in target */
+  char_t *string;             /* pointer to original target */
+  line_t num_lines;           /* number of lines to target */
+  line_t true_line;           /* line number to start with */
+  line_t last_line;           /* line number of last line in target */
   RTARGET *rt;                  /* pointer to repeating targets */
   short num_targets;            /* number of targets found */
   short spare;                  /* index to which repeating target is spare */
@@ -789,16 +791,16 @@ struct target {
 typedef struct target TARGET;
 
 typedef struct {
-  uchar autosave;
+  char_t autosave;
   short backup;
   COLOUR_ATTR *attr;
   COLOUR_ATTR *ecolour;         /* array of ECOLOURS for this file */
-  uchar eolout;
+  char_t eolout;
   bool tabsout_on;
   bool display_actual_filename;
   bool undoing;
   bool timecheck;
-  uchar tabsout_num;
+  char_t tabsout_num;
   short trailing;               /* how to handle trailing spaces on file write */
   bool colouring;               /* specifies if syntax highlighting is on */
   bool autocolour;              /* specifies if AUTOCOLOUR is on */
@@ -806,16 +808,16 @@ typedef struct {
 } PRESERVED_FILE_DETAILS;
 
 typedef struct {
-  uchar autosave;               /* number of alterations before autosaving */
+  char_t autosave;            /* number of alterations before autosaving */
   short backup;                 /* indicates type of backup file to be saved */
   COLOUR_ATTR *attr;            /* colour attributes */
   COLOUR_ATTR *ecolour;         /* array of ECOLOURS for this file */
-  uchar eolout;                 /* indicates how lines are terminated on output */
+  char_t eolout;              /* indicates how lines are terminated on output */
   bool tabsout_on;              /* indicates if tabs to replace spaces on file */
   bool display_actual_filename;
   bool undoing;
   bool timecheck;               /* file time stamp checking */
-  uchar tabsout_num;            /* length of tab stops on file */
+  char_t tabsout_num;         /* length of tab stops on file */
   short trailing;               /* how to handle trailing spaces on file write */
   bool colouring;               /* specifies if syntax highlighting is on */
   bool autocolour;              /* specifies if AUTOCOLOUR is on */
@@ -825,17 +827,18 @@ typedef struct {
    * Ensure that PRESERVED_FILE_DETAILS structure reflects this.
    */
   PRESERVED_FILE_DETAILS *preserved_file_details;
-  row_t status_row;             /* row on which status line is displayed */
-  byte pseudo_file;             /* indicates if file is a "pseudo" file and if so, what sort */
-  byte disposition;             /* indicates if file is new or existing */
+  row_t status_row;           /* row on which status line is displayed */
+  char_t pseudo_file;         /* indicates if file is a "pseudo" file and if so, what sort */
+  char_t disposition;         /* indicates if file is new or existing */
   unsigned short autosave_alt;  /* number of alterations since last autosave */
   unsigned short save_alt;      /* number of alterations since last save */
-  char *autosave_fname;         /* file name for AUTOSAVE file */
+  char_t *autosave_fname;     /* file name for AUTOSAVE file */
   FILE *fp;                     /* file handle for this file */
-  char* fname;                  /* file name */
-  char* fpath;                  /* file path */
-  char *actualfname;            /* filename specified */
-  char *efileid;                /* original full filename */
+  char_t *fname;              /* file name */
+  char_t *fpath;              /* file path */
+  char_t *actualfname;        /* filename specified */
+  char_t *efileid;            /* original full filename */
+  char_t *display_name;       /* optional filename to display */
   unsigned short fmode;         /* file mode of file */
   uid_t uid;                    /* userid of file */
   gid_t gid;                    /* groupid of file */
@@ -843,13 +846,13 @@ typedef struct {
   LINE *first_line;             /* pointer to first line */
   LINE *last_line;              /* pointer to last line */
   LINE *editv;                  /* pointer for EDITV variables */
-  line_t number_lines;          /* number of actual lines in file */
-  line_t max_line_length;       /* Maximum line length in file */
-  byte file_views;              /* number of views of current file */
+  line_t number_lines;        /* number of actual lines in file */
+  line_t max_line_length;     /* Maximum line length in file */
+  char_t file_views;          /* number of views of current file */
   RESERVED *first_reserved;     /* pointer to first reserved line */
   THE_PPC *first_ppc;           /* first pending prefix command */
   THE_PPC *last_ppc;            /* last pending prefix command */
-  byte eolfirst;                /* indicates termination of first line read */
+  char_t eolfirst;            /* indicates termination of first line read */
   int readonly;                 /* have we set the file to be readonly */
 } FILE_DETAILS;
 
@@ -857,47 +860,47 @@ typedef struct {
   struct view_details *prev;    /* pointer to previous view */
   struct view_details *next;    /* pointer to next view */
   bool arbchar_status;          /* indicates if arbchar is on */
-  uchar arbchar_single;         /* single arbitrary character value */
-  uchar arbchar_multiple;       /* multiple arbitrary character value */
+  char_t arbchar_single;      /* single arbitrary character value */
+  char_t arbchar_multiple;    /* multiple arbitrary character value */
   bool arrow_on;                /* indicates if arrow is displayed */
-  uchar case_enter;             /* indicates case of data entered */
-  uchar case_enter_cmdline;     /* indicates case of data entered on cmdline */
-  uchar case_enter_prefix;      /* indicates case of data entered in prefix */
-  uchar case_locate;            /* indicates case of data located */
-  uchar case_change;            /* indicates case of data changed */
-  uchar case_sort;              /* indicates case significance for sorting */
-  row_t cmd_line;               /* position of command line */
-  row_t current_row;            /* row which is current row */
+  char_t case_enter;          /* indicates case of data entered */
+  char_t case_enter_cmdline;  /* indicates case of data entered on cmdline */
+  char_t case_enter_prefix;   /* indicates case of data entered in prefix */
+  char_t case_locate;         /* indicates case of data located */
+  char_t case_change;         /* indicates case of data changed */
+  char_t case_sort;           /* indicates case significance for sorting */
+  row_t cmd_line;             /* position of command line */
+  row_t current_row;          /* row which is current row */
   short current_base;           /* indicates relative position of current line */
   short current_off;            /* offset from current_base for current_row */
-  select_t display_low;         /* low range of display level */
-  select_t display_high;        /* high range of display level */
+  select_t display_low;       /* low range of display level */
+  select_t display_high;      /* high range of display level */
   bool hex;                     /* TRUE if hex conversion is done on string operands */
   bool hexshow_on;              /* status of hexshow */
   short hexshow_base;           /* base position for starting row of hexshow */
   short hexshow_off;            /* offset from base of start of hexshow */
-  uchar highlight;              /* lines to highlight, if any */
-  select_t highlight_high;      /* high select level of highlighted lines */
-  select_t highlight_low;       /* low select level of highlighted lines */
+  char_t highlight;           /* lines to highlight, if any */
+  select_t highlight_high;    /* high select level of highlighted lines */
+  select_t highlight_low;     /* low select level of highlighted lines */
   bool id_line;                 /* TRUE if IDLINE displayed */
   bool imp_macro;               /* indicates if implied macro processing is on */
   bool imp_os;                  /* indicates if implied os processing is on */
-  uchar inputmode;              /* indicates type of input processing */
+  char_t inputmode;           /* indicates type of input processing */
   bool linend_status;           /* indicates if multiple commands allowed on command line */
-  uchar linend_value;           /* specifies command delimiter */
+  char_t linend_value;        /* specifies command delimiter */
   bool macro;                   /* indicates if macros are executed before commands */
-  length_t margin_left;         /* left margin column 1 based */
-  length_t margin_right;        /* right margin column 1 based */
-  length_t margin_indent;       /* paragraph indentation */
+  length_t margin_left;       /* left margin column 1 based */
+  length_t margin_right;      /* right margin column 1 based */
+  length_t margin_indent;     /* paragraph indentation */
   bool margin_indent_offset_status;     /* TRUE if paragraph indentation is an offset from left margin */
   short msgline_base;           /* indicates relative position of msgline */
   short msgline_off;            /* offset from msgline_base for msgline */
-  row_t msgline_rows;           /* number of rows in msgline */
+  row_t msgline_rows;         /* number of rows in msgline */
   bool msgmode_status;          /* indicates if messages are to be displayed */
   bool newline_aligned;         /* TRUE if adding a new line results in cursor appearing under 1st non-blank of previous line */
   bool number;                  /* indicates if numbers in prefix are to be displayed */
   bool position_status;         /* TRUE if LINE/COL is displayed on IDLINE */
-  uchar prefix;                 /* indicates if and where prefix is displayed */
+  char_t prefix;              /* indicates if and where prefix is displayed */
   short prefix_width;           /* overall width of prefix */
   short prefix_gap;             /* width of gap between prefix and filearea */
   bool prefix_gap_line;         /* is vertical line shown in prefix gap */
@@ -912,22 +915,22 @@ typedef struct {
   short tab_base;               /* base position on which tab line is displayed */
   short tab_off;                /* offset from base position on which tab line is displayed */
   bool tabsinc;                 /* tab increment or 0 if fixed tabs */
-  col_t numtabs;                /* number of tab stops defined */
-  length_t tabs[MAX_NUMTABS];   /* tab settings for each tab stop */
-  length_t verify_col;          /* left col for current verify */
-  length_t verify_start;        /* col of start of verify */
-  length_t verify_end;          /* col of end of verify */
+  col_t numtabs;              /* number of tab stops defined */
+  length_t tabs[MAX_NUMTABS]; /* tab settings for each tab stop */
+  length_t verify_col;        /* left col for current verify */
+  length_t verify_start;      /* col of start of verify */
+  length_t verify_end;        /* col of end of verify */
   bool verify_end_max;          /* TRUE if verify end was specified as * */
-  uchar word;                   /* word setting */
+  char_t word;                /* word setting */
   bool wordwrap;                /* wordwrap setting */
   bool wrap;                    /* wrap setting */
   bool tofeof;                  /* true if want to display TOF/EOF lines */
-  length_t zone_start;          /* col of start of zone */
-  length_t zone_end;            /* col of end of zone */
+  length_t zone_start;        /* col of start of zone */
+  length_t zone_end;          /* col of end of zone */
   bool zone_end_max;            /* TRUE if zone end was specified as * */
-  line_t autoscroll;            /* 0 - no autoscroll, -1 half, other number */
-  uchar boundmark;              /* type of boundmark */
-  line_t syntax_headers;        /* which syntax headers to be applied */
+  line_t autoscroll;          /* 0 - no autoscroll, -1 half, other number */
+  char_t boundmark;           /* type of boundmark */
+  line_t syntax_headers;      /* which syntax headers to be applied */
   bool thighlight_on;           /* indicates if THIGHLIGHT is on */
   bool thighlight_active;       /* indicates if THIGHLIGHT is active */
   TARGET thighlight_target;     /* details of target to highlight */
@@ -937,47 +940,47 @@ struct view_details {
   struct view_details *prev;    /* pointer to previous view */
   struct view_details *next;    /* pointer to next view */
   bool arbchar_status;          /* indicates if arbchar is on */
-  uchar arbchar_single;         /* single arbitrary character value */
-  uchar arbchar_multiple;       /* multiple arbitrary character value */
+  char_t arbchar_single;      /* single arbitrary character value */
+  char_t arbchar_multiple;    /* multiple arbitrary character value */
   bool arrow_on;                /* indicates if arrow is displayed */
-  uchar case_enter;             /* indicates case of data entered */
-  uchar case_enter_cmdline;     /* indicates case of data entered on cmdline */
-  uchar case_enter_prefix;      /* indicates case of data entered in prefix */
-  uchar case_locate;            /* indicates case of data located */
-  uchar case_change;            /* indicates case of data changed */
-  uchar case_sort;              /* indicates case significance for sorting */
-  row_t cmd_line;               /* position of command line */
-  row_t current_row;            /* row which is current row */
+  char_t case_enter;          /* indicates case of data entered */
+  char_t case_enter_cmdline;  /* indicates case of data entered on cmdline */
+  char_t case_enter_prefix;   /* indicates case of data entered in prefix */
+  char_t case_locate;         /* indicates case of data located */
+  char_t case_change;         /* indicates case of data changed */
+  char_t case_sort;           /* indicates case significance for sorting */
+  row_t cmd_line;             /* position of command line */
+  row_t current_row;          /* row which is current row */
   short current_base;           /* indicates relative position of current line */
   short current_off;            /* offset from current_base for current_row */
-  select_t display_low;         /* low range of display level */
-  select_t display_high;        /* high range of display level */
+  select_t display_low;       /* low range of display level */
+  select_t display_high;      /* high range of display level */
   bool hex;                     /* TRUE if hex conversion is done on string operands */
   bool hexshow_on;              /* status of hexshow */
   short hexshow_base;           /* base position for starting row of hexshow */
   short hexshow_off;            /* offset from base of start of hexshow */
-  uchar highlight;              /* lines to highlight, if any */
-  select_t highlight_high;      /* high select level of highlighted lines */
-  select_t highlight_low;       /* low select level of highlighted lines */
+  char_t highlight;           /* lines to highlight, if any */
+  select_t highlight_high;    /* high select level of highlighted lines */
+  select_t highlight_low;     /* low select level of highlighted lines */
   bool id_line;                 /* TRUE if IDLINE displayed */
   bool imp_macro;               /* indicates if implied macro processing is on */
   bool imp_os;                  /* indicates if implied os processing is on */
-  uchar inputmode;              /* indicates type of input processing */
+  char_t inputmode;           /* indicates type of input processing */
   bool linend_status;           /* indicates if multiple commands allowed on command line */
-  uchar linend_value;           /* specifies command delimiter */
+  char_t linend_value;        /* specifies command delimiter */
   bool macro;                   /* indicates if macros are executed before commands */
-  length_t margin_left;         /* left margin column 1 based */
-  length_t margin_right;        /* right margin column 1 based */
-  length_t margin_indent;       /* paragraph indentation */
+  length_t margin_left;       /* left margin column 1 based */
+  length_t margin_right;      /* right margin column 1 based */
+  length_t margin_indent;     /* paragraph indentation */
   bool margin_indent_offset_status;     /* TRUE if paragraph indentation is an offset from left margin */
   short msgline_base;           /* indicates relative position of msgline */
   short msgline_off;            /* offset from msgline_base for msgline */
-  row_t msgline_rows;           /* number of rows in msgline */
+  row_t msgline_rows;         /* number of rows in msgline */
   bool msgmode_status;          /* indicates if messages are to be displayed */
   bool newline_aligned;         /* TRUE if adding a new line results in cursor appearing under 1st non-blank of previous line */
   bool number;                  /* indicates if numbers in prefix are to be displayed */
   bool position_status;         /* TRUE if LINE/COL is displayed on IDLINE */
-  uchar prefix;                 /* indicates if and where prefix is displayed */
+  char_t prefix;              /* indicates if and where prefix is displayed */
   short prefix_width;           /* overall width of prefix */
   short prefix_gap;             /* width of gap between prefix and filearea */
   bool prefix_gap_line;         /* is vertical line shown in prefix gap */
@@ -992,22 +995,22 @@ struct view_details {
   short tab_base;               /* base position on which tab line is displayed */
   short tab_off;                /* offset from base position on which tab line is displayed */
   bool tabsinc;                 /* tab increment or 0 if fixed tabs */
-  col_t numtabs;                /* number of tab stops defined */
-  length_t tabs[MAX_NUMTABS];   /* tab settings for each tab stop */
-  length_t verify_col;          /* left col for current verify */
-  length_t verify_start;        /* col of start of verify */
-  length_t verify_end;          /* col of end of verify */
+  col_t numtabs;              /* number of tab stops defined */
+  length_t tabs[MAX_NUMTABS]; /* tab settings for each tab stop */
+  length_t verify_col;        /* left col for current verify */
+  length_t verify_start;      /* col of start of verify */
+  length_t verify_end;        /* col of end of verify */
   bool verify_end_max;          /* TRUE if verify end was specified as * */
-  uchar word;                   /* word setting */
+  char_t word;                /* word setting */
   bool wordwrap;                /* wordwrap setting */
   bool wrap;                    /* wrap setting */
   bool tofeof;                  /* true if want to display TOF/EOF lines */
-  length_t zone_start;          /* col of start of zone */
-  length_t zone_end;            /* col of end of zone */
+  length_t zone_start;        /* col of start of zone */
+  length_t zone_end;          /* col of end of zone */
   bool zone_end_max;            /* TRUE if zone end was specified as * */
-  line_t autoscroll;            /* 0 - no autoscroll, -1 half, other number */
-  uchar boundmark;              /* type of boundmark */
-  line_t syntax_headers;        /* which syntax headers to be applied */
+  line_t autoscroll;          /* 0 - no autoscroll, -1 half, other number */
+  char_t boundmark;           /* type of boundmark */
+  line_t syntax_headers;      /* which syntax headers to be applied */
   bool thighlight_on;           /* indicates if THIGHLIGHT is on */
   bool thighlight_active;       /* indicates if THIGHLIGHT is active */
   TARGET thighlight_target;     /* details of target to highlight */
@@ -1016,79 +1019,79 @@ struct view_details {
    * Ensure that PRESERVED_VIEW_DETAILS structure reflects this.
    */
   PRESERVED_VIEW_DETAILS *preserved_view_details;
-  line_t current_line;          /* line in file displayed on current row */
-  length_t current_column;      /* column in line of last column target */
+  line_t current_line;        /* line in file displayed on current row */
+  length_t current_column;    /* column in line of last column target */
   short y[VIEW_WINDOWS];        /* y coordinate for each window */
   short x[VIEW_WINDOWS];        /* x coordinate for each window */
-  line_t focus_line;            /* line in file where cursor is */
+  line_t focus_line;          /* line in file where cursor is */
   short mark_type;              /* type of marked block */
-  line_t mark_start_line;       /* first line to be marked */
-  line_t mark_end_line;         /* last line to be marked */
+  line_t mark_start_line;     /* first line to be marked */
+  line_t mark_end_line;       /* last line to be marked */
   bool marked_line;             /* TRUE if line marked */
   bool in_ring;                 /* TRUE if file already in edit ring */
-  length_t mark_start_col;      /* first column marked */
-  length_t mark_end_col;        /* last column marked */
+  length_t mark_start_col;    /* first column marked */
+  length_t mark_end_col;      /* last column marked */
   bool marked_col;              /* TRUE if column marked */
   int cmdline_col;              /* column to display in cmdline */
-  uchar current_window;         /* current window for current screen */
-  uchar previous_window;        /* previous window for current screen */
+  char_t current_window;      /* current window for current screen */
+  char_t previous_window;     /* previous window for current screen */
   FILE_DETAILS *file_for_view;  /* pointer to file structure */
 };
 typedef struct view_details VIEW_DETAILS;
 
 /* structure for each line to be displayed */
 struct show_line {
-  uchar *contents;               /* pointer to contents of line */
-  RESERVED *rsrvd;               /* pointer to reserved line struct if a reserved line */
-  line_t number_lines_excluded;  /* number of lines excluded */
-  line_t line_number;            /* line number within file */
-  LINE *current;                 /* pointer to current line */
-  short line_type;               /* type of line */
-  bool prefix_enterable;         /* TRUE if prefix can be tabbed to */
-  bool main_enterable;           /* TRUE if filearea can be tabbed to */
-  bool highlight;                /* TRUE if line is highlighted */
+  char_t *contents;           /* pointer to contents of line */
+  RESERVED *rsrvd;              /* pointer to reserved line struct if a reserved line */
+  line_t number_lines_excluded;       /* number of lines excluded */
+  line_t line_number;         /* line number within file */
+  LINE *current;                /* pointer to current line */
+  short line_type;              /* type of line */
+  bool prefix_enterable;        /* TRUE if prefix can be tabbed to */
+  bool main_enterable;          /* TRUE if filearea can be tabbed to */
+  bool highlight;               /* TRUE if line is highlighted */
 
-  /* NOTE: The following entries are only for displaying.
-   * They are NOT updated by a call to build_screen.
-   * Therefore you can't access them.
+  /* NOTE: The following entries are only for displaying. They are NOT
+   * updated by a call to build_screen. Therefore you can't access them.
    */
 
-  length_t length;               /* number of characters in line */
-  chtype normal_colour;          /* normal colour for line */
-  chtype other_colour;           /* other colour for line */
-  length_t other_start_col;      /* start column of other colour from col 0 */
-  length_t other_end_col;        /* end column of other colour from col 0 */
-  chtype prefix_colour;          /* colour of prefix */
-  chtype gap_colour;             /* colour of prefix gap */
-  uchar prefix[MAX_PREFIX_WIDTH + 1];               /* contents of prefix area */
-  chtype prefix_highlighting[MAX_PREFIX_WIDTH + 1]; /* array of colours for syntax highlighting */
-  uchar gap[MAX_PREFIX_WIDTH + 1];                  /* contents of prefix gap */
-  chtype gap_highlighting[MAX_PREFIX_WIDTH + 1];    /* array of colours for syntax highlighting */
+  length_t length;            /* number of characters in line */
+  chtype normal_colour;         /* normal colour for line */
+  chtype other_colour;          /* other colour for line */
+  length_t other_start_col;   /* start column of other colour from col 0 */
+  length_t other_end_col;     /* end column of other colour from col 0 */
+  chtype prefix_colour;         /* colour of prefix */
+  chtype gap_colour;            /* colour of prefix gap */
+  char_t prefix[MAX_PREFIX_WIDTH + 1];        /* contents of prefix area */
+  chtype prefix_highlighting[MAX_PREFIX_WIDTH + 1];     /* array of colours for syntax highlighting */
+  char_t gap[MAX_PREFIX_WIDTH + 1];   /* contents of prefix gap */
+  chtype gap_highlighting[MAX_PREFIX_WIDTH + 1];        /* array of colours for syntax highlighting */
   /*
    * The following 2 array MUST be the same size
    */
   chtype highlighting[THE_MAX_SCREEN_WIDTH];    /* array of colours for syntax highlighting */
+//   char_t highlight_type[THE_MAX_SCREEN_WIDTH];    /* array of syntax types for later querying */
   unsigned char *highlight_type;
-  bool is_highlighting;                   /* TRUE if this line contains syntax highlighting */
-  bool is_current_line;                   /* TRUE if this line is the current line */
-  bool is_cursor_line;                    /* TRUE if this line is the cursor line of the filearea */
-  bool is_cursor_line_filearea_different; /* TRUE if the filearea/cursorline colours are different */
+  bool is_highlighting;         /* TRUE if this line contains syntax highlighting */
+  bool is_current_line;         /* TRUE if this line is the current line */
+  bool is_cursor_line;          /* TRUE if this line is the cursor line of the filearea */
+  bool is_cursor_line_filearea_different;       /* TRUE if the filearea/cursorline colours are different */
 };
 typedef struct show_line SHOW_LINE;
 
 /* structure for each screen */
 typedef struct {
-  row_t screen_start_row;        /* start row of screen */
-  col_t screen_start_col;        /* start col of screen */
-  row_t screen_rows;             /* physical rows */
-  col_t screen_cols;             /* physical cols */
-  row_t rows[VIEW_WINDOWS];      /* rows in window */
-  col_t cols[VIEW_WINDOWS];      /* cols in window */
-  row_t start_row[VIEW_WINDOWS]; /* start row of window */
-  col_t start_col[VIEW_WINDOWS]; /* start col of window */
-  WINDOW *win[VIEW_WINDOWS];     /* curses windows for the screen display */
-  VIEW_DETAILS *screen_view;     /* view being displayed in this screen */
-  SHOW_LINE *sl;                 /* pointer to SHOW_DETAILS structure for screen */
+  row_t screen_start_row;     /* start row of screen */
+  col_t screen_start_col;     /* start col of screen */
+  row_t screen_rows;          /* physical rows */
+  col_t screen_cols;          /* physical cols */
+  row_t rows[VIEW_WINDOWS];   /* rows in window */
+  col_t cols[VIEW_WINDOWS];   /* cols in window */
+  row_t start_row[VIEW_WINDOWS];      /* start row of window */
+  col_t start_col[VIEW_WINDOWS];      /* start col of window */
+  WINDOW *win[VIEW_WINDOWS];    /* curses windows for the screen display */
+  VIEW_DETAILS *screen_view;    /* view being displayed in this screen */
+  SHOW_LINE *sl;                /* pointer to SHOW_DETAILS structure for screen */
 } SCREEN_DETAILS;
 
 /* structure for colour definitions */
@@ -1157,11 +1160,11 @@ struct regexp_syntax {
 #define QUERY_READV       32
 
 /* defines for case settings */
-#define CASE_MIXED         (uchar)'M'
-#define CASE_UPPER         (uchar)'U'
-#define CASE_LOWER         (uchar)'L'
-#define CASE_IGNORE        (uchar)'I'
-#define CASE_RESPECT       (uchar)'R'
+#define CASE_MIXED         (char_t)'M'
+#define CASE_UPPER         (char_t)'U'
+#define CASE_LOWER         (char_t)'L'
+#define CASE_IGNORE        (char_t)'I'
+#define CASE_RESPECT       (char_t)'R'
 
 /* type of marked blocks - do not change these values!! SET BLOCK needs them */
 #define M_NONE             0
@@ -1215,11 +1218,13 @@ struct regexp_syntax {
 #define INPUTMODE_LINE     2
 
 /* defines for EDITV - suprise! */
-#define EDITV_GET    1
-#define EDITV_PUT    2
-#define EDITV_SET    3
-#define EDITV_SETL   4
-#define EDITV_LIST   5
+#define EDITV_GET      1
+#define EDITV_PUT      2
+#define EDITV_SET      3
+#define EDITV_SETL     4
+#define EDITV_LIST     5
+
+#define EDITV_GETSTEM  6 /* THE extension */
 
 #define FILE_NORMAL        0
 #define FILE_READONLY      1
@@ -1342,28 +1347,27 @@ struct regexp_syntax {
 /*
  * Following are used for determining the button action of the mouse
  */
-#define BUTTON_RELEASED       0
-#define BUTTON_PRESSED        1
-#define BUTTON_CLICKED        2
+#define BUTTON_RELEASED 0
+#define BUTTON_PRESSED 1
+#define BUTTON_CLICKED 2
 #define BUTTON_DOUBLE_CLICKED 3
-#define BUTTON_MOVED          5
+#define BUTTON_MOVED 5
 
 #define HIT_ANY_KEY "Hit any key to continue..."
 
 /*---------------------- useful macros --------------------------------*/
-
-#define TOF(line)            ((line == 0L) ? TRUE : FALSE)
-#define BOF(line)            ((line == CURRENT_FILE->number_lines+1L) ? TRUE : FALSE)
-#define VIEW_TOF(view,line)  ((line == 0L) ? TRUE : FALSE)
-#define VIEW_BOF(view,line)  ((line == view->file_for_view->number_lines+1L) ? TRUE : FALSE)
-#define CURRENT_TOF          ((CURRENT_VIEW->current_line == 0L) ? TRUE : FALSE)
-#define CURRENT_BOF          ((CURRENT_VIEW->current_line == CURRENT_FILE->number_lines+1L) ? TRUE : FALSE)
-#define FOCUS_TOF            ((CURRENT_VIEW->focus_line == 0L) ? TRUE : FALSE)
-#define FOCUS_BOF            ((CURRENT_VIEW->focus_line == CURRENT_FILE->number_lines+1L) ? TRUE : FALSE)
-#define VIEW_FOCUS_TOF(view) ((view->focus_line == 0L) ? TRUE : FALSE)
-#define VIEW_FOCUS_BOF(view) ((view->focus_line == view->file_for_view->number_lines+1L) ? TRUE : FALSE)
-#define IN_VIEW(view,line)   ((line >= (view->current_line - (line_t)view->current_row)) && (line <= (view->current_line + ((line_t)CURRENT_SCREEN.rows[WINDOW_FILEAREA] - (line_t)view->current_row))))
-#define IN_SCOPE(view,line)  ((line)->select >= (view)->display_low && (line)->select <= (view)->display_high)
+#define     TOF(line)           ((line == 0L) ? TRUE : FALSE)
+#define     BOF(line)           ((line == CURRENT_FILE->number_lines+1L) ? TRUE : FALSE)
+#define     VIEW_TOF(view,line) ((line == 0L) ? TRUE : FALSE)
+#define     VIEW_BOF(view,line) ((line == view->file_for_view->number_lines+1L) ? TRUE : FALSE)
+#define     CURRENT_TOF         ((CURRENT_VIEW->current_line == 0L) ? TRUE : FALSE)
+#define     CURRENT_BOF         ((CURRENT_VIEW->current_line == CURRENT_FILE->number_lines+1L) ? TRUE : FALSE)
+#define     FOCUS_TOF           ((CURRENT_VIEW->focus_line == 0L) ? TRUE : FALSE)
+#define     FOCUS_BOF           ((CURRENT_VIEW->focus_line == CURRENT_FILE->number_lines+1L) ? TRUE : FALSE)
+#define     VIEW_FOCUS_TOF(view) ((view->focus_line == 0L) ? TRUE : FALSE)
+#define     VIEW_FOCUS_BOF(view) ((view->focus_line == view->file_for_view->number_lines+1L) ? TRUE : FALSE)
+#define     IN_VIEW(view,line)   ((line >= (view->current_line - (line_t)view->current_row)) && (line <= (view->current_line + ((line_t)CURRENT_SCREEN.rows[WINDOW_FILEAREA] - (line_t)view->current_row))))
+#define     IN_SCOPE(view,line) ((line)->select >= (view)->display_low && (line)->select <= (view)->display_high)
 
 /*---------------------- system specific redefines --------------------*/
 
@@ -1371,7 +1375,7 @@ struct regexp_syntax {
 #define STATUSLINEON() ((STATUSLINEx == 'T') || (STATUSLINEx == 'B'))
 
 extern VIEW_DETAILS *vd_current;
-extern uchar current_screen;
+extern char_t current_screen;
 extern SCREEN_DETAILS screen[MAX_SCREENS];
 
 #ifdef MAIN
@@ -1384,7 +1388,7 @@ extern length_t max_line_length;
 
 /* structure for passing queryable values parameters */
 struct query_values {
-  char *value;                /* value of item */
+  char_t *value;              /* value of item */
   length_t len;               /* length of string representation of value */
 };
 typedef struct query_values VALUE;
@@ -1395,35 +1399,35 @@ struct defines {
   struct defines *next;
   int def_funkey;
   short def_command;
-  uchar *def_params;
-  uchar *synonym;
-  uchar *pcode;
+  char_t *def_params;
+  char_t *synonym;
+  char_t *pcode;
   int pcode_len;
-  uchar linend;
+  char_t linend;
 };
 typedef struct defines DEFINE;
 
 /* structure for window areas */
 struct window_areas {
-  char *area;                   /* window area - used for COLOUR command */
+  char_t *area;               /* window area - used for COLOUR command */
   short area_min_len;           /* min abbrev for area name */
   short area_window;            /* window where area is */
   bool actual_window;           /* TRUE if area is a window */
 };
 typedef struct window_areas AREAS;
 
-typedef short (ExtractFunction) (short, short, uchar *, uchar, line_t, uchar *, line_t);
+typedef short (ExtractFunction) (short, short, char_t *, char_t, line_t, char_t *, line_t);
 
 /* structure for query and implied extract */
 struct query_item {
-  uchar *name;                  /* name of item */
+  char_t *name;               /* name of item */
   short name_length;            /* length of function name */
   short min_len;                /* minimum length of abbreviation */
   short item_number;            /* unique number for item */
   short number_values;          /* number of values returned (from query/extract) */
   short item_values;            /* number of values this item can have (implied extract) (excludes 0th value ) */
   short level;                  /* level of item; global, file, view */
-  uchar query;                  /* valid query response ? */
+  char_t query;               /* valid query response ? */
   ExtractFunction *ext_func;    /* function that generates extract details */
 };
 typedef struct query_item QUERY_ITEM;

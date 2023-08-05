@@ -2,48 +2,46 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * Directory routines
- */
+/* Directory routines                                     */
 
 #include "the.h"
 #include "proto.h"
 
 #include <fnmatch.h>
 
-char* make_full(char* path, char* file) {
-  static char filebuf[BUFSIZ];
-  short pathlen = strlen(path);
+char_t *make_full(char_t *path, char_t *file) {
+  static char_t  filebuf[BUFSIZ];
+  short pathlen = strlen((char *) path);
 
-  if (pathlen + 1 + strlen(file) + 1 > BUFSIZ) {
+  if (pathlen + 1 + strlen((char *) file) + 1 > BUFSIZ) {
     return (NULL);
   }
-  if (!strcmp(path, "") || !strcmp(path, ".")) {
-    (void) strcpy(filebuf, file);
+  if (!strcmp((char *) path, "") || !strcmp((char *) path, ".")) {
+    (void) strcpy((char *) filebuf, (char *) file);
     return (filebuf);
   }
-  (void) strcpy(filebuf, path);
+  (void) strcpy((char *) filebuf, (char *) path);
   if (*(path + (pathlen - 1)) != ISLASH && *file != ISLASH) {
-    (void) strcat(filebuf, ISTR_SLASH);
+    (void) strcat((char *) filebuf, (char *) ISTR_SLASH);
   }
-  (void) strcat(filebuf, file);
+  (void) strcat((char *) filebuf, (char *) file);
   return (filebuf);
 }
 
-short getfiles(char* path, char* files, struct dirfile **dpfirst, struct dirfile **dplast) {
+short getfiles(char_t *path, char_t *files, struct dirfile **dpfirst, struct dirfile **dplast) {
   DIR *dirp = NULL;
   struct stat sp;
   struct dirent *direntp = NULL;
   struct dirfile *dp = NULL;
-  char* full_name = NULL;
+  char_t *full_name = NULL;
   short entries = 10;
   struct tm *timp = NULL;
 
-  dirp = opendir(path);
+  dirp = opendir((char *) path);
   if (dirp == NULL) {
     return (10);
   }
-  dp = *dpfirst = (struct dirfile *) malloc(entries * sizeof(struct dirfile));
+  dp = *dpfirst = (struct dirfile *) malloc (entries * sizeof(struct dirfile));
   if (dp == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
@@ -52,18 +50,18 @@ short getfiles(char* path, char* files, struct dirfile **dpfirst, struct dirfile
   *dplast = *dpfirst + entries;
 
   for (direntp = readdir(dirp); direntp != NULL; direntp = readdir(dirp)) {
-    if (fnmatch(files, direntp->d_name, 0) == 0) {
-      if ((full_name = make_full(path, direntp->d_name)) == NULL) {
+    if (fnmatch((char *) files, (char *) direntp->d_name, 0) == 0) {
+      if ((full_name = make_full(path, (char_t *) direntp->d_name)) == NULL) {
         return (RC_OUT_OF_MEMORY);
       }
-      if (lstat(full_name, &sp) != 0) {
+      if (lstat((char *) full_name, &sp) != 0) {
         continue;
       }
       dp->fname_length = strlen(direntp->d_name) + 1;
-      if ((dp->fname = (char*) malloc(dp->fname_length * sizeof(char))) == NULL) {
+      if ((dp->fname = (char_t *) malloc (dp->fname_length * sizeof(char_t))) == NULL) {
         return (RC_OUT_OF_MEMORY);
       }
-      strcpy(dp->fname, direntp->d_name);
+      strcpy((char *) dp->fname, direntp->d_name);
       dp->fattr = sp.st_mode;
       dp->facl = 0;
       timp = localtime(&(sp.st_mtime));
@@ -84,18 +82,18 @@ short getfiles(char* path, char* files, struct dirfile **dpfirst, struct dirfile
         char buf[MAX_FILE_NAME + 1];
         int rc = 0;
 
-        rc = readlink(full_name, buf, sizeof(buf));
+        rc = readlink((char *) full_name, buf, sizeof(buf));
         if (rc != (-1)) {
-          if ((dp->lname = (char*) malloc((rc + 1) * sizeof(char))) == NULL) {
+          if ((dp->lname = (char_t *) malloc ((rc + 1) * sizeof(char_t))) == NULL) {
             return (RC_OUT_OF_MEMORY);
           }
-          memcpy(dp->lname, buf, rc);
+          memcpy((char *) dp->lname, buf, rc);
           dp->lname[rc] = '\0';
         }
       }
       dp++;
       if (dp == *dplast) {
-        *dpfirst = (struct dirfile *) realloc((char*) * dpfirst, 2 * entries * sizeof(struct dirfile));
+        *dpfirst = (struct dirfile *) realloc ((char_t *) * dpfirst, 2 * entries * sizeof(struct dirfile));
         if (*dpfirst == NULL) {
           return (RC_OUT_OF_MEMORY);
         }
@@ -148,7 +146,7 @@ int time_compare(struct dirfile *first, struct dirfile *next) {
   return (0);
 }
 
-int date_comp(const void* in_first, const void* in_next) {
+int date_comp(const void *in_first, const void *in_next) {
   int rc = 0;
   struct dirfile *first = (struct dirfile *) in_first, *next = (struct dirfile *) in_next;
 
@@ -157,7 +155,7 @@ int date_comp(const void* in_first, const void* in_next) {
     rc = time_compare(first, next);
   }
   if (rc == 0) {
-    rc = strcmp(first->fname, next->fname);
+    rc = strcmp((char *) first->fname, (char *) next->fname);
   }
   if (rc == 0) {
     return (0);
@@ -168,13 +166,13 @@ int date_comp(const void* in_first, const void* in_next) {
   return (rc);
 }
 
-int time_comp(const void* in_first, const void* in_next) {
+int time_comp(const void *in_first, const void *in_next) {
   int rc = 0;
   struct dirfile *first = (struct dirfile *) in_first, *next = (struct dirfile *) in_next;
 
   rc = time_compare(first, next);
   if (rc == 0) {
-    rc = strcmp(first->fname, next->fname);
+    rc = strcmp((char *) first->fname, (char *) next->fname);
   }
   if (rc == 0) {
     return (0);
@@ -185,7 +183,7 @@ int time_comp(const void* in_first, const void* in_next) {
   return (rc);
 }
 
-int dir_comp(const void* in_first, const void* in_next) {
+int dir_comp(const void *in_first, const void *in_next) {
   int first_dir = 0;
   int next_dir = 0;
   int rc = 0;
@@ -200,7 +198,7 @@ int dir_comp(const void* in_first, const void* in_next) {
     rc = 1;
   }
   if (rc == 0) {
-    rc = strcmp(first->fname, next->fname);
+    rc = strcmp((char *) first->fname, (char *) next->fname);
   }
   if (rc == 0) {
     return (0);
@@ -211,19 +209,19 @@ int dir_comp(const void* in_first, const void* in_next) {
   return (rc);
 }
 
-int size_comp(const void* in_first, const void* in_next) {
+int size_comp(const void *in_first, const void *in_next) {
   int rc = 0;
   struct dirfile *first = (struct dirfile *) in_first, *next = (struct dirfile *) in_next;
 
   if (first->fsize > next->fsize) {
     rc = 1;
- }  else {
+  } else {
     if (first->fsize < next->fsize) {
       rc = -1;
     }
   }
   if (rc == 0) {
-    rc = strcmp(first->fname, next->fname);
+    rc = strcmp((char *) first->fname, (char *) next->fname);
   }
   if (rc == 0) {
     return (0);
@@ -234,11 +232,11 @@ int size_comp(const void* in_first, const void* in_next) {
   return (rc);
 }
 
-int name_comp(const void* in_first, const void* in_next) {
+int name_comp(const void *in_first, const void *in_next) {
   int rc = 0;
   struct dirfile *first = (struct dirfile *) in_first, *next = (struct dirfile *) in_next;
 
-  rc = strcmp(first->fname, next->fname);
+  rc = strcmp((char *) first->fname, (char *) next->fname);
   if (rc == 0) {
     return (0);
   }
@@ -248,18 +246,18 @@ int name_comp(const void* in_first, const void* in_next) {
   return (rc);
 }
 
-char* file_date(struct dirfile *date, char* str_date) {
-  static char* mon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-  sprintf(str_date, "%2d-%3.3s-%4.4d", date->f_dd, mon[(byte)date->f_mm], date->f_yy);
+char_t *file_date(struct dirfile *date, char_t *str_date) {
+  static char_t  *mon[12] = { (char_t *) "Jan", (char_t *) "Feb", (char_t *) "Mar", (char_t *) "Apr", (char_t *) "May", (char_t *) "Jun", (char_t *) "Jul", (char_t *) "Aug", (char_t *) "Sep", (char_t *) "Oct", (char_t *) "Nov", (char_t *) "Dec" };
+  sprintf((char *) str_date, "%2d-%3.3s-%4.4d", date->f_dd, mon[date->f_mm], date->f_yy);
   return (str_date);
 }
 
-char* file_time(struct dirfile *time, char* str_time) {
-  sprintf(str_time, "%2d:%2.2d", time->f_hh, time->f_mi);
+char_t *file_time(struct dirfile *time, char_t *str_time) {
+  sprintf((char *) str_time, "%2d:%2.2d", time->f_hh, time->f_mi);
   return (str_time);
 }
 
-char* file_attrs(mode_t attrs, char* str_attr, int facl) {
+char_t *file_attrs(mode_t attrs, char_t *str_attr, int facl) {
   mode_t ftype = attrs;
 
   str_attr[11] = '\0';
@@ -268,7 +266,6 @@ char* file_attrs(mode_t attrs, char* str_attr, int facl) {
     str_attr[10] = '+';
   }
   str_attr[0] = '-';
-
   if (S_ISDIR(ftype))  str_attr[0] = 'd';
   if (S_ISCHR(ftype))  str_attr[0] = 'c';
   if (S_ISBLK(ftype))  str_attr[0] = 'b';

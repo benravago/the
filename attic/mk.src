@@ -1,0 +1,40 @@
+#
+set -x
+
+rm -fr the-4.0
+unzip -q the4.zip ## from the-4.0.tar.gz
+
+find the-4.0/src -type f | while read fn; do
+  ./clip ${fn} '(?s)\/\*. \* THE - .*? \*\/' ''
+  ./clip ${fn} '(?s)\/\**man-start.*?\*man-end\**?\/' ''
+done
+
+rm -fr mod
+mkdir -p mod
+
+cat def.config def.extra def.curses > args
+
+coan spin \
+  --file args \
+  --eval-wip \
+  --dir mod \
+  --filter c,h \
+  --prefix ./the-4.0/src \
+  ./the-4.0/src
+
+rm -fr src
+mkdir -p src
+
+pushd mod
+find . -type f \
+  -exec indent -kr -bad -bap -sob -br -brf -ce -i2 -cli2 -nut -nhnl -l256 {} -o ../src/{} ';'
+popd
+
+sed '/^typedef char *DEFCHAR;/d' -i src/thedefs.h
+sed '/^# *define _THE_FAR/d' -i src/the.h
+find src -type f -exec sed -f def.sedit -i {} ';'
+  
+pushd src
+grep '#if' * | cut -d' ' -f2 | tr '()' '\n\n' | sort -u > ../ifs
+popd
+

@@ -1,37 +1,12 @@
-/* PARSER.C - Functions that involve syntax highlighting               */
-/*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2013 Mark Hessling
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling, mark@rexx.org  http://www.rexx.org/
- */
+// SPDX-FileCopyrightText: 2013 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
 
-#include <the.h>
-#include <proto.h>
+/* Functions that involve syntax highlighting               */
+
+#include "the.h"
+#include "proto.h"
+
 #include <fnmatch.h>
 
 #define STATE_START             0
@@ -61,6 +36,7 @@
 #define STATE_START_TAG        24
 #define STATE_END_TAG          25
 #define STATE_DIRECTORY        26
+#define STATE_ENV              27
 
 #define REXX_NUMBER_RE   "-?\\([0-9]+\\.\\|\\.?[0-9]\\)[0-9]*\\([eE][-+]?[0-9]+\\)?"
 #define COBOL_NUMBER_RE  "-?\\([0-9]+\\.\\|\\.?[0-9]\\)[0-9]*"
@@ -87,17 +63,18 @@ typedef struct {
   int type;
 } comment_loc;
 
-static int get_alternate(char_t * alt, char_t * alternate) {
+static int get_alternate(char_t *alt, char_t *alternate) {
   int rc = 0;
 
-  if (alt[0] >= '1' && alt[0] <= '9')
+  if (alt[0] >= '1' && alt[0] <= '9') {
     *alternate = alt[0] - '1' + 26;
-  else if (alt[0] >= 'a' && alt[0] <= 'z')
+  } else if (alt[0] >= 'a' && alt[0] <= 'z') {
     *alternate = alt[0] - 'a';
-  else if (alt[0] >= 'A' && alt[0] <= 'Z')
+  } else if (alt[0] >= 'A' && alt[0] <= 'Z') {
     *alternate = alt[0] - 'A';
-  else
+  } else {
     rc = 1;
+  }
   return rc;
 }
 
@@ -106,14 +83,13 @@ static int get_alternate(char_t * alt, char_t * alternate) {
  * Only look for delimiters if there is no syntax highlighting already
  * or the syntax highlighting is for an incomplete string
  */
-static long find_comment(char_t scrno, SHOW_LINE * scurr, FILE_DETAILS * fd, length_t start, length_t length, char_t * ptr, char_t * start_delim, char_t * end_delim, int *type) {
+static long find_comment(char_t scrno, SHOW_LINE *scurr, FILE_DETAILS *fd, length_t start, length_t length, char_t *ptr, char_t *start_delim, char_t *end_delim, int *type) {
   int i, j;
   char_t *ptr_start = start_delim, *ptr_end = end_delim;
   char_t ch1, ch2, ch3;
 
   for (i = start; i < length; i++) {
-    if (scurr->highlight_type[i] == THE_SYNTAX_NONE || scurr->highlight_type[i] == THE_SYNTAX_INCOMPLETESTRING || scurr->highlight_type[i] == THE_SYNTAX_COMMENT || scurr->highlight_type[i] == THE_SYNTAX_POSTCOMPARE
-        || scurr->highlight_type[i] == THE_SYNTAX_MARKUP) {
+    if (scurr->highlight_type[i] == THE_SYNTAX_NONE || scurr->highlight_type[i] == THE_SYNTAX_INCOMPLETESTRING || scurr->highlight_type[i] == THE_SYNTAX_COMMENT || scurr->highlight_type[i] == THE_SYNTAX_POSTCOMPARE || scurr->highlight_type[i] == THE_SYNTAX_MARKUP) {
       /* if the current syntax setting for the current character is NOT set, then we can test for a comment... */
       if (start_delim) {
         /*
@@ -139,8 +115,9 @@ static long find_comment(char_t scrno, SHOW_LINE * scurr, FILE_DETAILS * fd, len
               *type = STATE_START_TAG;
               return i;
             }
-            if (ch3 != ch2)
+            if (ch3 != ch2) {
               break;
+            }
             ptr_start++;
           }
         }
@@ -169,8 +146,9 @@ static long find_comment(char_t scrno, SHOW_LINE * scurr, FILE_DETAILS * fd, len
               *type = STATE_END_TAG;
               return i;
             }
-            if (ch3 != ch2)
+            if (ch3 != ch2) {
               break;
+            }
             ptr_end++;
           }
         }
@@ -180,7 +158,7 @@ static long find_comment(char_t scrno, SHOW_LINE * scurr, FILE_DETAILS * fd, len
   return -1;
 }
 
-static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static long find_line_comments(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   PARSE_COMMENTS *curr = fd->parser->first_comments;
   length_t i, pos = 0, len = scurr->length;
   char_t *ptr;
@@ -189,11 +167,13 @@ static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
 
   for (; curr != NULL; curr = curr->next) {
     /* this loop is executed for each defined single line comment */
-    if (!curr->line_comment)
+    if (!curr->line_comment) {
       continue;
+    }
     ptr = curr->start_delim;
     state = STATE_START;
     switch (curr->column) {
+
       case 0:                  /* 'any' column */
         for (i = 0; i < len; i++) {
           if (scurr->highlight_type[i] == THE_SYNTAX_NONE) {
@@ -206,6 +186,7 @@ static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
               ch2 = tolower(*ptr);
             }
             switch (state) {
+
               case STATE_START:
                 if (ch1 == ch2) {
                   state = STATE_COMMENT;
@@ -214,6 +195,7 @@ static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
                   break;
                 }
                 break;
+
               case STATE_COMMENT:
                 if (ch2 == '\0') {
                   state = STATE_MATCH;
@@ -227,14 +209,16 @@ static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
                 ptr++;
                 break;
             }
-            if (state == STATE_MATCH)
+            if (state == STATE_MATCH) {
               break;
+            }
           }
         }
         if (state == STATE_MATCH || (state == STATE_COMMENT && *ptr == '\0')) {
           return (long) pos;
         }
         break;
+
       case MAX_INT:            /* 'firstnonblank' */
         for (i = 0; i < len; i++) {
           if (scurr->highlight_type[i] == THE_SYNTAX_NONE) {
@@ -247,16 +231,19 @@ static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
               ch2 = tolower(*ptr);
             }
             switch (state) {
+
               case STATE_START:
                 if (ch1 != THE_CHAR_SPACE) {
                   if (ch1 == ch2) {
                     state = STATE_COMMENT;
                     pos = i;
                     ptr++;
-                  } else
+                  } else {
                     state = STATE_IGNORE;
+                  }
                 }
                 break;
+
               case STATE_COMMENT:
                 if (ch1 == ch2) {
                   ptr++;
@@ -269,14 +256,16 @@ static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
                 state = STATE_IGNORE;
                 break;
             }
-            if (state == STATE_MATCH || state == STATE_IGNORE)
+            if (state == STATE_MATCH || state == STATE_IGNORE) {
               break;
+            }
           }
         }
         if (state == STATE_MATCH || (state == STATE_COMMENT && *ptr == '\0')) {
           return (long) pos;
         }
         break;
+
       default:                 /* specific column */
         for (i = curr->column; i < len; i++) {
           if (scurr->highlight_type[i] == THE_SYNTAX_NONE) {
@@ -291,8 +280,9 @@ static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
             if (ch2 == '\0') {
               return (long) curr->column;
             }
-            if (ch2 != ch1)
+            if (ch2 != ch1) {
               break;
+            }
             ptr++;
           }
         }
@@ -302,19 +292,19 @@ static long find_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
   return -1L;
 }
 
-static short parse_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_line_comments(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   length_t i, len = scurr->length;
   length_t vcol = SCREEN_VIEW(scrno)->verify_col - 1;
   long start_line_comment = -1;
   chtype comment_colour;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     comment_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_COMMENTS);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     comment_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_COMMENTS);
-  else
+  } else {
     comment_colour = set_colour(fd->ecolour + ECOLOUR_COMMENTS);
-
+  }
   start_line_comment = find_line_comments(scrno, fd, scurr);
   if (start_line_comment != -1) {
     for (i = start_line_comment; i < len; i++) {
@@ -334,7 +324,7 @@ static short parse_line_comments(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * sc
 /*
  * Sets the starting location to search for the next paired comment delimiter
  */
-static int reset_paired_comments_locations(char_t scrno, FILE_DETAILS * fd, comment_loc * locations, int type) {
+static int reset_paired_comments_locations(char_t scrno, FILE_DETAILS *fd, comment_loc *locations, int type) {
   length_t col;
   int row;
   SHOW_LINE *scurr;
@@ -371,7 +361,7 @@ static int reset_paired_comments_locations(char_t scrno, FILE_DETAILS * fd, comm
  * Using the location of the start and end of the paired comments, set the syntax highlighting to all
  * characters within that range
  */
-static int set_paired_comments(char_t scrno, FILE_DETAILS * fd, comment_loc * locations) {
+static int set_paired_comments(char_t scrno, FILE_DETAILS *fd, comment_loc *locations) {
   int i;
   length_t start, end, j;
   SHOW_LINE *scurr;
@@ -384,12 +374,13 @@ static int set_paired_comments(char_t scrno, FILE_DETAILS * fd, comment_loc * lo
       /*
        * Only test if this is a valid line
        */
-      if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+      if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
         comment_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_COMMENTS);
-      else if (scurr->is_current_line)
+      } else if (scurr->is_current_line) {
         comment_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_COMMENTS);
-      else
+      } else {
         comment_colour = set_colour(fd->ecolour + ECOLOUR_COMMENTS);
+      }
       /*
        * Determine the columns affected
        */
@@ -425,7 +416,7 @@ static int set_paired_comments(char_t scrno, FILE_DETAILS * fd, comment_loc * lo
  * Based on the supplied starting location, look for a paired comment delimiter from the
  * current location to the end of the displayed portion of the file
  */
-static int find_paired_comment_delim(char_t scrno, FILE_DETAILS * fd, int state, comment_loc * locations, char_t * start_delim, char_t * end_delim) {
+static int find_paired_comment_delim(char_t scrno, FILE_DETAILS *fd, int state, comment_loc *locations, char_t *start_delim, char_t *end_delim) {
   char_t *starter = NULL, *ender = NULL;
   length_t i;
   long pos = 0;
@@ -447,11 +438,11 @@ static int find_paired_comment_delim(char_t scrno, FILE_DETAILS * fd, int state,
    * When found, set ??? and return STATE_END_TAG or STATE_START_TAG (depending on what was found)
    * Otherwise return STATE_IGNORE
    */
-  if (state == STATE_START_TAG)
+  if (state == STATE_START_TAG) {
     starter = start_delim;
-  else if (state == STATE_END_TAG)
+  } else if (state == STATE_END_TAG) {
     ender = end_delim;
-  else {
+  } else {
     starter = start_delim;
     ender = end_delim;
   }
@@ -484,7 +475,7 @@ static int find_paired_comment_delim(char_t scrno, FILE_DETAILS * fd, int state,
   return STATE_IGNORE;
 }
 
-short parse_paired_comments(char_t scrno, FILE_DETAILS * fd) {
+short parse_paired_comments(char_t scrno, FILE_DETAILS *fd) {
   PARSE_COMMENTS *curr_comments = fd->parser->first_comments;
   int type = 0;
   comment_loc locations;
@@ -510,18 +501,18 @@ short parse_paired_comments(char_t scrno, FILE_DETAILS * fd) {
    *
    * Repeat the above until we have parsed every line in the view
    */
-  /*
-   * Find the specified line comments
-   */
+  // Find the specified line comments
   for (; curr_comments != NULL; curr_comments = curr_comments->next) {
-    if (curr_comments->line_comment)
+    if (curr_comments->line_comment) {
       continue;
+    }
     type = STATE_START;
     memset(&locations, 0, sizeof(locations));
     for (;;) {
       type = find_paired_comment_delim(scrno, fd, type, &locations, curr_comments->start_delim, curr_comments->end_delim);
-      if (type == STATE_IGNORE) /* no more comment delimiters */
+      if (type == STATE_IGNORE) { /* no more comment delimiters */
         break;
+      }
       if (type == STATE_START_TAG) {
         /*
          * Reset locations struct to start searching from start delimiter
@@ -565,11 +556,10 @@ short parse_paired_comments(char_t scrno, FILE_DETAILS * fd) {
       }
     }
   }
-
   return RC_OK;
 }
 
-static short parse_strings(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_strings(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   int i;
   length_t first_quote, len = scurr->length;
   length_t vcol, off = 0;
@@ -595,21 +585,27 @@ static short parse_strings(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
     incomplete_string_colour = set_colour(fd->ecolour + ECOLOUR_INC_STRING);
   }
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
-  if (fd->parser->check_single_quote)
+  if (fd->parser->check_single_quote) {
     check_single_quote = TRUE;
-  if (fd->parser->check_double_quote)
+  }
+  if (fd->parser->check_double_quote) {
     check_double_quote = TRUE;
-  if (fd->parser->backslash_single_quote)
+  }
+  if (fd->parser->backslash_single_quote) {
     backslash_single_quote = TRUE;
-  if (fd->parser->backslash_double_quote)
+  }
+  if (fd->parser->backslash_double_quote) {
     backslash_double_quote = TRUE;
+  }
   if (check_single_quote || check_double_quote) {
     first_quote = len + 1;
     state = STATE_START;
     for (i = 0; i < len; i++) {
-      if (i >= vcol)
+      if (i >= vcol) {
         off = i - vcol;
+      }
       switch (state) {
+
         case STATE_START:
           if (work[i] == single_quote && check_single_quote) {
             state = STATE_SINGLE_QUOTE;
@@ -646,6 +642,7 @@ static short parse_strings(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
             break;
           }
           break;
+
         case STATE_SINGLE_QUOTE:
           if (work[i] == backslash) {
             if (backslash_single_quote) {
@@ -667,6 +664,7 @@ static short parse_strings(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
             work[i] = THE_CHAR_SPACE;
           }
           break;
+
         case STATE_DOUBLE_QUOTE:
           if (work[i] == backslash) {
             if (backslash_double_quote) {
@@ -688,6 +686,7 @@ static short parse_strings(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
             work[i] = THE_CHAR_SPACE;
           }
           break;
+
         default:
           break;
       }
@@ -704,7 +703,7 @@ static short parse_strings(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   return RC_OK;
 }
 
-static short parse_delimiters(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, char_t * start, char_t * end, chtype colour, char_t highlight_type) {
+static short parse_delimiters(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr, char_t *start, char_t *end, chtype colour, char_t highlight_type) {
   int i, j, state;
   length_t len = scurr->length, pos = 0, len_plus_one;
   length_t vcol;
@@ -715,6 +714,7 @@ static short parse_delimiters(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
   len_plus_one = len + 1;
   for (i = 0; i < len_plus_one; i++) {
     switch (state) {
+
       case STATE_START:
         if (work[i] == *ptr_start) {
           state = STATE_START_TAG;
@@ -723,6 +723,7 @@ static short parse_delimiters(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
           break;
         }
         break;
+
       case STATE_START_TAG:
         if (*ptr_start == '\0') {
           state = STATE_MATCH;
@@ -737,6 +738,7 @@ static short parse_delimiters(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
         }
         ptr_start++;
         break;
+
       case STATE_MATCH:        /* now look for end delim */
         if (work[i] == *ptr_end) {
           state = STATE_END_TAG;
@@ -744,6 +746,7 @@ static short parse_delimiters(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
           break;
         }
         break;
+
       case STATE_END_TAG:
         if (*ptr_end == '\0') {
           /*
@@ -763,8 +766,9 @@ static short parse_delimiters(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
             pos = i;
             ptr_start++;
             state = STATE_START_TAG;
-          } else
+          } else {
             state = STATE_START;
+          }
           break;
         }
         if (work[i] != *ptr_end) {
@@ -779,34 +783,37 @@ static short parse_delimiters(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr
   return RC_OK;
 }
 
-static short parse_markup_tag(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_markup_tag(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   chtype colour;
   short rc;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_HTML_TAG);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_HTML_TAG);
-  else
+  } else {
     colour = set_colour(fd->ecolour + ECOLOUR_HTML_TAG);
+  }
   rc = parse_delimiters(scrno, fd, scurr, fd->parser->markup_tag_start_delim, fd->parser->markup_tag_end_delim, colour, THE_SYNTAX_MARKUP);
   return rc;
 }
 
-static short parse_markup_reference(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_markup_reference(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   chtype colour;
   short rc;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_HTML_CHAR);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_HTML_CHAR);
-  else
+  } else {
     colour = set_colour(fd->ecolour + ECOLOUR_HTML_CHAR);
+  }
   rc = parse_delimiters(scrno, fd, scurr, fd->parser->markup_reference_start_delim, fd->parser->markup_reference_end_delim, colour, THE_SYNTAX_MARKUP);
   return rc;
 }
-static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+
+static short parse_headers(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   PARSE_HEADERS *curr = fd->parser->first_header;
   length_t i, j, k, vcol, pos = 0, len = scurr->length;
   char_t *ptr;
@@ -814,27 +821,30 @@ static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   bool found = FALSE;
   chtype header_colour, original_header_colour;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     original_header_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_HEADER);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     original_header_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_HEADER);
-  else
+  } else {
     original_header_colour = set_colour(fd->ecolour + ECOLOUR_HEADER);
-
+  }
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
   for (; curr != NULL; curr = curr->next) {
     if (curr->alternate != 255) {       /* was an alternate colour specified for this header */
-      if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+      if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
         header_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + curr->alternate);
-      else if (scurr->is_current_line)
+      } else if (scurr->is_current_line) {
         header_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + curr->alternate);
-      else
+      } else {
         header_colour = set_colour(fd->ecolour + curr->alternate);
-    } else
+      }
+    } else {
       header_colour = original_header_colour;
+    }
     ptr = curr->header_delim;
     state = STATE_START;
     switch (curr->header_column) {
+
       case 0:                  /* 'any' column */
         for (i = 0; i < len; i++) {
           /*
@@ -846,6 +856,7 @@ static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
             continue;
           }
           switch (state) {
+
             case STATE_START:
               if (work[i] == *ptr) {
                 state = STATE_HEADER;
@@ -854,6 +865,7 @@ static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
                 break;
               }
               break;
+
             case STATE_HEADER:
               if (*ptr == '\0') {
                 state = STATE_MATCH;
@@ -867,8 +879,9 @@ static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
               ptr++;
               break;
           }
-          if (state == STATE_MATCH)
+          if (state == STATE_MATCH) {
             break;
+          }
         }
         if (state == STATE_MATCH || (state == STATE_HEADER && *ptr == '\0')) {
           for (i = pos; i < len; i++) {
@@ -884,19 +897,23 @@ static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
           found = TRUE;
         }
         break;
+
       case MAX_INT:            /* 'firstnonblank' */
         for (i = 0; i < len; i++) {
           switch (state) {
+
             case STATE_START:
               if (work[i] != THE_CHAR_SPACE) {
                 if (work[i] == *ptr) {
                   state = STATE_HEADER;
                   pos = i;
                   ptr++;
-                } else
+                } else {
                   state = STATE_IGNORE;
+                }
               }
               break;
+
             case STATE_HEADER:
               if (work[i] == *ptr) {
                 ptr++;
@@ -909,8 +926,9 @@ static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
               state = STATE_IGNORE;
               break;
           }
-          if (state == STATE_MATCH || state == STATE_IGNORE)
+          if (state == STATE_MATCH || state == STATE_IGNORE) {
             break;
+          }
         }
         if (state == STATE_MATCH || (state == STATE_HEADER && *ptr == '\0')) {
           for (i = pos; i < len; i++) {
@@ -926,6 +944,7 @@ static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
           found = TRUE;
         }
         break;
+
       default:                 /* specific column */
         for (i = curr->header_column - 1, j = 0; i < len; i++, j++, ptr++) {
           if (*ptr == '\0') {
@@ -942,30 +961,33 @@ static short parse_headers(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
             found = TRUE;
             break;
           }
-          if (*ptr != work[i])
+          if (*ptr != work[i]) {
             break;
+          }
         }
         break;
     }
-    if (found)
+    if (found) {
       break;
+    }
   }
   return RC_OK;
 }
-static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+
+static short parse_labels(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   length_t vcol, pos = 0, end = 0, len = scurr->length, len_label;
   long i, j, k;
   char_t *ptr;
   int state;
   chtype label_colour;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     label_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_LABEL);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     label_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_LABEL);
-  else
+  } else {
     label_colour = set_colour(fd->ecolour + ECOLOUR_LABEL);
-
+  }
   len_label = fd->parser->len_label_delim;
   ptr = fd->parser->label_delim;
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
@@ -992,6 +1014,7 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
      */
     state = STATE_START;
     switch (fd->parser->label_column) {
+
       case 0:                  /* 'any' column */
         for (i = 0; i < len; i++) {
           /*
@@ -1002,6 +1025,7 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
             continue;
           }
           switch (state) {
+
             case STATE_START:
               if (work[i] == *ptr) {
                 state = STATE_LABEL;
@@ -1010,6 +1034,7 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
                 break;
               }
               break;
+
             case STATE_LABEL:
               if (*ptr == '\0') {
                 state = STATE_MATCH;
@@ -1023,8 +1048,9 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
               ptr++;
               break;
           }
-          if (state == STATE_MATCH)
+          if (state == STATE_MATCH) {
             break;
+          }
         }
         if (state == STATE_MATCH || (state == STATE_LABEL && *ptr == '\0')) {
           for (i = pos; i > -1; i--) {
@@ -1039,6 +1065,7 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
           }
         }
         break;
+
         /*
          * firstnonblank
          * the first word on the line must end with the specified
@@ -1054,12 +1081,14 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
         end = len;
         for (i = 0; i < len; i++) {
           switch (state) {
+
             case STATE_START:
               if (work[i] != THE_CHAR_SPACE) {
                 state = STATE_LABEL;
                 pos = i;
               }
               break;
+
             case STATE_LABEL:
               if (work[i] == THE_CHAR_SPACE) {
                 state = STATE_IGNORE;
@@ -1068,6 +1097,7 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
                 ptr++;
               }
               break;
+
             case STATE_DELIMITER:
               if (*ptr == '\0') {
                 end = i;
@@ -1081,8 +1111,9 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
               state = STATE_IGNORE;
               break;
           }
-          if (state == STATE_MATCH || state == STATE_IGNORE)
+          if (state == STATE_MATCH || state == STATE_IGNORE) {
             break;
+          }
         }
         if (state == STATE_MATCH || (state == STATE_DELIMITER && *ptr == '\0')) {
           for (i = pos; i < end; i++) {
@@ -1098,6 +1129,7 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
           }
         }
         break;
+
       default:                 /* specific column */
         for (i = fd->parser->label_column - 1, j = 0; i < len; i++, j++, ptr++) {
           if (*ptr == '\0') {
@@ -1113,8 +1145,9 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
             }
             break;
           }
-          if (*ptr != work[i])
+          if (*ptr != work[i]) {
             break;
+          }
         }
         break;
     }
@@ -1122,7 +1155,7 @@ static short parse_labels(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   return RC_OK;
 }
 
-static short parse_match(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_match(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   int i;
   length_t len = scurr->length;
   length_t vcol, off = 0;
@@ -1132,17 +1165,18 @@ static short parse_match(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
    * This is incomplete. It needs to determine the level of bracket
    * matching and to check multiple lines.
    */
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     paren_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_LEVEL_1_PAREN);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     paren_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_LEVEL_1_PAREN);
-  else
+  } else {
     paren_colour = set_colour(fd->ecolour + ECOLOUR_LEVEL_1_PAREN);
-
+  }
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
   for (i = 0; i < len; i++) {
-    if (i >= vcol)
+    if (i >= vcol) {
       off = i - vcol;
+    }
     if (work[i] == '(' || work[i] == ')' || work[i] == '[' || work[i] == ']' || work[i] == '{' || work[i] == '}') {
       if (i >= vcol && off < THE_MAX_SCREEN_WIDTH) {
         scurr->highlighting[off] = paren_colour;
@@ -1154,7 +1188,8 @@ static short parse_match(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
   }
   return RC_OK;
 }
-static short parse_directory(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+
+static short parse_directory(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   PARSE_EXTENSION *curr;
   length_t i, vcol, len = scurr->length, start;
   bool found = FALSE;
@@ -1162,7 +1197,6 @@ static short parse_directory(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
   char_t alternate, type;
 
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
-
   /*
    * Check directory, link, extensions, then executable
    */
@@ -1245,12 +1279,13 @@ static short parse_directory(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
    * Set the ECOLOUR
    */
   if (found) {
-    if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+    if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
       directory_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + alternate);
-    else if (scurr->is_current_line)
+    } else if (scurr->is_current_line) {
       directory_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + alternate);
-    else
+    } else {
       directory_colour = set_colour(fd->ecolour + alternate);
+    }
     /*
      * Change the line colours
      */
@@ -1277,22 +1312,21 @@ static int match(regex_t *preg, char *string, int size) {
   return -1;
 }
 
-static short parse_postcompare(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_postcompare(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   PARSE_POSTCOMPARE *curr;
   length_t i, j, vcol, len = scurr->length;
   bool found_for_column, individual_found;
   chtype postcompare_colour, original_postcompare_colour;
   long re_len;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     original_postcompare_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_KEYWORDS);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     original_postcompare_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_KEYWORDS);
-  else
+  } else {
     original_postcompare_colour = set_colour(fd->ecolour + ECOLOUR_KEYWORDS);
-
+  }
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
-
   for (i = 0; i < len;) {
     /*
      * For the most common non-relevant character; ' ' check it
@@ -1307,7 +1341,7 @@ static short parse_postcompare(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
       individual_found = FALSE;
       if (curr->is_class_type == TRUE) {
         /* CLASS TYPE */
-        re_len = match(&curr->pattern, (char *) work + i, len - i);
+        re_len = match (&curr->pattern_buffer, (char *) work + i, len - i);
         if (re_len > 0) {
           individual_found = TRUE;
         }
@@ -1320,14 +1354,16 @@ static short parse_postcompare(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
       }
       if (individual_found) {
         if (curr->alternate != 255) {   /* was an alternate colour specified for this postcompare */
-          if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+          if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
             postcompare_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + curr->alternate);
-          else if (scurr->is_current_line)
+          } else if (scurr->is_current_line) {
             postcompare_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + curr->alternate);
-          else
+          } else {
             postcompare_colour = set_colour(fd->ecolour + curr->alternate);
-        } else
+          }
+        } else {
           postcompare_colour = original_postcompare_colour;
+        }
         for (j = 0; j < re_len; j++, i++) {
           if (work[i] != THE_CHAR_SPACE) {
             if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
@@ -1341,36 +1377,37 @@ static short parse_postcompare(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scur
         found_for_column = TRUE;
       }
     }
-    if (!found_for_column)
+    if (!found_for_column) {
       i++;
+    }
   }
-
   return RC_OK;
 }
 
-static short parse_columns(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_columns(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   length_t i, j, vcol, len = scurr->length;
   chtype column_colour, original_column_colour;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     original_column_colour = set_colour(fd->attr + ATTR_CURSORLINE);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     original_column_colour = set_colour(fd->attr + ATTR_CURLINE);
-  else
+  } else {
     original_column_colour = set_colour(fd->attr + ATTR_FILEAREA);
-
+  }
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
-
   for (i = 0; i < fd->parser->number_columns; i++) {
     if (fd->parser->column_alternate[i] != 255) {       /* was an alternate colour specified for this column */
-      if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+      if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
         column_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + fd->parser->column_alternate[i]);
-      else if (scurr->is_current_line)
+      } else if (scurr->is_current_line) {
         column_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + fd->parser->column_alternate[i]);
-      else
+      } else {
         column_colour = set_colour(fd->ecolour + fd->parser->column_alternate[i]);
-    } else
+      }
+    } else {
       column_colour = original_column_colour;
+    }
     for (j = fd->parser->first_column[i] - 1; j < len && j < fd->parser->last_column[i]; j++) {
       if (j >= vcol && j - vcol < THE_MAX_SCREEN_WIDTH) {
         scurr->highlighting[j - vcol] = column_colour;
@@ -1380,11 +1417,10 @@ static short parse_columns(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
       number_blanks++;
     }
   }
-
   return RC_OK;
 }
 
-short find_preprocessor(FILE_DETAILS * fd, char_t * word, int len, int *alternate_colour) {
+short find_preprocessor(FILE_DETAILS *fd, char_t *word, int len, int *alternate_colour) {
   PARSE_KEYWORDS *curr = fd->parser->first_keyword;
   char_t preprocessor_char = fd->parser->preprocessor_char;
   bool found;
@@ -1394,11 +1430,13 @@ short find_preprocessor(FILE_DETAILS * fd, char_t * word, int len, int *alternat
       found = FALSE;
       if (*(curr->keyword) == preprocessor_char) {
         if (fd->parser->case_sensitive) {
-          if (memcmp(word, curr->keyword + 1, len) == 0)
+          if (memcmp(word, curr->keyword + 1, len) == 0) {
             found = TRUE;
+          }
         } else {
-          if (memcmpi(word, curr->keyword + 1, len) == 0)
+          if (memcmpi(word, curr->keyword + 1, len) == 0) {
             found = TRUE;
+          }
         }
       }
       if (found) {
@@ -1409,18 +1447,21 @@ short find_preprocessor(FILE_DETAILS * fd, char_t * word, int len, int *alternat
   }
   return 0;
 }
-bool find_keyword(FILE_DETAILS * fd, char_t * word, int len, int *alternate_colour) {
+
+bool find_keyword(FILE_DETAILS *fd, char_t *word, int len, int *alternate_colour) {
   PARSE_KEYWORDS *curr = fd->parser->first_keyword;
   bool found = FALSE;
 
   for (; curr != NULL; curr = curr->next) {
     if (len == curr->keyword_length) {
       if (fd->parser->case_sensitive) {
-        if (memcmp(word, curr->keyword, len) == 0)
+        if (memcmp(word, curr->keyword, len) == 0) {
           found = TRUE;
+        }
       } else {
-        if (memcmpi(word, curr->keyword, len) == 0)
+        if (memcmpi(word, curr->keyword, len) == 0) {
           found = TRUE;
+        }
       }
       if (found) {
         *alternate_colour = curr->alternate;
@@ -1430,7 +1471,8 @@ bool find_keyword(FILE_DETAILS * fd, char_t * word, int len, int *alternate_colo
   }
   return found;
 }
-static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+
+static short parse_keywords(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   int i, j, alt = 0;
   length_t len = scurr->length;
   length_t vcol;
@@ -1448,7 +1490,6 @@ static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) 
     original_keyword_colour = set_colour(fd->ecolour + ECOLOUR_KEYWORDS);
     number_colour = set_colour(fd->ecolour + ECOLOUR_NUMBERS);
   }
-
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
   for (i = 0; i < len;) {
     /*
@@ -1461,13 +1502,13 @@ static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) 
       /*
        * Find an identfier
        */
-      re_len = match(&fd->parser->body_pattern, (char *) work + i, len - i);
+      re_len = match (&fd->parser->body_pattern_buffer, (char *) work + i, len - i);
       if (re_len < 0) {
         /*
          * No identifier, is it a number ??
          */
-        if (fd->parser->have_number_pattern && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
-          re_len = match(&fd->parser->number_pattern, (char *) work + i, len - i);
+        if (fd->parser->have_number_pattern_buffer && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
+          re_len = match (&fd->parser->number_pattern_buffer, (char *) work + i, len - i);
           if (re_len > 0) {
             for (j = 0; j < re_len; j++, i++) {
               if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
@@ -1489,22 +1530,25 @@ static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) 
         /*
          * We now have a match of an identifier; see if its a keyword
          */
-        if (work[i + re_len - 1] == THE_CHAR_SPACE)     /* bug in regex()! */
+        if (work[i + re_len - 1] == THE_CHAR_SPACE) {   /* bug in regex()! */
           re_len--;
+        }
         save_re_len = re_len;
         if (find_keyword(fd, work + i, re_len, &alt)) {
           /*
            * Have found a matching keyword...
            */
           if (alt != 255) {     /* was an alternate colour specified for this keyword */
-            if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+            if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
               keyword_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + alt);
-            else if (scurr->is_current_line)
+            } else if (scurr->is_current_line) {
               keyword_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + alt);
-            else
+            } else {
               keyword_colour = set_colour(fd->ecolour + alt);
-          } else
+            }
+          } else {
             keyword_colour = original_keyword_colour;
+          }
           for (j = 0; j < re_len; j++, i++) {
             if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
               scurr->highlighting[i - vcol] = keyword_colour;
@@ -1520,8 +1564,8 @@ static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) 
            * from the line so it can no longer match any further
            * token types.
            */
-          if (fd->parser->have_number_pattern && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
-            re_len = match(&fd->parser->number_pattern, (char *) work + i, len - i);
+          if (fd->parser->have_number_pattern_buffer && CURRENT_VIEW->syntax_headers & HEADER_NUMBER) {
+            re_len = match (&fd->parser->number_pattern_buffer, (char *) work + i, len - i);
             if (re_len > 0) {
               for (j = 0; j < re_len; j++, i++) {
                 if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
@@ -1556,18 +1600,20 @@ static short parse_keywords(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) 
   return RC_OK;
 }
 
-bool find_function(FILE_DETAILS * fd, char_t * word, int len, int *alternate_colour) {
+bool find_function(FILE_DETAILS *fd, char_t *word, int len, int *alternate_colour) {
   PARSE_FUNCTIONS *curr = fd->parser->first_function;
   bool found = FALSE;
 
   for (; curr != NULL; curr = curr->next) {
     if (len == curr->function_length) {
       if (fd->parser->case_sensitive) {
-        if (memcmp(word, curr->function, len) == 0)
+        if (memcmp(word, curr->function, len) == 0) {
           found = TRUE;
+        }
       } else {
-        if (memcmpi(word, curr->function, len) == 0)
+        if (memcmpi(word, curr->function, len) == 0) {
           found = TRUE;
+        }
       }
       if (found) {
         *alternate_colour = curr->alternate;
@@ -1578,7 +1624,7 @@ bool find_function(FILE_DETAILS * fd, char_t * word, int len, int *alternate_col
   return found;
 }
 
-static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_functions(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   int i, j, alt = 0;
   length_t len = scurr->length;
   length_t vcol, function_len;
@@ -1587,13 +1633,13 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
   char_t *word = NULL;
   int k, word_start, word_end, state;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     original_function_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_FUNCTIONS);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     original_function_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_FUNCTIONS);
-  else
+  } else {
     original_function_colour = set_colour(fd->ecolour + ECOLOUR_FUNCTIONS);
-
+  }
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
   for (i = 0; i < len;) {
     /*
@@ -1606,7 +1652,7 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
       /*
        * We have an indentfier
        */
-      re_len = match(&fd->parser->function_pattern, (char *) work + i, len - i);
+      re_len = match (&fd->parser->function_pattern_buffer, (char *) work + i, len - i);
       if (re_len < 0) {
         /*
          * If we have the option REXX setting, then the identifier
@@ -1616,7 +1662,7 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
          * the possible function.
          */
         if (fd->parser->rexx_option) {
-          re_len = match(&fd->parser->body_pattern, (char *) work + i, len - i);
+          re_len = match (&fd->parser->body_pattern_buffer, (char *) work + i, len - i);
           if (re_len < 0) {
             /*
              * No identifier found, try the next char...
@@ -1630,12 +1676,14 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
              */
             for (word_start = 0, word_end = 0, state = STATE_START, k = i - 1; k > -1; k--) {
               switch (state) {
+
                 case STATE_START:
                   if (work[k] != THE_CHAR_SPACE) {
                     state = STATE_START_TAG;
                     word_end = k;
                   }
                   break;
+
                 case STATE_START_TAG:
                   if (work[k] == THE_CHAR_SPACE) {
                     state = STATE_END_TAG;
@@ -1653,23 +1701,25 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
                * incorrectly.
                */
               chtype keyword_colour, original_keyword_colour;
-
-              if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+              if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
                 original_keyword_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_KEYWORDS);
-              else if (scurr->is_current_line)
+              } else if (scurr->is_current_line) {
                 original_keyword_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_KEYWORDS);
-              else
+              } else {
                 original_keyword_colour = set_colour(fd->ecolour + ECOLOUR_KEYWORDS);
+              }
               if (find_keyword(fd, (char_t *) "call", 4, &alt)) {
                 if (alt != 255) {       /* was an alternate colour specified for this keyword */
-                  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+                  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
                     keyword_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + alt);
-                  else if (scurr->is_current_line)
+                  } else if (scurr->is_current_line) {
                     keyword_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + alt);
-                  else
+                  } else {
                     keyword_colour = set_colour(fd->ecolour + alt);
-                } else
+                  }
+                } else {
                   keyword_colour = original_keyword_colour;
+                }
                 for (j = 0; j < 4; j++) {
                   if (word_start + j >= vcol && (word_start + j) - vcol < THE_MAX_SCREEN_WIDTH) {
                     scurr->highlighting[(word_start + j) - vcol] = keyword_colour;
@@ -1710,14 +1760,16 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
       }
       if (find_function(fd, work + i, function_len, &alt)) {
         if (alt != 255) {       /* was an alternate colour specified for this keyword */
-          if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+          if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
             function_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + alt);
-          else if (scurr->is_current_line)
+          } else if (scurr->is_current_line) {
             function_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + alt);
-          else
+          } else {
             function_colour = set_colour(fd->ecolour + alt);
-        } else
+          }
+        } else {
           function_colour = original_function_colour;
+        }
         for (j = 0; j < function_len; j++, i++) {
           if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
             scurr->highlighting[i - vcol] = function_colour;
@@ -1740,12 +1792,13 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
            */
           if (!find_keyword(fd, work + i, function_len, &alt)) {
             alt = fd->parser->function_option_alternate;
-            if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+            if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
               function_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + alt);
-            else if (scurr->is_current_line)
+            } else if (scurr->is_current_line) {
               function_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + alt);
-            else
+            } else {
               function_colour = set_colour(fd->ecolour + alt);
+            }
             for (j = 0; j < function_len; j++, i++) {
               if (i >= vcol && i - vcol < THE_MAX_SCREEN_WIDTH) {
                 scurr->highlighting[i - vcol] = function_colour;
@@ -1768,28 +1821,30 @@ static short parse_functions(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr)
   return RC_OK;
 }
 
-static short parse_preprocessor(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr) {
+static short parse_preprocessor(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr) {
   int i, j, k, len_plus_one, state, alt = 0;
   length_t len = scurr->length, preprocessor_char_start_pos = 0;
   length_t vcol, keyword_length, keyword_start_pos = 0, re_len;
   chtype keyword_colour, original_keyword_colour;
   char_t *word = NULL;
 
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     original_keyword_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + ECOLOUR_PREDIR);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     original_keyword_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + ECOLOUR_PREDIR);
-  else
+  } else {
     original_keyword_colour = set_colour(fd->ecolour + ECOLOUR_PREDIR);
-
+  }
   state = STATE_START;
   vcol = SCREEN_VIEW(scrno)->verify_col - 1;
   len_plus_one = len + 1;
   for (i = 0; i < len_plus_one; i++) {
     switch (state) {
+
       case STATE_START:
-        if (work[i] == THE_CHAR_SPACE)
+        if (work[i] == THE_CHAR_SPACE) {
           break;
+        }
         if (work[i] == fd->parser->preprocessor_char) {
           preprocessor_char_start_pos = i;
           state = STATE_OPTION;
@@ -1797,13 +1852,16 @@ static short parse_preprocessor(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scu
         }
         state = STATE_IGNORE;
         break;
+
       case STATE_OPTION:
-        if (work[i] == THE_CHAR_SPACE)
+        if (work[i] == THE_CHAR_SPACE) {
           break;
+        }
         word = work + i;
         keyword_start_pos = i;
         state = STATE_STRING;
         break;
+
       case STATE_STRING:
         if (work[i] == THE_CHAR_SPACE) {
           keyword_length = i - keyword_start_pos;
@@ -1814,14 +1872,16 @@ static short parse_preprocessor(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scu
           work[i] = '\0';
           if ((re_len = find_preprocessor(fd, word, keyword_length, &alt))) {
             if (alt != 255) {   /* was an alternate colour specified for this keyword */
-              if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+              if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
                 keyword_colour = merge_curline_colour(fd->attr + ATTR_CURSORLINE, fd->ecolour + alt);
-              else if (scurr->is_current_line)
+              } else if (scurr->is_current_line) {
                 keyword_colour = merge_curline_colour(fd->attr + ATTR_CURLINE, fd->ecolour + alt);
-              else
+              } else {
                 keyword_colour = set_colour(fd->ecolour + alt);
-            } else
+              }
+            } else {
               keyword_colour = original_keyword_colour;
+            }
             for (j = 0, k = keyword_start_pos; j < re_len; j++, k++) {
               if (k >= vcol && k - vcol < THE_MAX_SCREEN_WIDTH) {
                 scurr->highlighting[k - vcol] = keyword_colour;
@@ -1844,6 +1904,7 @@ static short parse_preprocessor(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scu
           work[i] = THE_CHAR_SPACE;
           state = STATE_IGNORE;
         }
+        // fall-through
       case STATE_IGNORE:
         break;
     }
@@ -1854,7 +1915,7 @@ static short parse_preprocessor(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scu
   return RC_OK;
 }
 
-short parse_line(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short start_row) {
+short parse_line(char_t scrno, FILE_DETAILS *fd, SHOW_LINE *scurr, short start_row) {
   int i;
   length_t len = scurr->length;
   chtype normal_colour;
@@ -1862,12 +1923,13 @@ short parse_line(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short start
   /*
    * Set all columns to default colour.
    */
-  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different)
+  if (scurr->is_cursor_line && scurr->is_cursor_line_filearea_different) {
     normal_colour = set_colour(fd->attr + ATTR_CURSORLINE);
-  else if (scurr->is_current_line)
+  } else if (scurr->is_current_line) {
     normal_colour = set_colour(fd->attr + ATTR_CURLINE);
-  else
+  } else {
     normal_colour = set_colour(fd->attr + ATTR_FILEAREA);
+  }
   for (i = 0; i < THE_MAX_SCREEN_WIDTH; i++) {
     scurr->highlighting[i] = normal_colour;
   }
@@ -1981,7 +2043,7 @@ short parse_line(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short start
   /*
    * Find keywords, numbers, and remove identifiers
    */
-  if (fd->parser->have_body_pattern && CURRENT_VIEW->syntax_headers & HEADER_KEYWORD) {
+  if (fd->parser->have_body_pattern_buffer && CURRENT_VIEW->syntax_headers & HEADER_KEYWORD) {
     parse_keywords(scrno, fd, scurr);
     if (number_blanks == len) {
       return RC_OK;
@@ -2017,14 +2079,14 @@ short parse_line(char_t scrno, FILE_DETAILS * fd, SHOW_LINE * scurr, short start
   return RC_OK;
 }
 
-static short construct_case(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_case(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
 
-  if (memcmpi(line, (char_t *) "ignore", line_length) == 0)
+  if (memcmpi(line, (char_t *) "ignore", line_length) == 0) {
     parser->case_sensitive = FALSE;
-  else if (memcmpi(line, (char_t *) "respect", line_length) == 0)
+  } else if (memcmpi(line, (char_t *) "respect", line_length) == 0) {
     parser->case_sensitive = TRUE;
-  else {
+  } else {
     sprintf((char *) tmp, "Invalid operand '%s', line %d", line, lineno);
     display_error(216, (char_t *) tmp, FALSE);
     rc = RC_INVALID_OPERAND;
@@ -2032,8 +2094,9 @@ static short construct_case(char_t * line, int line_length, PARSER_DETAILS * par
   return rc;
 }
 
-static short construct_markup(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONMAR_PARAMS  3
+
+static short construct_markup(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
   char_t *word[CONMAR_PARAMS + 1];
   char_t strip[CONMAR_PARAMS];
@@ -2049,11 +2112,11 @@ static short construct_markup(char_t * line, int line_length, PARSER_DETAILS * p
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  if (equal((char_t *) "tag", word[0], 3))
+  if (equal((char_t *) "tag", word[0], 3)) {
     option = 1;
-  else if (equal((char_t *) "reference", word[0], 9))
+  } else if (equal((char_t *) "reference", word[0], 9)) {
     option = 2;
-  else {
+  } else {
     sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
@@ -2084,8 +2147,9 @@ static short construct_markup(char_t * line, int line_length, PARSER_DETAILS * p
   return rc;
 }
 
-static short construct_string(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONSTR_PARAMS  3
+
+static short construct_string(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
   char_t *word[CONSTR_PARAMS + 1];
   char_t strip[CONSTR_PARAMS];
@@ -2096,24 +2160,23 @@ static short construct_string(char_t * line, int line_length, PARSER_DETAILS * p
   strip[1] = STRIP_BOTH;
   strip[2] = STRIP_BOTH;
   num_params = param_split(line, word, CONSTR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
-
-  if (equal((char_t *) "single", word[0], 6))
+  if (equal((char_t *) "single", word[0], 6)) {
     option = STATE_SINGLE_QUOTE;
-  else if (equal((char_t *) "double", word[0], 6))
+  } else if (equal((char_t *) "double", word[0], 6)) {
     option = STATE_DOUBLE_QUOTE;
-  else if (equal((char_t *) "delimiter", word[0], 9))
+  } else if (equal((char_t *) "delimiter", word[0], 9)) {
     option = STATE_DELIMITER;
-  else {
+  } else {
     sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
   if (num_params == 1) {
-    if (option == STATE_SINGLE_QUOTE)
+    if (option == STATE_SINGLE_QUOTE) {
       parser->check_single_quote = TRUE;
-    else if (option == STATE_DOUBLE_QUOTE)
+    } else if (option == STATE_DOUBLE_QUOTE) {
       parser->check_double_quote = TRUE;
-    else {
+    } else {
       sprintf((char *) tmp, "Too few tokens, line %d", lineno);
       display_error(216, (char_t *) tmp, FALSE);
       return RC_INVALID_OPERAND;
@@ -2163,13 +2226,13 @@ static short construct_string(char_t * line, int line_length, PARSER_DETAILS * p
   return rc;
 }
 
-static short construct_comment(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         line x [column n | any | firstnonblank] [multiple | single]
  *         paired x y [nest | nonest] [multiple | single]
  */
-{
 #define CONCOM_PARAMS  5
+
+static short construct_comment(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
   char_t *word[CONCOM_PARAMS + 1];
   char_t strip[CONCOM_PARAMS];
@@ -2183,12 +2246,11 @@ static short construct_comment(char_t * line, int line_length, PARSER_DETAILS * 
   strip[3] = STRIP_BOTH;
   strip[4] = STRIP_BOTH;
   num_params = param_split(line, word, CONCOM_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
-
-  if (equal((char_t *) "line", word[0], 4))
+  if (equal((char_t *) "line", word[0], 4)) {
     option = 1;
-  else if (equal((char_t *) "paired", word[0], 6))
+  } else if (equal((char_t *) "paired", word[0], 6)) {
     option = 2;
-  else {
+  } else {
     sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
@@ -2231,8 +2293,9 @@ static short construct_comment(char_t * line, int line_length, PARSER_DETAILS * 
       return RC_INVALID_OPERAND;
     }
     parser->current_comments = parse_commentsll_add(parser->first_comments, parser->current_comments, sizeof(PARSE_COMMENTS));
-    if (parser->first_comments == NULL)
+    if (parser->first_comments == NULL) {
       parser->first_comments = parser->current_comments;
+    }
     parser->current_comments->len_start_delim = strlen((char *) word[1]);
     strcpy((char *) parser->current_comments->start_delim, (char *) word[1]);
     parser->current_comments->column = where;
@@ -2245,6 +2308,7 @@ static short construct_comment(char_t * line, int line_length, PARSER_DETAILS * 
       return RC_INVALID_OPERAND;
     }
     switch (num_params) {
+
       case 4:
         if (equal((char_t *) "nest", word[3], 4)) {
           nested = TRUE;
@@ -2273,8 +2337,9 @@ static short construct_comment(char_t * line, int line_length, PARSER_DETAILS * 
          * Everything is fine now, add the new entry to the linked list
          */
         parser->current_comments = parse_commentsll_add(parser->first_comments, parser->current_comments, sizeof(PARSE_COMMENTS));
-        if (parser->first_comments == NULL)
+        if (parser->first_comments == NULL) {
           parser->first_comments = parser->current_comments;
+        }
         parser->current_comments->len_start_delim = strlen((char *) word[1]);
         strcpy((char *) parser->current_comments->start_delim, (char *) word[1]);
         parser->current_comments->len_end_delim = strlen((char *) word[2]);
@@ -2283,6 +2348,7 @@ static short construct_comment(char_t * line, int line_length, PARSER_DETAILS * 
         parser->current_comments->line_comment = FALSE;
         parser->have_paired_comments = TRUE;
         break;
+
       default:
         break;
     }
@@ -2290,12 +2356,12 @@ static short construct_comment(char_t * line, int line_length, PARSER_DETAILS * 
   return rc;
 }
 
-static short construct_header(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         line x column n | any | firstnonblank [alt x]
  */
-{
 #define CONHEA_PARAMS  6
+
+static short construct_header(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
   char_t *word[CONHEA_PARAMS + 1];
   char_t strip[CONHEA_PARAMS];
@@ -2311,7 +2377,6 @@ static short construct_header(char_t * line, int line_length, PARSER_DETAILS * p
   strip[4] = STRIP_BOTH;
   strip[5] = STRIP_BOTH;
   num_params = param_split(line, word, CONHEA_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
-
   if (!equal((char_t *) "line", word[0], 4)) {
     sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
     display_error(216, (char_t *) tmp, FALSE);
@@ -2384,8 +2449,9 @@ static short construct_header(char_t * line, int line_length, PARSER_DETAILS * p
     }
   }
   parser->current_header = parse_headerll_add(parser->first_header, parser->current_header, sizeof(PARSE_HEADERS));
-  if (parser->first_header == NULL)
+  if (parser->first_header == NULL) {
     parser->first_header = parser->current_header;
+  }
   parser->current_header->len_header_delim = strlen((char *) word[1]);
   strcpy((char *) parser->current_header->header_delim, (char *) word[1]);
   parser->current_header->header_column = where;
@@ -2394,13 +2460,13 @@ static short construct_header(char_t * line, int line_length, PARSER_DETAILS * p
   return rc;
 }
 
-static short construct_label(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         delimiter x [column n | any | firstnonblank]
  *         column n
  */
-{
 #define CONLAB_PARAMS  4
+
+static short construct_label(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
   char_t *word[CONLAB_PARAMS + 1];
   char_t strip[CONLAB_PARAMS];
@@ -2412,7 +2478,6 @@ static short construct_label(char_t * line, int line_length, PARSER_DETAILS * pa
   strip[2] = STRIP_BOTH;
   strip[3] = STRIP_BOTH;
   num_params = param_split(line, word, CONLAB_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
-
   if (num_params < 2) {
     sprintf((char *) tmp, "Too few tokens, line %d", lineno);
     display_error(216, (char_t *) tmp, FALSE);
@@ -2478,12 +2543,12 @@ static short construct_label(char_t * line, int line_length, PARSER_DETAILS * pa
   return rc;
 }
 
-static short construct_match(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         ( )
  *         left,left right,right [middle,middle]
  */
-{
+
+static short construct_match(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
 
   /*
@@ -2493,13 +2558,13 @@ static short construct_match(char_t * line, int line_length, PARSER_DETAILS * pa
   return rc;
 }
 
-static short construct_keyword(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         keyword [TYPE n [ALTernate x]]
  *         keyword [ALTernate x [TYPE n]]
  */
-{
 #define CONKEY_PARAMS  5
+
+static short construct_keyword(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
   char_t *word[CONKEY_PARAMS + 1];
   char_t strip[CONKEY_PARAMS];
@@ -2513,7 +2578,6 @@ static short construct_keyword(char_t * line, int line_length, PARSER_DETAILS * 
   strip[3] = STRIP_BOTH;
   strip[4] = STRIP_BOTH;
   num_params = param_split(line, word, CONKEY_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
-
   if (num_params > 1) {
     /*
      * Total parameters must be a multiple of 2
@@ -2548,10 +2612,11 @@ static short construct_keyword(char_t * line, int line_length, PARSER_DETAILS * 
     }
   }
   parser->current_keyword = parse_keywordll_add(parser->first_keyword, parser->current_keyword, sizeof(PARSE_KEYWORDS));
-  if (parser->first_keyword == NULL)
+  if (parser->first_keyword == NULL) {
     parser->first_keyword = parser->current_keyword;
+  }
   parser->current_keyword->keyword_length = strlen((char *) word[0]);
-  parser->current_keyword->keyword = (char_t *) malloc((1 + parser->current_keyword->keyword_length) * sizeof(char_t));
+  parser->current_keyword->keyword = (char_t *) malloc ((1 + parser->current_keyword->keyword_length) * sizeof(char_t));
   if (parser->current_keyword->keyword == NULL) {
     display_error(216, (char_t *) "out of memory", FALSE);
     return RC_OUT_OF_MEMORY;
@@ -2561,14 +2626,15 @@ static short construct_keyword(char_t * line, int line_length, PARSER_DETAILS * 
   /*
    * Put keyword into hashtable - TBD
    */
-  if (parser->current_keyword->keyword_length < parser->min_keyword_length)
+  if (parser->current_keyword->keyword_length < parser->min_keyword_length) {
     parser->min_keyword_length = parser->current_keyword->keyword_length;
-
+  }
   return rc;
 }
 
-static short construct_function(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONFUN_PARAMS  5
+
+static short construct_function(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
   char_t *word[CONFUN_PARAMS + 1];
   char_t strip[CONFUN_PARAMS + 1];
@@ -2601,12 +2667,12 @@ static short construct_function(char_t * line, int line_length, PARSER_DETAILS *
       }
     }
   }
-
   parser->current_function = parse_functionll_add(parser->first_function, parser->current_function, sizeof(PARSE_FUNCTIONS));
-  if (parser->first_function == NULL)
+  if (parser->first_function == NULL) {
     parser->first_function = parser->current_function;
+  }
   parser->current_function->function_length = strlen((char *) word[0]);
-  parser->current_function->function = (char_t *) malloc((1 + parser->current_function->function_length) * sizeof(char_t));
+  parser->current_function->function = (char_t *) malloc ((1 + parser->current_function->function_length) * sizeof(char_t));
   if (parser->current_function->function == NULL) {
     display_error(216, (char_t *) "out of memory", FALSE);
     return RC_OUT_OF_MEMORY;
@@ -2616,20 +2682,20 @@ static short construct_function(char_t * line, int line_length, PARSER_DETAILS *
   /*
    * Put function into hashtable - TBD
    */
-  if (parser->current_function->function_length < parser->min_function_length)
+  if (parser->current_function->function_length < parser->min_function_length) {
     parser->min_function_length = parser->current_function->function_length;
-
+  }
   return rc;
 }
 
-static short construct_option(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno)
 /*  Syntax:
  *         REXX
  *         PREPROCESSOR char
  *         FUNCTION char BLANK|NOBLANK [* ALTernate x]
  */
-{
 #define CONOPT_PARAMS  6
+
+static short construct_option(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   short rc = RC_OK;
   char_t *word[CONOPT_PARAMS + 1];
   char_t strip[CONOPT_PARAMS];
@@ -2644,14 +2710,13 @@ static short construct_option(char_t * line, int line_length, PARSER_DETAILS * p
   strip[4] = STRIP_BOTH;
   strip[5] = STRIP_BOTH;
   num_params = param_split(line, word, CONOPT_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
-
-  if (equal((char_t *) "rexx", word[0], 4))
+  if (equal((char_t *) "rexx", word[0], 4)) {
     rexx_option = TRUE;
-  else if (equal((char_t *) "preprocessor", word[0], 12))
+  } else if (equal((char_t *) "preprocessor", word[0], 12)) {
     preprocessor_option = TRUE;
-  else if (equal((char_t *) "function", word[0], 8))
+  } else if (equal((char_t *) "function", word[0], 8)) {
     function_option = TRUE;
-  else {
+  } else {
     sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
@@ -2741,23 +2806,24 @@ static short construct_option(char_t * line, int line_length, PARSER_DETAILS * p
       }
     }
   }
-  if (preprocessor_option)
+  if (preprocessor_option) {
     parser->preprocessor_option = TRUE;
-  else if (rexx_option)
+  } else if (rexx_option) {
     parser->rexx_option = TRUE;
-  else if (function_option)
+  } else if (function_option) {
     parser->function_option = TRUE;
+  }
   return rc;
 }
 
 #define CONID_PARAMS  3
 
-static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_identifier(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
+  short rc = RC_OK;
   char_t *word[CONID_PARAMS + 1];
   char_t strip[CONID_PARAMS];
   unsigned short num_params = 0;
-  char_t *pattern = NULL;
-  int n;
+  char_t *pattern = NULL; int n;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
@@ -2768,7 +2834,7 @@ static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  pattern = (char_t *) malloc((20 + line_length) * sizeof(char_t));
+  pattern = (char_t *) malloc ((20 + line_length) * sizeof(char_t));
   if (pattern == NULL) {
     display_error(216, (char_t *) "out of memory", FALSE);
     return RC_OUT_OF_MEMORY;
@@ -2785,21 +2851,21 @@ static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS
      * body RE
      */
     strcat((char *) pattern, (char *) word[2]);
-/*      strcat((char *)pattern,"."); */
+    //  strcat((char *)pattern,".");
   }
   /* The following memset() is not meant to use wide character */
-  memset(&parser->body_pattern, 0, sizeof(regex_t));
-  if (0 != (n = regcomp( &parser->body_pattern, (char*) pattern, 0))) {
+  memset(&parser->body_pattern_buffer, 0, sizeof(regex_t));
+  if (0 != (n = regcomp (&parser->body_pattern_buffer, (char *) pattern, 0))) {
     /*
      * If ptr returns something, it is an error string
      */
-    n = regerror(n, &parser->body_pattern, (char*)tmp, sizeof(tmp));
-    sprintf((char*)tmp+n, " in %s", pattern);
+    n = regerror (n, &parser->body_pattern_buffer, (char *) tmp, sizeof(tmp));
+    sprintf((char *) tmp+n, " in %s", pattern);
     display_error(216, (char_t *) tmp, FALSE);
-    free(pattern);
+    free (pattern);
     return RC_INVALID_OPERAND;
   }
-  parser->have_body_pattern = TRUE;
+  parser->have_body_pattern_buffer = TRUE;
   /*
    * Create the pattern buffer for functions...
    * If we said to in :option section
@@ -2819,26 +2885,27 @@ static short construct_identifier(char_t * line, int line_length, PARSER_DETAILS
     tmp[1] = '\0';
     strcat((char *) pattern, (char *) tmp);
     /* The following memset() is not meant to use wide character */
-    memset(&parser->function_pattern, 0, sizeof(regex_t));
-    if (0 != (n = regcomp( &parser->function_pattern, (char*)pattern, 0))) {
+    memset(&parser->function_pattern_buffer, 0, sizeof(regex_t));
+    if (0 != (n = regcomp (&parser->function_pattern_buffer, (char *) pattern, 0))) {
       /*
        * If ptr returns something, it is an error string
        */
-      n = regerror(n, &parser->function_pattern, (char*)tmp, sizeof(tmp));
-      sprintf((char*)tmp+n, " in %s", pattern);
+      n = regerror (n, &parser->function_pattern_buffer, (char *) tmp, sizeof(tmp));
+      sprintf((char *) tmp+n, " in %s", pattern);
       display_error(216, (char_t *) tmp, FALSE);
-      free(pattern);
+      free (pattern);
       return RC_INVALID_OPERAND;
     }
-    free(pattern);
-    parser->have_function_pattern = TRUE;
+    free (pattern);
+    parser->have_function_pattern_buffer = TRUE;
   }
-  return RC_OK;
+  return rc;
 }
 
-static short construct_directory(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONDIR_MAX_EXT 10
 #define CONDIR_PARAMS  CONDIR_MAX_EXT+3
+
+static short construct_directory(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   PARSE_EXTENSION *curr;
   short rc = RC_OK;
   char_t *word[CONDIR_PARAMS + 1];
@@ -2857,15 +2924,15 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-  if (equal((char_t *) "directory", word[0], 3))
+  if (equal((char_t *) "directory", word[0], 3)) {
     option = 1;
-  else if (equal((char_t *) "link", word[0], 4))
+  } else if (equal((char_t *) "link", word[0], 4)) {
     option = 2;
-  else if (equal((char_t *) "executable", word[0], 3))
+  } else if (equal((char_t *) "executable", word[0], 3)) {
     option = 3;
-  else if (equal((char_t *) "extensions", word[0], 3))
+  } else if (equal((char_t *) "extensions", word[0], 3)) {
     option = 4;
-  else {
+  } else {
     sprintf((char *) tmp, "Invalid operand '%s', line %d", word[0], lineno);
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
@@ -2875,6 +2942,7 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
    * end
    */
   switch (option) {
+
     case 1:                    /* directory */
       if (num_params == 1) {
         alternate = ECOLOUR_DIRECTORY;
@@ -2890,6 +2958,7 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
       /* we have 3; last 2 must be alternate */
       alt_word = 1;
       break;
+
     case 2:                    /* link */
       if (num_params == 1) {
         alternate = ECOLOUR_LINK;
@@ -2905,6 +2974,7 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
       /* we have 3; last 2 must be alternate */
       alt_word = 1;
       break;
+
     case 3:                    /* executable */
       if (num_params == 1) {
         alternate = ECOLOUR_EXECUTABLE;
@@ -2920,6 +2990,7 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
       /* we have 3; last 2 must be alternate */
       alt_word = 1;
       break;
+
     case 4:                    /* extensions */
       if (num_params < 4) {
         sprintf((char *) tmp, "Too few tokens, line %d", lineno);
@@ -2960,18 +3031,22 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
    * Once everything has been validated, set the flags
    */
   switch (option) {
+
     case 1:
       parser->have_directory_directory = TRUE;
       parser->directory_option_alternate = alternate;
       break;
+
     case 2:
       parser->have_directory_link = TRUE;
       parser->link_option_alternate = alternate;
       break;
+
     case 3:
       parser->have_executable = TRUE;
       parser->executable_option_alternate = alternate;
       break;
+
     case 4:
       for (i = 1; i < num_ext + 1; i++) {
         curr = parse_extensionll_add(parser->first_extension, parser->current_extension, sizeof(PARSE_EXTENSION));
@@ -2980,12 +3055,11 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
           return RC_OUT_OF_MEMORY;
         }
         parser->current_extension = curr;
-
-        if (parser->first_extension == NULL)
+        if (parser->first_extension == NULL) {
           parser->first_extension = parser->current_extension;
-
+        }
         parser->current_extension->extension_length = strlen((char *) word[i]);
-        parser->current_extension->extension = (char_t *) malloc((1 + parser->current_extension->extension_length) * sizeof(char_t));
+        parser->current_extension->extension = (char_t *) malloc ((1 + parser->current_extension->extension_length) * sizeof(char_t));
         if (parser->current_extension->extension == NULL) {
           display_error(216, (char_t *) "out of memory", FALSE);
           return RC_OUT_OF_MEMORY;
@@ -3001,15 +3075,14 @@ static short construct_directory(char_t * line, int line_length, PARSER_DETAILS 
 
 #define CONPOST_PARAMS  4
 
-static short construct_postcompare(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_postcompare(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   char_t *word[CONPOST_PARAMS + 1];
   char_t strip[CONPOST_PARAMS + 1];
   unsigned short num_params = 0;
-  char_t *pattern = NULL;
-  int n;
+  char_t *pattern = NULL; int n;
   PARSE_POSTCOMPARE *curr;
   char_t alternate = 255;
-  regex_t pbuf;
+  regex_t pattern_buffer;
   bool is_class_type;
 
   strip[0] = STRIP_BOTH;
@@ -3052,7 +3125,7 @@ static short construct_postcompare(char_t * line, int line_length, PARSER_DETAIL
     /*
      * CLASS type - word[1] is RE
      */
-    pattern = (char_t *) malloc((20 + line_length) * sizeof(char_t));
+    pattern = (char_t *) malloc ((20 + line_length) * sizeof(char_t));
     if (pattern == NULL) {
       display_error(216, (char_t *) "out of memory", FALSE);
       return RC_OUT_OF_MEMORY;
@@ -3062,18 +3135,18 @@ static short construct_postcompare(char_t * line, int line_length, PARSER_DETAIL
      */
     strcpy((char *) pattern, (char *) word[1]);
     /* The following memset() is not meant to use wide character */
-    memset(&pbuf, 0, sizeof(regex_t));
-    if (0 != (n = regcomp( &pbuf, (char*)pattern, 0))) {
+    memset(&pattern_buffer, 0, sizeof(regex_t));
+    if (0 != (n = regcomp (&pattern_buffer, (char *) pattern, 0))) {
       /*
        * If ptr returns something, it is an error string
        */
-      n = regerror(n, &pbuf, (char*)tmp, sizeof(tmp));
-      sprintf((char*)tmp+n, " in %s", pattern);
+      n = regerror (n, &pattern_buffer, (char *) tmp, sizeof(tmp));
+      sprintf((char *) tmp+n, " in %s", pattern);
       display_error(216, (char_t *) tmp, FALSE);
-      free(pattern);
+      free (pattern);
       return RC_INVALID_OPERAND;
     }
-    free(pattern);
+    free (pattern);
     is_class_type = TRUE;
   } else if (equal((char_t *) "text", word[0], 4)) {
     /*
@@ -3085,31 +3158,28 @@ static short construct_postcompare(char_t * line, int line_length, PARSER_DETAIL
     display_error(216, (char_t *) tmp, FALSE);
     return (RC_INVALID_OPERAND);
   }
-
   curr = parse_postcomparell_add(parser->first_postcompare, parser->current_postcompare, sizeof(PARSE_POSTCOMPARE));
   if (curr == NULL) {
     display_error(216, (char_t *) "out of memory", FALSE);
     return RC_OUT_OF_MEMORY;
   }
   parser->current_postcompare = curr;
-
-  if (parser->first_postcompare == NULL)
+  if (parser->first_postcompare == NULL) {
     parser->first_postcompare = parser->current_postcompare;
-
+  }
   parser->current_postcompare->string_length = 0;
   parser->current_postcompare->string = NULL;
   if (is_class_type) {
-    parser->current_postcompare->pattern = pbuf;
+    parser->current_postcompare->pattern_buffer = pattern_buffer;
   } else {
     parser->current_postcompare->string_length = strlen((char *) word[1]);
-    parser->current_postcompare->string = (char_t *) malloc((1 + parser->current_postcompare->string_length) * sizeof(char_t));
+    parser->current_postcompare->string = (char_t *) malloc ((1 + parser->current_postcompare->string_length) * sizeof(char_t));
     if (parser->current_postcompare->string == NULL) {
       display_error(216, (char_t *) "out of memory", FALSE);
       return RC_OUT_OF_MEMORY;
     }
     strcpy((char *) parser->current_postcompare->string, (char *) word[1]);
   }
-
   parser->current_postcompare->alternate = alternate;
   parser->current_postcompare->is_class_type = is_class_type;
   parser->have_postcompare = TRUE;
@@ -3118,7 +3188,7 @@ static short construct_postcompare(char_t * line, int line_length, PARSER_DETAIL
 
 #define CONNUM_PARAMS  1
 
-static short construct_number(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
+static short construct_number(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   char_t *word[CONNUM_PARAMS + 1];
   char_t strip[CONNUM_PARAMS + 1];
   unsigned short num_params = 0;
@@ -3155,23 +3225,23 @@ static short construct_number(char_t * line, int line_length, PARSER_DETAILS * p
   /*
    * Create the pattern buffer for the RE...
    */
-  memset(&parser->number_pattern, 0, sizeof(regex_t));
-  if (0 != (n = regcomp(&parser->number_pattern, (char*)pattern, 0))) {
+  memset(&parser->number_pattern_buffer, 0, sizeof(regex_t));
+  if (0 != (n = regcomp (&parser->number_pattern_buffer, (char *) pattern, 0))) {
     /*
      * If ptr returns something, it is an error string
      */
-    n = regerror(n, &parser->number_pattern, (char*)tmp, sizeof(tmp));
-    sprintf((char*)tmp+n, " in %s", pattern);
+    n = regerror (n, &parser->number_pattern_buffer, (char *) tmp, sizeof(tmp));
+    sprintf((char *) tmp+n, " in %s", pattern);
     display_error(216, (char_t *) tmp, FALSE);
     return RC_INVALID_OPERAND;
   }
-
-  parser->have_number_pattern = TRUE;
+  parser->have_number_pattern_buffer = TRUE;
   return (RC_OK);
 }
 
-static short construct_column(char_t * line, int line_length, PARSER_DETAILS * parser, int lineno) {
 #define CONCOL_PARAMS  5
+
+static short construct_column(char_t *line, int line_length, PARSER_DETAILS *parser, int lineno) {
   char_t *word[CONCOL_PARAMS + 1];
   char_t strip[CONCOL_PARAMS + 1];
   unsigned short num_params = 0;
@@ -3233,9 +3303,9 @@ static short construct_column(char_t * line, int line_length, PARSER_DETAILS * p
   /*
    * Second parameter must be positive integer or *
    */
-  if (strcmp((char *) word[2], "*") == 0)
+  if (strcmp((char *) word[2], "*") == 0) {
     col2 = max_line_length;
-  else {
+  } else {
     if (!valid_positive_integer(word[2])) {
       sprintf((char *) tmp, "Invalid operand '%s', line %d", word[2], lineno);
       display_error(216, (char_t *) tmp, FALSE);
@@ -3243,9 +3313,9 @@ static short construct_column(char_t * line, int line_length, PARSER_DETAILS * p
     }
     col2 = atol((char *) word[2]);
   }
-
-  if (col2 > max_line_length)
+  if (col2 > max_line_length) {
     col2 = max_line_length;
+  }
   if (col1 > col2) {
     sprintf((char *) tmp, "First column(%ld) must be < last column(%ld), line %d", col1, col2, lineno);
     display_error(216, (char_t *) tmp, FALSE);
@@ -3261,20 +3331,20 @@ static short construct_column(char_t * line, int line_length, PARSER_DETAILS * p
   parser->column_alternate[parser->number_columns] = alternate;
   parser->number_columns++;
   parser->have_columns = TRUE;
-
   return (RC_OK);
 }
 
-short construct_parser(char* contents, int contents_length, PARSER_DETAILS** parser, char* parser_name, char* filename) {
+short construct_parser(char_t *contents, int contents_length, PARSER_DETAILS **parser, char_t *parser_name, char_t *filename) {
   int i, j, line_len;
   int state = 0;
-  char_t line[250];
+  char_t  line[250];
   short rc = RC_OK;
   int lineno = 0;
 
   last_parser = parserll_add(first_parser, last_parser, sizeof(PARSER_DETAILS));
-  if (first_parser == NULL)
+  if (first_parser == NULL) {
     first_parser = last_parser;
+  }
   strcpy((char *) last_parser->parser_name, (char *) parser_name);
   strcpy((char *) last_parser->filename, (char *) filename);
   last_parser->min_keyword_length = MAX_INT;
@@ -3293,11 +3363,14 @@ short construct_parser(char* contents, int contents_length, PARSER_DETAILS** par
       /*
        * Ignore blank lines and comments
        */
-      if (line_len == 0 || line[0] == THE_CHAR_STAR)
+      if (line_len == 0 || line[0] == THE_CHAR_STAR) {
         continue;
-      if (line[0] == THE_CHAR_COLON)
+      }
+      if (line[0] == THE_CHAR_COLON) {
         state = STATE_FILE_HEADER;
+      }
       switch (state) {
+
         case STATE_FILE_HEADER:
           if (memcmpi(line, (char_t *) ":case", line_len) == 0) {
             state = STATE_CASE;
@@ -3363,63 +3436,81 @@ short construct_parser(char* contents, int contents_length, PARSER_DETAILS** par
           display_error(216, (char_t *) tmp, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
+
         case STATE_CASE:
           rc = construct_case(line, line_len, last_parser, lineno);
           break;
+
         case STATE_OPTION:
           rc = construct_option(line, line_len, last_parser, lineno);
           break;
+
         case STATE_NUMBER:
           rc = construct_number(line, line_len, last_parser, lineno);
           break;
+
         case STATE_IDENTIFIER:
           rc = construct_identifier(line, line_len, last_parser, lineno);
           break;
+
         case STATE_STRING:
           rc = construct_string(line, line_len, last_parser, lineno);
           break;
+
         case STATE_COMMENT:
           rc = construct_comment(line, line_len, last_parser, lineno);
           break;
+
         case STATE_HEADER:
           rc = construct_header(line, line_len, last_parser, lineno);
           break;
+
         case STATE_LABEL:
           rc = construct_label(line, line_len, last_parser, lineno);
           break;
+
         case STATE_MATCH:
           rc = construct_match(line, line_len, last_parser, lineno);
           break;
+
         case STATE_KEYWORD:
           rc = construct_keyword(line, line_len, last_parser, lineno);
           break;
+
         case STATE_FUNCTION:
           rc = construct_function(line, line_len, last_parser, lineno);
           break;
+
         case STATE_POSTCOMPARE:
           rc = construct_postcompare(line, line_len, last_parser, lineno);
           break;
+
         case STATE_COLUMN:
           rc = construct_column(line, line_len, last_parser, lineno);
           break;
+
         case STATE_MARKUP:
           rc = construct_markup(line, line_len, last_parser, lineno);
           break;
+
         case STATE_DIRECTORY:
           rc = construct_directory(line, line_len, last_parser, lineno);
           break;
+
         default:
           break;
       }
-      if (rc != RC_OK)
+      if (rc != RC_OK) {
         break;
-    } else
+      }
+    } else {
       line[j++] = contents[i];
+    }
   }
   return rc;
 }
 
-short destroy_parser(PARSER_DETAILS * parser) {
+short destroy_parser(PARSER_DETAILS *parser) {
   short rc = RC_OK;
 
   if (parser->first_comments) {
@@ -3434,14 +3525,14 @@ short destroy_parser(PARSER_DETAILS * parser) {
   if (parser->first_header) {
     parser->first_header = parse_headerll_free(parser->first_header);
   }
-  if (parser->have_body_pattern) {
-    regfree(&parser->body_pattern);
+  if (parser->have_body_pattern_buffer) {
+    regfree (&parser->body_pattern_buffer);
   }
-  if (parser->have_function_pattern) {
-    regfree(&parser->function_pattern);
+  if (parser->have_function_pattern_buffer) {
+    regfree (&parser->function_pattern_buffer);
   }
-  if (parser->have_number_pattern) {
-    regfree(&parser->number_pattern);
+  if (parser->have_number_pattern_buffer) {
+    regfree (&parser->number_pattern_buffer);
   }
   if (parser->have_postcompare) {
     parser->first_postcompare = parse_postcomparell_free(parser->first_postcompare);
@@ -3452,7 +3543,7 @@ short destroy_parser(PARSER_DETAILS * parser) {
   return rc;
 }
 
-bool find_parser_mapping(FILE_DETAILS * fd, PARSER_MAPPING * curr_mapping) {
+bool find_parser_mapping(FILE_DETAILS *fd, PARSER_MAPPING *curr_mapping) {
   if (curr_mapping->filemask) {
     if (fnmatch((char *) curr_mapping->filemask, (char *) fd->fname, 0) == 0) {
       return TRUE;
@@ -3468,10 +3559,10 @@ bool find_parser_mapping(FILE_DETAILS * fd, PARSER_MAPPING * curr_mapping) {
       LINE *curr = fd->first_line->next;
       char_t *ptr = curr->line;
       int i, state = STATE_START, start = 0, len;
-
       if (curr->length > 3 && *(curr->line) == THE_CHAR_HASH && *(curr->line + 1) == THE_CHAR_BANG) {
         for (i = 2; i < curr->length + 1; i++) {
           switch (state) {
+
             case STATE_START:
               if (*(ptr + i) == THE_CHAR_SLASH) {
                 state = STATE_SLASH;
@@ -3479,12 +3570,38 @@ bool find_parser_mapping(FILE_DETAILS * fd, PARSER_MAPPING * curr_mapping) {
                 break;
               }
               break;
+
             case STATE_SLASH:
               if (*(ptr + i) == THE_CHAR_SLASH) {
                 start = i;
                 break;
               }
-              if (*(ptr + i) == THE_CHAR_SPACE || *(ptr + i) == '\0') {
+              if (*(ptr + i) == THE_CHAR_SPACE) {
+                len = i - start - 1;
+                /*
+                 * first check if the result is "env". In this case the magic number
+                 * is likely #!/usr/bin/env mapping
+                 * so we want to keep reading after the space to get the mapping
+                 */
+                if (memcmp(ptr + start + 1, "env", len) == 0) {
+                  state = STATE_ENV;
+                  start = i;
+                }
+              } else if (*(ptr + i) == '\0') {
+                len = i - start - 1;
+                if (len == curr_mapping->magic_number_length && memcmp(ptr + start + 1, curr_mapping->magic_number, len) == 0) {
+                  return TRUE;
+                  break;
+                }
+              }
+              break;
+
+            case STATE_ENV:
+              if (*(ptr + i) == THE_CHAR_SPACE) {
+                start = i;
+                break;
+              }
+              if (*(ptr + i) == '\0') {
                 len = i - start - 1;
                 if (len == curr_mapping->magic_number_length && memcmp(ptr + start + 1, curr_mapping->magic_number, len) == 0) {
                   return TRUE;
@@ -3500,7 +3617,7 @@ bool find_parser_mapping(FILE_DETAILS * fd, PARSER_MAPPING * curr_mapping) {
   return FALSE;
 }
 
-PARSER_DETAILS *find_auto_parser(FILE_DETAILS * fd) {
+PARSER_DETAILS *find_auto_parser(FILE_DETAILS *fd) {
   PARSER_MAPPING *curr_mapping = first_parser_mapping;
 
   /*
@@ -3518,7 +3635,7 @@ PARSER_DETAILS *find_auto_parser(FILE_DETAILS * fd) {
   return (fd->parser);
 }
 
-short parse_reserved_line(RESERVED * rsrvd) {
+short parse_reserved_line(RESERVED *rsrvd) {
   int i = 0, j = 0, k = 0;
   chtype current_colour, default_colour;
   int state = STATE_START;
@@ -3527,8 +3644,9 @@ short parse_reserved_line(RESERVED * rsrvd) {
 
   current_colour = default_colour = set_colour(rsrvd->attr);
   if (CTLCHARx) {
-    while (1) {
+    for (;;) {
       switch (state) {
+
         case STATE_START:
           if (line[i] == ctlchar_escape) {
             /*
@@ -3543,6 +3661,7 @@ short parse_reserved_line(RESERVED * rsrvd) {
           i++;
           k++;
           break;
+
         case STATE_DELIMITER:
           /*
            * Find what attribute character follows the escape character...
@@ -3572,8 +3691,9 @@ short parse_reserved_line(RESERVED * rsrvd) {
           k++;
           break;
       }
-      if (i > rsrvd->length)
+      if (i > rsrvd->length) {
         break;
+      }
     }
     rsrvd->disp_length = k - 1;
   } else {
@@ -3592,15 +3712,16 @@ char_t get_syntax_element(char_t scrno, int row, int col) {
   length_t vcol = SCREEN_VIEW(scrno)->verify_col - 1;
 
   scurr = screen[scrno].sl;
-  if (row > screen[scrno].rows[WINDOW_FILEAREA]
-      || col > screen[scrno].cols[WINDOW_FILEAREA]) {
+  if (row > screen[scrno].rows[WINDOW_FILEAREA] || col > screen[scrno].cols[WINDOW_FILEAREA]) {
     syntax_element = THE_SYNTAX_UNKNOWN;
   } else {
     scurr += row;
-    if (col + vcol >= scurr->length)
+    if (col + vcol >= scurr->length) {
       syntax_element = THE_SYNTAX_UNKNOWN;
-    else
+    } else {
       syntax_element = scurr->highlight_type[col + vcol];
+    }
   }
   return (syntax_element);
 }
+

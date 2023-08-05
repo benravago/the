@@ -2,25 +2,25 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * COMM3.C - Commands K-O
- * This file contains all commands that can be assigned to function keys or typed on the command line.
- */
+/* Commands K-O                                              */
+
+/* This file contains all commands that can be assigned to function    */
+/* keys or typed on the command line.                                  */
 
 #include "the.h"
 #include "proto.h"
 
-short Left(char* params) {
+short Left(char_t *params) {
   short rc = RC_OK;
   line_t shift_val;
-  char buffer[100];
+  char_t  buffer[100];
 
   /*
    * Validate only parameter, HALF or positive integer. 1 if no argument.
    */
-  if (equal("half", params, 4)) {
+  if (equal((char_t *) "half", params, 4)) {
     shift_val = CURRENT_SCREEN.cols[WINDOW_FILEAREA] / 2;
-  } else if (equal("full", params, 4)) {
+  } else if (equal((char_t *) "full", params, 4)) {
     shift_val = CURRENT_SCREEN.cols[WINDOW_FILEAREA];
   } else if (blank_field(params)) {
     shift_val = 1L;
@@ -49,16 +49,16 @@ short Left(char* params) {
   return (rc);
 }
 
-short Locate(char* params) {
+short Locate(char_t *params) {
   short rc = RC_OK;
 
   /*
-   * If no parameter is specified, use the last_target.
-   * If that doesn't exist, error.
+   * If no parameter is specified, use the last_target. If that doesn't
+   * exist, error.
    */
   if (blank_field(params)) {
     if (blank_field(lastop[LASTOP_LOCATE].value)) {
-      display_error(39, "", FALSE);
+      display_error(39, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     rc = execute_locate(lastop[LASTOP_LOCATE].value, TRUE, THE_NOT_SEARCH_SEMANTICS, NULL);
@@ -71,14 +71,14 @@ short Locate(char* params) {
   return (rc);
 }
 
-short Lowercase(char* params) {
+short Lowercase(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_change_case(params, CASE_LOWER);
   return (rc);
 }
 
-short Macro(char* params) {
+short Macro(char_t *params) {
   short rc = RC_OK;
   short macrorc = 0;
 
@@ -100,12 +100,12 @@ short Macro(char* params) {
 #define CUA_BACKWARD 10
 #define CUA_MOUSE    11
 
-short Mark(char* params) {
+short Mark(char_t *params) {
   line_t true_line = 0L;
   unsigned short y = 0, x = 0;
   length_t real_col = 0;
-  char* word[MAR_PARAMS + 1];
-  char strip[MAR_PARAMS];
+  char_t *word[MAR_PARAMS + 1];
+  char_t strip[MAR_PARAMS];
   register short i = 0;
   short num_params = 0;
   short mark_type = 0;
@@ -116,14 +116,15 @@ short Mark(char* params) {
   int numparms[7];
   line_t nummax[7][5];
   length_t first_col = 0, last_col = 0;
-  LINE* curr = NULL;
-  char* cont = NULL;
+  LINE *curr = NULL;
+  char_t *cont = NULL;
   length_t cont_len = 0;
   int num[5];                   /* must be at least as big as maximum number of args */
-  char buffer[100];
+  char_t  buffer[100];
 
   /*
-   * Do this rather than define numparams[6] = {0,3,5,5,3,3} so that non-ansi compilers won't barf.
+   * Do this rather than define numparams[6] = {0,3,5,5,3,3} so that
+   * non-ansi compilers won't barf.
    */
   numparms[0] = 0;
   numparms[1] = 3;
@@ -174,50 +175,50 @@ short Mark(char* params) {
   /*
    * Validate the first parameter: must be Box, Line, Stream, Column, Word
    */
-  if (equal("box", word[0], 1)) {
+  if (equal((char_t *) "box", word[0], 1)) {
     mark_type = M_BOX;
-  } else if (equal("line", word[0], 1)) {
+  } else if (equal((char_t *) "line", word[0], 1)) {
     mark_type = M_LINE;
-  } else if (equal("stream", word[0], 1)) {
+  } else if (equal((char_t *) "stream", word[0], 1)) {
     mark_type = M_STREAM;
-  } else if (equal("column", word[0], 1)) {
+  } else if (equal((char_t *) "column", word[0], 1)) {
     mark_type = M_COLUMN;
-  } else if (equal("word", word[0], 1)) {
+  } else if (equal((char_t *) "word", word[0], 1)) {
     mark_type = M_WORD;
-  } else if (equal("cua", word[0], 3)) {
+  } else if (equal((char_t *) "cua", word[0], 3)) {
     mark_type = M_CUA;
   } else {
-    display_error(1, word[0], FALSE);
+    display_error(1, (char_t *) word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * For CUA, validate the optional parameter...
    */
   if (mark_type == M_CUA && num_params == 2) {
-    if (equal("left", word[1], 4)) {
+    if (equal((char_t *) "left", word[1], 4)) {
       cua_type = CUA_LEFT;
-    } else if (equal("right", word[1], 5)) {
+    } else if (equal((char_t *) "right", word[1], 5)) {
       cua_type = CUA_RIGHT;
-    } else if (equal("up", word[1], 2)) {
+    } else if (equal((char_t *) "up", word[1], 2)) {
       cua_type = CUA_UP;
-    } else if (equal("down", word[1], 4)) {
+    } else if (equal((char_t *) "down", word[1], 4)) {
       cua_type = CUA_DOWN;
-    } else if (equal("top", word[1], 3)) {
+    } else if (equal((char_t *) "top", word[1], 3)) {
       cua_type = CUA_TOP;
-    } else if (equal("bottom", word[1], 1)) {
+    } else if (equal((char_t *) "bottom", word[1], 1)) {
       cua_type = CUA_BOTTOM;
-    } else if (equal("forward", word[1], 2)) {
+    } else if (equal((char_t *) "forward", word[1], 2)) {
       cua_type = CUA_FORWARD;
-    } else if (equal("backward", word[1], 2)) {
+    } else if (equal((char_t *) "backward", word[1], 2)) {
       cua_type = CUA_BACKWARD;
-    } else if (equal("start", word[1], 5)) {
+    } else if (equal((char_t *) "start", word[1], 5)) {
       cua_type = CUA_START;
-    } else if (equal("end", word[1], 3)) {
+    } else if (equal((char_t *) "end", word[1], 3)) {
       cua_type = CUA_END;
-    } else if (equal("mouse", word[1], 5)) {
+    } else if (equal((char_t *) "mouse", word[1], 5)) {
       cua_type = CUA_MOUSE;
     } else {
-      display_error(1, word[1], FALSE);
+      display_error(1, (char_t *) word[1], FALSE);
       return (RC_INVALID_OPERAND);
     }
     /*
@@ -227,21 +228,24 @@ short Mark(char* params) {
       MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
       if (display_screens > 1 && MARK_VIEW == OTHER_VIEW) {
         MARK_VIEW = (VIEW_DETAILS *) NULL;
-        build_screen(other_screen);
-        display_screen(other_screen);
+        build_screen((char_t) (other_screen));
+        display_screen((char_t) (other_screen));
       }
     }
     MARK_VIEW = CURRENT_VIEW;
     /*
-     * If we don't have a CUA marked block already, call ourselves as MARK CUA, so that the anchor point is set.
-     * Then we can call the appropriate cursor movement function, and then mark the block at the newly positioned place.
+     * If we don't have a CUA marked block already, call ourselves
+     * as MARK CUA, so that the anchor point is set.  Then we can call
+     * the appropriate cursor movement function, and then mark the
+     * block at the newly positioned place.
      */
     if (CURRENT_VIEW->mark_type != M_CUA) {
       MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
-      Mark("CUA");
+      Mark((char_t *) "CUA");
     }
     /*
-     * We can now move the cursor (if required) and then mark the end point of the block
+     * We can now move the cursor (if required) and then mark the end
+     * point of the block
      */
     switch (cua_type) {
 
@@ -270,19 +274,19 @@ short Mark(char* params) {
         break;
 
       case CUA_TOP:
-        rc = Top("");
+        rc = Top((char_t *) "");
         break;
 
       case CUA_BOTTOM:
-        rc = Bottom("");
+        rc = Bottom((char_t *) "");
         break;
 
       case CUA_END:
-        rc = Sos_endchar("");
+        rc = Sos_endchar((char_t *) "");
         break;
 
       case CUA_START:
-        rc = Sos_firstchar("");
+        rc = Sos_firstchar((char_t *) "");
         break;
 
       case CUA_MOUSE:
@@ -297,21 +301,21 @@ short Mark(char* params) {
      * If we are on 'Top of File' or 'Bottom of File' lines, error.
      */
     if (TOF(true_line) || BOF(true_line)) {
-      display_error(38, "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
     }
     /*
-     * If we are in the file area or prefix area and the focus line is not a real line, error.
+     * If we are in the file area or prefix area and the focus line is not
+     * a real line, error.
      */
     getyx(CURRENT_WINDOW, y, x);
     if (CURRENT_VIEW->current_window == WINDOW_FILEAREA || CURRENT_VIEW->current_window == WINDOW_PREFIX) {
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-        display_error(38, "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
     }
     real_col = x + CURRENT_VIEW->verify_col;
-
     CURRENT_VIEW->mark_type = mark_type;
     CURRENT_VIEW->mark_end_line = true_line;
     CURRENT_VIEW->mark_end_col = real_col;
@@ -328,16 +332,17 @@ short Mark(char* params) {
      * If we are on 'Top of File' or 'Bottom of File' lines, error.
      */
     if (TOF(true_line) || BOF(true_line)) {
-      display_error(38, "", FALSE);
+      display_error(38, (char_t *) "", FALSE);
       return (RC_INVALID_ENVIRON);
     }
     /*
-     * If we are in the file area or prefix area and the focus line is not a real line, error.
+     * If we are in the file area or prefix area and the focus line is not
+     * a real line, error.
      */
     getyx(CURRENT_WINDOW, y, x);
     if (CURRENT_VIEW->current_window == WINDOW_FILEAREA || CURRENT_VIEW->current_window == WINDOW_PREFIX) {
       if (CURRENT_SCREEN.sl[y].line_type != LINE_LINE) {
-        display_error(38, "", FALSE);
+        display_error(38, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
     }
@@ -348,16 +353,18 @@ short Mark(char* params) {
       MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
       if (display_screens > 1 && MARK_VIEW == OTHER_VIEW) {
         MARK_VIEW = (VIEW_DETAILS *) NULL;
-        build_screen(other_screen);
-        display_screen(other_screen);
+        build_screen((char_t) (other_screen));
+        display_screen((char_t) (other_screen));
       }
     }
     MARK_VIEW = CURRENT_VIEW;
     CURRENT_VIEW->mark_type = mark_type;
     /*
      * Set the new values for top and bottom lines marked.
-     * For all marked blocks, other than CUA, the block will extend either side of the first position.
-     * For CUA blocks, the first position is an anchor position and will not change.
+     * For all marked blocks, other than CUA, the block will
+     * extend either side of the first position.
+     * For CUA blocks, the first position is an anchor position
+     * and will not change.
      */
     if (CURRENT_VIEW->marked_line) {
       if (mark_type == M_CUA) {
@@ -468,11 +475,11 @@ short Mark(char* params) {
      * Validate the number of parameters...
      */
     if (num_params < numparms[mark_type]) {
-      display_error(3, "", FALSE);
+      display_error(3, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     if (num_params > numparms[mark_type]) {
-      display_error(2, "", FALSE);
+      display_error(2, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     /*
@@ -498,8 +505,8 @@ short Mark(char* params) {
       MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
       if (display_screens > 1 && MARK_VIEW == OTHER_VIEW) {
         MARK_VIEW = (VIEW_DETAILS *) NULL;
-        build_screen(other_screen);
-        display_screen(other_screen);
+        build_screen((char_t) (other_screen));
+        display_screen((char_t) (other_screen));
       }
     }
     /*
@@ -588,7 +595,7 @@ short Mark(char* params) {
   return (RC_OK);
 }
 
-short Modify(char* params) {
+short Modify(char_t *params) {
   short rc = RC_OK;
 
   if ((rc = execute_modify_command(params)) == RC_OK) {
@@ -599,14 +606,14 @@ short Modify(char* params) {
 
 #define MOV_PARAMS 2
 
-short THEMove(char* params) {
-  char* word[MOV_PARAMS + 1];
-  char strip[MOV_PARAMS];
+short THEMove(char_t *params) {
+  char_t *word[MOV_PARAMS + 1];
+  char_t strip[MOV_PARAMS];
   unsigned short num_params = 0;
   unsigned short x = 0;
   line_t true_line = 0L;
-  char reset_block = SOURCE_UNKNOWN;
-  char copy_command = 0, delete_command = 0;
+  char_t reset_block = SOURCE_UNKNOWN;
+  char_t copy_command = 0, delete_command = 0;
   short rc = RC_OK;
   line_t start_line = 0L, end_line = 0L, num_lines = 0L, dest_line = 0L, lines_affected = 0L;
   VIEW_DETAILS *old_mark_view = NULL;
@@ -615,31 +622,31 @@ short THEMove(char* params) {
    * This command invalid if source file is readonly...
    */
   if (!MARK_VIEW) {
-    display_error(44, "", FALSE);
+    display_error(44, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (ISREADONLY(MARK_FILE)) {
-    display_error(56, "", FALSE);
+    display_error(56, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
   num_params = param_split(params, word, MOV_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params == 0) {
-    display_error(3, "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (num_params > 2) {
-    display_error(2, "", FALSE);
+    display_error(2, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * Test for valid parameters...
    */
-  if (num_params == 1 && equal("block", word[0], 5)) {
+  if (num_params == 1 && equal((char_t *) "block", word[0], 5)) {
     reset_block = SOURCE_BLOCK;
   }
-  if (num_params == 2 && equal("block", word[0], 5) && equal("reset", word[1], 5)) {
+  if (num_params == 2 && equal((char_t *) "block", word[0], 5) && equal((char_t *) "reset", word[1], 5)) {
     reset_block = SOURCE_BLOCK_RESET;
   }
   if (reset_block == SOURCE_UNKNOWN) {
@@ -664,11 +671,8 @@ short THEMove(char* params) {
       case M_COLUMN:
       case M_STREAM:
       case M_BOX:
-        if ((CURRENT_VIEW->focus_line >= MARK_VIEW->mark_start_line)
-            && (CURRENT_VIEW->focus_line <= MARK_VIEW->mark_end_line)
-            && (x + CURRENT_VIEW->verify_col >= MARK_VIEW->mark_start_col)
-            && (x + CURRENT_VIEW->verify_col <= MARK_VIEW->mark_end_col)) {
-          display_error(50, "", FALSE);
+        if ((CURRENT_VIEW->focus_line >= MARK_VIEW->mark_start_line) && (CURRENT_VIEW->focus_line <= MARK_VIEW->mark_end_line) && (x + CURRENT_VIEW->verify_col >= MARK_VIEW->mark_start_col) && (x + CURRENT_VIEW->verify_col <= MARK_VIEW->mark_end_col)) {
+          display_error(50, (char_t *) "", FALSE);
           return (RC_INVALID_ENVIRON);
         }
         break;
@@ -685,7 +689,8 @@ short THEMove(char* params) {
     return (RC_OK);
   }
   /*
-   * Determine the target line. If on the command line, target is current line, else target line is focus line.
+   * Determine the target line. If on the command line, target is current
+   * line, else target line is focus line.
    */
   true_line = get_true_line(FALSE);
   /*
@@ -694,7 +699,7 @@ short THEMove(char* params) {
   if (BOF(true_line)) {
     true_line--;
   }
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   start_line = MARK_VIEW->mark_start_line;
   end_line = MARK_VIEW->mark_end_line;
   num_lines = end_line - start_line + 1L;
@@ -717,26 +722,26 @@ short THEMove(char* params) {
         dest_line += num_lines;
       }
     }
-    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     rc = rearrange_line_blocks(delete_command, reset_block, start_line, end_line, start_line, 1L, old_mark_view, old_mark_view, FALSE, &lines_affected);
   }
   return (rc);
 }
 
-short Msg(char* params) {
+short Msg(char_t *params) {
   int rc;
 
   rc = display_error(0, params, TRUE);
   return rc;
 }
 
-short THENext(char* params) {
+short THENext(char_t *params) {
   short rc = RC_OK;
   line_t num_lines = 0L, true_line = 0L;
 
   params = MyStrip(params, STRIP_BOTH, ' ');
   if (strcmp("", (char *) params) == 0) {
-    params = "1";
+    params = (char_t *) "1";
   }
   true_line = get_true_line(TRUE);
   if (strcmp("*", (char *) params) == 0) {
@@ -756,7 +761,7 @@ short THENext(char* params) {
   return (rc);
 }
 
-short Nextwindow(char* params) {
+short Nextwindow(char_t *params) {
   short rc = RC_OK;
 
   if (strcmp((char *) params, "") != 0) {
@@ -764,10 +769,10 @@ short Nextwindow(char* params) {
     return (RC_INVALID_OPERAND);
   }
   if (display_screens == 1) {
-    rc = Xedit("");
+    rc = Xedit((char_t *) "");
     return (rc);
   }
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   current_screen = (current_screen == 0) ? 1 : 0;
   CURRENT_VIEW = CURRENT_SCREEN.screen_view;
   if (curses_started) {
@@ -798,28 +803,27 @@ short Nextwindow(char* params) {
   if (!line_in_view(current_screen, CURRENT_VIEW->focus_line)) {
     CURRENT_VIEW->focus_line = CURRENT_VIEW->current_line;
   }
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
-  build_screen(current_screen);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
+  build_screen(current_screen); /* GFUC2 added */
   display_screen(current_screen);
-
   return (RC_OK);
 }
 
-short Nfind(char* params) {
+short Nfind(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_find_command(params, TARGET_NFIND);
   return (rc);
 }
 
-short Nfindup(char* params) {
+short Nfindup(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_find_command(params, TARGET_NFINDUP);
   return (rc);
 }
 
-short Nomsg(char* params) {
+short Nomsg(char_t *params) {
   short rc = RC_OK;
 
   in_nomsg = TRUE;
@@ -828,52 +832,52 @@ short Nomsg(char* params) {
   return (rc);
 }
 
-short Nop(char* params) {
+short Nop(char_t *params) {
   /*
    * No arguments are allowed; error if any are present.
    */
   if (strcmp((char *) params, "") != 0) {
-    display_error(1, params, FALSE);
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   return (RC_OK);
 }
 
-short Os(char* params) {
+short Os(char_t *params) {
   short rc = RC_OK;
 
   /*
-   * Execute the supplied parameters as OS commands.
-   * Run with output displayed and pause before redrawing the windows.
+   * Execute the supplied parameters as OS commands. Run with output
+   * displayed and pause before redrawing the windows.
    */
   rc = execute_os_command(params, FALSE, TRUE);
   return (rc);
 }
 
-short Osnowait(char* params) {
+short Osnowait(char_t *params) {
   short rc = RC_OK;
 
   /*
-   * Execute the supplied parameters as OS commands.
-   * Run with output displayed but no pause before redrawing the windows.
+   * Execute the supplied parameters as OS commands. Run with output
+   * displayed but no pause before redrawing the windows.
    */
   if (strcmp((char *) params, "") == 0) {    /* no params....error */
-    display_error(3, "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   rc = execute_os_command(params, FALSE, FALSE);
   return (rc);
 }
 
-short Osquiet(char* params) {
+short Osquiet(char_t *params) {
   short rc = RC_OK;
 
   /*
-   * Execute the supplied parameters as OS commands.
-   * Run with no output displayed and no pause before redrawing the windows.
+   * Execute the supplied parameters as OS commands. Run with no output
+   * displayed and no pause before redrawing the windows.
    */
   if (strcmp((char *) params, "") == 0) {    /* no params....error */
-    display_error(3, "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   rc = execute_os_command(params, TRUE, FALSE);
@@ -882,20 +886,19 @@ short Osquiet(char* params) {
 
 #define OSR_PARAMS 2
 
-short Osredir(char* params) {
+short Osredir(char_t *params) {
   short rc = RC_OK, rrc = 0;
-
-  char err[1000];
-  char strip[OSR_PARAMS];
-  char quoted[OSR_PARAMS];
-  char* word[OSR_PARAMS + 1];
+  char_t err[1000];
+  char_t strip[OSR_PARAMS];
+  char_t quoted[OSR_PARAMS];
+  char_t *word[OSR_PARAMS + 1];
   unsigned short num_params = 0;
   int save_stdout = 0, save_stderr = 0;
   int fd = 0;
 
   /*
-   * Execute the supplied parameters as OS commands.
-   * Run with no output displayed and no pause before redrawing the windows.
+   * Execute the supplied parameters as OS commands. Run with no output
+   * displayed and no pause before redrawing the windows.
    */
   err[0] = '\0';
   strip[0] = STRIP_BOTH;
@@ -904,11 +907,11 @@ short Osredir(char* params) {
   quoted[1] = '\0';
   num_params = quoted_param_split(params, word, OSR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE, quoted);
   if (num_params == 0) {
-    display_error(3, "", FALSE);
+    display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (num_params > 2) {
-    display_error(2, "", FALSE);
+    display_error(2, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -920,7 +923,6 @@ short Osredir(char* params) {
    */
   save_stdout = dup(fileno(stdout));
   save_stderr = dup(fileno(stderr));
-
   fd = open((char *) word[0], O_WRONLY | O_CREAT, S_IWRITE | S_IREAD);
   if (fd == (-1)) {
     display_error(8, word[0], FALSE);
@@ -940,14 +942,15 @@ short Osredir(char* params) {
     strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
-  def_prog_mode();
+  /* def_prog_mode(); ?? */
   /*
-   * Run the supplied OS command with stdout and stderr going to the supplied redirection file
+   * Run the supplied OS command with stdout and stderr going to the
+   * supplied redirection file
    */
   if (rc == RC_OK) {
     rrc = system((char *) word[1]);
   }
-  reset_prog_mode();
+  /* reset_prog_mode(); ?? */
   /*
    * Close the redirected file
    */
@@ -969,7 +972,6 @@ short Osredir(char* params) {
     strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
-
   if (close(save_stdout) == (-1)) {
     strcat((char *) err, "Error closing save_stdout: ");
     strcat((char *) err, strerror(errno));
@@ -980,7 +982,6 @@ short Osredir(char* params) {
     strcat((char *) err, strerror(errno));
     rc = RC_INVALID_OPERAND;
   }
-
   if (rc == RC_OK) {
     return (rrc);
   } else {
@@ -989,12 +990,12 @@ short Osredir(char* params) {
   }
 }
 
-short Overlaybox(char* params) {
+short Overlaybox(char_t *params) {
   unsigned short y = 0, x = 0;
   line_t true_line = 0L, start_line = 0L, end_line = 0L, dest_line = 0L, lines_affected = 0L;
-  VIEW_DETAILS* old_mark_view = NULL;
+  VIEW_DETAILS *old_mark_view = NULL;
   short rc = RC_OK;
-  LINE* curr = NULL;
+  LINE *curr = NULL;
   line_t save_current_line = CURRENT_VIEW->current_line;
 
   /*
@@ -1014,17 +1015,18 @@ short Overlaybox(char* params) {
    * Don't allow for multi-line STREAM blocks.
    */
   if (MARK_VIEW->mark_type == M_STREAM && MARK_VIEW->mark_start_line != MARK_VIEW->mark_end_line) {
-    display_error(62, "", FALSE);
+    display_error(62, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   /*
-   * If the command is executed from the filearea, the focus line must be in scope...
+   * If the command is executed from the filearea, the focus line must be
+   * in scope...
    */
   if (curses_started) {
     if (CURRENT_VIEW->current_window != WINDOW_COMMAND) {
       getyx(CURRENT_WINDOW, y, x);
       if (!IN_SCOPE(CURRENT_VIEW, CURRENT_SCREEN.sl[y].current) && !CURRENT_VIEW->scope_all) {
-        display_error(87, "", FALSE);
+        display_error(87, (char_t *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
     }
@@ -1037,16 +1039,15 @@ short Overlaybox(char* params) {
     return (RC_OK);
   }
   /*
-   * Determine the target line. If on the command line, target is current line, else target line is focus line.
+   * Determine the target line. If on the command line, target is current
+   * line, else target line is focus line.
    */
   true_line = get_true_line(TRUE);
-
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   start_line = MARK_VIEW->mark_start_line;
   end_line = MARK_VIEW->mark_end_line;
   dest_line = true_line - 1L;
   old_mark_view = MARK_VIEW;
-
   rc = rearrange_line_blocks(COMMAND_OVERLAY_COPY, SOURCE_BLOCK, start_line, end_line, dest_line, 1L, MARK_VIEW, CURRENT_VIEW, FALSE, &lines_affected);
   if (rc == RC_OK && lines_affected != 0) {
     start_line = end_line = true_line + lines_affected;
@@ -1062,7 +1063,7 @@ short Overlaybox(char* params) {
       end_line++;
     }
     dest_line = true_line;
-    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     rc = rearrange_line_blocks(COMMAND_OVERLAY_DELETE, SOURCE_BLOCK, start_line, end_line, dest_line, 1L, CURRENT_VIEW, CURRENT_VIEW, FALSE, &lines_affected);
     if (old_mark_view != MARK_VIEW) {
       old_mark_view->marked_line = old_mark_view->marked_col = FALSE;
@@ -1076,3 +1077,4 @@ short Overlaybox(char* params) {
   }
   return (rc);
 }
+

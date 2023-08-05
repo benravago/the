@@ -2,11 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * SCROLL commands
- * This file contains all commands that can be assigned to function
- * keys or typed on the command line.
- */
+/* This file contains all commands that can be assigned to function    */
+/* keys or typed on the command line.                                  */
 
 #include "the.h"
 #include "proto.h"
@@ -23,7 +20,8 @@ short scroll_page(short direction, line_t num_pages, bool scrollbar) {
     return (RC_TOF_EOF_REACHED);
   }
   /*
-   * If scrolling via the scroll bars, ALWAYS leave the cursor on the screen line.
+   * If scrolling via the scroll bars, ALWAYS leave the cursor on the
+   * screen line.
    */
   if (scrollbar) {
     save_scroll_cursor_stay = TRUE;
@@ -33,21 +31,21 @@ short scroll_page(short direction, line_t num_pages, bool scrollbar) {
    */
   if (save_scroll_cursor_stay) {
     save_y = get_row_for_focus_line(current_screen, CURRENT_VIEW->focus_line, CURRENT_VIEW->current_row);
-  }
+    }
   /*
    * Find the new current line, num_pages away...
    */
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   CURRENT_VIEW->current_line = find_next_current_line(num_pages, direction);
   build_screen(current_screen);
   if (save_scroll_cursor_stay) {
     save_y = get_row_for_tof_eof(save_y, current_screen);
     CURRENT_VIEW->focus_line = CURRENT_SCREEN.sl[save_y].line_number;
-    pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
+    pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
     build_screen(current_screen);
   } else {
     CURRENT_VIEW->focus_line = calculate_focus_line(CURRENT_VIEW->focus_line, CURRENT_VIEW->current_line);
-    pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
+    pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   }
   /*
    * If curses has started, display screen and sort out cursor position..
@@ -71,7 +69,7 @@ short scroll_page(short direction, line_t num_pages, bool scrollbar) {
   return rc;
 }
 
-short scroll_line(byte curr_screen, VIEW_DETAILS* curr_view, short direction, line_t num_lines, bool scrollbar, short escreen) {
+short scroll_line(char_t curr_screen, VIEW_DETAILS *curr_view, short direction, line_t num_lines, bool scrollbar, short escreen) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0, iscrollbar = scrollbar;
   bool on_file_edge = FALSE, on_screen_edge = FALSE;
@@ -122,7 +120,7 @@ short scroll_line(byte curr_screen, VIEW_DETAILS* curr_view, short direction, li
           }
           if (rc == RC_OK) {
             curr_view->focus_line = screen[curr_screen].sl[y].line_number;
-            pre_process_line(curr_view, curr_view->focus_line, (LINE*) NULL);
+            pre_process_line(curr_view, curr_view->focus_line, (LINE *) NULL);
             wmove(SCREEN_WINDOW(curr_screen), y, x);
           }
           break;
@@ -156,9 +154,9 @@ short scroll_line(byte curr_screen, VIEW_DETAILS* curr_view, short direction, li
        */
       if (on_screen_edge) {
         curr_view->current_line = new_current_line;
-        post_process_line(curr_view, curr_view->focus_line, (LINE*) NULL, TRUE);
+        post_process_line(curr_view, curr_view->focus_line, (LINE *) NULL, TRUE);
         curr_view->focus_line = new_focus_line;
-        pre_process_line(curr_view, curr_view->focus_line, (LINE*) NULL);
+        pre_process_line(curr_view, curr_view->focus_line, (LINE *) NULL);
         build_screen(curr_screen);
         display_screen(curr_screen);
         wmove(SCREEN_WINDOW(curr_screen), yoff1, x);
@@ -169,14 +167,15 @@ short scroll_line(byte curr_screen, VIEW_DETAILS* curr_view, short direction, li
        * down 1 line.
        */
       wmove(SCREEN_WINDOW(curr_screen), yoff2, x);
-      rc = post_process_line(curr_view, curr_view->focus_line, (LINE*) NULL, TRUE);
+      rc = post_process_line(curr_view, curr_view->focus_line, (LINE *) NULL, TRUE);
       curr_view->focus_line = new_focus_line;
-      pre_process_line(curr_view, curr_view->focus_line, (LINE*) NULL);
+      pre_process_line(curr_view, curr_view->focus_line, (LINE *) NULL);
       build_screen(curr_screen);
       if ((curr_view->highlight && rc != RC_NO_LINES_CHANGED) || (color_filearea != color_cursorline)) {
         display_screen(curr_screen);
       }
       break;
+
     case TRUE:
       if (curr_view->current_window != WINDOW_COMMAND) {
         get_cursor_position(&longy, &longx, &new_focus_line, &new_current_line);
@@ -199,3 +198,4 @@ short scroll_line(byte curr_screen, VIEW_DETAILS* curr_view, short direction, li
   }
   return rc;
 }
+

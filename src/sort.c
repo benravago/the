@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * Functions related to the SORT command.
- */
+/* Functions related to the SORT command.                     */
 
 #include "the.h"
 #include "proto.h"
@@ -17,14 +15,14 @@
 #define SF_LEFT     3
 
 struct sort_field {
-  char order;               /* A - ascending, D - descending */
+  char_t order;               /* A - ascending, D - descending */
   length_t left_col;          /* left column */
   length_t right_col;         /* right column */
 };
 typedef struct sort_field SORT_FIELD;
 
-char* sort_field_1;
-char* sort_field_2;
+char_t *sort_field_1;
+char_t *sort_field_2;
 
 SORT_FIELD sort_fields[MAX_SORT_FIELDS];
 
@@ -41,7 +39,8 @@ static int cmp(const void *first, const void *second) {
   LINE *two = *(LINE **) second;
 
   /*
-   * For each sort field defined in the array sort_fields, compare the value of both lines for the specified column range.
+   * For each sort field defined in the array sort_fields, compare the
+   * value of both lines for the specified column range.
    */
   for (i = 0; i < num_fields; i++) {
     /*
@@ -54,29 +53,34 @@ static int cmp(const void *first, const void *second) {
     memset(sort_field_1, ' ', len);
     memset(sort_field_2, ' ', len);
     /*
-     * For the first line to be compared, extract the portion of the line that corresponds with the current sort column...
+     * For the first line to be compared, extract the portion of the line
+     * that corresponds with the current sort column...
      */
     right_col = min(sort_fields[i].right_col, one->length);
     left_col = min(sort_fields[i].left_col, one->length);
     /*
-     * If the sort column lies after the end of the line, leave the contents of the sort field blank.
+     * If the sort column lies after the end of the line, leave the
+     * contents of the sort field blank.
      */
     if (sort_fields[i].left_col <= one->length) {
       memcpy(sort_field_1, one->line + left_col - 1, right_col - left_col + 1);
     }
     /*
-     * For the next  line to be compared, extract the portion of the line that corresponds with the current sort column...
+     * For the next  line to be compared, extract the portion of the line
+     * that corresponds with the current sort column...
      */
     right_col = min(sort_fields[i].right_col, two->length);
     left_col = min(sort_fields[i].left_col, two->length);
     /*
-     * If the sort column lies after the end of the line, leave the contents of the sort field blank.
+     * If the sort column lies after the end of the line, leave the
+     * contents of the sort field blank.
      */
     if (sort_fields[i].left_col <= two->length) {
       memcpy(sort_field_2, two->line + left_col - 1, right_col - left_col + 1);
     }
     /*
-     * If CASE IGNORE is on for the current view, set both sort fields to uppercase for the comparison.
+     * If CASE IGNORE is on for the current view, set both sort fields to
+     * uppercase for the comparison.
      */
     if (CURRENT_VIEW->case_sort == CASE_IGNORE) {
       for (j = 0; j < len; j++) {
@@ -89,16 +93,18 @@ static int cmp(const void *first, const void *second) {
       }
     }
     /*
-     * If the two sort fields are equal, continue the sort with the next sort field value.
-     * If the sort fields are different, return with the the comparison value (if ASCENDING) or the comparison value negated (if DESCENDING).
+     * If the two sort fields are equal, continue the sort with the next
+     * sort field value. If the sort fields are different, return with the
+     * the comparison value (if ASCENDING) or the comparison value negated
+     * (if DESCENDING).
      */
-    if ((rc = strncmp(sort_field_1, sort_field_2, len)) != 0) {
+    if ((rc = strncmp((char *) sort_field_1, (char *) sort_field_2, len)) != 0) {
       return ((sort_fields[i].order == 'A') ? rc : -rc);
     }
   }
   /*
-   * To get to here, the result of sorting on all fields has resulted in both lines being equal.
-   * Return with 0 to indicate this.
+   * To get to here, the result of sorting on all fields has resulted in
+   * both lines being equal. Return with 0 to indicate this.
    */
   return (0);
 }
@@ -107,10 +113,10 @@ static int cmp(const void *first, const void *second) {
 #define STATE_SHADOW 1
 #define SOR_PARAMS  3+(MAX_SORT_FIELDS*3)
 
-short execute_sort(char*  params) {
+short execute_sort(char_t *params) {
   register int i = 0;
-  char* word[SOR_PARAMS + 1];
-  char strip[SOR_PARAMS];
+  char_t *word[SOR_PARAMS + 1];
+  char_t strip[SOR_PARAMS];
   unsigned short num_params = 0;
   LINE **lfirst = NULL, **lp = NULL;
   LINE **origfirst = NULL, **origlp = NULL;
@@ -123,7 +129,7 @@ short execute_sort(char*  params) {
   line_t num_sorted_lines = 0L, save_num_sorted_lines = 0L;
   short rc = RC_OK, direction = DIRECTION_FORWARD;
   length_t left_col = 0, right_col = 0, max_column_width = 0;
-  char order = 'A';
+  char_t order = 'A';
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL | TARGET_SPARE;
   bool lines_based_on_scope = FALSE;
@@ -147,12 +153,13 @@ short execute_sort(char*  params) {
    * Don't need to do anything if < 2 lines to be sorted.
    */
   if (abs_num_lines < 2L) {
-    display_error(55, "", FALSE);
+    display_error(55, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OK);
   }
   /*
-   * Parse the remainder of the arguments and set up the sort_fields[] array with valid values.
+   * Parse the remainder of the arguments and set up the sort_fields[]
+   * array with valid values.
    */
   if (target.spare != (-1)) {
     for (i = 0; i < SOR_PARAMS; i++) {
@@ -162,8 +169,11 @@ short execute_sort(char*  params) {
   }
   /*
    * Process parameters differently, depending on the number...
-   * 0 parameter (target only) - if BOX BLOCK, then the sort field will be the block columns, otherwise ZONE settings will be used.
-   * 1 parameters (target & order) - same as above but also validate the ordering value.
+   * 0 parameter (target only) - if BOX BLOCK, then the sort field will
+   *                             be the block columns, otherwise ZONE
+   *                             settings will be used.
+   * 1 parameters (target & order) - same as above but also validate the
+   *                                 ordering value.
    * > 1 parameters (target & sort fields) - validate each parameter.
    */
   switch (num_params) {
@@ -187,7 +197,7 @@ short execute_sort(char*  params) {
       /*
        * Processing for 2 parameters; validate ordering value.
        */
-      if (equal("ascending", word[0], 1) || equal("descending", word[0], 1)) {
+      if (equal((char_t *) "ascending", word[0], 1) || equal((char_t *) "descending", word[0], 1)) {
         order = word[0][0];
         if (islower(order)) {
           order = toupper(order);
@@ -198,19 +208,19 @@ short execute_sort(char*  params) {
       /*
        * If the parameter is not Ascending or Descending, display error.
        */
-      display_error(1, word[0], FALSE);
+      display_error(1, (char_t *) word[0], FALSE);
       free_target(&target);
       return (RC_INVALID_OPERAND);
       break;
-      /*
-       * More than 1 parameters; sort field(s) are being specified.
-       */
 
+    /*
+     * More than 1 parameters; sort field(s) are being specified.
+     */
     default:
       i = 0;
       num_fields = 0;
       state = SF_START;
-      for (;;) {
+      for(;;) {
         switch (state) {
 
           case SF_START:
@@ -219,7 +229,7 @@ short execute_sort(char*  params) {
               errornum = 75;
               break;
             }
-            if (equal("ascending", word[i], 1) || equal("descending", word[i], 1)) {
+            if (equal((char_t *) "ascending", word[i], 1) || equal((char_t *) "descending", word[i], 1)) {
               order = word[i][0];
               if (islower(order)) {
                 order = toupper(order);
@@ -229,7 +239,7 @@ short execute_sort(char*  params) {
               i++;
               break;
             }
-            left_col = atol(word[i]);
+            left_col = atol((char *) word[i]);
             if (left_col == 0) {
               state = SF_ERROR;
               break;
@@ -241,7 +251,7 @@ short execute_sort(char*  params) {
             break;
 
           case SF_ORDER:
-            left_col = atol(word[i]);
+            left_col = atol((char *) word[i]);
             if (left_col < 1) {
               state = SF_ERROR;
               break;
@@ -255,7 +265,7 @@ short execute_sort(char*  params) {
             break;
 
           case SF_LEFT:
-            right_col = atol(word[i]);
+            right_col = atol((char *) word[i]);
             if (right_col < 1) {
               state = SF_ERROR;
               break;
@@ -279,11 +289,13 @@ short execute_sort(char*  params) {
          */
         if (state == SF_ERROR) {
           switch (errornum) {
+
             case 75:
-              display_error(75, "", FALSE);
+              display_error(75, (char_t *) "", FALSE);
               break;
+
             default:
-              display_error(1, word[i], FALSE);
+              display_error(1, (char_t *) word[i], FALSE);
               break;
           }
           free_target(&target);
@@ -317,32 +329,35 @@ short execute_sort(char*  params) {
     max_column_width = max(max_column_width, sort_fields[i].right_col - sort_fields[i].left_col + 1);
   }
   /*
-   * Allocate memory for each of the temporary sort fields to the length of the maximum field width.
+   * Allocate memory for each of the temporary sort fields to the length
+   * of the maximum field width.
    */
-  if ((sort_field_1 = (char*) malloc(max_column_width)) == NULL) {
-    display_error(30, "", FALSE);
+  if ((sort_field_1 = (char_t *) malloc (max_column_width)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OUT_OF_MEMORY);
   }
-  if ((sort_field_2 = (char*) malloc(max_column_width)) == NULL) {
-    display_error(30, "", FALSE);
+  if ((sort_field_2 = (char_t *) malloc (max_column_width)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OUT_OF_MEMORY);
   }
   /*
-   * Assign the values of the newly allocated array to the LINE pointers for the target lines.
+   * Assign the values of the newly allocated array to the LINE pointers
+   * for the target lines.
    */
   first = curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, true_line, CURRENT_FILE->number_lines);
   /*
-   * Allocate memory for num_lines of LINE pointers and for a copy of original lines.
+   * Allocate memory for num_lines of LINE pointers and for a copy of
+   * original lines.
    */
-  if ((lfirst = (LINE **) malloc(abs_num_lines * sizeof(LINE *))) == NULL) {
-    display_error(30, "", FALSE);
+  if ((lfirst = (LINE **) malloc (abs_num_lines * sizeof(LINE *))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OUT_OF_MEMORY);
   }
-  if ((origfirst = (LINE **) malloc(3 * abs_num_lines * sizeof(LINE *))) == NULL) {
-    display_error(30, "", FALSE);
+  if ((origfirst = (LINE **) malloc (3 * abs_num_lines * sizeof(LINE *))) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     free_target(&target);
     return (RC_OUT_OF_MEMORY);
   }
@@ -397,7 +412,7 @@ short execute_sort(char*  params) {
    * Don't need to do anything if < 2 lines to be sorted.
    */
   if (num_sorted_lines < 2L) {
-    display_error(55, "", FALSE);
+    display_error(55, (char_t *) "", FALSE);
   } else {
     /*
      * Sort the target array...
@@ -484,7 +499,8 @@ short execute_sort(char*  params) {
       }
     }
     /*
-     * If STAY is OFF, change the current and focus lines by the number of lines calculated from the target.
+     * If STAY is OFF, change the current and focus lines by the number
+     * of lines calculated from the target.
      */
     if (!CURRENT_VIEW->stay && abs_num_lines != 0L) { /* stay is off */
       CURRENT_VIEW->focus_line = CURRENT_VIEW->current_line = find_next_in_scope(CURRENT_VIEW, NULL, dest_line, direction);
@@ -493,18 +509,19 @@ short execute_sort(char*  params) {
      * Increment alteration count...
      */
     increment_alt(CURRENT_FILE);
-
-    sprintf(temp_cmd, "%ld line(s) sorted", abs_num_lines);
+    sprintf((char *) temp_cmd, "%ld line(s) sorted", abs_num_lines);
     display_error(0, temp_cmd, TRUE);
   }
 
   /*
    * Free up the memory used for the sort fields and the target array.
    */
-  free(sort_field_1);
-  free(sort_field_2);
-  free(lfirst);
-  free(origfirst);
+  free (sort_field_1);
+  free (sort_field_2);
+  free (lfirst);
+  free (origfirst);
   free_target(&target);
+
   return (RC_OK);
 }
+

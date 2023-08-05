@@ -2,16 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * This file contains defines related to QUERY,STATUS and EXTRACT
- *
- * The order of these items determine the order they appear as a result
- * of the STATUS command, so they should be in alphabetical order.
- */
+/* This file contains defines   related to QUERY,STATUS and EXTRACT    */
 
-/*
- * The following are item number defines for EXTRACT/QUERY/STATUS.
- */
+/* The order of these items determine the order they appear as a result */
+/* of the STATUS command, so they should be in alphabetical order.      */
+
+/* The following are item number defines for EXTRACT/QUERY/STATUS.      */
+
 #define ITEM_ALT                              0
 #define ITEM_ARBCHAR                          1
 #define ITEM_AUTOCOLOR                        2
@@ -51,112 +48,114 @@
 #define ITEM_ERRORFORMAT                     36
 #define ITEM_ERROROUTPUT                     37
 #define ITEM_ETMODE                          38
-#define ITEM_FEXT                            39
-#define ITEM_FIELD                           40
-#define ITEM_FIELDWORD                       41
-#define ITEM_FILENAME                        42
-#define ITEM_FILESTATUS                      43
-#define ITEM_FILETABS                        44
-#define ITEM_FMODE                           45
-#define ITEM_FNAME                           46
-#define ITEM_FPATH                           47
-#define ITEM_FTYPE                           48
-#define ITEM_FULLFNAME                       49
-#define ITEM_GETENV                          50
-#define ITEM_HEADER                          51
-#define ITEM_HEX                             52
-#define ITEM_HEXDISPLAY                      53
-#define ITEM_HEXSHOW                         54
-#define ITEM_HIGHLIGHT                       55
-#define ITEM_IDLINE                          56
-#define ITEM_IMPMACRO                        57
-#define ITEM_IMPOS                           58
-#define ITEM_INPUTMODE                       59
-#define ITEM_INSERTMODE                      60
-#define ITEM_INTERFACE                       61
-#define ITEM_LASTKEY                         62
-#define ITEM_LASTMSG                         63
-#define ITEM_LASTOP                          64
-#define ITEM_LASTRC                          65
-#define ITEM_LENGTH                          66
-#define ITEM_LINE                            67
-#define ITEM_LINEFLAG                        68
-#define ITEM_LINEND                          69
-#define ITEM_LSCREEN                         70
-#define ITEM_MACRO                           71
-#define ITEM_MACROEXT                        72
-#define ITEM_MACROPATH                       73
-#define ITEM_MARGINS                         74
-#define ITEM_MONITOR                         75
-#define ITEM_MOUSE                           76
-#define ITEM_MSGLINE                         77
-#define ITEM_MSGMODE                         78
-#define ITEM_NBFILE                          79
-#define ITEM_NBSCOPE                         80
-#define ITEM_NEWLINES                        81
-#define ITEM_NONDISP                         82
-#define ITEM_NUMBER                          83
-#define ITEM_PAGEWRAP                        84
-#define ITEM_PARSER                          85
-#define ITEM_PENDING                         86
-#define ITEM_POINT                           87
-#define ITEM_POSITION                        88
-#define ITEM_PREFIX                          89
-#define ITEM_PRINTER                         90
-#define ITEM_PROFILE                         91
-#define ITEM_PSCREEN                         92
-#define ITEM_READONLY                        93
-#define ITEM_READV                           94
-#define ITEM_REGEXP                          95
-#define ITEM_REPROFILE                       96
-#define ITEM_RESERVED                        97
-#define ITEM_REXX                            98
-#define ITEM_REXXHALT                        99
-#define ITEM_REXXOUTPUT                     100
-#define ITEM_RING                           101
-#define ITEM_SCALE                          102
-#define ITEM_SCOPE                          103
-#define ITEM_SCREEN                         104
-#define ITEM_SELECT                         105
-#define ITEM_SHADOW                         106
-#define ITEM_SHOWKEY                        107
-#define ITEM_SIZE                           108
-#define ITEM_SLK                            109
-#define ITEM_STATOPT                        110
-#define ITEM_STATUSLINE                     111
-#define ITEM_STAY                           112
-#define ITEM_SYNELEM                        113
-#define ITEM_SYNONYM                        114
-#define ITEM_TABKEY                         115
-#define ITEM_TABLINE                        116
-#define ITEM_TABS                           117
-#define ITEM_TABSIN                         118
-#define ITEM_TABSOUT                        119
-#define ITEM_TARGETSAVE                     120
-#define ITEM_TERMINAL                       121
-#define ITEM_THIGHLIGHT                     122
-#define ITEM_TIMECHECK                      123
-#define ITEM_TOF                            124
-#define ITEM_TOFEOF                         125
-#define ITEM_TRAILING                       126
-#define ITEM_TYPEAHEAD                      127
-#define ITEM_UI                             128
-#define ITEM_UNDOING                        129
-#define ITEM_UNTAA                          130
-#define ITEM_UTF8                           131
-#define ITEM_VERIFY                         132
-#define ITEM_VERSHIFT                       133
-#define ITEM_VERSION                        134
-#define ITEM_WIDTH                          135
-#define ITEM_WORD                           136
-#define ITEM_WORDWRAP                       137
-#define ITEM_WRAP                           138
-#define ITEM_XTERMINAL                      139
-#define ITEM_ZONE                           140
+#define ITEM_FDISPLAY                        39 // 4.0
+#define ITEM_FEXT                            40
+#define ITEM_FIELD                           41
+#define ITEM_FIELDWORD                       42
+#define ITEM_FILENAME                        43
+#define ITEM_FILESTATUS                      44
+#define ITEM_FILETABS                        45
+#define ITEM_FMODE                           46
+#define ITEM_FNAME                           47
+#define ITEM_FPATH                           48
+#define ITEM_FTYPE                           49
+#define ITEM_FULLFNAME                       50
+#define ITEM_GETENV                          51
+#define ITEM_HEADER                          52
+#define ITEM_HEX                             53
+#define ITEM_HEXDISPLAY                      54
+#define ITEM_HEXSHOW                         55
+#define ITEM_HIGHLIGHT                       56
+#define ITEM_IDLINE                          57
+#define ITEM_IMPMACRO                        58
+#define ITEM_IMPOS                           59
+#define ITEM_INPUTMODE                       60
+#define ITEM_INSERTMODE                      61
+#define ITEM_INTERFACE                       62
+#define ITEM_LASTKEY                         63
+#define ITEM_LASTMSG                         64
+#define ITEM_LASTOP                          65
+#define ITEM_LASTRC                          66
+#define ITEM_LENGTH                          67
+#define ITEM_LINE                            68
+#define ITEM_LINEFLAG                        69
+#define ITEM_LINEND                          70
+#define ITEM_LSCREEN                         71
+#define ITEM_MACRO                           72
+#define ITEM_MACROEXT                        73
+#define ITEM_MACROPATH                       74
+#define ITEM_MARGINS                         75
+#define ITEM_MONITOR                         76
+#define ITEM_MOUSE                           77
+#define ITEM_MOUSECLICK                      78 // 4.0
+#define ITEM_MSGLINE                         79
+#define ITEM_MSGMODE                         80
+#define ITEM_NBFILE                          81
+#define ITEM_NBSCOPE                         82
+#define ITEM_NEWLINES                        83
+#define ITEM_NONDISP                         84
+#define ITEM_NUMBER                          85
+#define ITEM_PAGEWRAP                        86
+#define ITEM_PARSER                          87
+#define ITEM_PENDING                         88
+#define ITEM_POINT                           89
+#define ITEM_POSITION                        90
+#define ITEM_PREFIX                          91
+#define ITEM_PRINTER                         92
+#define ITEM_PROFILE                         93
+#define ITEM_PSCREEN                         94
+#define ITEM_READONLY                        95
+#define ITEM_READV                           96
+#define ITEM_REGEXP                          97
+#define ITEM_REPROFILE                       98
+#define ITEM_RESERVED                        99
+#define ITEM_REXX                           100
+#define ITEM_REXXHALT                       101
+#define ITEM_REXXOUTPUT                     102
+#define ITEM_RING                           103
+#define ITEM_SCALE                          104
+#define ITEM_SCOPE                          105
+#define ITEM_SCREEN                         106
+#define ITEM_SELECT                         107
+#define ITEM_SHADOW                         108
+#define ITEM_SHOWKEY                        109
+#define ITEM_SIZE                           110
+#define ITEM_SLK                            111
+#define ITEM_STATOPT                        112
+#define ITEM_STATUSLINE                     113
+#define ITEM_STAY                           114
+#define ITEM_SYNELEM                        115
+#define ITEM_SYNONYM                        116
+#define ITEM_TABKEY                         117
+#define ITEM_TABLINE                        118
+#define ITEM_TABS                           119
+#define ITEM_TABSIN                         120
+#define ITEM_TABSOUT                        121
+#define ITEM_TARGETSAVE                     122
+#define ITEM_TERMINAL                       123
+#define ITEM_THIGHLIGHT                     124
+#define ITEM_TIMECHECK                      125
+#define ITEM_TOF                            126
+#define ITEM_TOFEOF                         127
+#define ITEM_TRAILING                       128
+#define ITEM_TYPEAHEAD                      129
+#define ITEM_UI                             130
+#define ITEM_UNDOING                        131
+#define ITEM_UNTAA                          132
+#define ITEM_UTF8                           133
+#define ITEM_VARIANT                        134 // 4.0
+#define ITEM_VERIFY                         135
+#define ITEM_VERSHIFT                       136
+#define ITEM_VERSION                        137
+#define ITEM_WIDTH                          138
+#define ITEM_WORD                           139
+#define ITEM_WORDWRAP                       140
+#define ITEM_WRAP                           141
+#define ITEM_XTERMINAL                      142
+#define ITEM_ZONE                           143
 
-/*
- * The following are item number defines for the boolean functions.
- */
+/* The following are item number defines for the boolean functions.    */
+
 #define ITEM_AFTER_FUNCTION                   0
 #define ITEM_ALT_FUNCTION                     1
 #define ITEM_ALTKEY_FUNCTION                  2
@@ -190,4 +189,20 @@
 #define ITEM_TOPEDGE_FUNCTION                30
 #define ITEM_VALID_TARGET_FUNCTION           31
 #define ITEM_VERONE_FUNCTION                 32
+
+/* query.c */
+
+short extract_point_settings(short, char_t *);
+short extract_prefix_settings(short, char_t *, char_t);
+short extract_colour_settings(short, char_t *, char_t, char_t *, bool, bool);
+short extract_autocolour_settings(short, char_t *, char_t, char_t *, bool);
+
+void get_etmode(char_t *, char_t *);
+
+short set_boolean_value(bool flag, short num);
+short set_on_off_value(bool flag, short num);
+
+void set_key_values(int key, bool mouse_key);
+
+THE_PPC *in_range(THE_PPC * found_ppc, THE_PPC * curr_ppc, line_t first_in_range, line_t last_in_range);
 

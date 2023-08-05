@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * COMM5.C - Commands T-Z
- * This file contains all commands that can be assigned to function keys or typed on the command line.
- */
+/* Commands T-Z                                              */
+
+/* This file contains all commands that can be assigned to function    */
+/* keys or typed on the command line.                                  */
 
 #include "the.h"
 #include "proto.h"
 
-static bool ispf_special_lines_entry(short line_type, int ch, char real_key) {
+static bool ispf_special_lines_entry(short line_type, int ch, char_t real_key) {
   bool need_to_build_screen = FALSE;
 
   /*
@@ -28,9 +28,11 @@ static bool ispf_special_lines_entry(short line_type, int ch, char real_key) {
 
     case LINE_BOUNDS:
       switch (real_key) {
+
         case ' ':
           /*
-           * If the existing character is < or >, then reset that particular edge of the BNDS
+           * If the existing character is < or >, then reset that
+           * particular edge of the BNDS
            */
           if (ch == '<' || ch == '>') {
             need_to_build_screen = TRUE;
@@ -56,20 +58,21 @@ static bool ispf_special_lines_entry(short line_type, int ch, char real_key) {
   return need_to_build_screen;
 }
 
-short Tabfile(char* params) {
+short Tabfile(char_t *params) {
   short rc = RC_OK;
   int x, y;
-  byte scrn;
+  char_t scrn;
   int w;
-  VIEW_DETAILS* curr;
-  char edit_fname[MAX_FILE_NAME];
+  VIEW_DETAILS *curr;
+  char_t edit_fname[MAX_FILE_NAME];
 
   /*
    * Optionally only 1 argument allowed; + or -
    */
   if (strcmp((char *) params, "") == 0) {
     /*
-     * If no parameter it is either called from a mouse click, or we assume we are called from the command line.
+     * If no parameter it is either called from a mouse click, or we assume we
+     * are called from the command line.
      * If called from mouse click, find file under mouse (or arrows)
      * If called from command line, edit first file displayed
      */
@@ -97,25 +100,23 @@ short Tabfile(char* params) {
       rc = EditFile(edit_fname, FALSE);
     }
     /*
-     * If curr returned as NULL, then we have either clicked in a blank or on an arrow.
-     * If on an arrow, we call this function again with a + or - parameter.
+     * If curr returned as NULL, then we have either clicked in a blank
+     * or on an arrow. If on an arrow, we call this function again with
+     * a + or - parameter.
      */
-  } else if (equal("+", params, 1)) {
+  } else if (equal((char_t *) "+", params, 1)) {
     filetabs_start_view = find_next_file(filetabs_start_view ? filetabs_start_view : vd_current, DIRECTION_FORWARD);
-  } else if (equal("-", params, 1)) {
+  } else if (equal((char_t *) "-", params, 1)) {
     filetabs_start_view = find_next_file(filetabs_start_view ? filetabs_start_view : vd_current, DIRECTION_BACKWARD);
   } else {
-    display_error(1, params, FALSE);
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   return (rc);
 }
 
-short Tabpre(char* params) {
-  /*
-   * deprecated
-   */
-  display_error(0, "TABPRE is deprecated. Use 'CURSOR PREFIX'", FALSE);
+short Tabpre(char_t *params) {
+  display_error(0, (char_t *) "TABPRE is deprecated. Use 'CURSOR PREFIX'", FALSE);
   return (RC_OK);
 }
 
@@ -128,11 +129,11 @@ short Tabpre(char* params) {
 #define TAG_LESS    2
 #define TAG_PARAMS  2
 
-short Tag(char* params) {
-  char strip[TAG_PARAMS];
-  char* word[TAG_PARAMS + 1];
+short Tag(char_t *params) {
+  char_t strip[TAG_PARAMS];
+  char_t *word[TAG_PARAMS + 1];
   short rc = RC_OK;
-  LINE* curr = NULL;
+  LINE *curr = NULL;
   bool target_found = FALSE;
   short status = RC_OK;
   long target_type = TARGET_NORMAL;
@@ -143,15 +144,15 @@ short Tag(char* params) {
   line_t num_lines = 0L;
   int relative = TAG_REPLACE;
   unsigned short num_params = 0;
-  char* save_params = NULL;
+  char_t *save_params = NULL;
 
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_LEADING;
   /*
    * Get a copy of the parameters, because we want to manipulate them,
    */
-  if ((save_params = my_strdup(params)) == NULL) {
-    display_error(30, "", FALSE);
+  if ((save_params = (char_t *) strdup ((char *) params)) == NULL) {
+    display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   num_params = param_split(params, word, TAG_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
@@ -159,13 +160,14 @@ short Tag(char* params) {
     if (CURRENT_FILE->number_lines == 0L) {
       return (rc);
     }
-    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     curr = CURRENT_FILE->first_line->next;
     for (;;) {
       curr->flags.tag_flag = 0;
       curr = curr->next;
-      if (curr->next == NULL)
+      if (curr->next == NULL) {
         break;
+      }
     }
     build_screen(current_screen);
     display_screen(current_screen);
@@ -176,19 +178,19 @@ short Tag(char* params) {
     return (RC_TARGET_NOT_FOUND);
   }
   if (num_params == 1) {
-    if (equal("more", word[0], 1) || equal("less", word[0], 1)) {
+    if (equal((char_t *) "more", word[0], 1) || equal((char_t *) "less", word[0], 1)) {
       if (save_params) {
-        free(save_params);
+        free (save_params);
       }
-      display_error(3, "", FALSE);
+      display_error(3, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     params = save_params;
   } else {
     params = word[1];
-    if (equal("more", word[0], 1)) {
+    if (equal((char_t *) "more", word[0], 1)) {
       relative = TAG_MORE;
-    } else if (equal("less", word[0], 1)) {
+    } else if (equal((char_t *) "less", word[0], 1)) {
       relative = TAG_LESS;
     } else {
       params = save_params;
@@ -198,9 +200,9 @@ short Tag(char* params) {
   /*
    * Check parameter
    */
-  if (equal("focus", params, 1)) {
+  if (equal((char_t *) "focus", params, 1)) {
     tag_target = TAG_FOCUS;
-  } else if (equal("block", params, 1)) {
+  } else if (equal((char_t *) "block", params, 1)) {
     tag_target = TAG_BLOCK;
   } else {
     /*
@@ -211,7 +213,7 @@ short Tag(char* params) {
     if (rc != RC_OK) {
       free_target(&target);
       if (save_params) {
-        free(save_params);
+        free (save_params);
       }
       return (RC_INVALID_OPERAND);
     }
@@ -252,6 +254,7 @@ short Tag(char* params) {
       target.all_tag_command = TRUE;
       curr = CURRENT_FILE->first_line;
       status = FALSE;
+      /*CURRENT_VIEW->scope_all = TRUE; */
       for (line_number = 0L; curr->next != NULL; line_number++) {
         status = find_rtarget_target(curr, &target, 0L, line_number, &num_lines);
         if (status == RC_OK) {  /* target found */
@@ -297,7 +300,7 @@ short Tag(char* params) {
     }
   }
   if (save_params) {
-    free(save_params);
+    free (save_params);
   }
   if (tag_target == TAG_RTARGET) {
     free_target(&target);
@@ -305,9 +308,9 @@ short Tag(char* params) {
   return (rc);
 }
 
-short Text(char* params) {
+short Text(char_t *params) {
   length_t i = 0L;
-  char real_key = 0;
+  char_t real_key = 0;
   chtype chtype_key = 0;
   length_t x = 0;
   unsigned short y = 0;
@@ -318,10 +321,11 @@ short Text(char* params) {
   length_t new_len;
 
   /*
-   * If running in read-only mode, do not allow any text to be entered in the main window.
+   * If running in read-only mode, do not allow any text to be entered
+   * in the main window.
    */
   if (ISREADONLY(CURRENT_FILE) && CURRENT_VIEW->current_window == WINDOW_FILEAREA) {
-    display_error(56, "", FALSE);
+    display_error(56, (char_t *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   /*
@@ -337,7 +341,7 @@ short Text(char* params) {
         break;
 
       case -2:                 /* memory exhausted */
-        display_error(30, "", FALSE);
+        display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
         break;
 
@@ -348,13 +352,10 @@ short Text(char* params) {
     len_params = strlen((char *) params);
   }
   for (i = 0; i < len_params; i++) {
-    real_key = case_translate(*(params + i));
+    real_key = case_translate((char_t) * (params + i));
     chtype_key = (chtype) (real_key & A_CHARTEXT);
-
     getyx(CURRENT_WINDOW, y, x);
-
     attr = winch(CURRENT_WINDOW) & A_ATTRIBUTES;
-
     switch (CURRENT_VIEW->current_window) {
 
       case WINDOW_FILEAREA:
@@ -386,16 +387,16 @@ short Text(char* params) {
           CURRENT_VIEW->thighlight_active = FALSE;
           need_to_build_screen = TRUE;
         }
-        /*
-         * check for the cursor moving past the right margin when WORDWRAP is ON.
-         * If true, then don't execute the THEcursor_right() function, as this could cause a window scroll.
-         */
+        /* check for the cursor moving past the right   */
+        /* margin when WORDWRAP is ON. If true, then    */
+        /* don't execute the THEcursor_right() function, as */
+        /* this could cause a window scroll.            */
         if (CURRENT_VIEW->wordwrap && rec_len > CURRENT_VIEW->margin_right) {
           execute_wrap_word(x + CURRENT_VIEW->verify_col);
         } else {
-          /*
-           * this is done here so that the show_page() in THEcursor_right() is executed AFTER we get the new length of rec_len.
-           */
+          /* this is done here so that the show_page() in */
+          /* THEcursor_right() is executed AFTER we get the   */
+          /* new length of rec_len.                       */
           if (INSERTMODEx || x == CURRENT_SCREEN.cols[WINDOW_FILEAREA] - 1) {
             THEcursor_right(TRUE, FALSE);
           }
@@ -410,9 +411,9 @@ short Text(char* params) {
 
       case WINDOW_COMMAND:
         if (INSERTMODEx) {
-          cmd_rec = meminschr(cmd_rec, real_key, x + (cmd_verify_col - 1), max_line_length, cmd_rec_len);
+          cmd_rec = (char_t *) meminschr((char_t *) cmd_rec, real_key, x + (cmd_verify_col - 1), max_line_length, cmd_rec_len);
           put_char(CURRENT_WINDOW, chtype_key, INSCHAR);
-          cmd_rec_len = max(x + cmd_verify_col, cmd_rec_len + 1);       /* GFUC3 */
+          cmd_rec_len = max(x + cmd_verify_col, cmd_rec_len + 1);
           THEcursor_right(TRUE, FALSE);
         } else {
           cmd_rec[x + (cmd_verify_col - 1)] = real_key;
@@ -425,7 +426,8 @@ short Text(char* params) {
           }
         }
         /*
-         * The cursor is now in the correct column for all cases and apart from the case where we have just scrolled right, the contents is displayed correctly.
+         * The cursor is now in the correct column for all cases and apart from
+         * the case where we have just scrolled right, the contents is displayed correctly.
          * We need to redisplay the cmdline if we just scrolled
          */
         if (x == CURRENT_SCREEN.cols[WINDOW_COMMAND] - 1) {
@@ -445,7 +447,7 @@ short Text(char* params) {
           if (pre_rec_len == (CURRENT_VIEW->prefix_width - CURRENT_VIEW->prefix_gap)) {
             break;
           }
-          pre_rec = meminschr(pre_rec, real_key, x, CURRENT_VIEW->prefix_width - CURRENT_VIEW->prefix_gap, pre_rec_len);
+          pre_rec = (char_t *) meminschr((char_t *) pre_rec, real_key, x, CURRENT_VIEW->prefix_width - CURRENT_VIEW->prefix_gap, pre_rec_len);
           put_char(CURRENT_WINDOW, chtype_key, INSCHAR);
         } else {
           pre_rec[x] = real_key;
@@ -469,13 +471,15 @@ short Text(char* params) {
    */
   in_macro = FALSE;
   /*
-   * If text is being inserted on a line which is in the marked block, build and redisplay the window.
+   * If text is being inserted on a line which is in the marked block,
+   * build and redisplay the window.
    */
   if (CURRENT_VIEW == MARK_VIEW && CURRENT_VIEW->current_window == WINDOW_FILEAREA && INSERTMODEx && CURRENT_VIEW->focus_line >= MARK_VIEW->mark_start_line && CURRENT_VIEW->focus_line <= MARK_VIEW->mark_end_line) {
     need_to_build_screen = TRUE;
   }
   /*
-   * If the current file has colouring on and not using the NULL parser, build and redisplay the window.
+   * If the current file has colouring on and not using the NULL parser,
+   * build and redisplay the window.
    */
   if (CURRENT_FILE->colouring && CURRENT_FILE->parser && CURRENT_VIEW->current_window == WINDOW_FILEAREA) {
     need_to_build_screen = TRUE;
@@ -488,7 +492,7 @@ short Text(char* params) {
   }
   /*
    * If we have determined we need to rebuild the screen, do it now.
-   * FIXME: Need the ability to rebuild and redisplay one line only
+   * MH: FIXME: Need the ability to rebuild and redisplay one line only
    */
   if (need_to_build_screen && !in_readv) {
     build_screen(current_screen);
@@ -501,10 +505,10 @@ short Text(char* params) {
   return (RC_OK);
 }
 
-short Toascii(char* params) {
+short Toascii(char_t *params) {
   line_t num_lines = 0L, true_line = 0L, num_actual_lines = 0L, i = 0L, num_file_lines = 0L;
   short direction = 0;
-  LINE* curr = NULL;
+  LINE *curr = NULL;
   length_t start_col = 0, end_col = 0;
   short rc = RC_OK;
   TARGET target;
@@ -513,14 +517,14 @@ short Toascii(char* params) {
   bool adjust_alt = FALSE;
 
   if (strcmp("", (char *) params) == 0) {
-    params = "+1";
+    params = (char_t *) "+1";
   }
   initialise_target(&target);
   if ((rc = validate_target(params, &target, target_type, get_true_line(TRUE), TRUE, TRUE)) != RC_OK) {
     free_target(&target);
     return (rc);
   }
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   /*
    * Determine in which direction we are working.
    */
@@ -533,7 +537,8 @@ short Toascii(char* params) {
   }
   true_line = target.true_line;
   /*
-   * If the target is BLOCK set the left and right margins to be the margins of the BOX BLOCK, otherwise use ZONE settings.
+   * If the target is BLOCK set the left and right margins to be the
+   * margins of the BOX BLOCK, otherwise use ZONE settings.
    */
   start_col = CURRENT_VIEW->zone_start - 1;
   end_col = CURRENT_VIEW->zone_end - 1;
@@ -571,6 +576,7 @@ short Toascii(char* params) {
       case LINE_SHADOW:
         break;
 
+      // case LINE_TOF_EOF:
       case LINE_TOF:
       case LINE_EOF:
         num_actual_lines++;
@@ -580,7 +586,6 @@ short Toascii(char* params) {
         add_to_recovery_list(curr->line, curr->length);
         if (MARK_VIEW && (MARK_VIEW->mark_type == M_STREAM || MARK_VIEW->mark_type == M_CUA)) {
           int mystart = 0, myend = curr->length - 1;
-
           if (true_line + i == MARK_VIEW->mark_start_line) {
             mystart = start_col;
           }
@@ -620,12 +625,12 @@ short Toascii(char* params) {
   /*
    * Display the new screen...
    */
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   resolve_current_and_focus_lines(current_screen, CURRENT_VIEW, true_line, num_file_lines, direction, TRUE, FALSE);
   return (RC_OK);
 }
 
-short Top(char* params) {
+short Top(char_t *params) {
   short rc = RC_TOF_EOF_REACHED;
   unsigned short x = 0, y = 0;
 
@@ -633,16 +638,16 @@ short Top(char* params) {
    * No arguments are allowed; error if any are present.
    */
   if (strcmp((char *) params, "") != 0) {
-    display_error(1, params, FALSE);
+    display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   CURRENT_VIEW->current_line = 0L;
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   build_screen(current_screen);
   if (!line_in_view(current_screen, CURRENT_VIEW->focus_line)) {
     CURRENT_VIEW->focus_line = 0L;
   }
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   if (curses_started) {
     if (CURRENT_VIEW->current_window == WINDOW_COMMAND) {
       getyx(CURRENT_PREV_WINDOW, y, x);
@@ -660,19 +665,18 @@ short Top(char* params) {
   return (rc);
 }
 
-short Up(char* params) {
+short Up(char_t *params) {
   short rc = RC_OK;
   line_t num_lines = 0L, true_line = 0L;
 
   params = MyStrip(params, STRIP_BOTH, ' ');
   if (strcmp("", (char *) params) == 0) {
-    params = "1";
+    params = (char_t *) "1";
   }
   true_line = get_true_line(TRUE);
   if (strcmp("*", (char *) params) == 0) {
     num_lines = true_line + 1L;
-  }
-  else {
+  } else {
     if (!valid_integer(params)) {
       display_error(4, params, FALSE);
       return (RC_INVALID_OPERAND);
@@ -687,18 +691,19 @@ short Up(char* params) {
   return (rc);
 }
 
-short Uppercase(char* params) {
+short Uppercase(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_change_case(params, CASE_UPPER);
   return (rc);
 }
 
-short Xedit(char * params) {
+short Xedit(char_t *params) {
   short rc = RC_OK;
 
   /*
-   * The filename can be quoted; so strip leading and trailing double quotes
+   * The filename can be quoted; so strip leading and trailing
+   * double quotes
    */
   params = MyStrip(params, STRIP_BOTH, '"');
   /*
@@ -708,9 +713,9 @@ short Xedit(char * params) {
   return (rc);
 }
 
-short Retrieve(char* params) {
-  char* current_command = NULL;
-  char* save_params = NULL;
+short Retrieve(char_t *params) {
+  char_t *current_command = NULL;
+  char_t *save_params = NULL;
   int param_len = 0;
   short direction = 0;
 
@@ -721,45 +726,46 @@ short Retrieve(char* params) {
     current_command = get_next_command(DIRECTION_FORWARD, 1);
   } else {
     /*
-     * Get a copy of the parameters, because we want to manipulate them, and also retain the orignal for error reporting.
+     * Get a copy of the parameters, because we want to manipulate them,
+     * and also retain the orignal for error reporting.
      */
-    if ((save_params = my_strdup(params)) == NULL) {
-      display_error(30, "", FALSE);
+    if ((save_params = (char_t *) strdup ((char *) params)) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     /*
-     * Strip all spaces from the parameters.
-     * We want to be able to specify  ?  ? ? - as a valid set of arguments, equivalent to ???-
+     * Strip all spaces from the parameters.  We want to be able to specify
+     * ?  ? ? - as a valid set of arguments, equivalent to ???-
      */
     save_params = MyStrip(save_params, STRIP_ALL, ' ');
     param_len = strlen((char *) save_params);
-    if (*(save_params + (param_len - 1)) == '+') {
+    if (*(save_params + (param_len - 1)) == (char_t) '+') {
       *(save_params + (param_len - 1)) = '\0';
       direction = DIRECTION_BACKWARD;
     } else {
-      if (*(save_params + (param_len - 1)) == '-') {
+      if (*(save_params + (param_len - 1)) == (char_t) '-') {
         *(save_params + (param_len - 1)) = '\0';
         direction = DIRECTION_FORWARD;
       }
     }
-    if (strzne(save_params, '?') != (-1)) {
+    if (strzne(save_params, (char_t) '?') != (-1)) {
       display_error(1, params, FALSE);
       return (RC_INVALID_OPERAND);
     }
     current_command = get_next_command(direction, strlen((char *) save_params) + 1);
   }
   if (save_params) {
-    free(save_params);
+    free (save_params);
   }
   wmove(CURRENT_WINDOW_COMMAND, 0, 0);
   my_wclrtoeol(CURRENT_WINDOW_COMMAND);
-  if (current_command != NULL) {
+  if (current_command != (char_t *) NULL) {
     Cmsg(current_command);
   }
   return (RC_OK);
 }
 
-short Reexecute(char* params) {
+short Reexecute(char_t *params) {
   short rc = RC_OK;
 
   if (strcmp((char *) params, "")) {
@@ -772,3 +778,4 @@ short Reexecute(char* params) {
   rc = command_line(last_command_for_reexecute, COMMAND_ONLY_FALSE);
   return (rc);
 }
+

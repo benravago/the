@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* This file contains all functions relating to box operations. */
+/* This file contains all functions relating to box operations.        */
 
 #include "the.h"
 #include "proto.h"
@@ -21,21 +21,21 @@ struct _boxp {
   line_t num_lines;
   line_t cursor_y;
   length_t cursor_x;
-  LINE* curr_src;
-  LINE* curr_dst;
-  VIEW_DETAILS* src_view;
-  VIEW_DETAILS* dst_view;
+  LINE *curr_src;
+  LINE *curr_dst;
+  VIEW_DETAILS *src_view;
+  VIEW_DETAILS *dst_view;
 };
 typedef struct _boxp BOXP;
 
-static short box_copy_to_temp(BOXP*);
-static short box_copy_from_temp(BOXP*, bool);
-static short box_copy_stream_from_temp(BOXP*, bool);
-static short box_delete(BOXP*);
-static short box_move(BOXP*, bool, bool);
-static short box_fill(BOXP*, char);
+static short box_copy_to_temp(BOXP *);
+static short box_copy_from_temp(BOXP *, bool);
+static short box_copy_stream_from_temp(BOXP *, bool);
+static short box_delete(BOXP *);
+static short box_move(BOXP *, bool, bool);
+static short box_fill(BOXP *, char_t);
 
-void box_operations(short action, char reset, bool boverlay, char fillchar) {
+void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) {
   BOXP boxp;
   unsigned short y = 0, x = 0;
   length_t offset = 0;
@@ -43,15 +43,16 @@ void box_operations(short action, char reset, bool boverlay, char fillchar) {
   bool same_view = FALSE;
 
   /*
-   * This procedure is for copying, deleting, filling, moving and overlaying box blocks.
-   * Box blocks consist of BOX, WORD, COLUMN, STREAM and CUA blocks.
-   * In fact every type of block that isn't a LINE block.
+   * This procedure is for copying, deleting, filling, moving and
+   * overlaying box blocks. Box blocks consist of BOX, WORD, COLUMN,
+   * STREAM and CUA blocks. In fact every type of block that isn't
+   * a LINE block.
+   * blocks.
    */
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
-
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   /*
-   * If the command was issued on the command line then
-   * the destination line is the current line and the destination column is 0;
+   * If the command was issued on the command line then the destination
+   * line is the current line and the destination column is 0;
    */
   if (CURRENT_VIEW->current_window == WINDOW_COMMAND) {
     if (CURRENT_VIEW->current_line == 0L) {
@@ -69,7 +70,6 @@ void box_operations(short action, char reset, bool boverlay, char fillchar) {
     getyx(CURRENT_WINDOW, y, x);
     boxp.dst_start_col = x + CURRENT_VIEW->verify_col - 1;
   }
-
   /*
    * Set up the source and destination views...
    */
@@ -83,7 +83,7 @@ void box_operations(short action, char reset, bool boverlay, char fillchar) {
   /*
    * CUA block can have start position after end position
    */
-  if (boxp.mark_type == M_CUA && (MARK_VIEW->mark_start_line* max_line_length) + MARK_VIEW->mark_start_col > (MARK_VIEW->mark_end_line * max_line_length) + MARK_VIEW->mark_end_col) {
+  if (boxp.mark_type == M_CUA && (MARK_VIEW->mark_start_line * max_line_length) + MARK_VIEW->mark_start_col > (MARK_VIEW->mark_end_line * max_line_length) + MARK_VIEW->mark_end_col) {
     boxp.src_start_line = MARK_VIEW->mark_end_line;
     boxp.src_start_col = MARK_VIEW->mark_end_col - 1;
     boxp.src_end_line = MARK_VIEW->mark_start_line;
@@ -96,7 +96,6 @@ void box_operations(short action, char reset, bool boverlay, char fillchar) {
   }
 
   boxp.num_cols = MARK_VIEW->mark_end_col - MARK_VIEW->mark_start_col + 1;
-
   /*
    * If the block type is COLUMN, the number of lines to operate on is
    * the number of lines in the source file and the destination start
@@ -108,43 +107,51 @@ void box_operations(short action, char reset, bool boverlay, char fillchar) {
   } else {
     boxp.num_lines = boxp.src_end_line - boxp.src_start_line + 1L;
   }
-
   /*
-   * Find the current LINE pointer for both the source and destination lines.
+   * Find the current LINE pointer for both the source and destination
+   * lines.
    */
   boxp.curr_src = lll_find(MARK_FILE->first_line, MARK_FILE->last_line, boxp.src_start_line, MARK_FILE->number_lines);
   if (action != BOX_D) {
     boxp.curr_dst = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, boxp.dst_start_line, CURRENT_FILE->number_lines);
   }
-
   /*
    * Call the appropriate box function...
    */
   boxp.action = action;
   switch (action) {
-    case BOX_D: box_delete(&boxp); break;
-    case BOX_M: box_move(&boxp, boverlay, TRUE); break;
-    case BOX_C: box_move(&boxp, boverlay, TRUE); break;
-    case BOX_F: box_fill(&boxp, fillchar); break;
-  }
 
+    case BOX_D:
+      box_delete(&boxp);
+      break;
+
+    case BOX_M:
+      box_move(&boxp, boverlay, TRUE);
+      break;
+
+    case BOX_C:
+      box_move(&boxp, boverlay, TRUE);
+      break;
+
+    case BOX_F:
+      box_fill(&boxp, fillchar);
+      break;
+  }
   /*
    * Increment the alteration counts...
    */
   increment_alt(CURRENT_FILE);
-
   /*
    * Set the parameters in the MARK_VIEW to OFF, and
    * redraw the view if different from the current view
    */
   MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
   MARK_VIEW->mark_type = M_NONE;
-  MARK_VIEW = (VIEW_DETAILS*) NULL;
+  MARK_VIEW = (VIEW_DETAILS *) NULL;
   if (!same_view && display_screens > 1) {
-    build_screen(other_screen);
-    display_screen(other_screen);
+    build_screen((char_t) (other_screen));
+    display_screen((char_t) (other_screen));
   }
-
   /*
    * If we are not resetting the block, set up block markers...
    */
@@ -165,22 +172,20 @@ void box_operations(short action, char reset, bool boverlay, char fillchar) {
     MARK_VIEW->marked_line = MARK_VIEW->marked_col = TRUE;
     wmove(CURRENT_WINDOW, y, x - offset);
   }
-
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   build_screen(current_screen);
   display_screen(current_screen);       /* should only call this is the marked block is in view */
   return;
 }
 
-void box_paste_from_clipboard(LINE* curr_src, line_t numlines, line_t numcols) {
+void box_paste_from_clipboard(LINE *curr_src, line_t numlines, line_t numcols) {
   BOXP boxp;
   unsigned short x = 0;
 
   /*
    * This procedure is for copying from clipboard.
    */
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
-
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   /*
    * If the command was issued on the command line then the destination
    * line is the current line and the destination column is 0;
@@ -201,77 +206,71 @@ void box_paste_from_clipboard(LINE* curr_src, line_t numlines, line_t numcols) {
     x = getcurx(CURRENT_WINDOW);
     boxp.dst_start_col = x + CURRENT_VIEW->verify_col - 1;
   }
-
   /*
    * Set up the source and destination views...
    */
   boxp.src_view = NULL;
   boxp.dst_view = CURRENT_VIEW;
-
   boxp.mark_type = M_STREAM;
-
   boxp.src_start_line = 0;
   boxp.src_end_line = numlines - 1;
   boxp.src_start_col = 0;
   boxp.src_end_col = numcols - 1;
-
   boxp.num_cols = numcols;
   boxp.num_lines = numlines;
-
   /*
-   * Find the current LINE pointer for both the source and destination lines.
+   * Find the current LINE pointer for both the source and destination
+   * lines.
    */
   boxp.curr_src = curr_src;
   boxp.curr_dst = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, boxp.dst_start_line, CURRENT_FILE->number_lines);
-
   /*
    * Call the appropriate box function...
    */
   boxp.action = BOX_C;
   box_move(&boxp, FALSE, FALSE);
-
   /*
    * Increment the alteration counts...
    */
   increment_alt(CURRENT_FILE);
-
   /*
    * Redisplay the screen
    */
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   build_screen(current_screen);
   display_screen(current_screen);
-
   /*
    * Position cursor at end of inserted stream
    */
   if (CURRENT_VIEW->current_window == WINDOW_FILEAREA) {
     THEcursor_goto(boxp.cursor_y, boxp.cursor_x);
   }
-
   return;
 }
 
-static short box_delete(BOXP* prm) {
+static short box_delete(BOXP *prm) {
   line_t i = 0L;
   length_t j = 0;
   length_t num_to_move = 0, length_diff = 0;
   short rc = 0;
   bool shadow_found = FALSE;
   bool advance_line_ptr = TRUE;
-  LINE* curr = NULL;
+  LINE *curr = NULL;
 
   curr = prm->curr_src;
   for (i = 0L; i < prm->num_lines; i++) {
     advance_line_ptr = TRUE;
     rc = processable_line(prm->src_view, prm->src_start_line + i, curr);
     switch (rc) {
+
       case LINE_SHADOW:
         shadow_found = TRUE;
         break;
+
       case LINE_TOF:
       case LINE_EOF:
         break;
+
       default:
         if ((prm->mark_type == M_STREAM || prm->mark_type == M_CUA) && prm->src_start_line != prm->src_end_line) {
           if (i == 0) {
@@ -324,15 +323,15 @@ static short box_delete(BOXP* prm) {
   if ((prm->mark_type == M_STREAM || prm->mark_type == M_CUA) && prm->src_start_line != prm->src_end_line && !shadow_found) {
     curr = prm->curr_src;
     if (curr->next->length > 0) {
-      curr->line = (char*) realloc((void*) curr->line, (curr->length + curr->next->length) * sizeof(char));
+      curr->line = (char_t *) realloc ((void *) curr->line, (curr->length + curr->next->length) * sizeof(char_t));
       if (curr->line == NULL) {
-        display_error(30, "", FALSE);
+        display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
-      memcpy((char*) curr->line + curr->length, (char *) curr->next->line, curr->next->length);
+      memcpy((char *) curr->line + curr->length, (char *) curr->next->line, curr->next->length);
       curr->length += curr->next->length;
       if (curr->length > max_line_length) {
-        display_error(0, "Truncated", FALSE);
+        display_error(0, (char_t *) "Truncated", FALSE);
         curr->length = max_line_length;
       }
       *(curr->line + curr->length) = '\0';      /* do we need to do this anymore ? */
@@ -343,15 +342,14 @@ static short box_delete(BOXP* prm) {
   return (RC_OK);
 }
 
-static short box_move(BOXP* prm, bool boverlay, bool copy_to_temp) {
-  LINE* save_src = NULL, *temp_src = NULL;
+static short box_move(BOXP *prm, bool boverlay, bool copy_to_temp) {
+  LINE *save_src = NULL, *temp_src = NULL;
   line_t save_src_start_line = 0L;
   length_t save_src_start_col = 0;
 
   save_src_start_col = prm->src_start_col;
   save_src_start_line = prm->src_start_line;
   save_src = prm->curr_src;
-
   if (copy_to_temp) {
     box_copy_to_temp(prm);      /* copy box from file to temp */
   }
@@ -370,23 +368,21 @@ static short box_move(BOXP* prm, bool boverlay, bool copy_to_temp) {
   } else {
     box_copy_from_temp(prm, boverlay);  /* copy box from temp to file */
   }
-
+  /*first_save = lll_free(first_save); */
   prm->src_start_line = save_src_start_line;
   prm->src_start_col = save_src_start_col;
   prm->curr_src = save_src;
-
   /*
    * Now delete the source for a MOVE
    */
   if (prm->dst_start_col > prm->src_start_col + prm->num_cols && prm->action == BOX_M) {
     box_delete(prm);
   }
-
   return (RC_OK);
 }
 
-static short box_copy_to_temp(BOXP* prm) {
-  LINE* first_save = NULL, *save_src = NULL, *tmp = NULL;
+static short box_copy_to_temp(BOXP *prm) {
+  LINE *first_save = NULL, *save_src = NULL, *tmp = NULL;
   line_t i = 0L;
   short rc = RC_OK;
 
@@ -411,32 +407,30 @@ static short box_copy_to_temp(BOXP* prm) {
         }
         memcpy(rec, trec + mystart, mynum);
         rec_len = mynum;
-        if ((save_src = add_LINE(first_save, save_src, rec, rec_len, 0, TRUE)) == (LINE*) NULL) {
+        if ((save_src = add_LINE(first_save, save_src, rec, rec_len, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
       } else {
         memcpy(rec, tmp->line, tmp->length);
         rec_len = tmp->length;
-        if ((save_src = add_LINE(first_save, save_src, rec + prm->src_start_col, prm->num_cols, 0, TRUE)) == (LINE*) NULL) {
+        if ((save_src = add_LINE(first_save, save_src, rec + prm->src_start_col, prm->num_cols, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
       }
-
-      if (first_save == (LINE*) NULL) {
+      if (first_save == (LINE *) NULL) {
         first_save = save_src;
       }
     }
     tmp = tmp->next;
   }
   prm->curr_src = first_save;
-
   return (rc);
 }
 
-static short box_copy_from_temp(BOXP* prm, bool boverlay) {
+static short box_copy_from_temp(BOXP *prm, bool boverlay) {
   line_t dst_lineno = 0L;
   length_t j = 0;
-  char chr = 0;
+  char_t chr = 0;
   short line_type = 0;
 
   dst_lineno = prm->dst_start_line;
@@ -447,7 +441,7 @@ static short box_copy_from_temp(BOXP* prm, bool boverlay) {
         break;
       }
       if (line_type == LINE_TOF || line_type == LINE_EOF) {
-        if ((prm->curr_dst = add_LINE(prm->dst_view->file_for_view->first_line, prm->curr_dst->prev, "", 0, 0, TRUE)) == (LINE*) NULL) {
+        if ((prm->curr_dst = add_LINE(prm->dst_view->file_for_view->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
         CURRENT_FILE->number_lines++;
@@ -456,13 +450,12 @@ static short box_copy_from_temp(BOXP* prm, bool boverlay) {
       dst_lineno++;
       prm->curr_dst = prm->curr_dst->next;
     }
-
     pre_process_line(prm->dst_view, dst_lineno, prm->curr_dst); /* copy dest line into rec */
     for (j = 0; j < prm->num_cols; j++) {
       if (prm->src_start_col + j + 1 > prm->curr_src->length) {
-        chr = ' ';
+        chr = (char_t) ' ';
       } else {
-        chr = *(prm->curr_src->line + prm->src_start_col + j);
+        chr = (char_t) * (prm->curr_src->line + prm->src_start_col + j);
       }
       if (boverlay) {
         rec[prm->dst_start_col + j] = chr;
@@ -470,15 +463,13 @@ static short box_copy_from_temp(BOXP* prm, bool boverlay) {
         meminschr(rec, chr, prm->dst_start_col + j, max_line_length, rec_len++);
       }
     }
-
     /*
      * recalculate rec_len
      */
     rec_len = calculate_rec_len(ADJUST_OVERWRITE, rec, rec_len, 1 + prm->dst_start_col, prm->num_cols, CURRENT_FILE->trailing);
-    post_process_line(prm->dst_view, dst_lineno, (LINE*) NULL, FALSE);
+    post_process_line(prm->dst_view, dst_lineno, (LINE *) NULL, FALSE);
     prm->curr_src = prm->curr_src->next;        /* this should NEVER go past the end */
     prm->curr_dst = prm->curr_dst->next;        /* this should NEVER go past the end */
-
     /*
      * Save the position where the cursor should go after the end of the inserted text
      */
@@ -487,16 +478,15 @@ static short box_copy_from_temp(BOXP* prm, bool boverlay) {
     dst_lineno++;
   }
   prm->num_lines = dst_lineno - prm->dst_start_line;
-
   return (RC_OK);
 }
 
-static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
+static short box_copy_stream_from_temp(BOXP *prm, bool boverlay) {
   line_t dst_lineno = 0L, i = 0L;
   short line_type = 0;
   int mystart = 0;
   bool full_line = TRUE;
-  LINE* curr = NULL, *last_line = NULL;
+  LINE *curr = NULL, *last_line = NULL;
 
   if (boverlay) {
     /*
@@ -505,13 +495,13 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
     dst_lineno = prm->dst_start_line;
     i = 0;
     while (prm->curr_src) {
-      while (1) {
+      for (;;) {
         line_type = processable_line(prm->dst_view, dst_lineno, prm->curr_dst);
         if (line_type == LINE_LINE) {
           break;
         }
         if (line_type == LINE_TOF || line_type == LINE_EOF) {
-          if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, "", 0, 0, TRUE)) == (LINE*) NULL) {
+          if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
             return (RC_OUT_OF_MEMORY);
           }
           CURRENT_FILE->number_lines++;
@@ -536,7 +526,7 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
       } else {
         rec_len = max(rec_len, prm->curr_src->length + mystart);
       }
-      post_process_line(prm->dst_view, dst_lineno, (LINE*) NULL, FALSE);
+      post_process_line(prm->dst_view, dst_lineno, (LINE *) NULL, FALSE);
       prm->curr_src = prm->curr_src->next;      /* this should NEVER go past the end */
       prm->curr_dst = prm->curr_dst->next;      /* this should NEVER go past the end */
       dst_lineno++;
@@ -544,16 +534,16 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
     }
     prm->num_lines = dst_lineno - prm->dst_start_line;
   } else {
-    /*
-     * In non-overlay mode treat the stream block similar to a line block
-     */
+    // In non-overlay mode treat the stream block similar to a line block
 
     /*
      * This function copies saved lines from a multi-line stream block.
-     * The line to which the stream block is copied is split at the cursor position.
+     * The line to which the stream block is copied is split at the
+     * cursor position.
      * The first source line is appended to the current line.
      * The remainder of the lines are added as new lines, except the last.
-     * The last line is pre-pended to that portion of the line that was split.
+     * The last line is pre-pended to that portion of the line that was
+     * split.
      */
     dst_lineno = prm->dst_start_line;
     for (;;) {
@@ -562,7 +552,7 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
         break;
       }
       if (line_type == LINE_TOF || line_type == LINE_EOF) {
-        if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, "", 0, 0, TRUE)) == (LINE*) NULL) {
+        if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
         CURRENT_FILE->number_lines++;
@@ -575,14 +565,12 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
      * Now have a line that we can split.
      */
     curr = prm->curr_dst;
+
     for (i = 0; i < prm->num_lines; i++) {
       if (i == 0) {
         /*
          * This is the first line that we split into two and append the first line
-         * of the clipboard after the split position.
-         */
-
-        /*
+         * of the clipboard after the split position
          * Create the new line
          */
         memset(rec, ' ', max_line_length);
@@ -593,16 +581,15 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
           rec_len = 0;
         }
         curr->flags.changed_flag = TRUE;
-
         /*
          * Add the new line
          */
         add_LINE(CURRENT_FILE->first_line, curr, (rec), rec_len, curr->select, TRUE);
         CURRENT_FILE->number_lines++;
         last_line = curr->next;
-
         /*
-         * Get the current line back into rec so we can trim it at the cursor position.
+         * Get the current line back into rec so we can trim it at
+         * the cursor position.
          */
         pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, curr);
         memset(rec + prm->dst_start_col, ' ', max_line_length - prm->dst_start_col);
@@ -616,7 +603,6 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
         meminsmem(rec, prm->curr_src->line, prm->curr_src->length, 0, max_line_length, last_line->length);
         rec_len = min(max_line_length, rec_len + prm->curr_src->length);
         post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, last_line, FALSE);
-
         /*
          * Save the position at the end of the inserted stream block.
          */
@@ -626,7 +612,7 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
         /*
          * All lines other than the first and last line.
          */
-        if ((curr = add_LINE(CURRENT_FILE->first_line, curr, prm->curr_src->line, prm->curr_src->length, 0, TRUE)) == (LINE*) NULL) {
+        if ((curr = add_LINE(CURRENT_FILE->first_line, curr, prm->curr_src->line, prm->curr_src->length, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
         prm->curr_src = prm->curr_src->next;    /* this should NEVER go past the end */
@@ -635,11 +621,10 @@ static short box_copy_stream_from_temp(BOXP* prm, bool boverlay) {
     }
     pre_process_line(prm->dst_view, dst_lineno, prm->curr_dst);
   }
-
   return (RC_OK);
 }
 
-static short box_fill(BOXP* prm, char fillchar) {
+static short box_fill(BOXP *prm, char_t fillchar) {
   line_t i = 0L;
   int mystart, mynum;
 
@@ -647,7 +632,7 @@ static short box_fill(BOXP* prm, char fillchar) {
     if (processable_line(CURRENT_VIEW, prm->src_start_line + i, prm->curr_src) == LINE_LINE) {
       mystart = 0;
       mynum = max_line_length;
-      pre_process_line(CURRENT_VIEW, prm->src_start_line + i, (LINE*) NULL);   /* copy source line into rec */
+      pre_process_line(CURRENT_VIEW, prm->src_start_line + i, (LINE *) NULL);   /* copy source line into rec */
       if (prm->mark_type == M_STREAM || prm->mark_type == M_CUA) {
         if (i == 0) {
           mystart = prm->src_start_col;
@@ -662,13 +647,12 @@ static short box_fill(BOXP* prm, char fillchar) {
         memset(rec + mystart, fillchar, mynum);
       }
       rec_len = calculate_rec_len(ADJUST_OVERWRITE, rec, rec_len, 1 + mystart, mynum, CURRENT_FILE->trailing);
-      post_process_line(CURRENT_VIEW, prm->src_start_line + i, (LINE*) NULL, FALSE);
+      post_process_line(CURRENT_VIEW, prm->src_start_line + i, (LINE *) NULL, FALSE);
     }
     prm->curr_src = prm->curr_src->next;        /* this should NEVER go past the end */
   }
-
   prm->dst_start_col = prm->src_start_col;
   prm->dst_start_line = prm->src_start_line;
-
   return (RC_OK);
 }
+

@@ -2,26 +2,26 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/*
- * The body of the program.
- */
+/* The body of the program.                                   */
 
 #include "the.h"
 #include "proto.h"
 
 bool prefix_changed = FALSE;
 
+
 void editor(void) {
   short y = 0, x = 0;
 
   /*
    * Reset any command line positioning parameters so only those files
-   * edited from the command line take on the line/col, command line position.
+   * edited from the command line take on the line/col, command line
+   * position.
    */
   startup_line = startup_column = 0;
 
   if (display_screens > 1) {
-    display_screen(other_screen);
+    display_screen((char_t) (other_screen));
   }
   getyx(CURRENT_WINDOW, y, x);
   wmove(CURRENT_WINDOW, y, x);
@@ -46,13 +46,13 @@ void editor(void) {
 int process_key(int key, bool mouse_details_present) {
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
-  char string_key[2];
+  char_t string_key[2];
 
   string_key[1] = '\0';
 
   if (is_termresized()) {
     (void) THE_Resize(0, 0);
-    (void) THERefresh("");
+    (void) THERefresh((char_t *) "");
   }
   if (single_instance_server) {
     key = process_fifo_input(key);
@@ -67,6 +67,11 @@ int process_key(int key, bool mouse_details_present) {
   }
 
   if (is_termresized()) {
+    return (RC_OK);
+  }
+  if (key == KEY_RESIZE) {
+    (void) THE_Resize(0, 0);
+    (void) THERefresh((char_t *) "");
     return (RC_OK);
   }
   if (key == -1) {
@@ -96,7 +101,8 @@ int process_key(int key, bool mouse_details_present) {
     lastkeys_is_mouse[current_key] = 0;
   }
   /*
-   * If we are recording a macro, check if the key hit is the end-of-record key.
+   * If we are recording a macro, check if the key hit is the end-of-record
+   * key.
    */
   if (record_fp) {
     if (key == record_key) {
@@ -111,7 +117,7 @@ int process_key(int key, bool mouse_details_present) {
       ctime_buf[24] = '\0';
       fprintf(record_fp, "/* Recording of macro ended %s */\n", ctime_buf);
       fclose(record_fp);
-      free(record_status);
+      free (record_status);
       record_fp = NULL;
       record_status = NULL;
       /*
@@ -121,6 +127,7 @@ int process_key(int key, bool mouse_details_present) {
       getyx(CURRENT_WINDOW, y, x);
       wmove(CURRENT_WINDOW, y, x);
       wrefresh(CURRENT_WINDOW);
+
       return (RC_OK);
     }
     /*
@@ -141,10 +148,11 @@ int process_key(int key, bool mouse_details_present) {
       key = rc - (RAW_KEY * 2);
     }
     if (key < 256 && key >= 0) {
-      string_key[0] = key;
+      string_key[0] = (char_t) key;
       /*
        * If operating in CUA mode, and a CUA block exists, check
-       * if the block should be reset or deleted before executing the command.
+       * if the block should be reset or deleted before executing
+       * the command.
        */
       if (INTERFACEx == INTERFACE_CUA && CURRENT_VIEW->mark_type == M_CUA) {
         ResetOrDeleteCUABlock(CUA_DELETE_BLOCK);
@@ -156,9 +164,10 @@ int process_key(int key, bool mouse_details_present) {
   show_statarea();
 
   if (display_screens > 1 && SCREEN_FILE(0) == SCREEN_FILE(1)) {
-    build_screen(other_screen);
-    display_screen(other_screen);
-    show_heading(other_screen);
+    build_screen((char_t) (other_screen));
+    display_screen((char_t) (other_screen));
+    /* refresh_screen(other_screen);*/
+    show_heading((char_t) (other_screen));
   }
   refresh_screen(current_screen);
   if (error_on_screen) {
@@ -175,11 +184,11 @@ int process_key(int key, bool mouse_details_present) {
   return (RC_OK);
 }
 
-short EditFile(char* fn, bool external_command_line) {
+short EditFile(char_t *fn, bool external_command_line) {
   short rc = RC_OK, y = 0, x = 0;
   VIEW_DETAILS *save_current_view = NULL;
   VIEW_DETAILS *previous_current_view = NULL;
-  char save_prefix = 0;
+  char_t save_prefix = 0;
   short save_gap = 0;
   row_t save_cmd_line = 0;
   bool save_id_line = 0;
@@ -187,14 +196,14 @@ short EditFile(char* fn, bool external_command_line) {
   /*
    * With no arguments, edit the next file in the ring...
    */
-  if (strcmp(fn, "") == 0) {
+  if (strcmp((char *) fn, "") == 0) {
     rc = advance_view(NULL, DIRECTION_FORWARD);
     return (rc);
   }
   /*
    * With "-" as argument, edit the previous file in the ring...
    */
-  if (strcmp(fn, "-") == 0) {
+  if (strcmp((char *) fn, "-") == 0) {
     rc = advance_view(NULL, DIRECTION_BACKWARD);
     return (rc);
   }
@@ -203,7 +212,7 @@ short EditFile(char* fn, bool external_command_line) {
    * save any changes to the focus line.
    */
   if (number_of_files > 0) {
-    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+    post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     memset(cmd_rec, ' ', max_line_length);
     cmd_rec_len = 0;
   }
@@ -258,11 +267,12 @@ short EditFile(char* fn, bool external_command_line) {
       }
     }
     /*
-     * Re-calculate CURLINE for the new view in case the CURLINE is no longer in the display area.
+     * Re-calculate CURLINE for the new view in case the CURLINE is no
+     * longer in the display area.
      */
     prepare_view(current_screen);
   }
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   build_screen(current_screen);
   /*
    * Position the cursor in the main window depending on the type of file
@@ -290,7 +300,7 @@ short EditFile(char* fn, bool external_command_line) {
     profile_file_executions++;
     in_reprofile = TRUE;
     if (execute_profile) {
-      if (local_prf != NULL) {
+      if (local_prf != (char_t *) NULL) {
         rc = get_profile(local_prf, prf_arg);
       }
     }
@@ -303,9 +313,11 @@ short EditFile(char* fn, bool external_command_line) {
   if (number_of_files == 0) {
     return (rc);
   }
+  /* pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);*/
   build_screen(current_screen);
   /*
-   * If startup values were specified on the command, line, move cursor there...
+   * If startup values were specified on the command, line, move cursor
+   * there...
    */
   if (startup_line != 0 || startup_column != 0) {
     THEcursor_goto(startup_line, startup_column);
@@ -339,11 +351,11 @@ short EditFile(char* fn, bool external_command_line) {
    * x is the number of files in the ring.
    */
   if (rexx_support) {
-    char tmp[20];
-
-    sprintf(tmp, "ring.%ld", number_of_files + ((compatible_feel == COMPAT_XEDIT) ? 1 : 0));
+    char_t tmp[20];
+    sprintf((char *) tmp, "ring.%ld", number_of_files + ((compatible_feel == COMPAT_XEDIT) ? 1 : 0));
     MyRexxRegisterFunctionExe(tmp);
   }
+
   return (rc);
 }
 

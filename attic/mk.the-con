@@ -1,0 +1,70 @@
+#
+set -x
+g() {
+ gcc -c -g -O2 -m64 -O3 -Wall \
+   -fomit-frame-pointer -fno-strict-aliasing -Wno-char-subscripts \
+   -I. -I./imc \
+   -DNDEBUG -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 \
+   -DHAVE_CONFIG_H \
+   -DTHE_HOME_DIRECTORY=\"/usr/local/share/the/\" \
+   -DTHE_VARIANT=\"con\" \
+   -DTHE_VERSION=\""4.0"\" \
+   -DTHE_VERSION_DATE=\""29-Dec-2022"\" \
+   -o ${1}.o ./${1}.c
+}
+g box
+g colour
+g column
+g comm1
+g comm2
+g comm3
+g comm4
+g comm5
+g commset1
+g commset2
+g commsos
+g commutil
+g cursor
+g default
+g directry
+g edit
+g error
+g execute
+g file
+g thematch
+g getch
+g linked
+g mouse
+g memory
+g nonansi
+g parser
+g prefix
+g print
+g query
+g query1
+g query2
+g regex
+g reserved
+g rexx
+g scroll
+g show
+g single
+g sort
+g target
+g the
+g mygetopt
+g util
+
+gcc \
+  -m64 -lncurses -ltinfo -lm \
+  box.o colour.o column.o comm1.o comm2.o comm3.o comm4.o comm5.o \
+  commset1.o commset2.o commsos.o commutil.o cursor.o \
+  default.o directry.o edit.o error.o execute.o \
+  file.o thematch.o getch.o linked.o \
+  mouse.o memory.o nonansi.o parser.o prefix.o print.o \
+  query.o query1.o query2.o regex.o reserved.o rexx.o \
+  scroll.o show.o single.o sort.o target.o the.o \
+  mygetopt.o util.o \
+  imc/calc.o imc/globals.o imc/interface.o imc/rexx.o imc/rxfn.o imc/shell.o imc/util.o \
+  -o the-con
+

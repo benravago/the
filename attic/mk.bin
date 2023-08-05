@@ -1,0 +1,10 @@
+#
+set -x
+cp -a the-4.0/*.h src/
+cp -a the-4.0/rexx-imc src/imc
+cd src
+cd imc
+../../mk.rexx-imc
+cd ..
+../mk.the-con
+cd ..

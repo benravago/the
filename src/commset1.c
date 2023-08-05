@@ -1,37 +1,11 @@
-/* COMMSET1.C - SET commands A-N                                       */
-/*
- * THE - The Hessling Editor. A text editor similar to VM/CMS xedit.
- * Copyright (C) 1991-2013 Mark Hessling
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- *
- *    The Free Software Foundation, Inc.
- *    675 Mass Ave,
- *    Cambridge, MA 02139 USA.
- *
- *
- * If you make modifications to this software that you feel increases
- * it usefulness for the rest of the community, please email the
- * changes, enhancements, bug fixes as well as any and all ideas to me.
- * This software is going to be maintained and enhanced as deemed
- * necessary by the community.
- *
- * Mark Hessling, mark@rexx.org  http://www.rexx.org/
- */
+// SPDX-FileCopyrightText: 2013 Mark Hessling <mark@rexx.org>
+// SPDX-License-Identifier: GPL-2.0
+// SPDX-FileContributor: 2022 Ben Ravago
 
-#include <the.h>
-#include <proto.h>
+/* SET commands A-N                                       */
+
+#include "the.h"
+#include "proto.h"
 
 the_header_mapping thm[] = {
   { "NUMBER", 6, HEADER_NUMBER },
@@ -49,8 +23,6 @@ the_header_mapping thm[] = {
   { "*", 1, HEADER_ALL },       /* this should be last */
   { NULL, 0, 0 },
 };
-
-/*#define DEBUG 1*/
 
 static short set_active_colour(short area) {
   int i;
@@ -80,12 +52,15 @@ static short set_active_colour(short area) {
    * Update the appropriate window with the new colour combination...
    */
   switch (valid_areas[area].area_window) {
+
     case WINDOW_FILEAREA:
-      if (area == ATTR_FILEAREA)
+      if (area == ATTR_FILEAREA) {
         wattrset(CURRENT_WINDOW_FILEAREA, set_colour(CURRENT_FILE->attr + area));
+      }
       build_screen(current_screen);
       display_screen(current_screen);
       break;
+
     case WINDOW_PREFIX:
       if (CURRENT_WINDOW_PREFIX != NULL) {
         wattrset(CURRENT_WINDOW_PREFIX, set_colour(CURRENT_FILE->attr + area));
@@ -93,6 +68,7 @@ static short set_active_colour(short area) {
         display_screen(current_screen);
       }
       break;
+
     case WINDOW_COMMAND:
       if (CURRENT_WINDOW_COMMAND != NULL) {
         wattrset(CURRENT_WINDOW_COMMAND, set_colour(CURRENT_FILE->attr + area));
@@ -101,6 +77,7 @@ static short set_active_colour(short area) {
         wnoutrefresh(CURRENT_WINDOW_COMMAND);
       }
       break;
+
     case WINDOW_ARROW:
       if (CURRENT_WINDOW_ARROW != NULL) {
         wattrset(CURRENT_WINDOW_ARROW, set_colour(CURRENT_FILE->attr + area));
@@ -109,6 +86,7 @@ static short set_active_colour(short area) {
         wnoutrefresh(CURRENT_WINDOW_ARROW);
       }
       break;
+
     case WINDOW_IDLINE:
       if (CURRENT_WINDOW_IDLINE != NULL) {
         wattrset(CURRENT_WINDOW_IDLINE, set_colour(CURRENT_FILE->attr + area));
@@ -117,6 +95,7 @@ static short set_active_colour(short area) {
         wnoutrefresh(CURRENT_WINDOW_IDLINE);
       }
       break;
+
     case WINDOW_STATAREA:
       if (statarea != NULL) {
         wattrset(statarea, set_colour(CURRENT_FILE->attr + area));
@@ -125,6 +104,7 @@ static short set_active_colour(short area) {
         wnoutrefresh(statarea);
       }
       break;
+
     case WINDOW_FILETABS:
       if (filetabs != NULL) {
         wattrset(filetabs, set_colour(CURRENT_FILE->attr + area));
@@ -133,6 +113,7 @@ static short set_active_colour(short area) {
         wnoutrefresh(filetabs);
       }
       break;
+
     case WINDOW_DIVIDER:
       if (divider != (WINDOW *) NULL) {
         wattrset(divider, set_colour(CURRENT_FILE->attr + area));
@@ -143,6 +124,7 @@ static short set_active_colour(short area) {
         }
       }
       break;
+
     case WINDOW_SLK:
       if (max_slk_labels) {
         slk_attrset(set_colour(CURRENT_FILE->attr + area));
@@ -150,14 +132,16 @@ static short set_active_colour(short area) {
         slk_noutrefresh();
       }
       break;
+
     default:
       break;
   }
   return (RC_OK);
 }
 
-short Alt(char* params) {
 #define ALT_PARAMS  2
+
+short Alt(char_t *params) {
   char_t strip[ALT_PARAMS];
   char_t *word[ALT_PARAMS + 1];
   unsigned short num_params = 0;
@@ -174,9 +158,9 @@ short Alt(char* params) {
     display_error(2, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
-  if (equal(word[0], EQUIVCHARstr, 1))
+  if (equal(word[0], EQUIVCHARstr, 1)) {
     autosave_alt = CURRENT_FILE->autosave_alt;
-  else {
+  } else {
     if (!valid_positive_integer(word[0])) {
       display_error(1, word[0], FALSE);
       return (RC_INVALID_OPERAND);
@@ -184,9 +168,9 @@ short Alt(char* params) {
     autosave_alt = atoi((char *) word[0]);
   }
   if (num_params == 2) {
-    if (equal(word[1], EQUIVCHARstr, 1))
+    if (equal(word[1], EQUIVCHARstr, 1)) {
       save_alt = CURRENT_FILE->save_alt;
-    else {
+    } else {
       if (!valid_positive_integer(word[1])) {
         display_error(1, word[1], FALSE);
         return (RC_INVALID_OPERAND);
@@ -194,14 +178,14 @@ short Alt(char* params) {
       save_alt = atoi((char *) word[1]);
     }
   }
-
   CURRENT_FILE->autosave_alt = autosave_alt;
   CURRENT_FILE->save_alt = save_alt;
-
   return (RC_OK);
 }
-short Arbchar(char* params) {
+
 #define ARB_PARAMS  4
+
+short Arbchar(char_t *params) {
   char_t *word[ARB_PARAMS + 1];
   char_t strip[ARB_PARAMS];
   unsigned short num_params = 0;
@@ -219,34 +203,42 @@ short Arbchar(char* params) {
   strip[3] = STRIP_BOTH;
   num_params = param_split(params, word, ARB_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   switch (num_params) {
+
     case 0:
       /*
        * No parameters, error.
        */
       display_error(3, (char_t *) "", FALSE);
       break;
+
     case 1:
       /*
        * 1 or 2 parameters, validate them...
        */
-      if (equal(word[0], EQUIVCHARstr, 1));
-      else
+      if (equal(word[0], EQUIVCHARstr, 1)) {
+        // no-op
+      } else {
         rc = execute_set_on_off(word[0], &arbsts, TRUE);
+      }
       break;
+
     case 2:
     case 3:
-      if (equal(word[0], EQUIVCHARstr, 1));
-      else {
+      if (equal(word[0], EQUIVCHARstr, 1)) {
+        // no-op
+      } else {
         rc = execute_set_on_off(word[0], &arbsts, TRUE);
-        if (rc != RC_OK)
+        if (rc != RC_OK) {
           break;
+        }
       }
       rc = RC_INVALID_OPERAND;
       /*
        * For 2 parameters, check that a single character has been supplied...
        */
-      if (equal(word[1], EQUIVCHARstr, 1));
-      else {
+      if (equal(word[1], EQUIVCHARstr, 1)) {
+        // no-op
+      } else {
         if (strlen((char *) word[1]) != 1) {
           display_error(1, word[1], FALSE);
           break;
@@ -257,14 +249,16 @@ short Arbchar(char* params) {
       /*
        * For 2 parameters, don't check any more.
        */
-      if (num_params == 2)
+      if (num_params == 2) {
         break;
+      }
       rc = RC_INVALID_OPERAND;
       /*
        * For 3 parameters, check that a single character has been supplied...
        */
-      if (equal(word[2], EQUIVCHARstr, 1));
-      else {
+      if (equal(word[2], EQUIVCHARstr, 1)) {
+        // no-op
+      } else {
         if (strlen((char *) word[2]) != 1) {
           display_error(1, word[2], FALSE);
           break;
@@ -273,6 +267,7 @@ short Arbchar(char* params) {
       }
       rc = RC_OK;
       break;
+
     default:
       /*
        * Too many parameters...
@@ -290,8 +285,10 @@ short Arbchar(char* params) {
   }
   return (rc);
 }
-short Autocolour(char* params) {
+
 #define AUCO_PARAMS  3
+
+short Autocolour(char_t *params) {
   char_t *word[AUCO_PARAMS + 1];
   char_t strip[AUCO_PARAMS];
   unsigned short num_params = 0;
@@ -338,17 +335,19 @@ short Autocolour(char* params) {
    * Now check if we already have a mapping for the mask/magic number
    */
   mapping = mappingll_find(first_parser_mapping, filemask, magic_number);
-  if (mapping)
+  if (mapping) {
     curr = mapping;
+  }
   /*
    * Add the new mapping if it is a "real" parser.
    */
   if (parser) {
     curr = last_parser_mapping = mappingll_add(first_parser_mapping, last_parser_mapping, sizeof(PARSER_MAPPING));
-    if (first_parser_mapping == NULL)
+    if (first_parser_mapping == NULL) {
       first_parser_mapping = curr;
+    }
     if (filemask) {
-      curr->filemask = (char_t *) malloc(1 + strlen((char *) filemask) * sizeof(char_t));
+      curr->filemask = (char_t *) malloc (1 + strlen((char *) filemask) * sizeof(char_t));
       if (curr->filemask == NULL) {
         display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
@@ -356,7 +355,7 @@ short Autocolour(char* params) {
       strcpy((char *) curr->filemask, (char *) filemask);
     }
     if (magic_number) {
-      curr->magic_number = (char_t *) malloc(1 + strlen((char *) magic_number) * sizeof(char_t));
+      curr->magic_number = (char_t *) malloc (1 + strlen((char *) magic_number) * sizeof(char_t));
       if (curr->magic_number == NULL) {
         display_error(30, (char_t *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
@@ -374,14 +373,17 @@ short Autocolour(char* params) {
   for (i = 0; i < number_of_files;) {
     if (curr && find_parser_mapping(curr_view->file_for_view, curr)) {
       curr_view->file_for_view->parser = parser;
-      if (curr_view->file_for_view == SCREEN_FILE(current_screen))
+      if (curr_view->file_for_view == SCREEN_FILE(current_screen)) {
         redisplay_current = TRUE;
-      if (display_screens > 1 && curr_view->file_for_view == SCREEN_FILE((char_t) (other_screen)))
+      }
+      if (display_screens > 1 && curr_view->file_for_view == SCREEN_FILE((char_t) (other_screen))) {
         redisplay_other = TRUE;
+      }
     }
     curr_view = curr_view->next;
-    if (curr_view == NULL)
+    if (curr_view == NULL) {
       break;
+    }
   }
   /*
    * Now delete the old mapping if we found one earlier...
@@ -396,7 +398,6 @@ short Autocolour(char* params) {
   if (rexx_support) {
     if (change > 0) {
       char_t tmp[30];
-
       /*
        * As this is a new mapping, then register another implied extract
        * function for the number of mappings we now have.
@@ -409,7 +410,6 @@ short Autocolour(char* params) {
     }
     if (change < 0) {
       char_t tmp[30];
-
       /*
        * As this is a removal of a mapping, then deregister the implied extract
        * function for the number of mappings we had before.
@@ -421,16 +421,18 @@ short Autocolour(char* params) {
       MyRexxDeregisterFunction(tmp);
     }
   }
-
-  if (redisplay_other)
+  if (redisplay_other) {
     display_screen((char_t) (other_screen));
-  if (redisplay_current)
+  }
+  if (redisplay_current) {
     display_screen(current_screen);
-
+  }
   return (rc);
 }
-short Autosave(char* params) {
+
 #define AUS_PARAMS  1
+
+short Autosave(char_t *params) {
   char_t strip[AUS_PARAMS];
   char_t *word[AUS_PARAMS + 1];
   unsigned short num_params = 0;
@@ -456,8 +458,10 @@ short Autosave(char* params) {
   CURRENT_FILE->autosave = (char_t) atoi((char *) word[0]);
   return (RC_OK);
 }
-short Autoscroll(char* params) {
+
 #define AUL_PARAMS  1
+
+short Autoscroll(char_t *params) {
   char_t strip[AUL_PARAMS];
   char_t *word[AUL_PARAMS + 1];
   unsigned short num_params = 0;
@@ -487,10 +491,11 @@ short Autoscroll(char* params) {
   CURRENT_VIEW->autoscroll = (char_t) atol((char *) word[0]);
   return (RC_OK);
 }
-short Backup(char* params) {
-  short rc = RC_OK;
 
 #define BAC_PARAMS  2
+
+short Backup(char_t *params) {
+  short rc = RC_OK;
   char_t *word[BAC_PARAMS + 1];
   char_t strip[BAC_PARAMS];
   short num_params = 0;
@@ -509,17 +514,17 @@ short Backup(char* params) {
   /*
    * Validate the first parameter
    */
-  if (equal((char_t *) "off", word[0], 3))
+  if (equal((char_t *) "off", word[0], 3)) {
     CURRENT_FILE->backup = BACKUP_OFF;
-  else if (equal((char_t *) "on", word[0], 2))
+  } else if (equal((char_t *) "on", word[0], 2)) {
     CURRENT_FILE->backup = BACKUP_ON;
-  else if (equal((char_t *) "keep", word[0], 4))
+  } else if (equal((char_t *) "keep", word[0], 4)) {
     CURRENT_FILE->backup = BACKUP_KEEP;
-  else if (equal((char_t *) "temp", word[0], 4))
+  } else if (equal((char_t *) "temp", word[0], 4)) {
     CURRENT_FILE->backup = BACKUP_TEMP;
-  else if (equal((char_t *) "inplace", word[0], 2))
+  } else if (equal((char_t *) "inplace", word[0], 2)) {
     CURRENT_FILE->backup = BACKUP_INPLACE;
-  else {
+  } else {
     display_error(1, word[0], FALSE);
     rc = RC_INVALID_OPERAND;
   }
@@ -536,14 +541,17 @@ short Backup(char* params) {
   }
   return (rc);
 }
-short BeepSound(char* params) {
+
+short BeepSound(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &BEEPx, TRUE);
   return (rc);
 }
-short Boundmark(char* params) {
+
 #define BND_PARAMS  2
+
+short Boundmark(char_t *params) {
   char_t save_boundmark = CURRENT_VIEW->boundmark;
   char_t *word[BND_PARAMS + 1];
   char_t strip[BND_PARAMS];
@@ -563,19 +571,19 @@ short Boundmark(char* params) {
   /*
    * Validate the first and only parameter
    */
-  if (equal((char_t *) "zone", word[0], 1))
+  if (equal((char_t *) "zone", word[0], 1)) {
     CURRENT_VIEW->boundmark = BOUNDMARK_ZONE;
-  else if (equal((char_t *) "trunc", word[0], 2))
+  } else if (equal((char_t *) "trunc", word[0], 2)) {
     CURRENT_VIEW->boundmark = BOUNDMARK_TRUNC;
-  else if (equal((char_t *) "margins", word[0], 2))
+  } else if (equal((char_t *) "margins", word[0], 2)) {
     CURRENT_VIEW->boundmark = BOUNDMARK_MARGINS;
-  else if (equal((char_t *) "tabs", word[0], 3))
+  } else if (equal((char_t *) "tabs", word[0], 3)) {
     CURRENT_VIEW->boundmark = BOUNDMARK_TABS;
-  else if (equal((char_t *) "verify", word[0], 1))
+  } else if (equal((char_t *) "verify", word[0], 1)) {
     CURRENT_VIEW->boundmark = BOUNDMARK_VERIFY;
-  else if (equal((char_t *) "off", word[0], 3))
+  } else if (equal((char_t *) "off", word[0], 3)) {
     CURRENT_VIEW->boundmark = BOUNDMARK_OFF;
-  else {
+  } else {
     display_error(1, (char_t *) word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
@@ -586,15 +594,15 @@ short Boundmark(char* params) {
     build_screen(current_screen);
     display_screen(current_screen);
   }
-
   return (RC_OK);
 }
-short Case(char* params) {
+
 #define CAS_PARAMS  6
+
+short Case(char_t *params) {
   char_t parm[CAS_PARAMS];
   char_t *word[CAS_PARAMS + 1];
   char_t strip[CAS_PARAMS];
-
   /*
    * Type 0 is Mixed|Upper|Lower
    * Type 1 is Respect|Ignore
@@ -628,26 +636,26 @@ short Case(char* params) {
   for (i = 0; i < num_params; i++) {
     if (strcmp((char *) word[i], "") != 0) {
       if (arg_types[i] == '0') {
-        if (equal((char_t *) "mixed", word[i], 1))
+        if (equal((char_t *) "mixed", word[i], 1)) {
           parm[i] = CASE_MIXED;
-        else if (equal((char_t *) "upper", word[i], 1))
+        } else if (equal((char_t *) "upper", word[i], 1)) {
           parm[i] = CASE_UPPER;
-        else if (equal((char_t *) "lower", word[i], 1))
+        } else if (equal((char_t *) "lower", word[i], 1)) {
           parm[i] = CASE_LOWER;
-        else if (equal((char_t *) EQUIVCHARstr, word[i], 1))
+        } else if (equal((char_t *) EQUIVCHARstr, word[i], 1)) {
           parm[i] = CURRENT_VIEW->case_enter;
-        else {
+        } else {
           display_error(1, (char_t *) word[i], FALSE);
           return (RC_INVALID_OPERAND);
         }
       } else {
-        if (equal((char_t *) "respect", word[i], 1))
+        if (equal((char_t *) "respect", word[i], 1)) {
           parm[i] = CASE_RESPECT;
-        else if (equal((char_t *) "ignore", word[i], 1))
+        } else if (equal((char_t *) "ignore", word[i], 1)) {
           parm[i] = CASE_IGNORE;
-        else if (equal((char_t *) EQUIVCHARstr, word[i], 1))
+        } else if (equal((char_t *) EQUIVCHARstr, word[i], 1)) {
           parm[i] = parm[i];
-        else {
+        } else {
           display_error(1, (char_t *) word[i], FALSE);
           return (RC_INVALID_OPERAND);
         }
@@ -663,10 +671,10 @@ short Case(char* params) {
   CURRENT_VIEW->case_sort = parm[3];
   CURRENT_VIEW->case_enter_cmdline = parm[4];
   CURRENT_VIEW->case_enter_prefix = parm[5];
-
   return (RC_OK);
 }
-short Clearerrorkey(char* params) {
+
+short Clearerrorkey(char_t *params) {
   short rc = RC_OK;
   int key = 0;
 
@@ -682,46 +690,50 @@ short Clearerrorkey(char* params) {
   }
   return (rc);
 }
-short Clearscreen(char* params) {
+
+short Clearscreen(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CLEARSCREENx, TRUE);
   return (rc);
 }
-short Clock(char* params) {
+
+short Clock(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CLOCKx, TRUE);
-  if (rc == RC_OK && curses_started)
+  if (rc == RC_OK && curses_started) {
     clear_statarea();
+  }
   return (rc);
 }
-short Cmdarrows(char* params) {
+
+short Cmdarrows(char_t *params) {
   short rc = RC_OK;
 
   /*
    * Determine values for first parameter
    */
   params = MyStrip(params, STRIP_BOTH, ' ');
-  if (equal((char_t *) "tab", params, 1))
+  if (equal((char_t *) "tab", params, 1)) {
     CMDARROWSTABCMDx = TRUE;
-  else if (equal((char_t *) "retrieve", params, 1))
+  } else if (equal((char_t *) "retrieve", params, 1)) {
     CMDARROWSTABCMDx = FALSE;
-  else {
+  } else {
     display_error(1, params, FALSE);
     rc = RC_INVALID_OPERAND;
   }
   return (rc);
 }
-short Cmdline(char* params) {
+
+short Cmdline(char_t *params) {
   char_t cmd_place = '?';
   short rc = RC_OK;
 
   params = MyStrip(params, STRIP_BOTH, ' ');
   if (equal((char_t *) "top", params, 1)) {
     cmd_place = 'T';
-  } else if (equal((char_t *) "bottom", params, 1)
-             || equal((char_t *) "on", params, 2)) {
+  } else if (equal((char_t *) "bottom", params, 1) || equal((char_t *) "on", params, 2)) {
     cmd_place = 'B';
   } else if (equal((char_t *) "off", params, 3)) {
     cmd_place = 'O';
@@ -749,20 +761,23 @@ short Cmdline(char* params) {
       return (rc);
     }
   }
-  if (CURRENT_VIEW->cmd_line == 'O')
+  if (CURRENT_VIEW->cmd_line == 'O') {
     CURRENT_VIEW->current_window = WINDOW_FILEAREA;
+  }
   build_screen(current_screen);
-  if (curses_started)
+  if (curses_started) {
     display_screen(current_screen);
-
+  }
   return (rc);
 }
-short Colour(char* params) {
+
 #define COL_PARAMS_DEF 2
 #define COL_PARAMS_COLOUR 4
 #define COL_MODIFIER_NO_SET  0
 #define COL_MODIFIER_SET_ON  1
 #define COL_MODIFIER_SET_OFF 2
+
+short Colour(char_t *params) {
   char_t *word[COL_PARAMS_COLOUR + 1];
   char_t strip[COL_PARAMS_COLOUR];
   char_t parm[COL_PARAMS_COLOUR];
@@ -795,88 +810,20 @@ short Colour(char* params) {
   word1_len = strlen((char *) word[1]);
   clr = is_valid_colour(word[0]);
   if (clr == (-1)) {
-    {
-      if (strcasecmp((char *) word[1] + word1_len - 3, " ON") == 0)
-        modifier_set = COL_MODIFIER_SET_ON;
-      else if (strcasecmp((char *) word[1] + word1_len - 4, " OFF") == 0)
-        modifier_set = COL_MODIFIER_SET_OFF;
-      if (modifier_set) {
-        /*
-         * Check that first parameter is an area or '*'
-         */
-        parm[0] = FALSE;
-        if (strcmp((char *) word[0], "*") == 0) {
-          area = -1;
-          parm[0] = TRUE;
-        } else {
-          for (i = 0; i < ATTR_MAX; i++) {
-            if (equal(valid_areas[i].area, word[0], valid_areas[i].area_min_len)) {
-              parm[0] = TRUE;
-              area = i;
-              break;
-            }
-          }
-        }
-        if (parm[0] == FALSE) {
-          display_error(1, (char_t *) word[0], FALSE);
-          return (RC_INVALID_OPERAND);
-        }
-        /*
-         * Check that each subsequent parameter (except the last) is
-         * a modifier.
-         */
-        if (parse_modifiers(word[1], &tmp_attr) != RC_OK) {
-          return (RC_INVALID_OPERAND);
-        }
-        /*
-         * For each area, turn off the modifiers and redraw the affected part of
-         * the screen
-         */
-        if (area == (-1)) {
-          for (i = 0; i < MAX_THE_WINDOWS; i++) {
-            window_set[i] = FALSE;
-          }
-          for (i = 0; i < ATTR_MAX; i++) {
-            attr = CURRENT_FILE->attr[i];
-            if (modifier_set == COL_MODIFIER_SET_ON) {
-              if (colour_support)
-                attr.mod |= tmp_attr.mod;
-              else
-                attr.mono |= tmp_attr.mono;
-            } else {
-              if (colour_support)
-                attr.mod &= ~tmp_attr.mod;
-              else
-                attr.mono &= ~tmp_attr.mono;
-            }
-            CURRENT_FILE->attr[i] = attr;
-            if (i == ATTR_BOUNDMARK || i == ATTR_NONDISP || window_set[valid_areas[i].area_window] == FALSE) {
-              set_active_colour(i);
-              window_set[valid_areas[i].area_window] = TRUE;
-            }
-          }
-        } else {
-          attr = CURRENT_FILE->attr[area];
-          if (modifier_set == COL_MODIFIER_SET_ON) {
-            if (colour_support)
-              attr.mod |= tmp_attr.mod;
-            else
-              attr.mono |= tmp_attr.mono;
-          } else {
-            if (colour_support)
-              attr.mod &= ~tmp_attr.mod;
-            else
-              attr.mono &= ~tmp_attr.mono;
-          }
-          CURRENT_FILE->attr[area] = attr;
-          set_active_colour(area);
-        }
+    if (strcasecmp((char *) word[1] + word1_len - 3, " ON") == 0) {
+      modifier_set = COL_MODIFIER_SET_ON;
+    } else if (strcasecmp((char *) word[1] + word1_len - 4, " OFF") == 0) {
+      modifier_set = COL_MODIFIER_SET_OFF;
+    }
+    if (modifier_set) {
+      /*
+       * Check that first parameter is an area or '*'
+       */
+      parm[0] = FALSE;
+      if (strcmp((char *) word[0], "*") == 0) {
+        area = -1;
+        parm[0] = TRUE;
       } else {
-        /*
-         * Check that the supplied area matches one of the values in the area
-         * array and that the length is at least as long as the minimum.
-         */
-        parm[0] = FALSE;
         for (i = 0; i < ATTR_MAX; i++) {
           if (equal(valid_areas[i].area, word[0], valid_areas[i].area_min_len)) {
             parm[0] = TRUE;
@@ -884,23 +831,94 @@ short Colour(char* params) {
             break;
           }
         }
-        if (parm[0] == FALSE) {
-          display_error(1, (char_t *) word[0], FALSE);
-          return (RC_INVALID_OPERAND);
+      }
+      if (parm[0] == FALSE) {
+        display_error(1, (char_t *) word[0], FALSE);
+        return (RC_INVALID_OPERAND);
+      }
+      /*
+       * Check that each subsequent parameter (except the last) is
+       * a modifier.
+       */
+      if (parse_modifiers(word[1], &tmp_attr) != RC_OK) {
+        return (RC_INVALID_OPERAND);
+      }
+      /*
+       * For each area, turn off the modifiers and redraw the affected part of
+       * the screen
+       */
+      if (area == (-1)) {
+        for (i = 0; i < MAX_THE_WINDOWS; i++) {
+          window_set[i] = FALSE;
         }
+        for (i = 0; i < ATTR_MAX; i++) {
+          attr = CURRENT_FILE->attr[i];
+          if (modifier_set == COL_MODIFIER_SET_ON) {
+            if (colour_support) {
+              attr.mod |= tmp_attr.mod;
+            } else {
+              attr.mono |= tmp_attr.mono;
+            }
+          } else {
+            if (colour_support) {
+              attr.mod &= ~tmp_attr.mod;
+            } else {
+              attr.mono &= ~tmp_attr.mono;
+            }
+          }
+          CURRENT_FILE->attr[i] = attr;
+          if (i == ATTR_BOUNDMARK || i == ATTR_NONDISP || window_set[valid_areas[i].area_window] == FALSE) {
+            set_active_colour(i);
+            window_set[valid_areas[i].area_window] = TRUE;
+          }
+        }
+      } else {
         attr = CURRENT_FILE->attr[area];
-        /*
-         * Determine colours and modifiers.
-         */
-        if (parse_colours(word[1], &attr, &dummy, FALSE, &any_colours) != RC_OK) {
-          return (RC_INVALID_OPERAND);
+        if (modifier_set == COL_MODIFIER_SET_ON) {
+          if (colour_support) {
+            attr.mod |= tmp_attr.mod;
+          } else {
+            attr.mono |= tmp_attr.mono;
+          }
+        } else {
+          if (colour_support) {
+            attr.mod &= ~tmp_attr.mod;
+          } else {
+            attr.mono &= ~tmp_attr.mono;
+          }
         }
-        /*
-         * Now we have the new colours, save them with the current file...
-         */
         CURRENT_FILE->attr[area] = attr;
         set_active_colour(area);
       }
+    } else {
+      /*
+       * Check that the supplied area matches one of the values in the area
+       * array and that the length is at least as long as the minimum.
+       */
+      parm[0] = FALSE;
+      for (i = 0; i < ATTR_MAX; i++) {
+        if (equal(valid_areas[i].area, word[0], valid_areas[i].area_min_len)) {
+          parm[0] = TRUE;
+          area = i;
+          break;
+        }
+      }
+      if (parm[0] == FALSE) {
+        display_error(1, (char_t *) word[0], FALSE);
+        return (RC_INVALID_OPERAND);
+      }
+      attr = CURRENT_FILE->attr[area];
+      /*
+       * Determine colours and modifiers.
+       */
+      if (parse_colours(word[1], &attr, &dummy, FALSE, &any_colours) != RC_OK) {
+        return (RC_INVALID_OPERAND);
+      }
+      /*
+       * Now we have the new colours, save them with the current file...
+       */
+      CURRENT_FILE->attr[area] = attr;
+      set_active_colour(area);
     }
   } else {
     /* can the terminal support changing colour? */
@@ -937,8 +955,9 @@ short Colour(char* params) {
   return (RC_OK);
 }
 
-short Colouring(char* params) {
 #define COLG_PARAMS  2
+
+short Colouring(char_t *params) {
   char_t *word[COLG_PARAMS + 1];
   char_t strip[COLG_PARAMS];
   short num_params = 0;
@@ -964,7 +983,6 @@ short Colouring(char* params) {
     display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
-
   if (new_colouring) {
     /*
      * This is only applicable when turning colouring ON
@@ -1000,8 +1018,9 @@ short Colouring(char* params) {
   return (RC_OK);
 }
 
-short Compat(char* params) {
 #define COM_PARAMS  4
+
+short Compat(char_t *params) {
   char_t *word[COM_PARAMS + 1];
   char_t strip[COM_PARAMS];
   short num_params = 0;
@@ -1032,19 +1051,19 @@ short Compat(char* params) {
     display_error(2, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
-  if (equal((char_t *) "the", word[0], 1))
+  if (equal((char_t *) "the", word[0], 1)) {
     new_look = COMPAT_THE;
-  else if (equal((char_t *) "xedit", word[0], 1))
+  } else if (equal((char_t *) "xedit", word[0], 1)) {
     new_look = COMPAT_XEDIT;
-  else if (equal((char_t *) "kedit", word[0], 1))
+  } else if (equal((char_t *) "kedit", word[0], 1)) {
     new_look = COMPAT_KEDIT;
-  else if (equal((char_t *) "keditw", word[0], 6))
+  } else if (equal((char_t *) "keditw", word[0], 6)) {
     new_look = COMPAT_KEDITW;
-  else if (equal((char_t *) "ispf", word[0], 1))
+  } else if (equal((char_t *) "ispf", word[0], 1)) {
     new_look = COMPAT_ISPF;
-  else if (equal((char_t *) EQUIVCHARstr, word[0], 1))
+  } else if (equal((char_t *) EQUIVCHARstr, word[0], 1)) {
     new_look = save_look;
-  else {
+  } else {
     display_error(1, word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
@@ -1052,38 +1071,38 @@ short Compat(char* params) {
     new_feel = save_feel;
     new_keys = save_keys;
   } else {
-    if (equal((char_t *) "the", word[1], 1))
+    if (equal((char_t *) "the", word[1], 1)) {
       new_feel = COMPAT_THE;
-    else if (equal((char_t *) "xedit", word[1], 1))
+    } else if (equal((char_t *) "xedit", word[1], 1)) {
       new_feel = COMPAT_XEDIT;
-    else if (equal((char_t *) "kedit", word[1], 1))
+    } else if (equal((char_t *) "kedit", word[1], 1)) {
       new_feel = COMPAT_KEDIT;
-    else if (equal((char_t *) "keditw", word[1], 6))
+    } else if (equal((char_t *) "keditw", word[1], 6)) {
       new_feel = COMPAT_KEDITW;
-    else if (equal((char_t *) "ispf", word[1], 1))
+    } else if (equal((char_t *) "ispf", word[1], 1)) {
       new_feel = COMPAT_ISPF;
-    else if (equal((char_t *) EQUIVCHARstr, word[1], 1))
+    } else if (equal((char_t *) EQUIVCHARstr, word[1], 1)) {
       new_feel = save_feel;
-    else {
+    } else {
       display_error(1, word[1], FALSE);
       return (RC_INVALID_OPERAND);
     }
-    if (num_params == 2)
+    if (num_params == 2) {
       new_keys = save_keys;
-    else {
-      if (equal((char_t *) "the", word[2], 1))
+    } else {
+      if (equal((char_t *) "the", word[2], 1)) {
         new_keys = COMPAT_THE;
-      else if (equal((char_t *) "xedit", word[2], 1))
+      } else if (equal((char_t *) "xedit", word[2], 1)) {
         new_keys = COMPAT_XEDIT;
-      else if (equal((char_t *) "kedit", word[2], 1))
+      } else if (equal((char_t *) "kedit", word[2], 1)) {
         new_keys = COMPAT_KEDIT;
-      else if (equal((char_t *) "keditw", word[2], 6))
+      } else if (equal((char_t *) "keditw", word[2], 6)) {
         new_keys = COMPAT_KEDITW;
-      else if (equal((char_t *) "ispf", word[2], 1))
+      } else if (equal((char_t *) "ispf", word[2], 1)) {
         new_keys = COMPAT_ISPF;
-      else if (equal((char_t *) EQUIVCHARstr, word[2], 1))
+      } else if (equal((char_t *) EQUIVCHARstr, word[2], 1)) {
         new_keys = save_keys;
-      else {
+      } else {
         display_error(1, word[2], FALSE);
         return (RC_INVALID_OPERAND);
       }
@@ -1101,15 +1120,19 @@ short Compat(char* params) {
    */
   if (save_keys != compatible_keys) {
     switch (compatible_keys) {
+
       case COMPAT_THE:
         rc = set_THE_key_defaults(prey, prex);
         break;
+
       case COMPAT_XEDIT:
         rc = set_XEDIT_key_defaults(prey, prex);
         break;
+
       case COMPAT_ISPF:
         rc = set_ISPF_key_defaults(prey, prex);
         break;
+
       case COMPAT_KEDIT:
       case COMPAT_KEDITW:
         rc = set_KEDIT_key_defaults(prey, prex);
@@ -1123,15 +1146,15 @@ short Compat(char* params) {
    * Now we have to change the LOOK of the current view...
    */
   if (curses_started) {
-    if (CURRENT_WINDOW_PREFIX != NULL)
+    if (CURRENT_WINDOW_PREFIX != NULL) {
       getyx(CURRENT_WINDOW_PREFIX, prey, prex);
+    }
   }
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   /*
    * Reset common settings to defaults for THE...
    */
   set_global_look_defaults();
-
   save_autosave_alt = CURRENT_FILE->autosave_alt;
   save_save_alt = CURRENT_FILE->save_alt;
   set_file_defaults(CURRENT_FILE);
@@ -1156,8 +1179,9 @@ short Compat(char* params) {
   if (display_screens > 1) {
     OTHER_SCREEN.screen_view->current_row = calculate_actual_row(OTHER_SCREEN.screen_view->current_base, OTHER_SCREEN.screen_view->current_off, OTHER_SCREEN.rows[WINDOW_FILEAREA], TRUE);
     pre_process_line(OTHER_SCREEN.screen_view, OTHER_SCREEN.screen_view->focus_line, (LINE *) NULL);
-    if (OTHER_SCREEN.screen_view->cmd_line == 'O')
+    if (OTHER_SCREEN.screen_view->cmd_line == 'O') {
       OTHER_SCREEN.screen_view->current_window = WINDOW_FILEAREA;
+    }
     if (curses_started) {
       if (set_up_windows(current_screen) != RC_OK) {
         return (rc);
@@ -1177,8 +1201,9 @@ short Compat(char* params) {
    */
   CURRENT_VIEW->current_row = calculate_actual_row(CURRENT_VIEW->current_base, CURRENT_VIEW->current_off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE);
   pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
-  if (CURRENT_VIEW->cmd_line == 'O')
+  if (CURRENT_VIEW->cmd_line == 'O') {
     CURRENT_VIEW->current_window = WINDOW_FILEAREA;
+  }
   if (curses_started) {
     if (set_up_windows(current_screen) != RC_OK) {
       return (rc);
@@ -1187,11 +1212,12 @@ short Compat(char* params) {
   redraw_screen(current_screen);
   build_screen(current_screen);
   display_screen(current_screen);
-
   return (rc);
 }
-short Ctlchar(char* params) {
+
 #define CTL_PARAMS  3
+
+short Ctlchar(char_t *params) {
   char_t *word[CTL_PARAMS + 1];
   char_t strip[CTL_PARAMS];
   short num_params = 0;
@@ -1279,11 +1305,11 @@ short Ctlchar(char* params) {
        * Now should be parsing colours to set the ctlchar colour for
        * the character in word[0][0]
        */
-      if (equal((char_t *) "protect", word[1], 1))
+      if (equal((char_t *) "protect", word[1], 1)) {
         protect = TRUE;
-      else if (equal((char_t *) "noprotect", word[1], 1))
+      } else if (equal((char_t *) "noprotect", word[1], 1)) {
         protect = FALSE;
-      else {
+      } else {
         display_error(1, word[1], FALSE);
         return (RC_INVALID_OPERAND);
       }
@@ -1341,8 +1367,9 @@ short Ctlchar(char* params) {
   return (RC_OK);
 }
 
-short Curline(char* params) {
 #define CUR_PARAMS  2
+
+short Curline(char_t *params) {
   char_t *word[CUR_PARAMS + 1];
   char_t strip[CUR_PARAMS];
   short num_params = 0;
@@ -1356,14 +1383,14 @@ short Curline(char* params) {
   strip[1] = STRIP_BOTH;
   num_params = param_split(params, word, CUR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   switch (num_params) {
+
     case 0:
       display_error(3, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
       break;
+
     case 1:
-      /*
-       * Can only be a valid position
-       */
+      // Can only be a valid position
       /*
        * Is the first argument ON ?
        */
@@ -1393,10 +1420,9 @@ short Curline(char* params) {
         return (RC_INVALID_OPERAND);
       }
       break;
+
     case 2:
-      /*
-       * First argument MUST be ON, 2nd a valid position
-       */
+      // First argument MUST be ON, 2nd a valid position
       /*
        * Is the first argument ON or OFF ?
        */
@@ -1419,6 +1445,7 @@ short Curline(char* params) {
         return (rc);
       }
       break;
+
     default:
       display_error(2, (char_t *) "", FALSE);
       return (RC_INVALID_OPERAND);
@@ -1428,6 +1455,7 @@ short Curline(char* params) {
    * If we have set the CURLINE OFF, redisplay the current screen???
    */
   if (onoff == FALSE) {
+    // no-op
   } else {
     /*
      * If the CURLINE is the same line as HEXSHOW, SCALE, TABLE or has a
@@ -1443,8 +1471,7 @@ short Curline(char* params) {
       return (rc);
     }
     hexshow_row = calculate_actual_row(CURRENT_VIEW->hexshow_base, CURRENT_VIEW->hexshow_off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE);
-    if ((hexshow_row == curline_row || hexshow_row + 1 == curline_row)
-        && CURRENT_VIEW->hexshow_on) {
+    if ((hexshow_row == curline_row || hexshow_row + 1 == curline_row) && CURRENT_VIEW->hexshow_on) {
       display_error(64, (char_t *) "- same as HEXSHOW", FALSE);
       return (rc);
     }
@@ -1468,17 +1495,19 @@ short Curline(char* params) {
     build_screen(current_screen);
     display_screen(current_screen);
   }
-
   return (RC_OK);
 }
-short CursorStay(char* params) {
+
+short CursorStay(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &scroll_cursor_stay, TRUE);
   return (rc);
 }
-short Defsort(char* params) {
+
 #define DIR_PARAMS  2
+
+short Defsort(char_t *params) {
   char_t *word[DIR_PARAMS + 1];
   char_t strip[DIR_PARAMS];
   short num_params = 0;
@@ -1506,28 +1535,28 @@ short Defsort(char* params) {
     display_error(2, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
-  if (equal((char_t *) "directory", word[0], 3))
+  if (equal((char_t *) "directory", word[0], 3)) {
     defsort = DIRSORT_DIR;
-  else if (equal((char_t *) "name", word[0], 1))
+  } else if (equal((char_t *) "name", word[0], 1)) {
     defsort = DIRSORT_NAME;
-  else if (equal((char_t *) "time", word[0], 1))
+  } else if (equal((char_t *) "time", word[0], 1)) {
     defsort = DIRSORT_TIME;
-  else if (equal((char_t *) "size", word[0], 1))
+  } else if (equal((char_t *) "size", word[0], 1)) {
     defsort = DIRSORT_SIZE;
-  else if (equal((char_t *) "date", word[0], 1))
+  } else if (equal((char_t *) "date", word[0], 1)) {
     defsort = DIRSORT_DATE;
-  else if (equal((char_t *) "off", word[0], 3))
+  } else if (equal((char_t *) "off", word[0], 3)) {
     defsort = DIRSORT_NONE;
-  else {
+  } else {
     display_error(1, (char_t *) word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (num_params == 2) {
-    if (equal((char_t *) "ascending", word[1], 1))
+    if (equal((char_t *) "ascending", word[1], 1)) {
       dirorder = DIRSORT_ASC;
-    else if (equal((char_t *) "descending", word[1], 1))
+    } else if (equal((char_t *) "descending", word[1], 1)) {
       dirorder = DIRSORT_DESC;
-    else {
+    } else {
       display_error(1, (char_t *) word[1], FALSE);
       return (RC_INVALID_OPERAND);
     }
@@ -1550,7 +1579,7 @@ short Defsort(char* params) {
   return (rc);
 }
 
-short Display(char* params) {
+short Display(char_t *params) {
   short rc = RC_OK;
   short col1 = 0, col2 = 0;
 
@@ -1579,11 +1608,12 @@ short Display(char* params) {
    * If the same file is in the other screen, refresh it
    */
   adjust_other_screen_shadow_lines();
-
   return (rc);
 }
-short Ecolour(char* params) {
+
 #define ECOL_PARAMS 2
+
+short Ecolour(char_t *params) {
   char_t *word[ECOL_PARAMS + 1];
   char_t strip[ECOL_PARAMS];
   unsigned short num_params = 0;
@@ -1608,10 +1638,11 @@ short Ecolour(char* params) {
    * second format.
    */
   word1_len = strlen((char *) word[1]);
-  if (strcasecmp((char *) word[1] + word1_len - 2, "ON") == 0)
+  if (strcasecmp((char *) word[1] + word1_len - 2, "ON") == 0) {
     modifier_set = COL_MODIFIER_SET_ON;
-  else if (strcasecmp((char *) word[1] + word1_len - 3, "OFF") == 0)
+  } else if (strcasecmp((char *) word[1] + word1_len - 3, "OFF") == 0) {
     modifier_set = COL_MODIFIER_SET_OFF;
+  }
   if (modifier_set) {
     /*
      * Check that the supplied area matches one of the values in the area
@@ -1622,15 +1653,15 @@ short Ecolour(char* params) {
       return (RC_INVALID_OPERAND);
     }
     ch = word[0][0];
-    if (ch >= 'A' && ch <= 'Z')
+    if (ch >= 'A' && ch <= 'Z') {
       off = 'A';
-    else if (ch >= 'a' && ch <= 'z')
+    } else if (ch >= 'a' && ch <= 'z') {
       off = 'a';
-    else if (ch >= '1' && ch <= '9')
+    } else if (ch >= '1' && ch <= '9') {
       off = '1' - 26;           /* Beware: --x == +x */
-    else if (ch == '*')
+    } else if (ch == '*') {
       off = -1;
-    else {
+    } else {
       display_error(1, word[0], FALSE);
       return (RC_INVALID_OPERAND);
     }
@@ -1645,15 +1676,17 @@ short Ecolour(char* params) {
       for (i = 0; i < ECOLOUR_MAX; i++) {
         attr = CURRENT_FILE->ecolour[i];
         if (modifier_set == COL_MODIFIER_SET_ON) {
-          if (colour_support)
+          if (colour_support) {
             attr.mod |= tmp_attr.mod;
-          else
+          } else {
             attr.mono |= tmp_attr.mono;
+          }
         } else {
-          if (colour_support)
+          if (colour_support) {
             attr.mod &= ~tmp_attr.mod;
-          else
+          } else {
             attr.mono &= ~tmp_attr.mono;
+          }
         }
         CURRENT_FILE->ecolour[i] = attr;
       }
@@ -1661,15 +1694,17 @@ short Ecolour(char* params) {
       area = ch - off;
       attr = CURRENT_FILE->ecolour[area];
       if (modifier_set == COL_MODIFIER_SET_ON) {
-        if (colour_support)
+        if (colour_support) {
           attr.mod |= tmp_attr.mod;
-        else
+        } else {
           attr.mono |= tmp_attr.mono;
+        }
       } else {
-        if (colour_support)
+        if (colour_support) {
           attr.mod &= ~tmp_attr.mod;
-        else
+        } else {
           attr.mono &= ~tmp_attr.mono;
+        }
       }
       CURRENT_FILE->ecolour[area] = attr;
     }
@@ -1683,13 +1718,13 @@ short Ecolour(char* params) {
       return (RC_INVALID_OPERAND);
     }
     ch = word[0][0];
-    if (ch >= 'A' && ch <= 'Z')
+    if (ch >= 'A' && ch <= 'Z') {
       off = 'A';
-    else if (ch >= 'a' && ch <= 'z')
+    } else if (ch >= 'a' && ch <= 'z') {
       off = 'a';
-    else if (ch >= '1' && ch <= '9')
+    } else if (ch >= '1' && ch <= '9') {
       off = '1' - 26;           /* Beware: --x == +x */
-    else {
+    } else {
       display_error(1, word[0], FALSE);
       return (RC_INVALID_OPERAND);
     }
@@ -1721,30 +1756,31 @@ short Ecolour(char* params) {
   display_screen(current_screen);
   return (RC_OK);
 }
-short Eolout(char* params) {
+
+short Eolout(char_t *params) {
   char_t eolchar = 0;
 
   params = MyStrip(params, STRIP_BOTH, ' ');
-  if (equal((char_t *) "lf", params, 2))
+  if (equal((char_t *) "lf", params, 2)) {
     eolchar = EOLOUT_LF;
-  else if (equal((char_t *) "cr", params, 2))
+  } else if (equal((char_t *) "cr", params, 2)) {
     eolchar = EOLOUT_CR;
-  else if (equal((char_t *) "crlf", params, 4))
+  } else if (equal((char_t *) "crlf", params, 4)) {
     eolchar = EOLOUT_CRLF;
-  else if (equal((char_t *) "none", params, 4))
+  } else if (equal((char_t *) "none", params, 4)) {
     eolchar = EOLOUT_NONE;
-  else {
+  } else {
     display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (display_length != 0 && eolchar != EOLOUT_NONE) {
     display_error(0, (char_t *) "Warning: Setting EOLOUT will result in extra characters appended to each line on SAVE/FILE!", FALSE);
   }
-
   EOLx = CURRENT_FILE->eolout = eolchar;
   return (RC_OK);
 }
-short Equivchar(char* params) {
+
+short Equivchar(char_t *params) {
   short rc = RC_OK;
 
   /*
@@ -1767,29 +1803,33 @@ short Equivchar(char* params) {
   EQUIVCHARstr[0] = EQUIVCHARx = *(params);
   return (rc);
 }
-short Errorformat(char* params) {
+
+short Errorformat(char_t *params) {
   char_t errformat = 'N';
 
   params = MyStrip(params, STRIP_BOTH, ' ');
-  if (equal((char_t *) "normal", params, 1))
+  if (equal((char_t *) "normal", params, 1)) {
     errformat = 'N';
-  else if (equal((char_t *) "extended", params, 1))
+  } else if (equal((char_t *) "extended", params, 1)) {
     errformat = 'E';
-  else {
+  } else {
     display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   ERRORFORMATx = errformat;
   return (RC_OK);
 }
-short Erroroutput(char* params) {
+
+short Erroroutput(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &ERROROUTPUTx, TRUE);
   return (rc);
 }
-short Etmode(char * params) {
+
 #define ETM_PARAMS  21
+
+short Etmode(char_t *params) {
   char_t *word[ETM_PARAMS + 1];
   char_t strip[ETM_PARAMS];
   short num_params = 0;
@@ -1802,8 +1842,9 @@ short Etmode(char * params) {
   int num = 0, num1 = 0;
   char_t *wptr = NULL, *wptr1 = NULL;
 
-  for (i = 0; i < ETM_PARAMS; i++)
+  for (i = 0; i < ETM_PARAMS; i++) {
     strip[i] = STRIP_BOTH;
+  }
   num_params = param_split(params, word, ETM_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params < 1) {
     display_error(3, (char_t *) "", FALSE);
@@ -1814,10 +1855,11 @@ short Etmode(char * params) {
     display_error(1, word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
-  if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL)
+  if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL) {
     set_up_default_colours((FILE_DETAILS *) NULL, &curr_attr, ATTR_NONDISP);
-  else
+  } else {
     memcpy(&curr_attr, CURRENT_FILE->attr + ATTR_NONDISP, sizeof(COLOUR_ATTR));
+  }
   attr = set_colour(&curr_attr);
   if (num_params == 1) {        /* absolute ON or OFF */
     if (tmp_mode) {             /* ETMODE ON */
@@ -1911,7 +1953,48 @@ short Etmode(char * params) {
   }
   return (rc);
 }
-short Fext(char* params) {
+
+short Fdisplay(char_t *params) {
+  short rc = RC_OK;
+
+  /*
+   * Must supply a parameter...
+   */
+  if (blank_field(params)) {
+    display_error(3, (char_t *) "", FALSE);
+    return (RC_INVALID_OPERAND);
+  }
+  /*
+   * The filename can be quoted; so strip leading and trailing
+   * double quotes
+   */
+  params = MyStrip(params, STRIP_BOTH, '"');
+  /*
+   * If the length of the new display name is > the existing one,
+   * free up any memory for the existing name and allocate some
+   * more. Save the new name.
+   */
+  if (strlen((char *) params) > strlen((char *) CURRENT_FILE->display_name)) {
+    free (CURRENT_FILE->display_name);
+    if ((CURRENT_FILE->display_name = (char_t *) malloc (strlen((char *) params) + 1)) == NULL) {
+      display_error(30, (char_t *) "", FALSE);
+      return (RC_OUT_OF_MEMORY);
+    }
+  }
+  strcpy((char *) CURRENT_FILE->display_name, (char *) params);
+  /*
+   * Re-display the IDLINE
+   */
+  if (curses_started) {
+    if (display_screens > 1 && SCREEN_FILE(current_screen) == SCREEN_FILE((char_t) (other_screen))) {
+      show_heading((char_t) (other_screen));
+    }
+    show_heading(current_screen);
+  }
+  return (rc);
+}
+
+short Fext(char_t *params) {
   char_t tmp_name[MAX_FILE_NAME + 1];
   short rc = RC_OK;
   int last_period = 0;
@@ -1962,8 +2045,8 @@ short Fext(char* params) {
    * more. Save the new path.
    */
   if (strlen((char *) sp_fname) > strlen((char *) CURRENT_FILE->fname)) {
-    free(CURRENT_FILE->fname);
-    if ((CURRENT_FILE->fname = (char_t *) malloc(strlen((char *) sp_fname))) == NULL) {
+    free (CURRENT_FILE->fname);
+    if ((CURRENT_FILE->fname = (char_t *) malloc (strlen((char *) sp_fname))) == NULL) {
       display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
@@ -1980,7 +2063,8 @@ short Fext(char* params) {
   }
   return (rc);
 }
-short Filename(char* params) {
+
+short Filename(char_t *params) {
   char_t tmp_name[MAX_FILE_NAME + 1];
   short rc = RC_OK;
   int i = 0, cnt = 0, len_params = 0;
@@ -2010,8 +2094,9 @@ short Filename(char* params) {
    */
   len_params = strlen((char *) params);
   for (i = 0, cnt = 0; i < len_params; i++) {
-    if (params[i] == EQUIVCHARx)
+    if (params[i] == EQUIVCHARx) {
       cnt++;
+    }
   }
   if (cnt > 1) {
     display_error(1, params, FALSE);
@@ -2078,8 +2163,8 @@ short Filename(char* params) {
    * more. Save the new name.
    */
   if (strlen((char *) sp_fname) > strlen((char *) CURRENT_FILE->fname)) {
-    free(CURRENT_FILE->fname);
-    if ((CURRENT_FILE->fname = (char_t *) malloc(strlen((char *) sp_fname) + 1)) == NULL) {
+    free (CURRENT_FILE->fname);
+    if ((CURRENT_FILE->fname = (char_t *) malloc (strlen((char *) sp_fname) + 1)) == NULL) {
       display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
@@ -2096,7 +2181,8 @@ short Filename(char* params) {
   }
   return (rc);
 }
-short THEFiletabs(char* params) {
+
+short THEFiletabs(char_t *params) {
   short rc = RC_OK;
   bool save_filetabs = FILETABSx;
 
@@ -2123,16 +2209,19 @@ short THEFiletabs(char* params) {
     CURRENT_VIEW->current_row = calculate_actual_row(CURRENT_VIEW->current_base, CURRENT_VIEW->current_off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE);
     if (display_screens > 1 && SCREEN_FILE(current_screen) == SCREEN_FILE((char_t) (other_screen))) {
       build_screen((char_t) (other_screen));
-      if (curses_started)
+      if (curses_started) {
         display_screen((char_t) (other_screen));
+      }
     }
     build_screen(current_screen);
-    if (curses_started)
+    if (curses_started) {
       display_screen(current_screen);
+    }
   }
   return (rc);
 }
-short Fmode(char* params) {
+
+short Fmode(char_t *params) {
   short rc = RC_OK;
 
   /*
@@ -2142,7 +2231,8 @@ short Fmode(char* params) {
   rc = RC_INVALID_OPERAND;
   return (rc);
 }
-short Fname(char* params) {
+
+short Fname(char_t *params) {
   char_t tmp_name[MAX_FILE_NAME + 1];
   short rc = RC_OK;
   int last_period = 0;
@@ -2173,7 +2263,6 @@ short Fname(char* params) {
   } else {
     int len = strlen((char *) CURRENT_FILE->fpath);
     int lenext = strlen((char *) CURRENT_FILE->fname) - last_period;
-
     strcat((char *) tmp_name, (char *) CURRENT_FILE->fname + last_period);
     meminsmem(tmp_name, params, strlen((char *) params), len, MAX_FILE_NAME + 1, len + lenext + 1);
   }
@@ -2210,8 +2299,8 @@ short Fname(char* params) {
    * more. Save the new path.
    */
   if (strlen((char *) sp_fname) > strlen((char *) CURRENT_FILE->fname)) {
-    free(CURRENT_FILE->fname);
-    if ((CURRENT_FILE->fname = (char_t *) malloc(strlen((char *) sp_fname))) == NULL) {
+    free (CURRENT_FILE->fname);
+    if ((CURRENT_FILE->fname = (char_t *) malloc (strlen((char *) sp_fname))) == NULL) {
       display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
@@ -2228,7 +2317,8 @@ short Fname(char* params) {
   }
   return (rc);
 }
-short Fpath(char* params) {
+
+short Fpath(char_t *params) {
   char_t tmp_name[MAX_FILE_NAME + 1];
   short rc = RC_OK;
 
@@ -2286,8 +2376,8 @@ short Fpath(char* params) {
    * more. Save the new path.
    */
   if (strlen((char *) sp_path) > strlen((char *) CURRENT_FILE->fpath)) {
-    free(CURRENT_FILE->fpath);
-    if ((CURRENT_FILE->fpath = (char_t *) malloc(strlen((char *) sp_path))) == NULL) {
+    free (CURRENT_FILE->fpath);
+    if ((CURRENT_FILE->fpath = (char_t *) malloc (strlen((char *) sp_path))) == NULL) {
       display_error(30, (char_t *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
@@ -2305,7 +2395,7 @@ short Fpath(char* params) {
   return (rc);
 }
 
-short Fullfname(char* params) {
+short Fullfname(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_FILE->display_actual_filename, TRUE);
@@ -2317,10 +2407,11 @@ short Fullfname(char* params) {
   }
   return (rc);
 }
-short THEHeader(char* params) {
-  short rc = RC_OK;
 
 #define HEA_PARAMS  2
+
+short THEHeader(char_t *params) {
+  short rc = RC_OK;
   char_t *word[HEA_PARAMS + 1];
   char_t strip[HEA_PARAMS];
   short num_params = 0;
@@ -2348,43 +2439,45 @@ short THEHeader(char* params) {
     display_error(1, word[0], FALSE);
     return (RC_INVALID_OPERAND);
   }
-
   rc = execute_set_on_off(word[1], &on_or_off, TRUE);
   if (rc != RC_OK) {
     return (rc);
   }
-
   /*
    * Have a valid header, and a valid ON|OFF...
    */
-  if (on_or_off)
+  if (on_or_off) {
     CURRENT_VIEW->syntax_headers |= val;
-  else
+  } else {
     CURRENT_VIEW->syntax_headers &= ~val;
-
+  }
   if (CURRENT_VIEW->syntax_headers != save_syntax_headers) {
     build_screen(current_screen);
     display_screen(current_screen);
   }
-
   return (rc);
 }
-short Hex(char* params) {
+
+short Hex(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->hex, TRUE);
   return (rc);
 }
-short Hexdisplay(char* params) {
+
+short Hexdisplay(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &HEXDISPLAYx, TRUE);
-  if (rc == RC_OK && curses_started)
+  if (rc == RC_OK && curses_started) {
     clear_statarea();
+  }
   return (rc);
 }
-short Hexshow(char* params) {
+
 #define HEXS_PARAMS  2
+
+short Hexshow(char_t *params) {
   char_t *word[HEXS_PARAMS + 1];
   char_t strip[HEXS_PARAMS];
   short num_params = 0;
@@ -2420,9 +2513,7 @@ short Hexshow(char* params) {
    * If the HEXSHOW row (or the next row) is the same row as CURLINE and
    * it is being turned on, return ERROR.
    */
-  if ((calculate_actual_row(CURRENT_VIEW->current_base, CURRENT_VIEW->current_off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE) == calculate_actual_row(base, off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE)
-       || calculate_actual_row(CURRENT_VIEW->current_base, CURRENT_VIEW->current_off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE) == calculate_actual_row(base, off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE) + 1)
-      && hexshowsts) {
+  if ((calculate_actual_row(CURRENT_VIEW->current_base, CURRENT_VIEW->current_off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE) == calculate_actual_row(base, off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE) || calculate_actual_row(CURRENT_VIEW->current_base, CURRENT_VIEW->current_off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE) == calculate_actual_row(base, off, CURRENT_SCREEN.rows[WINDOW_FILEAREA], TRUE) + 1) && hexshowsts) {
     display_error(64, (char_t *) "- same line as CURLINE", FALSE);
     return (RC_INVALID_ENVIRON);
   }
@@ -2434,8 +2525,10 @@ short Hexshow(char* params) {
   display_screen(current_screen);
   return (rc);
 }
-short Highlight(char* params) {
+
 #define HIGH_PARAMS  2
+
+short Highlight(char_t *params) {
   char_t *word[HIGH_PARAMS + 1];
   char_t strip[HIGH_PARAMS];
   short num_params = 0;
@@ -2450,6 +2543,7 @@ short Highlight(char* params) {
     return (RC_INVALID_OPERAND);
   }
   switch (num_params) {
+
     case 1:
       if (equal((char_t *) "off", word[0], 3)) {
         CURRENT_VIEW->highlight = HIGHLIGHT_NONE;
@@ -2466,6 +2560,7 @@ short Highlight(char* params) {
       display_error(1, word[0], FALSE);
       rc = RC_INVALID_OPERAND;
       break;
+
     case 2:
     case 3:
       if (!equal((char_t *) "select", word[0], 3)) {
@@ -2479,6 +2574,7 @@ short Highlight(char* params) {
       CURRENT_VIEW->highlight_low = col1;
       CURRENT_VIEW->highlight_high = col2;
       break;
+
     default:
       display_error(1, word[0], FALSE);
       rc = RC_INVALID_OPERAND;
@@ -2490,7 +2586,8 @@ short Highlight(char* params) {
   }
   return (rc);
 }
-short Idline(char* params) {
+
+short Idline(char_t *params) {
   short rc = RC_OK;
   bool save_id_line = FALSE;
 
@@ -2522,64 +2619,71 @@ short Idline(char* params) {
   return (rc);
 }
 
-short Impmacro(char* params) {
+short Impmacro(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->imp_macro, TRUE);
   return (rc);
 }
-short Impos(char* params) {
+
+short Impos(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->imp_os, TRUE);
   return (rc);
 }
-short Inputmode(char* params) {
+
+short Inputmode(char_t *params) {
   params = MyStrip(params, STRIP_BOTH, ' ');
-  if (equal((char_t *) "off", params, 3))
+  if (equal((char_t *) "off", params, 3)) {
     CURRENT_VIEW->inputmode = INPUTMODE_OFF;
-  else if (equal((char_t *) "full", params, 2))
+  } else if (equal((char_t *) "full", params, 2)) {
     CURRENT_VIEW->inputmode = INPUTMODE_FULL;
-  else if (equal((char_t *) "line", params, 2))
+  } else if (equal((char_t *) "line", params, 2)) {
     CURRENT_VIEW->inputmode = INPUTMODE_LINE;
-  else {
+  } else {
     display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   return (RC_OK);
 }
-short Insertmode(char* params) {
+
+short Insertmode(char_t *params) {
   params = MyStrip(params, STRIP_BOTH, ' ');
-  if (equal((char_t *) "off", params, 3))
+  if (equal((char_t *) "off", params, 3)) {
     INSERTMODEx = FALSE;
-  else if (equal((char_t *) "on", params, 2))
+  } else if (equal((char_t *) "on", params, 2)) {
     INSERTMODEx = TRUE;
-  else if (equal((char_t *) "toggle", params, 6))
+  } else if (equal((char_t *) "toggle", params, 6)) {
     INSERTMODEx = (INSERTMODEx) ? FALSE : TRUE;
-  else {
+  } else {
     display_error(1, (char_t *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
-  if (curses_started)
+  if (curses_started) {
     draw_cursor(TRUE);
+  }
   return (RC_OK);
 }
-short THEInterface(char* params) {
+
+short THEInterface(char_t *params) {
   short rc = RC_OK;
 
   params = MyStrip(params, STRIP_BOTH, ' ');
-  if (equal((char_t *) "classic", params, 7))
+  if (equal((char_t *) "classic", params, 7)) {
     INTERFACEx = INTERFACE_CLASSIC;
-  else if (equal((char_t *) "cua", params, 3))
+  } else if (equal((char_t *) "cua", params, 3)) {
     INTERFACEx = INTERFACE_CUA;
-  else {
+  } else {
     display_error(3, (char_t *) "", FALSE);
     rc = RC_INVALID_OPERAND;
   }
   return (rc);
 }
-short Lastop(char* params) {
+
 #define LOP_PARAMS  2
+
+short Lastop(char_t *params) {
   char_t *word[LOP_PARAMS + 1];
   char_t strip[LOP_PARAMS];
   unsigned short num_params = 0;
@@ -2619,8 +2723,9 @@ short Lastop(char* params) {
   return (rc);
 }
 
-short Lineflag(char* params) {
 #define LF_PARAMS  4
+
+short Lineflag(char_t *params) {
   char_t *word[LF_PARAMS + 1];
   char_t strip[LF_PARAMS];
   line_t num_lines = 0L, true_line = 0L;
@@ -2636,12 +2741,11 @@ short Lineflag(char* params) {
   unsigned int tag_flag = 2;
   int i, j;
 
-  save_params = my_strdup(params);
+  save_params =  (char_t *) strdup ((char *) params);
   if (save_params == NULL) {
     display_error(30, (char_t *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
   strip[2] = STRIP_BOTH;
@@ -2649,16 +2753,11 @@ short Lineflag(char* params) {
   num_params = param_split(params, word, LF_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params == 0) {        /* no params */
     display_error(3, (char_t *) "", FALSE);
-    free(save_params);
+    free (save_params);
     return (RC_INVALID_OPERAND);
   }
   for (i = 0; i < num_params; i++) {
-    if (!equal((char_t *) "change", word[i], 3)
-        && !equal((char_t *) "nochange", word[i], 4)
-        && !equal((char_t *) "new", word[i], 3)
-        && !equal((char_t *) "nonew", word[i], 5)
-        && !equal((char_t *) "tag", word[i], 3)
-        && !equal((char_t *) "notag", word[i], 5)) {
+    if (!equal((char_t *) "change", word[i], 3) && !equal((char_t *) "nochange", word[i], 4) && !equal((char_t *) "new", word[i], 3) && !equal((char_t *) "nonew", word[i], 5) && !equal((char_t *) "tag", word[i], 3) && !equal((char_t *) "notag", word[i], 5)) {
       no_flag = TRUE;
       break;
     }
@@ -2669,7 +2768,7 @@ short Lineflag(char* params) {
    */
   if (i == 0) {
     display_error(3, (char_t *) "", FALSE);
-    free(save_params);
+    free (save_params);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -2692,36 +2791,43 @@ short Lineflag(char* params) {
     initialise_target(&target);
     if ((rc = validate_target(word[num_params - 1], &target, target_type, get_true_line(TRUE), TRUE, TRUE)) != RC_OK) {
       free_target(&target);
-      free(save_params);
+      free (save_params);
       return (rc);
     }
     switch (target.rt[0].target_type) {
+
       case TARGET_BLOCK_CURRENT:
         switch (MARK_VIEW->mark_type) {
+
           case M_STREAM:
           case M_WORD:
           case M_COLUMN:
             display_error(49, (char_t *) "", FALSE);
             free_target(&target);
-            free(save_params);
+            free (save_params);
             return (RC_INVALID_OPERAND);
             break;
+
           case M_BOX:
             display_error(48, (char_t *) "", FALSE);
             free_target(&target);
-            free(save_params);
+            free (save_params);
+
             return (RC_INVALID_OPERAND);
             break;
+
           default:
             break;
         }
         break;
+
       case TARGET_BLOCK_ANY:
         display_error(45, (char_t *) "", FALSE);
         free_target(&target);
-        free(save_params);
+        free (save_params);
         return (RC_INVALID_OPERAND);
         break;
+
       default:
         break;
     }
@@ -2733,29 +2839,31 @@ short Lineflag(char* params) {
     num_flags = num_params - 1;
   }
   for (i = 0; i < num_flags; i++) {
-    if (equal((char_t *) "change", word[i], 3))
+    if (equal((char_t *) "change", word[i], 3)) {
       changed_flag = 1;
-    else if (equal((char_t *) "nochange", word[i], 4))
+    } else if (equal((char_t *) "nochange", word[i], 4)) {
       changed_flag = 0;
-    else if (equal((char_t *) "new", word[i], 3))
+    } else if (equal((char_t *) "new", word[i], 3)) {
       new_flag = 1;
-    else if (equal((char_t *) "nonew", word[i], 5))
+    } else if (equal((char_t *) "nonew", word[i], 5)) {
       new_flag = 0;
-    else if (equal((char_t *) "tag", word[i], 3))
+    } else if (equal((char_t *) "tag", word[i], 3)) {
       tag_flag = 1;
-    else if (equal((char_t *) "notag", word[i], 5))
+    } else if (equal((char_t *) "notag", word[i], 5)) {
       tag_flag = 0;
-    else;
+    } // else;
   }
   /*
    * Now we are here, everything's OK, do the actual modification...
    */
   rc = execute_set_lineflag(new_flag, changed_flag, tag_flag, true_line, num_lines, num_lines_based_on_scope, save_target_type);
-  free(save_params);
+  free (save_params);
   return (rc);
 }
-short Linend(char* params) {
+
 #define LE_PARAMS  2
+
+short Linend(char_t *params) {
   char_t *word[LE_PARAMS + 1];
   char_t strip[LE_PARAMS];
   unsigned short num_params = 0;
@@ -2767,6 +2875,7 @@ short Linend(char* params) {
   strip[1] = STRIP_BOTH;
   num_params = param_split(params, word, LE_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   switch (num_params) {
+
     case 1:
     case 2:
       rc = execute_set_on_off(word[0], &le_status, TRUE);
@@ -2775,18 +2884,21 @@ short Linend(char* params) {
         rc = RC_INVALID_OPERAND;
         break;
       }
-      if (num_params == 1)
+      if (num_params == 1) {
         break;
+      }
       if ((int) strlen((char *) word[1]) > (int) 1) {
         display_error(1, word[1], FALSE);
         break;
       }
       le_value = word[1][0];
       break;
+
     case 0:
       display_error(3, (char_t *) "", FALSE);
       rc = RC_INVALID_OPERAND;
       break;
+
     default:
       display_error(2, (char_t *) "", FALSE);
       rc = RC_INVALID_OPERAND;
@@ -2798,20 +2910,22 @@ short Linend(char* params) {
   }
   return (rc);
 }
-short SetMacro(char* params) {
+
+short SetMacro(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->macro, TRUE);
   return (rc);
 }
-short Macroext(char* params) {
+
+short Macroext(char_t *params) {
   /*
    * If no value is specified for ext, set the value of macro_suffix to
    * "", otherwise set it to the supplied value, prefixed with '.'
    */
-  if (strlen((char *) params) == 0)
+  if (strlen((char *) params) == 0) {
     strcpy((char *) macro_suffix, "");
-  else {
+  } else {
     if ((int) strlen((char *) params) > (int) 10) {
       display_error(85, (char_t *) params, FALSE);
       return (RC_INVALID_OPERAND);
@@ -2821,8 +2935,10 @@ short Macroext(char* params) {
   }
   return (RC_OK);
 }
-short Macropath(char * params) {
+
 #define PATH_DELIM ':'
+
+short Macropath(char_t *params) {
   register int len = 0;
   int num_dirs, i;
   char *ptr = NULL;
@@ -2836,10 +2952,11 @@ short Macropath(char * params) {
     display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
-  if (strcasecmp((char *) params, "PATH") == 0)
+  if (strcasecmp((char *) params, "PATH") == 0) {
     src = (char_t *) getenv("PATH");
-  else
+  } else {
     src = params;
+  }
   strcpy((char *) the_macro_path_buf, (char *) src);
   strrmdup(strtrans(the_macro_path_buf, OSLASH, ISLASH), ISLASH, TRUE);
   strrmdup(the_macro_path_buf, PATH_DELIM, FALSE);
@@ -2858,18 +2975,20 @@ short Macropath(char * params) {
    * how many pointers to allocate.
    */
   for (num_dirs = 1, i = 0; i < len; i++) {
-    if (*(the_macro_path + i) == PATH_DELIM)
+    if (*(the_macro_path + i) == PATH_DELIM) {
       num_dirs++;
+    }
   }
   /*
    * If we have already allocated enough pointer memory
    * don't bother allocating more
    */
   if (num_dirs > total_macro_dirs) {
-    if (the_macro_dir == NULL)
-      the_macro_dir = (char_t **) malloc(num_dirs * sizeof(char *));
-    else
-      the_macro_dir = (char_t **) realloc(the_macro_dir, num_dirs * sizeof(char *));
+    if (the_macro_dir == NULL) {
+      the_macro_dir = (char_t **) malloc (num_dirs * sizeof(char *));
+    } else {
+      the_macro_dir = (char_t **) realloc (the_macro_dir, num_dirs * sizeof(char *));
+    }
     if (the_macro_dir == NULL) {
       max_macro_dirs = total_macro_dirs = 0;
       display_error(30, (char_t *) "", FALSE);
@@ -2888,8 +3007,10 @@ short Macropath(char * params) {
   max_macro_dirs++;
   return (RC_OK);
 }
-short Margins(char* params) {
+
 #define MAR_PARAMS  3
+
+short Margins(char_t *params) {
   char_t *word[MAR_PARAMS + 1];
   char_t strip[MAR_PARAMS];
   short num_params = 0;
@@ -2992,19 +3113,24 @@ short Margins(char* params) {
    *       o If indent is an absolute value, it cannot be > right margin
    */
   consistancy_error = FALSE;
-  if (offset && indent < 0 && indent + left < 0)
+  if (offset && indent < 0 && indent + left < 0) {
     consistancy_error = TRUE;
-  if (offset && indent > 0 && indent + left > right)
+  }
+  if (offset && indent > 0 && indent + left > right) {
     consistancy_error = TRUE;
-  if (offset && indent > 0 && (length_t) (indent + left) > max_line_length)
+  }
+  if (offset && indent > 0 && (length_t) (indent + left) > max_line_length) {
     consistancy_error = TRUE;
-  if (!offset && indent > right)
+  }
+  if (!offset && indent > right) {
     consistancy_error = TRUE;
+  }
   if (consistancy_error) {
-    if (offset)
+    if (offset) {
       sprintf((char *) temp_cmd, "%ld %ld %+ld", left, right, indent);
-    else
+    } else {
       sprintf((char *) temp_cmd, "%ld %ld %ld", left, right, indent);
+    }
     display_error(12, temp_cmd, FALSE);
     return (RC_INVALID_OPERAND);
   }
@@ -3026,15 +3152,52 @@ short Margins(char* params) {
   }
   return (RC_OK);
 }
-short Mouse(char* params) {
+
+short Mouse(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &MOUSEx, TRUE);
   mousemask((MOUSEx) ? ALL_MOUSE_EVENTS : 0, (mmask_t *) NULL);
   return (rc);
 }
-short Msgline(char* params) {
+
+#define MC_PARAMS  1
+
+short Mouseclick(char_t *params) {
+  short rc = RC_OK;
+  int interval;
+  char_t *word[MC_PARAMS + 1];
+  char_t strip[MC_PARAMS];
+  short num_params = 0;
+
+  /*
+   * Two parameters are mandatory, the third is optional.
+   */
+  strip[0] = STRIP_BOTH;
+  num_params = param_split(params, word, MC_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
+  if (num_params < 1) {
+    display_error(3, (char_t *) "", FALSE);
+    return (RC_INVALID_OPERAND);
+  }
+  if (num_params > 1) {
+    display_error(2, (char_t *) "", FALSE);
+    return (RC_INVALID_OPERAND);
+  }
+  /*
+   * Parse the parameters...
+   */
+  if (!valid_positive_integer(word[0])) {
+    display_error(4, (char_t *) "", FALSE);
+    return (RC_INVALID_OPERAND);
+  }
+  interval = atoi((char *) word[0]);
+  mouseinterval(interval);
+  return (rc);
+}
+
 #define MSG_PARAMS  5
+
+short Msgline(char_t *params) {
   char_t *word[MSG_PARAMS + 1];
   char_t strip[MSG_PARAMS];
   short num_params = 0;
@@ -3109,14 +3272,15 @@ short Msgline(char* params) {
    * If one argument, it is either Overlay or number of lines.
    */
   switch (num_params) {
+
     case 3:
-      if (equal((char_t *) "overlay", word[2], 1))
+      if (equal((char_t *) "overlay", word[2], 1)) {
         num_lines = 1;
-      else if (equal((char_t *) EQUIVCHARstr, word[2], 1))
+      } else if (equal((char_t *) EQUIVCHARstr, word[2], 1)) {
         num_lines = CURRENT_VIEW->msgline_rows;
-      else if (equal((char_t *) "*", word[2], 1))
+      } else if (equal((char_t *) "*", word[2], 1)) {
         num_lines = 0;
-      else {
+      } else {
         num_lines = atoi((char *) word[2]);
         if (num_lines < 1) {
           display_error(5, word[2], FALSE);
@@ -3124,11 +3288,13 @@ short Msgline(char* params) {
         }
         start_row = calculate_actual_row(base, off, CURRENT_SCREEN.screen_rows, TRUE);
         if (base == POSITION_BOTTOM) {
-          if (num_lines > start_row)
+          if (num_lines > start_row) {
             rc = RC_INVALID_OPERAND;
+          }
         } else {
-          if (start_row + num_lines > CURRENT_SCREEN.screen_rows)
+          if (start_row + num_lines > CURRENT_SCREEN.screen_rows) {
             rc = RC_INVALID_OPERAND;
+          }
         }
         if (rc == RC_INVALID_OPERAND) {
           display_error(6, word[2], FALSE);
@@ -3136,12 +3302,13 @@ short Msgline(char* params) {
         }
       }
       break;
+
     case 4:
-      if (equal((char_t *) EQUIVCHARstr, word[2], 1))
+      if (equal((char_t *) EQUIVCHARstr, word[2], 1)) {
         num_lines = CURRENT_VIEW->msgline_rows;
-      else if (equal((char_t *) "*", word[2], 1))
+      } else if (equal((char_t *) "*", word[2], 1)) {
         num_lines = 0;
-      else {
+      } else {
         num_lines = atoi((char *) word[2]);
         if (num_lines < 1) {
           display_error(5, word[2], FALSE);
@@ -3149,23 +3316,25 @@ short Msgline(char* params) {
         }
         start_row = calculate_actual_row(base, off, CURRENT_SCREEN.screen_rows, TRUE);
         if (base == POSITION_BOTTOM) {
-          if (num_lines > start_row)
+          if (num_lines > start_row) {
             rc = RC_INVALID_OPERAND;
+          }
         } else {
-          if (start_row + num_lines > CURRENT_SCREEN.screen_rows)
+          if (start_row + num_lines > CURRENT_SCREEN.screen_rows) {
             rc = RC_INVALID_OPERAND;
+          }
         }
         if (rc == RC_INVALID_OPERAND) {
           display_error(6, word[2], FALSE);
           return (rc);
         }
       }
-      if (!equal((char_t *) "overlay", word[3], 1)
-          && !equal((char_t *) EQUIVCHARstr, word[3], 1)) {
+      if (!equal((char_t *) "overlay", word[3], 1) && !equal((char_t *) EQUIVCHARstr, word[3], 1)) {
         display_error(1, word[3], FALSE);
         return (rc);
       }
       break;
+
     default:
       num_lines = 1;
       break;
@@ -3175,8 +3344,10 @@ short Msgline(char* params) {
   CURRENT_VIEW->msgline_rows = num_lines;
   return (rc);
 }
-short Msgmode(char* params) {
+
 #define MSGM_PARAMS  2
+
+short Msgmode(char_t *params) {
   char_t *word[MSGM_PARAMS + 1];
   char_t strip[MSGM_PARAMS];
   short num_params = 0;
@@ -3217,8 +3388,10 @@ short Msgmode(char* params) {
   CURRENT_VIEW->msgmode_status = new_msgmode;
   return (RC_OK);
 }
-short Newlines(char* params) {
+
 #define NEW_PARAMS  1
+
+short Newlines(char_t *params) {
   char_t parm[NEW_PARAMS];
   char_t *word[NEW_PARAMS + 1];
   char_t strip[NEW_PARAMS];
@@ -3234,12 +3407,13 @@ short Newlines(char* params) {
     display_error(3, (char_t *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
-
   parm[0] = (char_t) UNDEFINED_OPERAND;
-  if (equal((char_t *) "aligned", word[0], 1))
+  if (equal((char_t *) "aligned", word[0], 1)) {
     parm[0] = TRUE;
-  if (equal((char_t *) "left", word[0], 1))
+  }
+  if (equal((char_t *) "left", word[0], 1)) {
     parm[0] = FALSE;
+  }
   if (parm[0] == (char_t) UNDEFINED_OPERAND) {
     display_error(1, word[0], FALSE);
     return (RC_INVALID_OPERAND);
@@ -3247,7 +3421,8 @@ short Newlines(char* params) {
   CURRENT_VIEW->newline_aligned = parm[0];
   return (RC_OK);
 }
-short Nondisp(char* params) {
+
+short Nondisp(char_t *params) {
   if (strlen((char *) params) != 1) {
     display_error(1, params, FALSE);
     return (RC_INVALID_OPERAND);
@@ -3257,7 +3432,8 @@ short Nondisp(char* params) {
   display_screen(current_screen);
   return (RC_OK);
 }
-short Number(char* params) {
+
+short Number(char_t *params) {
   short rc = RC_OK;
 
   rc = execute_set_on_off(params, &CURRENT_VIEW->number, TRUE);
@@ -3267,3 +3443,4 @@ short Number(char* params) {
   }
   return (rc);
 }
+

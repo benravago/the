@@ -22,31 +22,31 @@
 #define fsize_t long
 
 struct dirfile {
-  char* fname;                /* file name */
-  char* lname;                /* link name */
+  char_t *fname;              /* file name */
+  char_t *lname;              /* link name */
   mode_t fattr;               /* file attributes */
   fsize_t fsize;              /* size of file */
-  char f_hh;                  /* hour */
-  char f_mi;                  /* minute */
-  char f_ss;                  /* second */
-  char f_dd;                  /* day */
-  char f_mm;                  /* month */
-  int f_yy;                   /* year */
-  int facl;                   /* acl */
-  int fname_length;           /* length of filename */
+  char_t f_hh;                /* hour */
+  char_t f_mi;                /* minute */
+  char_t f_ss;                /* second */
+  char_t f_dd;                /* day */
+  char_t f_mm;                /* month */
+  int f_yy;                     /* year */
+  int facl;                     /* acl */
+  int fname_length;             /* length of filename */
 };
 
-int date_comp();
-int time_comp();
-int size_comp();
-int name_comp();
-int dir_comp();
+int date_comp();                /* this has been deliberatly left undefined */
+int time_comp();                /* this has been deliberatly left undefined */
+int size_comp();                /* this has been deliberatly left undefined */
+int name_comp();                /* this has been deliberatly left undefined */
+int dir_comp();                 /* this has been deliberatly left undefined */
 
-char* make_full(char*, char*);
+char_t *make_full(char_t *, char_t *);
 
-short getfiles(char*, char*, struct dirfile**, struct dirfile **);
+short getfiles(char_t *, char_t *, struct dirfile **, struct dirfile **);
 
-char* file_attrs(mode_t, char*, int);
-char* file_date(struct dirfile*, char*);
-char* file_time(struct dirfile*, char*);
+char_t *file_attrs(mode_t, char_t *, int);
+char_t *file_date(struct dirfile *, char_t *);
+char_t *file_time(struct dirfile *, char_t *);
 
