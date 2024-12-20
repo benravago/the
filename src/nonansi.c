@@ -2,22 +2,24 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* This file contains all calls to non-ansi conforming routines.       */
-
 #include "the.h"
 #include "proto.h"
 
 #include <pwd.h>
 #include <errno.h>
 
-short file_readable(char_t *filename) {
+/*
+ * Replace non-ANSI defs with ANSI ones
+ */
+
+short file_readable(uchar *filename) {
   if (access((char *) filename, R_OK) == (-1)) {
     return (FALSE);
   }
   return (TRUE);
 }
 
-short file_writable(char_t *filename) {
+short file_writable(uchar *filename) {
   if (file_exists(filename) != THE_FILE_EXISTS) {
     return (TRUE);
   }
@@ -27,17 +29,15 @@ short file_writable(char_t *filename) {
   return (TRUE);
 }
 
-short file_exists(char_t *filename) {
+short file_exists(uchar *filename) {
   int rc;
 
   if (access((char *) filename, F_OK) == (-1)) {
     rc = errno;
     switch (rc) {
-
       case ENAMETOOLONG:
         rc = THE_FILE_NAME_TOO_LONG;
         break;
-
       default:
         rc = THE_FILE_UNKNOWN;
         break;
@@ -48,7 +48,7 @@ short file_exists(char_t *filename) {
   }
 }
 
-short remove_file(char_t *filename) {
+short remove_file(uchar *filename) {
   if (filename == NULL) {
     return (RC_OK);
   }
@@ -58,9 +58,9 @@ short remove_file(char_t *filename) {
   return (RC_OK);
 }
 
-void convert_equals_in_filename(char_t *outfilename, char_t *infilename) {
   /*
    * Support an = in the following circumstances:
+   *
    *    In filename      Current           Current         Substitutes
    *                   \oldp\fred.c      \oldp\fred
    * ---------------------------------------------------------------
@@ -72,28 +72,27 @@ void convert_equals_in_filename(char_t *outfilename, char_t *infilename) {
    * 6) =              \oldp\fred.c      \oldp\fred        fpath, fname and ftype
    * 7) \apath\=       \apath\fred.c     \apath\fred       filename
    */
-
-  char_t in_filename[MAX_FILE_NAME + 1];
-  char_t current_filename[MAX_FILE_NAME + 1];
-  char_t *in_ftype, *in_fpath, *in_fname;
-  char_t *current_ftype, *current_fpath, *current_fname;
-  line_t last_pos;
+void convert_equals_in_filename(uchar *outfilename, uchar *infilename) {
+  uchar in_filename[MAX_FILE_NAME + 1];
+  uchar current_filename[MAX_FILE_NAME + 1];
+  uchar *in_ftype, *in_fpath, *in_fname;
+  uchar *current_ftype, *current_fpath, *current_fname;
+  long last_pos;
 
   /*
    * If we don't have a current file, or there are no equivalence chars
    * just copy the incoming filename to the outgoing filename...
    */
-  if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL || strzreveq(infilename, (char_t) EQUIVCHARx) == (-1)) {
+  if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL || strzreveq(infilename, (uchar) EQUIVCHARx) == (-1)) {
     strcpy((char *) outfilename, (char *) infilename);
     return;
   }
   /*
-   * Split the incoming file name into 2 or 3 pieces; fpath/filename or
-   * fpath/fname/ftype.
+   * Split the incoming file name into 2 or 3 pieces; fpath/filename or fpath/fname/ftype.
    */
   strcpy((char *) in_filename, (char *) strrmdup(strtrans(infilename, OSLASH, ISLASH), EQUIVCHARx, TRUE));
   in_fpath = in_filename;
-  last_pos = strzreveq(in_fpath, (char_t) ISLASH);
+  last_pos = strzreveq(in_fpath, (uchar) ISLASH);
   if (last_pos == (-1)) {
     in_fpath = NULL;
     in_fname = in_filename;
@@ -101,7 +100,7 @@ void convert_equals_in_filename(char_t *outfilename, char_t *infilename) {
     in_fpath[last_pos] = '\0';
     in_fname = in_fpath + last_pos + 1;
   }
-  last_pos = strzreveq(in_fname, (char_t) '.');
+  last_pos = strzreveq(in_fname, (uchar) '.');
   if (last_pos == (-1)) {
     in_ftype = NULL;
   } else {
@@ -114,7 +113,7 @@ void convert_equals_in_filename(char_t *outfilename, char_t *infilename) {
   strcpy((char *) current_filename, (char *) CURRENT_FILE->fpath);
   strcat((char *) current_filename, (char *) CURRENT_FILE->fname);
   current_fpath = current_filename;
-  last_pos = strzreveq(current_fpath, (char_t) ISLASH);
+  last_pos = strzreveq(current_fpath, (uchar) ISLASH);
   if (last_pos == (-1)) {
     current_fpath = NULL;
     current_fname = current_filename;
@@ -122,7 +121,7 @@ void convert_equals_in_filename(char_t *outfilename, char_t *infilename) {
     current_fpath[last_pos] = '\0';
     current_fname = current_fpath + last_pos + 1;
   }
-  last_pos = strzreveq(current_fname, (char_t) '.');
+  last_pos = strzreveq(current_fname, (uchar) '.');
   if (last_pos == (-1)) {
     current_ftype = NULL;
   } else {
@@ -156,10 +155,10 @@ void convert_equals_in_filename(char_t *outfilename, char_t *infilename) {
   return;
 }
 
-short splitpath(char_t *filename) {
+short splitpath(uchar *filename) {
   short len = 0;
-  char_t  work_filename[MAX_FILE_NAME + 1];
-  char_t  conv_filename[MAX_FILE_NAME + 1];
+  uchar work_filename[MAX_FILE_NAME + 1];
+  uchar conv_filename[MAX_FILE_NAME + 1];
 
   if (strlen((char *) filename) > MAX_FILE_NAME) {
     return (RC_BAD_FILEID);
@@ -178,8 +177,7 @@ short splitpath(char_t *filename) {
   }
   strcpy((char *) work_filename, (char *) conv_filename);
   /*
-   * If the supplied filename is empty, set the path = cwd and filename
-   * equal to blank.
+   * If the supplied filename is empty, set the path = cwd and filename equal to blank.
    */
   if (strcmp((char *) filename, "") == 0) {
     if (getcwd((char *) sp_path, MAX_FILE_NAME) == NULL) {
@@ -188,12 +186,13 @@ short splitpath(char_t *filename) {
     strcpy((char *) sp_fname, "");
   }
   /*
-   * Check if the first character is tilde; translate HOME env variable
-   * if there is one. Obviously only applicable to UNIX.
+   * Check if the first character is tilde; translate HOME env variable if there is one.
+   * Obviously only applicable to UNIX.
    */
   if (*(conv_filename) == '~') {
     if (*(conv_filename + 1) == ISLASH || *(conv_filename + 1) == '\0') {
-      char_t *home = (char_t *) getenv("HOME");
+      uchar *home = (uchar *) getenv("HOME");
+
       if (((home == NULL) ? 0 : strlen((char *) home)) + strlen((char *) conv_filename) > MAX_FILE_NAME) {
         return (RC_BAD_FILEID);
       }
@@ -201,6 +200,7 @@ short splitpath(char_t *filename) {
       strcat((char *) work_filename, (char *) (conv_filename + 1));
     } else {
       struct passwd *pwd;
+
       strcpy((char *) sp_path, (char *) conv_filename + 1);
       if ((len = strzeq(sp_path, ISLASH)) != (-1)) {
         sp_path[len] = '\0';
@@ -223,20 +223,17 @@ short splitpath(char_t *filename) {
   } else {                      /* here if the file doesn't exist or is not a directory */
     len = strzreveq(work_filename, ISLASH);
     switch (len) {
-
       case (-1):
         if (getcwd((char *) sp_path, MAX_FILE_NAME) == NULL) {
           return (RC_BAD_FILEID);
         }
         strcpy((char *) sp_fname, (char *) work_filename);
         break;
-
       case 0:
         strcpy((char *) sp_path, (char *) work_filename);
         sp_path[1] = '\0';
         strcpy((char *) sp_fname, (char *) work_filename + 1 + len);
         break;
-
       default:
         strcpy((char *) sp_path, (char *) work_filename);
         sp_path[len] = '\0';
@@ -245,8 +242,7 @@ short splitpath(char_t *filename) {
     }
   }
   /*
-   * Change directory to the supplied path, if possible and store the
-   * expanded path.
+   * Change directory to the supplied path, if possible and store the expanded path.
    * If an error, restore the current path.
    */
   if (chdir((char *) sp_path) != 0) {
@@ -258,8 +254,7 @@ short splitpath(char_t *filename) {
   }
   chdir((char *) curr_path);
   /*
-   * Append the OS directory character to the path if it doesn't already
-   * end in the character.
+   * Append the OS directory character to the path if it doesn't already end in the character.
    */
   len = strlen((char *) sp_path);
   if (len > 0 && sp_path[len - 1] != ISLASH) {
@@ -268,24 +263,6 @@ short splitpath(char_t *filename) {
   return (RC_OK);
 }
 
-
-// NOTE: no clipboard support
-
-LINE *getclipboard(LINE *now, int from_get) {
-  display_error(82, (char_t *) "CLIP:", FALSE);
-  return NULL;
-}
-short setclipboard(FILE_DETAILS *cf, char_t *new_fname, bool force, line_t in_lines, line_t start_line_in, line_t end_line_in, line_t *num_file_lines, bool append, length_t start_col_in, length_t end_col_in, bool ignore_scope, bool lines_based_on_scope, int target_type) {
-  display_error(82, (char_t *) "CLIP:", FALSE);
-  return RC_INVALID_ENVIRON;
-}
-
-/*
- * These THE_curs_set() functions required as PDCurses has been changed so that curs_set(1) no longer
- * results in an underline cursor, it uses the cursor shape when the application
- * starts, so if you have a block cursor on starting THE, you would not be able to get
- * an underline cursor.
- */
 void draw_cursor(bool visible) {
   if (visible) {
     if (INSERTMODEx) {

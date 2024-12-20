@@ -1,16 +1,21 @@
 /* The functions of REXX/imc            This is a 132 column file            (C) Ian Collier 1992 */
 
+
 /* Usually the mem test routines use inline code for greater efficiency.
    mtest: reallocate an area only if it is too small
    dtest: the same, but also return 1 if the area moved and set mtest_diff to
           the difference
    Recently fixed to save the old value when realloc fails
 */
+
+#pragma GCC diagnostic ignored "-Wunused-value"
 #define mtest(memptr,alloc,length,extend) {char *old;         \
         (alloc<(length))&&(                                   \
         old=memptr,                                           \
         (memptr=realloc(memptr,(unsigned)(alloc+=(extend))))||(memptr=old,alloc-=(extend),die(Emem),1)  \
         );}
+
+#pragma GCC diagnostic ignored "-Wuse-after-free"
 #define dtest(memptr,alloc,length,extend) (                   \
         (alloc<(length))&&(                                   \
         mtest_old=memptr,                                     \
@@ -22,11 +27,6 @@
 #define rexxsymboldot(c) (whattype(c)>0)
 #define rexxsymbol(c)    (symbs[(unsigned char)(c)])
 
-/* In ANSI C, you can take the address of any object and the result is of type pointer to that object.  In K&R C, this
-   fails when the object is an array.  The following kludge takes the address of a jmp_buf, which is likely to be an
-   array.  On systems where it isn't, this macro has to be changed... */
-
-#define addressof(x) (&(x))
 
 /* in rexx.c */
 char *allocm(unsigned size);
@@ -121,7 +121,7 @@ struct fileinfo *fileinit(char *name, char *filename, FILE * fp);       /* Store
 void funcinit(char *name, void *handle, int (*address)(), int saa);     /* Store an external function's details */
 void libsearch(void);           /* Ssearch for *.rxlib files */
 int fileclose(char *name);      /* Free a file's hash table entry */
-int on_interrupt(int sig, int flag); /* siginterrupt() */
+int on_interrupt(int sig, int flag);    /* siginterrupt() */
 
 /* in rxfn.c */
 int rxfn(char *name, int argc); /* Try to call a builtin function */

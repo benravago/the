@@ -2,243 +2,239 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* Function to display error messages.                       */
-
 #include "the.h"
 #include "proto.h"
 
-/*-------------------------- global   data -----------------------------*/
-
-char_t *last_message = NULL;  /* contents of last error message */
+uchar *last_message = NULL;     /* contents of last error message */
 int last_message_length = 0;
 static int errors_displayed = 0;        /* number of errors displayed */
 static LINE *first_error = NULL;        /* first error message */
 static LINE *last_error = NULL; /* last error message */
 
-static char_t  *error_message[] = {
-  (char_t *) "",
-  (char_t *) "Error 0001: Invalid operand:",
-  (char_t *) "Error 0002: Too many operands",
-  (char_t *) "Error 0003: Too few operands",
-  (char_t *) "Error 0004: Invalid number:",
-  (char_t *) "Error 0005: Numeric operand too small",
-  (char_t *) "Error 0006: Numeric operand too large",
-  (char_t *) "Error 0007: Invalid fileid:",
-  (char_t *) "Error 0008: Invalid or protected file",
-  (char_t *) "Error 0009: File not found",
-  (char_t *) "Error 0010: Path not found",
-  (char_t *) "Error 0011: File not found in THE_MACRO_PATH:",
-  (char_t *) "Error 0012: Margins settings are inconsistent",
-  (char_t *) "Error 0013: Invalid key name:",
-  (char_t *) "File is read-only:",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0017: Target not found",
-  (char_t *) "Error 0018: Invalid line name",
-  (char_t *) "",
-  (char_t *) "New file:",
-  (char_t *) "Error 0021: Invalid command:",
-  (char_t *) "Error 0022: File has been changed - use QQUIT to really quit",
-  (char_t *) "Error 0023: Help file not found:",
-  (char_t *) "Error 0024: Invalid command while running in batch:",
-  (char_t *) "Error 0025: Error accessing REXX variable",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0029: Cannot edit -",
-  (char_t *) "Error 0030: Memory shortage",
-  (char_t *) "Error 0031: File already exists - use FFILE/SSAVE",
-  (char_t *) "Error 0032: Invalid hexadecimal or decimal value:",
-  (char_t *) "",
-  (char_t *) "Error 0034: Line not found",
-  (char_t *) "",
-  (char_t *) "Error 0036: No lines changed",
-  (char_t *) "Error 0037: Operand too long:",
-  (char_t *) "Error 0038: Improper cursor position",
-  (char_t *) "Error 0039: No remembered operand available",
-  (char_t *) "Error 0040: /bin/sh cannot suspend this process",
-  (char_t *) "Error 0041: Invalid SOS command:",
-  (char_t *) "Error 0042: Invalid SET command:",
-  (char_t *) "",
-  (char_t *) "Error 0044: No marked block",
-  (char_t *) "Error 0045: Marked block not in current file",
-  (char_t *) "Error 0046: Block boundary excluded, not in range, or past truncation column",
-  (char_t *) "Error 0047: Operation invalid for line blocks",
-  (char_t *) "Error 0048: Operation invalid for box blocks",
-  (char_t *) "Error 0049: Operation invalid for stream blocks",
-  (char_t *) "Error 0050: Invalid move location",
-  (char_t *) "Error 0051: No preserved settings to restore",
-  (char_t *) "Error 0052: Non-REXX macros MUST have a first line of /*NOREXX*/",
-  (char_t *) "Error 0053: Valid only when issued from a REXX macro",
-  (char_t *) "Error 0054: REXX interpreter returned an error",
-  (char_t *) "Error 0055: No lines sorted",
-  (char_t *) "Error 0056: Action invalid in read-only mode.",
-  (char_t *) "Error 0057: Disk full error",
-  (char_t *) "Error 0058: Valid only with REXX support:",
-  (char_t *) "",
-  (char_t *) "Error 0060: Line name not found:",
-  (char_t *) "Error 0061: Colour support not available:",
-  (char_t *) "Error 0062: Operation invalid for multi-line stream blocks",
-  (char_t *) "Error 0063: Invalid cursor line or column",
-  (char_t *) "Error 0064: Line not reserved",
-  (char_t *) "",
-  (char_t *) "Error 0066: Invalid match position",
-  (char_t *) "Error 0067: Invalid match character",
-  (char_t *) "Error 0068: Matching character not found",
-  (char_t *) "Error 0069: Invalid character",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0075: Too many sort fields - maximum is 1000",
-  (char_t *) "Error 0076: Fileid already in ring:",
-  (char_t *) "Error 0077: Files still open in batch:",
-  (char_t *) "Error 0078: Printing error:",
-  (char_t *) "Error 0079: Can't add another tab position; already have 32 defined",
-  (char_t *) "Error 0080: Can't add another CTLCHAR; already have 64 defined",
-  (char_t *) "Error 0081: Only single-line marked blocks allowed",
-  (char_t *) "Error 0082: Feature not supported:",
-  (char_t *) "Error 0083: Command invalid when ring is empty",
-  (char_t *) "Unable to restore",
-  (char_t *) "Error 0085: Length of operand > 10",
-  (char_t *) "Error 0086: Command line unavailable",
-  (char_t *) "Error 0087: Cursor line not in scope",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0138: Unexpected file time stamp change - use FFILE/SSAVE",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0148: Already recording a macro",
-  (char_t *) "Error 0149: Operand in stem operation requires trailing period:",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0154: JOIN would cause truncation",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0186: Error accessing clipboard",
-  (char_t *) "Error 0187: No text in clipboard",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0199: Parser not defined:",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "",
-  (char_t *) "Error 0216: TLD error:",
+static uchar *error_message[] = {
+  (uchar *) "",
+  (uchar *) "Error 0001: Invalid operand:",
+  (uchar *) "Error 0002: Too many operands",
+  (uchar *) "Error 0003: Too few operands",
+  (uchar *) "Error 0004: Invalid number:",
+  (uchar *) "Error 0005: Numeric operand too small",
+  (uchar *) "Error 0006: Numeric operand too large",
+  (uchar *) "Error 0007: Invalid fileid:",
+  (uchar *) "Error 0008: Invalid or protected file",
+  (uchar *) "Error 0009: File not found",
+  (uchar *) "Error 0010: Path not found",
+  (uchar *) "Error 0011: File not found in THE_MACRO_PATH:",
+  (uchar *) "Error 0012: Margins settings are inconsistent",
+  (uchar *) "Error 0013: Invalid key name:",
+  (uchar *) "File is read-only:",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0017: Target not found",
+  (uchar *) "Error 0018: Invalid line name",
+  (uchar *) "",
+  (uchar *) "New file:",
+  (uchar *) "Error 0021: Invalid command:",
+  (uchar *) "Error 0022: File has been changed - use QQUIT to really quit",
+  (uchar *) "Error 0023: Help file not found:",
+  (uchar *) "Error 0024: Invalid command while running in batch:",
+  (uchar *) "Error 0025: Error accessing REXX variable",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0029: Cannot edit -",
+  (uchar *) "Error 0030: Memory shortage",
+  (uchar *) "Error 0031: File already exists - use FFILE/SSAVE",
+  (uchar *) "Error 0032: Invalid hexadecimal or decimal value:",
+  (uchar *) "",
+  (uchar *) "Error 0034: Line not found",
+  (uchar *) "",
+  (uchar *) "Error 0036: No lines changed",
+  (uchar *) "Error 0037: Operand too long:",
+  (uchar *) "Error 0038: Improper cursor position",
+  (uchar *) "Error 0039: No remembered operand available",
+  (uchar *) "Error 0040: /bin/sh cannot suspend this process",
+  (uchar *) "Error 0041: Invalid SOS command:",
+  (uchar *) "Error 0042: Invalid SET command:",
+  (uchar *) "",
+  (uchar *) "Error 0044: No marked block",
+  (uchar *) "Error 0045: Marked block not in current file",
+  (uchar *) "Error 0046: Block boundary excluded, not in range, or past truncation column",
+  (uchar *) "Error 0047: Operation invalid for line blocks",
+  (uchar *) "Error 0048: Operation invalid for box blocks",
+  (uchar *) "Error 0049: Operation invalid for stream blocks",
+  (uchar *) "Error 0050: Invalid move location",
+  (uchar *) "Error 0051: No preserved settings to restore",
+  (uchar *) "Error 0052: Non-REXX macros MUST have a first line of /*NOREXX*/",
+  (uchar *) "Error 0053: Valid only when issued from a REXX macro",
+  (uchar *) "Error 0054: REXX interpreter returned an error",
+  (uchar *) "Error 0055: No lines sorted",
+  (uchar *) "Error 0056: Action invalid in read-only mode.",
+  (uchar *) "Error 0057: Disk full error",
+  (uchar *) "Error 0058: Valid only with REXX support:",
+  (uchar *) "",
+  (uchar *) "Error 0060: Line name not found:",
+  (uchar *) "Error 0061: Colour support not available:",
+  (uchar *) "Error 0062: Operation invalid for multi-line stream blocks",
+  (uchar *) "Error 0063: Invalid cursor line or column",
+  (uchar *) "Error 0064: Line not reserved",
+  (uchar *) "",
+  (uchar *) "Error 0066: Invalid match position",
+  (uchar *) "Error 0067: Invalid match character",
+  (uchar *) "Error 0068: Matching character not found",
+  (uchar *) "Error 0069: Invalid character",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0075: Too many sort fields - maximum is 1000",
+  (uchar *) "Error 0076: Fileid already in ring:",
+  (uchar *) "Error 0077: Files still open in batch:",
+  (uchar *) "Error 0078: Printing error:",
+  (uchar *) "Error 0079: Can't add another tab position; already have 32 defined",
+  (uchar *) "Error 0080: Can't add another CTLCHAR; already have 64 defined",
+  (uchar *) "Error 0081: Only single-line marked blocks allowed",
+  (uchar *) "Error 0082: Feature not supported:",
+  (uchar *) "Error 0083: Command invalid when ring is empty",
+  (uchar *) "Unable to restore",
+  (uchar *) "Error 0085: Length of operand > 10",
+  (uchar *) "Error 0086: Command line unavailable",
+  (uchar *) "Error 0087: Cursor line not in scope",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0138: Unexpected file time stamp change - use FFILE/SSAVE",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0148: Already recording a macro",
+  (uchar *) "Error 0149: Operand in stem operation requires trailing period:",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0154: JOIN would cause truncation",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0186: Error accessing clipboard",
+  (uchar *) "Error 0187: No text in clipboard",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0199: Parser not defined:",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "",
+  (uchar *) "Error 0216: TLD error:",
 };
 
-static void open_msgline(row_t, row_t, row_t);
+static void open_msgline(ushort, ushort, ushort);
 
-int display_error(unsigned short err_num, char_t *mess, bool ignore_bell) {
-  char_t *last_cmd_name = NULL;
+int display_error(unsigned short err_num, uchar *mess, bool ignore_bell) {
+  uchar *last_cmd_name = NULL;
   bool set_command = FALSE, sos_command = FALSE;
   int new_last_message_length = 0;
   int x = 0, y = 0, ee_len = 0;
@@ -260,14 +256,14 @@ int display_error(unsigned short err_num, char_t *mess, bool ignore_bell) {
   new_last_message_length = 2 + ((err_num == 0) ? strlen((char *) mess) : strlen((char *) mess) + strlen((char *) error_message[err_num]) + 1) + ee_len;
   if (last_message == NULL) {
     last_message_length = new_last_message_length;
-    last_message = (char_t *) malloc (last_message_length * sizeof(char_t));
+    last_message = (uchar *) malloc(last_message_length * sizeof(uchar));
     if (last_message == NULL) {
       return rc;
     }
   } else {
     if (new_last_message_length > last_message_length) {
       last_message_length = new_last_message_length;
-      last_message = (char_t *) realloc (last_message, last_message_length * sizeof(char_t));
+      last_message = (uchar *) realloc(last_message, last_message_length * sizeof(uchar));
       if (last_message == NULL) {
         return rc;
       }
@@ -325,7 +321,7 @@ int display_error(unsigned short err_num, char_t *mess, bool ignore_bell) {
   if (last_error == NULL) {
     return rc;
   }
-  last_error->line = (char_t *) malloc ((strlen((char *) last_message) + 1) * sizeof(char_t));
+  last_error->line = (uchar *) malloc((strlen((char *) last_message) + 1) * sizeof(uchar));
   if (last_error->line == NULL) {
     return rc;
   }
@@ -355,7 +351,7 @@ int display_error(unsigned short err_num, char_t *mess, bool ignore_bell) {
   return rc;
 }
 
-static void open_msgline(row_t base, row_t off, row_t rows) {
+static void open_msgline(ushort base, ushort off, ushort rows) {
   int start_row = 0;
   COLOUR_ATTR attr;
 
@@ -379,8 +375,8 @@ static void open_msgline(row_t base, row_t off, row_t rows) {
 
 void clear_msgline(int key) {
   /*
-   * Only clear the message line if the supplied key matches that set
-   * by SET CLEARERRORKEY.  -1 indicates any key can clear
+   * Only clear the message line if the supplied key matches that set by SET CLEARERRORKEY.
+   * -1 indicates any key can clear
    */
   if (curses_started && (key == CLEARERRORKEYx || CLEARERRORKEYx == -1)) {
     errors_displayed = 0;
@@ -391,15 +387,14 @@ void clear_msgline(int key) {
     }
     first_error = last_error = lll_free(first_error);
     if (display_screens > 1) {
-      redraw_screen((char_t) (other_screen));
+      redraw_screen((uchar) (other_screen));
     }
     redraw_screen(current_screen);
     doupdate();
   }
   return;
 }
-
-void display_prompt(char_t *prompt) {
+void display_prompt(uchar *prompt) {
   open_msgline(CURRENT_VIEW->msgline_base, CURRENT_VIEW->msgline_off, 1);
   wmove(error_window, 0, 0);
   my_wclrtoeol(error_window);
@@ -415,12 +410,12 @@ void display_prompt(char_t *prompt) {
 int expose_msgline(void) {
   LINE *curr_error = NULL;
   register int i = 0;
-  row_t errors_to_display = 0;
-  char_t msgline_base = POSITION_TOP;
+  ushort errors_to_display = 0;
+  uchar msgline_base = POSITION_TOP;
   short msgline_off = 2;
-  row_t msgline_rows = 5, max_rows, start_row;
+  ushort msgline_rows = 5, max_rows, start_row;
   int rc = RC_OK;
-  char_t *prompt;
+  uchar *prompt;
 
   /*
    * If msgmode is off, don't display any errors.
@@ -444,8 +439,7 @@ int expose_msgline(void) {
     max_rows = CURRENT_SCREEN.screen_rows - start_row;
   }
   /*
-   * Calculate number of errors. This determines size of window to be
-   * created.
+   * Calculate number of errors. This determines size of window to be created.
    */
   if (msgline_rows == 0) {
     msgline_rows = min(max_rows, errors_displayed);
@@ -458,8 +452,7 @@ int expose_msgline(void) {
    */
   open_msgline(msgline_base, msgline_off, errors_to_display);
   /*
-   * For all errors that are to be displayed, display them starting from
-   * the bottom of the window.
+   * For all errors that are to be displayed, display them starting from the bottom of the window.
    */
   for (i = errors_to_display - 1; i > -1; i--) {
     wmove(error_window, i, 0);
@@ -467,7 +460,7 @@ int expose_msgline(void) {
     if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL) {
       mvwaddstr(error_window, i, 0, (char *) curr_error->line);
     } else {
-      put_string(error_window, (row_t) i, 0, curr_error->line, curr_error->length);
+      put_string(error_window, (ushort) i, 0, curr_error->line, curr_error->length);
     }
     curr_error = curr_error->prev;
   }
@@ -475,22 +468,21 @@ int expose_msgline(void) {
   error_on_screen = TRUE;
   if (errors_to_display && errors_to_display == msgline_rows && (errors_displayed % errors_to_display) == 1 && curr_error != NULL) {
     if (in_macro) {
-      prompt = (char_t *) IN_MACRO_PROMPT;
+      prompt = (uchar *) IN_MACRO_PROMPT;
     } else {
-      prompt = (char_t *) NORMAL_PROMPT;
+      prompt = (uchar *) NORMAL_PROMPT;
     }
     wmove(error_window, msgline_rows - 1, 0);
     my_wclrtoeol(error_window);
     if (CURRENT_VIEW == NULL || CURRENT_FILE == NULL) {
       mvwaddstr(error_window, msgline_rows - 1, 0, (char *) prompt);
     } else {
-      put_string(error_window, (row_t) (msgline_rows - 1), 0, (char_t *) prompt, strlen((char *) prompt));
+      put_string(error_window, (ushort) (msgline_rows - 1), 0, (uchar *) prompt, strlen((char *) prompt));
     }
     wrefresh(error_window);
-    if (wgetch(error_window) == ' ') {
+    if (my_getch(error_window) == ' ') {
       rc = RC_TERMINATE_MACRO;
     }
   }
   return rc;
 }
-

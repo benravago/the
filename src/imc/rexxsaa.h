@@ -1,12 +1,5 @@
 /* Definitions for the SAA REXX API (supplied with REXX/imc) */
 
-#ifdef INCL_REXXSAA
-#define INCL_RXSHV
-#define INCL_RXSUBCOM
-#define INCL_RXSYSEXIT
-#define INCL_RXFUNC
-#endif
-
 typedef char CHAR;
 typedef short SHORT;
 typedef long LONG;
@@ -42,8 +35,6 @@ typedef ULONG(*PFN) ();
 #define RXCOMMAND         1
 #define RXSUBROUTINE      2
 #define RXFUNCTION        4
-
-#ifdef INCL_RXSYSEXIT
 
 #define RXCMD        0
 #define RXCMDHST        1
@@ -125,16 +116,10 @@ ULONG RexxDeregisterExit(PSZ EnvName, PSZ ModuleName);
 
 ULONG RexxQueryExit(PSZ EnvName, PSZ ModuleName, unsigned short *flag, unsigned char *area);
 
-#else                           /* INCL_RXSYSEXIT */
-typedef void *PRXSYSEXIT;
-#endif                          /* INCL_RXSYSEXIT */
-
 /* Now RXSYSEXIT is defined, we can declare RexxStart... */
 long RexxStart(long argc, PRXSTRING argv, char *name, PRXSTRING instore, PSZ envname, long calltype, PRXSYSEXIT exits, short *rc, PRXSTRING result);
 
 long RexxStartProgram(char *argv0, long argc, PRXSTRING argv, char *name, char *callname, PRXSTRING instore, PSZ envname, long calltype, int flags, PRXSYSEXIT exits, short *rc, PRXSTRING result);
-
-#ifdef INCL_RXSHV
 
 #define RXSHV_OK       0x00     /* OK */
 #define RXSHV_NEWV     0x01     /* New variable */
@@ -166,10 +151,6 @@ typedef struct shvnode *PSHVBLOCK;
 
 ULONG RexxVariablePool(PSHVBLOCK RequestBlockList);
 
-#endif                          /* INCL_RXSHV */
-
-#ifdef INCL_RXSUBCOM
-
 typedef ULONG RexxSubcomHandler(PRXSTRING, PUSHORT, PRXSTRING);
 
 ULONG RexxRegisterSubcomExe(PSZ EnvName, RexxSubcomHandler * EntryPoint, PUCHAR UserArea);
@@ -188,10 +169,6 @@ ULONG RexxQuerySubcom(PSZ Envname, PSZ ModuleName, PUSHORT flag, PUCHAR UserArea
 #define RXSUBCOM_ERROR        1
 #define RXSUBCOM_FAILURE      2
 
-#endif                          /* INCL_RXSUBCOM */
-
-#ifdef INCL_RXFUNC
-
 typedef ULONG(RexxFunctionHandler) (PSZ name, ULONG argc, RXSTRING argv[], PSZ QueueName, PRXSTRING Retstr);
 
 ULONG RexxRegisterFunctionExe(PSZ name, RexxFunctionHandler * EntryPoint);
@@ -204,5 +181,3 @@ ULONG RexxQueryFunction(PSZ name);
 #define RXFUNC_DEFINED   10
 #define RXFUNC_NOTREG    30
 #define RXFUNC_NOMEM     20
-
-#endif                          /* INCL_RXFUNC */

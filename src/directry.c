@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* Directory routines                                     */
-
 #include "the.h"
 #include "proto.h"
 
+#include "directry.h"
+
 #include <fnmatch.h>
 
-char_t *make_full(char_t *path, char_t *file) {
-  static char_t  filebuf[BUFSIZ];
+uchar *make_full(uchar *path, uchar *file) {
+  static uchar filebuf[BUFSIZ];
   short pathlen = strlen((char *) path);
 
   if (pathlen + 1 + strlen((char *) file) + 1 > BUFSIZ) {
@@ -28,12 +28,12 @@ char_t *make_full(char_t *path, char_t *file) {
   return (filebuf);
 }
 
-short getfiles(char_t *path, char_t *files, struct dirfile **dpfirst, struct dirfile **dplast) {
+short getfiles(uchar *path, uchar *files, struct dirfile **dpfirst, struct dirfile **dplast) {
   DIR *dirp = NULL;
   struct stat sp;
   struct dirent *direntp = NULL;
   struct dirfile *dp = NULL;
-  char_t *full_name = NULL;
+  uchar *full_name = NULL;
   short entries = 10;
   struct tm *timp = NULL;
 
@@ -41,7 +41,8 @@ short getfiles(char_t *path, char_t *files, struct dirfile **dpfirst, struct dir
   if (dirp == NULL) {
     return (10);
   }
-  dp = *dpfirst = (struct dirfile *) malloc (entries * sizeof(struct dirfile));
+
+  dp = *dpfirst = (struct dirfile *) malloc(entries * sizeof(struct dirfile));
   if (dp == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
@@ -51,14 +52,14 @@ short getfiles(char_t *path, char_t *files, struct dirfile **dpfirst, struct dir
 
   for (direntp = readdir(dirp); direntp != NULL; direntp = readdir(dirp)) {
     if (fnmatch((char *) files, (char *) direntp->d_name, 0) == 0) {
-      if ((full_name = make_full(path, (char_t *) direntp->d_name)) == NULL) {
+      if ((full_name = make_full(path, (uchar *) direntp->d_name)) == NULL) {
         return (RC_OUT_OF_MEMORY);
       }
       if (lstat((char *) full_name, &sp) != 0) {
         continue;
       }
       dp->fname_length = strlen(direntp->d_name) + 1;
-      if ((dp->fname = (char_t *) malloc (dp->fname_length * sizeof(char_t))) == NULL) {
+      if ((dp->fname = (uchar *) malloc(dp->fname_length * sizeof(uchar))) == NULL) {
         return (RC_OUT_OF_MEMORY);
       }
       strcpy((char *) dp->fname, direntp->d_name);
@@ -74,9 +75,8 @@ short getfiles(char_t *path, char_t *files, struct dirfile **dpfirst, struct dir
       dp->fsize = sp.st_size;
       dp->lname = NULL;
       /*
-       * If we have the lstat() function, and the current file
-       * is a symbolic link, go and get the filename the symbolic
-       * link points to...
+       * If we have the lstat() function, and the current file is a symbolic link,
+       * go and get the filename the symbolic link points to...
        */
       if (S_ISLNK(dp->fattr)) {
         char buf[MAX_FILE_NAME + 1];
@@ -84,7 +84,7 @@ short getfiles(char_t *path, char_t *files, struct dirfile **dpfirst, struct dir
 
         rc = readlink((char *) full_name, buf, sizeof(buf));
         if (rc != (-1)) {
-          if ((dp->lname = (char_t *) malloc ((rc + 1) * sizeof(char_t))) == NULL) {
+          if ((dp->lname = (uchar *) malloc((rc + 1) * sizeof(uchar))) == NULL) {
             return (RC_OUT_OF_MEMORY);
           }
           memcpy((char *) dp->lname, buf, rc);
@@ -93,7 +93,7 @@ short getfiles(char_t *path, char_t *files, struct dirfile **dpfirst, struct dir
       }
       dp++;
       if (dp == *dplast) {
-        *dpfirst = (struct dirfile *) realloc ((char_t *) * dpfirst, 2 * entries * sizeof(struct dirfile));
+        *dpfirst = (struct dirfile *) realloc((uchar *) * dpfirst, 2 * entries * sizeof(struct dirfile));
         if (*dpfirst == NULL) {
           return (RC_OUT_OF_MEMORY);
         }
@@ -246,18 +246,18 @@ int name_comp(const void *in_first, const void *in_next) {
   return (rc);
 }
 
-char_t *file_date(struct dirfile *date, char_t *str_date) {
-  static char_t  *mon[12] = { (char_t *) "Jan", (char_t *) "Feb", (char_t *) "Mar", (char_t *) "Apr", (char_t *) "May", (char_t *) "Jun", (char_t *) "Jul", (char_t *) "Aug", (char_t *) "Sep", (char_t *) "Oct", (char_t *) "Nov", (char_t *) "Dec" };
+uchar *file_date(struct dirfile *date, uchar *str_date) {
+  static uchar *mon[12] = { (uchar *) "Jan", (uchar *) "Feb", (uchar *) "Mar", (uchar *) "Apr", (uchar *) "May", (uchar *) "Jun", (uchar *) "Jul", (uchar *) "Aug", (uchar *) "Sep", (uchar *) "Oct", (uchar *) "Nov", (uchar *) "Dec" };
   sprintf((char *) str_date, "%2d-%3.3s-%4.4d", date->f_dd, mon[date->f_mm], date->f_yy);
   return (str_date);
 }
 
-char_t *file_time(struct dirfile *time, char_t *str_time) {
+uchar *file_time(struct dirfile *time, uchar *str_time) {
   sprintf((char *) str_time, "%2d:%2.2d", time->f_hh, time->f_mi);
   return (str_time);
 }
 
-char_t *file_attrs(mode_t attrs, char_t *str_attr, int facl) {
+uchar *file_attrs(mode_t attrs, uchar *str_attr, int facl) {
   mode_t ftype = attrs;
 
   str_attr[11] = '\0';
@@ -272,7 +272,6 @@ char_t *file_attrs(mode_t attrs, char_t *str_attr, int facl) {
   if (S_ISFIFO(ftype)) str_attr[0] = 'p';
   if (S_ISLNK(ftype))  str_attr[0] = 'l';
   if (S_ISSOCK(ftype)) str_attr[0] = 's';
-
   str_attr[1] = (attrs & S_IRUSR) ? 'r' : '-';
   str_attr[2] = (attrs & S_IWUSR) ? 'w' : '-';
   str_attr[3] = (attrs & S_IXUSR) ? 'x' : '-';

@@ -2,36 +2,33 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* Functions related to targets.                            */
-
 #include "the.h"
 #include "proto.h"
 
-#define STATE_START    0
-#define STATE_DELIM    1
-#define STATE_STRING   2
-#define STATE_BOOLEAN  3
-#define STATE_NEXT     4
-#define STATE_POINT    5
-#define STATE_ABSOLUTE 6
-#define STATE_RELATIVE 7
-#define STATE_POSITIVE 8
-#define STATE_NEGATIVE 9
-#define STATE_REGEXP_START   10
-#define STATE_REGEXP   11
-#define STATE_SPARE    12
-#define STATE_QUIT     98
-#define STATE_ERROR    99
+#define STATE_START         0
+#define STATE_DELIM         1
+#define STATE_STRING        2
+#define STATE_BOOLEAN       3
+#define STATE_NEXT          4
+#define STATE_POINT         5
+#define STATE_ABSOLUTE      6
+#define STATE_RELATIVE      7
+#define STATE_POSITIVE      8
+#define STATE_NEGATIVE      9
+#define STATE_REGEXP_START 10
+#define STATE_REGEXP       11
+#define STATE_SPARE        12
+#define STATE_QUIT         98
+#define STATE_ERROR        99
 
 static bool is_blank(LINE *);
-
 
 /*
  * Return the length of ptr that matches from the minlen of type.
  * e.g. chan, changed, 3 will result in 4
  * If no match, return 0
  */
-static int target_type_match(char_t *ptr, char_t *type, int minlen) {
+static int target_type_match(uchar *ptr, uchar *type, int minlen) {
   int i, result = 0, maxlen;
 
   maxlen = strlen((char *) type);
@@ -45,21 +42,20 @@ static int target_type_match(char_t *ptr, char_t *type, int minlen) {
 
 #define SCP_PARAMS  2
 
-short split_change_params(char_t *cmd_line, char_t **old_str, char_t **new_str, TARGET *target, line_t *num, line_t *occ) {
-  char_t *word[SCP_PARAMS + 1];
-  char_t strip[SCP_PARAMS];
-  length_t i = 0, j = 0;
-  char_t *target_start = NULL;
+short split_change_params(uchar *cmd_line, uchar **old_str, uchar **new_str, TARGET *target, long *num, long *occ) {
+  uchar *word[SCP_PARAMS + 1];
+  uchar strip[SCP_PARAMS];
+  long i = 0, j = 0;
+  uchar *target_start = NULL;
   short rc = RC_OK;
-  char_t delim = ' ';
-  length_t len = strlen((char *) cmd_line), idx = 0;
+  uchar delim = ' ';
+  long len = strlen((char *) cmd_line), idx = 0;
   long target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL | TARGET_SPARE;
   unsigned short num_params = 0;
-  char_t  buffer[100];
+  uchar buffer[100];
 
   /*
-   * First, determine the delimiter; the first non-blank character in the argument
-   * string.
+   * First, determine the delimiter; the first non-blank character in the argument string.
    */
   for (i = 0; i < len; i++) {
     if (*(cmd_line + i) != ' ') {
@@ -72,8 +68,8 @@ short split_change_params(char_t *cmd_line, char_t **old_str, char_t **new_str, 
    * Set up default values for the return values...
    */
   *old_str = cmd_line + idx;
-  *new_str = (char_t *) "";
-  target_start = (char_t *) "";
+  *new_str = (uchar *) "";
+  target_start = (uchar *) "";
   *num = *occ = 1L;
   target->num_lines = 1L;
   target->true_line = get_true_line(TRUE);
@@ -84,17 +80,14 @@ short split_change_params(char_t *cmd_line, char_t **old_str, char_t **new_str, 
     if (*(cmd_line + i) == delim) {
       j++;
       switch (j) {
-
         case 1:
           *(cmd_line + i) = '\0';
           *new_str = cmd_line + i + 1;
           break;
-
         case 2:
           *(cmd_line + i) = '\0';
           target_start = cmd_line + i + 1;
           break;
-
         default:
           break;
       }
@@ -160,29 +153,29 @@ short split_change_params(char_t *cmd_line, char_t **old_str, char_t **new_str, 
   return (RC_OK);
 }
 
-short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long target_types, bool display_parse_error, bool allow_error_display, bool column_target) {
+short parse_target(uchar *target_spec, long true_line, TARGET *target, long target_types, bool display_parse_error, bool allow_error_display, bool column_target) {
   short num_targets = 0;
-  char_t boolean = ' ';
+  uchar boolean = ' ';
   short state = STATE_NEXT;
-  length_t len = 0, inc = 0, target_length = strlen((char *) target_spec), off = 0;
-  char_t delim = ' ';
-  length_t i = 0;
-  length_t j = 0;
-  length_t k = 0;
-  length_t str_start = 0, str_end = 0;
+  long len = 0, inc = 0, target_length = strlen((char *) target_spec), off = 0;
+  uchar delim = ' ';
+  long i = 0;
+  long j = 0;
+  long k = 0;
+  long str_start = 0, str_end = 0;
   short rc = RC_OK;
-  length_t potential_spare_start = 0;
+  long potential_spare_start = 0;
   bool negative = FALSE;
-  char_t *ptr = NULL;
-  line_t lineno = 0L;
+  uchar *ptr = NULL;
+  long lineno = 0L;
   char regexp[7] = "REGEXP";
 
   /*
    * Copy the incoming target specification...
    */
-  if ((target->string = (char_t *) strdup ((char *) target_spec)) == NULL) {
+  if ((target->string = (uchar *) strdup((char*)target_spec)) == NULL) {
     if (allow_error_display) {
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
     }
     return (RC_OUT_OF_MEMORY);
   }
@@ -191,7 +184,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
    * Parse the target...
    */
   switch (target_types) {
-
     case TARGET_FIND:
     case TARGET_NFIND:
     case TARGET_FINDUP:
@@ -203,10 +195,10 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
           *(ptr + i) = ' ';
         }
       }
-      target->rt = (RTARGET *) malloc (sizeof(RTARGET));
+      target->rt = (RTARGET *) malloc(sizeof(RTARGET));
       if (target->rt == NULL) {
         if (allow_error_display) {
-          display_error(30, (char_t *) "", FALSE);
+          display_error(30, (uchar *) "", FALSE);
         }
         return (RC_OUT_OF_MEMORY);
       }
@@ -220,33 +212,31 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
       target->rt[0].target_type = TARGET_STRING;
       target->rt[0].numeric_target = 0L;
       target->rt[0].have_compiled_re = FALSE;
-      target->rt[0].string = (char_t *) malloc ((target_length * sizeof(char_t)) + 1);
-      if (target->rt[0].string == (char_t *) NULL) {
+      target->rt[0].string = (uchar *) malloc((target_length * sizeof(uchar)) + 1);
+      if (target->rt[0].string == (uchar *) NULL) {
         if (allow_error_display) {
-          display_error(30, (char_t *) "", FALSE);
+          display_error(30, (uchar *) "", FALSE);
         }
         return (RC_OUT_OF_MEMORY);
       }
       strcpy((char *) target->rt[0].string, (char *) ptr);
       return (RC_OK);
       break;
-
     default:
       break;
   }
   for (;;) {
     inc = 1;
     switch (state) {
-
       case STATE_NEXT:
         if (target->rt == NULL) {
-          target->rt = (RTARGET *) malloc ((num_targets + 1) * sizeof(RTARGET));
+          target->rt = (RTARGET *) malloc((num_targets + 1) * sizeof(RTARGET));
         } else {
-          target->rt = (RTARGET *) realloc (target->rt, (num_targets + 1) * sizeof(RTARGET));
+          target->rt = (RTARGET *) realloc(target->rt, (num_targets + 1) * sizeof(RTARGET));
         }
         if (target->rt == NULL) {
           if (allow_error_display) {
-            display_error(30, (char_t *) "", FALSE);
+            display_error(30, (uchar *) "", FALSE);
           }
           return (RC_OUT_OF_MEMORY);
         }
@@ -267,10 +257,8 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
         }
         inc = 0;
         break;
-
       case STATE_START:
         switch (*(ptr + i)) {
-
           case '~':
           case '^':
             if (target->rt[num_targets].not_target) {
@@ -280,16 +268,13 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             }
             target->rt[num_targets].not_target = TRUE;
             break;
-
           case ' ':
           case '\t':
             break;
-
           case '-':
             target->rt[num_targets].negative = TRUE;
             state = STATE_NEGATIVE;
             break;
-
           case 'r':
           case 'R':
             if (target->rt[num_targets].not_target || target->rt[num_targets].negative) {
@@ -313,7 +298,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
               }
             }
             switch (state) {
-
               case STATE_START:
                 if (*(ptr + (i + k)) == ' ' || *(ptr + (i + k)) == '\0' || *(ptr + (i + k)) == '\t') {
                   state = STATE_REGEXP_START;
@@ -325,11 +309,9 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
                   break;
                 }
                 break;
-
               case STATE_REGEXP_START:
                 inc = k;
                 break;
-
               default:
                 state = STATE_ERROR;
                 inc = 0;
@@ -337,7 +319,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             }
             potential_spare_start = i + k + 1;
             break;
-
           case '+':
             if (target->rt[num_targets].negative) {
               state = STATE_ERROR;
@@ -348,7 +329,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             target->rt[num_targets].negative = FALSE;
             state = STATE_POSITIVE;
             break;
-
           case '.':
             if (target->rt[num_targets].negative) {
               state = STATE_ERROR;
@@ -358,27 +338,26 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             state = STATE_POINT;
             str_start = i;
             break;
-
           case '*':
             state = STATE_BOOLEAN;
             target->rt[num_targets].target_type = TARGET_RELATIVE;
-            target->rt[num_targets].string = (char_t *) malloc (3);
+            target->rt[num_targets].string = (uchar *) malloc(3);
             if (target->rt[num_targets].string == NULL) {
               if (allow_error_display) {
-                display_error(30, (char_t *) "", FALSE);
+                display_error(30, (uchar *) "", FALSE);
               }
               return (RC_OUT_OF_MEMORY);
             }
             if (target->rt[num_targets].negative) {
               if (column_target) {
-                target->rt[num_targets].numeric_target = (line_t) CURRENT_VIEW->zone_start - true_line - 1L;
+                target->rt[num_targets].numeric_target = (long) CURRENT_VIEW->zone_start - true_line - 1L;
               } else {
                 target->rt[num_targets].numeric_target = true_line * (-1L);
               }
               strcpy((char *) target->rt[num_targets].string, "-*");
             } else {
               if (column_target) {
-                target->rt[num_targets].numeric_target = (line_t) ((line_t) CURRENT_VIEW->zone_end - true_line) + 1L;
+                target->rt[num_targets].numeric_target = (long) ((long) CURRENT_VIEW->zone_end - true_line) + 1L;
               } else {
                 target->rt[num_targets].numeric_target = (CURRENT_FILE->number_lines - true_line) + 2L;
               }
@@ -388,14 +367,12 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             potential_spare_start = i + 1;
             num_targets++;
             break;
-
           case ':':
           case ';':
             state = STATE_ABSOLUTE;
             delim = *(ptr + i);
             str_start = i + 1;
             break;
-
           /* following are delimiters; make sure you change the other lists */
           case '/':
           case '\\':
@@ -420,7 +397,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             str_start = i + 1;
             delim = *(ptr + i);
             break;
-
           case 'a':
           case 'A':
             if (target->rt[num_targets].not_target || target->rt[num_targets].negative) {
@@ -437,7 +413,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             /*
              * ALL target
              */
-            inc = target_type_match((char_t *) ptr + i, (char_t *) "all", 3);
+            inc = target_type_match((uchar *) ptr + i, (uchar *) "all", 3);
             if (inc != 0) {
               target->rt[num_targets].target_type = TARGET_ALL;
               state = STATE_BOOLEAN;
@@ -448,7 +424,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             /*
              * ALTERED target
              */
-            inc = target_type_match((char_t *) ptr + i, (char_t *) "altered", 3);
+            inc = target_type_match((uchar *) ptr + i, (uchar *) "altered", 3);
             if (inc != 0) {
               target->rt[num_targets].target_type = TARGET_ALTERED;
               potential_spare_start = i + inc;
@@ -459,7 +435,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             state = STATE_ERROR;
             inc = 0;
             break;
-
           case 'b':
           case 'B':
             if (target_length - i < 5) {
@@ -470,7 +445,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             /*
              * BLANK target
              */
-            inc = target_type_match((char_t *) ptr + i, (char_t *) "blank", 5);
+            inc = target_type_match((uchar *) ptr + i, (uchar *) "blank", 5);
             if (inc != 0) {
               target->rt[num_targets].target_type = TARGET_BLANK;
               potential_spare_start = i + inc;
@@ -481,7 +456,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             /*
              * BLOCK target
              */
-            if (memcmpi((char_t *) "block", ptr + i, 5) == 0 && (*(ptr + (i + 5)) == ' ' || *(ptr + (i + 5)) == '\0' || *(ptr + (i + 5)) == '\t')) {
+            if (memcmpi((uchar *) "block", ptr + i, 5) == 0 && (*(ptr + (i + 5)) == ' ' || *(ptr + (i + 5)) == '\0' || *(ptr + (i + 5)) == '\t')) {
               target->rt[num_targets].target_type = TARGET_BLOCK;
               inc = 5;
               potential_spare_start = i + 5;
@@ -497,7 +472,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             state = STATE_ERROR;
             inc = 0;
             break;
-
           case 'n':
           case 'N':
             if (target_length - i < 3) {
@@ -508,7 +482,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             /*
              * NEW target
              */
-            inc = target_type_match((char_t *) ptr + i, (char_t *) "new", 3);
+            inc = target_type_match((uchar *) ptr + i, (uchar *) "new", 3);
             if (inc != 0) {
               target->rt[num_targets].target_type = TARGET_NEW;
               potential_spare_start = i + inc;
@@ -524,7 +498,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             state = STATE_ERROR;
             inc = 0;
             break;
-
           case 'c':
           case 'C':
             if (target_length - i < 3) {
@@ -535,7 +508,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             /*
              * CHANGED target
              */
-            inc = target_type_match((char_t *) ptr + i, (char_t *) "changed", 3);
+            inc = target_type_match((uchar *) ptr + i, (uchar *) "changed", 3);
             if (inc != 0) {
               target->rt[num_targets].target_type = TARGET_CHANGED;
               potential_spare_start = i + inc;
@@ -551,7 +524,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             state = STATE_ERROR;
             inc = 0;
             break;
-
           case 't':
           case 'T':
             if (target_length - i < 3) {
@@ -562,7 +534,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             /*
              * TAGGED target
              */
-            inc = target_type_match((char_t *) ptr + i, (char_t *) "tagged", 3);
+            inc = target_type_match((uchar *) ptr + i, (uchar *) "tagged", 3);
             if (inc != 0) {
               target->rt[num_targets].target_type = TARGET_TAGGED;
               potential_spare_start = i + inc;
@@ -578,7 +550,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             state = STATE_ERROR;
             inc = 0;
             break;
-
           case '0':
           case '1':
           case '2':
@@ -598,21 +569,17 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             delim = '\0';
             inc = 0;
             break;
-
           default:
             state = STATE_ERROR;
             inc = 0;
             break;
         }
         break;
-
       case STATE_REGEXP_START:
         switch (*(ptr + i)) {
-
           case ' ':
           case '\t':
             break;
-
           /* following are delimiters; make sure you change the other lists */
           case '/':
           case '\\':
@@ -637,17 +604,14 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             str_start = i + 1;
             delim = *(ptr + i);
             break;
-
           default:
             state = STATE_ERROR;
             inc = 0;
             break;
         }
         break;
-
       case STATE_REGEXP:
         switch (*(ptr + i)) {
-
           /* following are delimiters; make sure you change the other lists */
           case '/':
           case '\\':
@@ -673,10 +637,10 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
               state = STATE_BOOLEAN;
               str_end = i;
               len = str_end - str_start;
-              target->rt[num_targets].string = (char_t *) malloc (len + 1);
+              target->rt[num_targets].string = (uchar *) malloc(len + 1);
               if (target->rt[num_targets].string == NULL) {
                 if (allow_error_display) {
-                  display_error(30, (char_t *) "", FALSE);
+                  display_error(30, (uchar *) "", FALSE);
                 }
                 return (RC_OUT_OF_MEMORY);
               }
@@ -687,15 +651,12 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
               num_targets++;
             }
             break;
-
           default:
             break;
         }
         break;
-
       case STATE_STRING:
         switch (*(ptr + i)) {
-
           /* following are delimiters; make sure you change the other lists */
           case '/':
           case '\\':
@@ -721,10 +682,10 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
               state = STATE_BOOLEAN;
               str_end = i;
               len = str_end - str_start;
-              target->rt[num_targets].string = (char_t *) malloc (len + 1);
+              target->rt[num_targets].string = (uchar *) malloc(len + 1);
               if (target->rt[num_targets].string == NULL) {
                 if (allow_error_display) {
-                  display_error(30, (char_t *) "", FALSE);
+                  display_error(30, (uchar *) "", FALSE);
                 }
                 return (RC_OUT_OF_MEMORY);
               }
@@ -736,28 +697,22 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
               num_targets++;
             }
             break;
-
           default:
             break;
         }
         break;
-
       case STATE_BOOLEAN:
         switch (*(ptr + i)) {
-
           case '\0':
             break;
-
           case ' ':
           case '\t':
             break;
-
           case '&':
           case '|':
             state = STATE_NEXT;
             boolean = *(ptr + i);
             break;
-
           default:
             if (target_types & TARGET_SPARE) {
               str_start = potential_spare_start;
@@ -770,17 +725,15 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             break;
         }
         break;
-
       case STATE_SPARE:
         switch (*(ptr + i)) {
-
           case '\0':
             str_end = i;
             len = str_end - str_start;
-            target->rt[num_targets].string = (char_t *) malloc (len + 1);
+            target->rt[num_targets].string = (uchar *) malloc(len + 1);
             if (target->rt[num_targets].string == NULL) {
               if (allow_error_display) {
-                display_error(30, (char_t *) "", FALSE);
+                display_error(30, (uchar *) "", FALSE);
               }
               return (RC_OUT_OF_MEMORY);
             }
@@ -792,12 +745,10 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             num_targets++;
             *(ptr + str_start) = '\0';  /* so target string does not include spare */
             break;
-
           default:
             break;
         }
         break;
-
       case STATE_ABSOLUTE:
       case STATE_RELATIVE:
         if (target->rt[num_targets].not_target) {
@@ -806,16 +757,15 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
           break;
         }
         switch (*(ptr + i)) {
-
           case '\0':
           case ' ':
           case '\t':
             str_end = i;
             len = str_end - str_start;
-            target->rt[num_targets].string = (char_t *) malloc (len + 2);
+            target->rt[num_targets].string = (uchar *) malloc(len + 2);
             if (target->rt[num_targets].string == NULL) {
               if (allow_error_display) {
-                display_error(30, (char_t *) "", FALSE);
+                display_error(30, (uchar *) "", FALSE);
               }
               return (RC_OUT_OF_MEMORY);
             }
@@ -851,9 +801,9 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             } else {
               if (column_target) {
                 if (target->rt[num_targets].negative) {
-                  target->rt[num_targets].numeric_target = max(target->rt[num_targets].numeric_target, ((line_t) CURRENT_VIEW->zone_start - true_line - 1L));
+                  target->rt[num_targets].numeric_target = max(target->rt[num_targets].numeric_target, ((long) CURRENT_VIEW->zone_start - true_line - 1L));
                 } else {
-                  target->rt[num_targets].numeric_target = min(target->rt[num_targets].numeric_target, ((line_t) CURRENT_VIEW->zone_end - true_line + 1L));
+                  target->rt[num_targets].numeric_target = min(target->rt[num_targets].numeric_target, ((long) CURRENT_VIEW->zone_end - true_line + 1L));
                 }
               } else {
                 if (target->rt[num_targets].negative) {
@@ -867,7 +817,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             num_targets++;
             state = STATE_BOOLEAN;
             break;
-
           case '0':
           case '1':
           case '2':
@@ -879,18 +828,15 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
           case '8':
           case '9':
             break;
-
           default:
             state = STATE_ERROR;
             inc = 0;
             break;
         }
         break;
-
       case STATE_NEGATIVE:
       case STATE_POSITIVE:
         switch (*(ptr + i)) {
-
           case '0':
           case '1':
           case '2':
@@ -906,7 +852,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             str_start = i;
             inc = 0;
             break;
-
           /* following are delimiters; make sure you change the other lists */
           case '/':
           case '\\':
@@ -931,12 +876,10 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             state = STATE_START;
             inc = 0;
             break;
-
           case '*':
             state = STATE_START;
             inc = 0;
             break;
-
           case 'b':
           case 'B':
           case 'n':
@@ -955,31 +898,28 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             state = STATE_START;
             inc = 0;
             break;
-
           default:
             state = STATE_ERROR;
             inc = 0;
             break;
         }
         break;
-
       case STATE_POINT:
         switch (*(ptr + i)) {
-
           case ' ':
           case '\t':
             state = STATE_BOOLEAN;
-            /* fall through */
+          /* fall through */
           case '&':
           case '|':
           case '\0':
             target->rt[num_targets].target_type = TARGET_POINT;
             str_end = i;
             len = str_end - str_start;
-            target->rt[num_targets].string = (char_t *) malloc (len + 1);
+            target->rt[num_targets].string = (uchar *) malloc(len + 1);
             if (target->rt[num_targets].string == NULL) {
               if (allow_error_display) {
-                display_error(30, (char_t *) "", FALSE);
+                display_error(30, (uchar *) "", FALSE);
               }
               return (RC_OUT_OF_MEMORY);
             }
@@ -988,7 +928,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             target->rt[num_targets].length = len;
             if (find_named_line(target->rt[num_targets].string, &lineno, TRUE) == NULL) {
               if (allow_error_display) {
-                display_error(17, (char_t *) target->rt[num_targets].string, FALSE);
+                display_error(17, (uchar *) target->rt[num_targets].string, FALSE);
               }
               return (RC_TARGET_NOT_FOUND);
             }
@@ -1006,12 +946,10 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
             boolean = *(ptr + i);
             state = STATE_NEXT;
             break;
-
           default:
             break;
         }
         break;
-
       case STATE_ERROR:
         for (j = 0; j < num_targets; j++) {
           target->rt[j].target_type = TARGET_ERR;
@@ -1036,8 +974,9 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
   }
   /*
    * Time to validate the targets we have parsed...
-   *---------------------------------------------------------------------
+   *
    * Valid combinations are:
+   *
    * TARGET_ALL       (1 target only)
    *                  ALL  only
    * TARGET_BLOCK     (1 target only)
@@ -1086,14 +1025,12 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
    *                  /regexp/
    *
    * Any of the above target types may be or'd together.
-   *---------------------------------------------------------------------
+   *
    * For each of the targets, check its validity...
-   *---------------------------------------------------------------------
    */
   negative = target->rt[0].negative;
   for (i = 0; i < num_targets - ((target->spare == (-1)) ? 0 : 1); i++) {
     switch (target->rt[i].target_type) {
-
       case TARGET_BLOCK:
         if (num_targets - ((target->spare == (-1)) ? 0 : 1) != 1) {
           rc = RC_INVALID_OPERAND;
@@ -1109,7 +1046,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
           }
         }
         break;
-
       case TARGET_ALL:
         if (num_targets - ((target->spare == (-1)) ? 0 : 1) != 1) {
           rc = RC_INVALID_OPERAND;
@@ -1120,7 +1056,6 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
         }
         rc = RC_INVALID_OPERAND;
         break;
-
       case TARGET_REGEXP:
         if (num_targets - ((target->spare == (-1)) ? 0 : 1) != 1) {
           rc = RC_INVALID_OPERAND;
@@ -1134,21 +1069,20 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
          * Compile the RE
          */
         memset(&target->rt[i].pattern_buffer, 0, sizeof(regex_t));
-        if (0 != (rc = regcomp (&target->rt[i].pattern_buffer, (char *) target->rt[i].string, 0))) {
+        if (0 != (rc = regcomp(&target->rt[i].pattern_buffer, (char *) target->rt[i].string, 0))) {
           /*
            * If ptr returns something, it is an error string
            * Display it if we are allowed to...
            */
           if (display_parse_error && allow_error_display) {
-            rc = regerror (rc, &target->rt[i].pattern_buffer, (char*)trec, trec_len);
-            sprintf((char*)trec+rc, " in %s", target->rt[i].string);
-            display_error(216, (char_t *) trec, FALSE);
+            rc = regerror(rc, &target->rt[i].pattern_buffer, (char *) trec, trec_len);
+            sprintf((char *) trec + rc, "in %s", target->rt[i].string);
+            display_error(216, (uchar *) trec, FALSE);
             return RC_INVALID_OPERAND;
           }
         }
         target->rt[i].have_compiled_re = TRUE;
         break;
-
       default:
         if (target->rt[i].negative != negative) {
           rc = RC_INVALID_OPERAND;
@@ -1165,8 +1099,7 @@ short parse_target(char_t *target_spec, line_t true_line, TARGET *target, long t
     }
   }
   /*
-   * Display an error if anything found amiss and we are directed to
-   * display an error...
+   * Display an error if anything found amiss and we are directed to display an error...
    */
   if (rc != RC_OK && display_parse_error && allow_error_display) {
     display_error(1, ptr, FALSE);
@@ -1181,24 +1114,24 @@ void initialise_target(TARGET *target) {
 }
 
 void free_target(TARGET *target) {
-  register short i = 0;
+  short i = 0;
 
   if (target->string == NULL && target->num_targets == 0 && target->rt == NULL) {
     return;
   }
   for (i = 0; i < target->num_targets; i++) {
     if (target->rt[i].string != NULL) {
-      free (target->rt[i].string);
+      free(target->rt[i].string);
     }
     if (target->rt[i].have_compiled_re) {
-      regfree (&target->rt[i].pattern_buffer);
+      regfree(&target->rt[i].pattern_buffer);
     }
   }
   if (target->string != NULL) {
-    free (target->string);
+    free(target->string);
   }
   if (target->rt != NULL) {
-    free (target->rt);
+    free(target->rt);
   }
   target->string = NULL;
   target->num_targets = 0;
@@ -1206,34 +1139,32 @@ void free_target(TARGET *target) {
   return;
 }
 
-short find_target(TARGET *target, line_t true_line, bool display_parse_error, bool allow_error_display) {
+short find_target(TARGET *target, long true_line, bool display_parse_error, bool allow_error_display) {
   short rc = RC_OK;
   LINE *curr = NULL;
   LINE tmpcurr;
-  line_t num_lines = 0L;
-  line_t line_number = 0L;
-  length_t first_found_column = 0;
+  long num_lines = 0L;
+  long line_number = 0L;
+  long first_found_column = 0;
   short status = RC_OK;
   int i;
 
   /*
    * Check single targets first (ALL and BLOCK)
-   *---------------------------------------------------------------------
+   *
    * Check if first, and only target, is BLOCK...
    */
   switch (target->rt[0].target_type) {
-
     case TARGET_ALL:
       target->true_line = 1L;
       target->last_line = CURRENT_FILE->number_lines;
       target->num_lines = CURRENT_FILE->number_lines;
       return (RC_OK);
       break;
-
     case TARGET_BLOCK_ANY:
       if (MARK_VIEW == NULL) {
         if (allow_error_display) {
-          display_error(44, (char_t *) "", FALSE);
+          display_error(44, (uchar *) "", FALSE);
         }
         rc = RC_TARGET_NOT_FOUND;
       } else {
@@ -1243,17 +1174,16 @@ short find_target(TARGET *target, line_t true_line, bool display_parse_error, bo
       }
       return rc;
       break;
-
     case TARGET_BLOCK_CURRENT:
       if (MARK_VIEW == NULL) {
         if (allow_error_display) {
-          display_error(44, (char_t *) "", FALSE);
+          display_error(44, (uchar *) "", FALSE);
         }
         rc = RC_TARGET_NOT_FOUND;
       } else {
         if (MARK_VIEW != CURRENT_VIEW) {
           if (allow_error_display) {
-            display_error(45, (char_t *) "", FALSE);
+            display_error(45, (uchar *) "", FALSE);
           }
           rc = RC_TARGET_NOT_FOUND;
         } else {
@@ -1273,7 +1203,6 @@ short find_target(TARGET *target, line_t true_line, bool display_parse_error, bo
       }
       return rc;
       break;
-
     default:
       break;
   }
@@ -1287,8 +1216,7 @@ short find_target(TARGET *target, line_t true_line, bool display_parse_error, bo
    */
   curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, true_line, CURRENT_FILE->number_lines);
   /*
-   * If this is a search and we are on the focus line use the current
-   * working data, so make up a dummy LINE.
+   * If this is a search and we are on the focus line use the current working data, so make up a dummy LINE.
    */
   if (target->search_semantics && CURRENT_VIEW->current_window == WINDOW_FILEAREA) {
     memset(&tmpcurr, 0, sizeof(LINE));
@@ -1301,17 +1229,16 @@ short find_target(TARGET *target, line_t true_line, bool display_parse_error, bo
   num_lines = 0L;
   for (;;) {
     /*
-     * For all repeating targets, see if the combined targets are
-     * found on the line we are currently processing
+     * For all repeating targets,
+     * see if the combined targets are found on the line we are currently processing
      */
     status = find_rtarget_target(curr, target, true_line, line_number, &num_lines);
     if (status != RC_TARGET_NOT_FOUND) {
       break;
     }
     /*
-     * We can determine the direction of execution based on the first
-     * target, as all targets must have the same direction to have reached
-     * here.
+     * We can determine the direction of execution based on the first target,
+     * as all targets must have the same direction to have reached here.
      */
     if (target->rt[0].negative) {
       /*
@@ -1321,12 +1248,12 @@ short find_target(TARGET *target, line_t true_line, bool display_parse_error, bo
       line_number--;
       if (curr) {
         /*
-         * We have a real line, so set the target focus_column to
-         * after the end of the line (if SEARCHing) or to the start
-         * of the line (if LOCATEing)
-         * When setting "after the end of line", we have to take into
-         * consideration the length of the needle, in case it ends in space
-         * (we need to be able to find a string with a trailing space).
+         * We have a real line,
+         * so set the target focus_column to after the end of the line (if SEARCHing)
+         * or to the start of the line (if LOCATEing)
+         *
+         * When setting "after the end of line", we have to take into consideration the length of the needle,
+         * in case it ends in space (we need to be able to find a string with a trailing space).
          */
         if (target->search_semantics) {
           target->focus_column = curr->length + 1;
@@ -1358,8 +1285,8 @@ short find_target(TARGET *target, line_t true_line, bool display_parse_error, bo
     }
     /*
      * We found at least one of our potential targets.
-     * When SEARCHing, we need to know where to move the cursor. We
-     * find the lowest column of the targets that have been found
+     * When SEARCHing, we need to know where to move the cursor.
+     * We find the lowest column of the targets that have been found
      * and set target->focus_column to that column.
      */
     if (target->search_semantics) {
@@ -1386,10 +1313,10 @@ short find_target(TARGET *target, line_t true_line, bool display_parse_error, bo
   return (rc);
 }
 
-short find_column_target(char_t *line, length_t len, TARGET *target, length_t true_column, bool display_parse_error, bool allow_error_display) {
+short find_column_target(uchar *line, long len, TARGET *target, long true_column, bool display_parse_error, bool allow_error_display) {
   short rc = RC_OK;
-  length_t column_number = 0L;
-  length_t num_columns = 0L;
+  long column_number = 0L;
+  long num_columns = 0L;
   bool status = FALSE;
 
   /*
@@ -1405,17 +1332,16 @@ short find_column_target(char_t *line, length_t len, TARGET *target, length_t tr
       break;
     }
     /*
-     * We can determine the direction of execution based on the first
-     * target, as all targets must have the same direction to have reached
-     * here.
+     * We can determine the direction of execution based on the first target,
+     * as all targets must have the same direction to have reached here.
      */
     if (target->rt[0].negative) {
-      if (column_number-- == (line_t) CURRENT_VIEW->zone_start - 2L) {
+      if (column_number-- == (long) CURRENT_VIEW->zone_start - 2L) {
         status = FALSE;
         break;
       }
     } else {
-      if (column_number++ == (line_t) CURRENT_VIEW->zone_end + 2L) {
+      if (column_number++ == (long) CURRENT_VIEW->zone_end + 2L) {
         status = FALSE;
         break;
       }
@@ -1424,8 +1350,8 @@ short find_column_target(char_t *line, length_t len, TARGET *target, length_t tr
   if (status) {
     num_columns = ((target->rt[0].negative) ? -num_columns : num_columns);
     target->num_lines = num_columns;
-    target->true_line = (line_t) true_column;
-    target->last_line = (line_t) column_number;
+    target->true_line = (long) true_column;
+    target->last_line = (long) column_number;
     rc = RC_OK;
   } else {
     if (allow_error_display) {
@@ -1437,7 +1363,7 @@ short find_column_target(char_t *line, length_t len, TARGET *target, length_t tr
 }
 
 static bool is_blank(LINE *curr) {
-  length_t i = 0;
+  long i = 0;
   bool rc = TRUE;
 
   if (CURRENT_VIEW->zone_start > curr->length) {
@@ -1452,11 +1378,7 @@ static bool is_blank(LINE *curr) {
   return (rc);
 }
 
-/*
- * Given a pointer to a LINE, find the passed name and return a pointer to the
- * generic THELIST item if the name is in the list of names.
- */
-THELIST *find_line_name(LINE *curr, char_t *name) {
+THELIST *find_line_name(LINE *curr, uchar *name) {
   THELIST *list_curr = NULL;
 
   if (curr == NULL || curr->first_name == NULL) {
@@ -1475,8 +1397,8 @@ THELIST *find_line_name(LINE *curr, char_t *name) {
   return ((THELIST *) NULL);
 }
 
-LINE *find_named_line(char_t *name, line_t *retline, bool respect_scope) {
-  line_t lineno = 0;
+LINE *find_named_line(uchar *name, long *retline, bool respect_scope) {
+  long lineno = 0;
   LINE *curr = NULL;
 
   /*
@@ -1485,8 +1407,7 @@ LINE *find_named_line(char_t *name, line_t *retline, bool respect_scope) {
   curr = CURRENT_FILE->first_line;
   while (curr != (LINE *) NULL) {
     /*
-     * Check the line's name if we are not respecting scope or if we are
-     * respecting scope and the line is in scope.
+     * Check the line's name if we are not respecting scope or if we are respecting scope and the line is in scope.
      */
     if (!respect_scope || (respect_scope && (IN_SCOPE(CURRENT_VIEW, curr) || CURRENT_VIEW->scope_all))) {
       /*
@@ -1516,46 +1437,43 @@ LINE *find_named_line(char_t *name, line_t *retline, bool respect_scope) {
  * haystack becomes: "65cba4321"
  * and start_col becomes: 0 (len - start_col - 1)
  */
-short find_string_target(LINE *curr, RTARGET *rt, length_t start_col, int search_semantics) {
-  char_t *haystack = curr->line;
-  char_t *needle;
-  length_t needle_length = 0, haystack_length = 0;
-  line_t real_start = 0, real_end = 0;
+short find_string_target(LINE *curr, RTARGET *rt, long start_col, int search_semantics) {
+  uchar *haystack = curr->line;
+  uchar *needle;
+  long needle_length = 0, haystack_length = 0;
+  long real_start = 0, real_end = 0;
   bool use_trec = FALSE;
   short rc = RC_OK;
-  length_t loc = (-1);
-  length_t str_length = 0;
+  long loc = (-1);
+  long str_length = 0;
 
   /*
-   * Allocate some termporary space
+   * Allocate some temporary space
    */
-  needle = (char_t *) alloca(rt->length + 1);
+  needle = (uchar *) alloca(rt->length + 1);
   if (needle == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
-   * Copy the supplied string target rather than point to it, as we don't
-   * want to change the value of the target if it is a HEX string.
+   * Copy the supplied string target rather than point to it,
+   * as we don't want to change the value of the target if it is a HEX string.
    */
   strcpy((char *) needle, (char *) rt->string);
   /*
-   * If HEX is on, convert the target from a HEX format to char_t.
+   * If HEX is on, convert the target from a HEX format to uchar.
    */
   if (CURRENT_VIEW->hex == TRUE) {
     rc = convert_hex_strings(needle);
     switch (rc) {
-
       case -1:                 /* invalid hex value */
         display_error(32, needle, FALSE);
         return (RC_INVALID_OPERAND);
         break;
-
       case -2:                 /* memory exhausted */
-        display_error(30, (char_t *) "", FALSE);
+        display_error(30, (uchar *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
         break;
-
       default:
         break;
     }
@@ -1564,8 +1482,7 @@ short find_string_target(LINE *curr, RTARGET *rt, length_t start_col, int search
     needle_length = strlen((char *) needle);
   }
   /*
-   * Set the length of the string to be the actual length
-   * of the string target.
+   * Set the length of the string to be the actual length of the string target.
    */
   rt->length = needle_length;
   /*
@@ -1591,8 +1508,8 @@ short find_string_target(LINE *curr, RTARGET *rt, length_t start_col, int search
     haystack_length = curr->length;
   }
   /*
-   * Calculate the bounds to search in based on length of haystack and
-   * ZONE settings. If the haystack is empty, no need to search.
+   * Calculate the bounds to search in based on length of haystack and ZONE settings.
+   * If the haystack is empty, no need to search.
    */
   if (haystack_length > 0) {
     if (search_semantics && rt->negative) {
@@ -1607,7 +1524,8 @@ short find_string_target(LINE *curr, RTARGET *rt, length_t start_col, int search
      */
     if (real_end >= real_start) {
       if (search_semantics && rt->negative) {
-        length_t i;
+        long i;
+
         for (i = 0; loc == (-1) && real_start >= CURRENT_VIEW->zone_start - 1; i++, real_start--) {
           loc = memfind(haystack + real_start, needle, (real_end - real_start + 1), needle_length, (bool) ((CURRENT_VIEW->case_locate == CASE_IGNORE) ? TRUE : FALSE), CURRENT_VIEW->arbchar_status, CURRENT_VIEW->arbchar_single, CURRENT_VIEW->arbchar_multiple, &str_length);
           if (loc != (-1) && loc + real_start - 1 == start_col) {
@@ -1633,8 +1551,8 @@ short find_string_target(LINE *curr, RTARGET *rt, length_t start_col, int search
 }
 
 short find_regexp(LINE *curr, RTARGET *rt) {
-  char_t *haystack = NULL;
-  length_t len, i, haystack_length = 0, real_start = 0, real_end = 0;
+  uchar *haystack = NULL;
+  long len, i, haystack_length = 0, real_start = 0, real_end = 0;
   regmatch_t match;
 
   /*
@@ -1643,11 +1561,11 @@ short find_regexp(LINE *curr, RTARGET *rt) {
   haystack = curr->line;
   haystack_length = curr->length;
   /*
-   * Calculate the bounds to search in based on length of haystack and
-   * ZONE settings. If the haystack is empty, no need to search.
+   * Calculate the bounds to search in based on length of haystack and ZONE settings.
+   * If the haystack is empty, no need to search.
    */
   if (haystack_length == 0) {
-    haystack = (char_t *) "";
+    haystack = (uchar *) "";
     real_end = real_start = 0;
     len = 0;
   } else {
@@ -1656,9 +1574,9 @@ short find_regexp(LINE *curr, RTARGET *rt) {
     len = real_end - real_start + 1;
   }
   for (i = 0; i < len;) {
-    if (0 == regexec (&rt->pattern_buffer, (char *) haystack + i, 1, &match, 0)) {
-      if (match.rm_eo > (len-i)) {
-        break; // match but past limit
+    if (0 == regexec(&rt->pattern_buffer, (char *) haystack + i, 1, &match, 0)) {
+      if (match.rm_eo > (len - i)) {
+        break;                  // match but past limit
       }
       rt->length = match.rm_eo - match.rm_so;
       rt->start = real_start + i;       /* ?? */
@@ -1672,12 +1590,12 @@ short find_regexp(LINE *curr, RTARGET *rt) {
   return RC_TARGET_NOT_FOUND;
 }
 
-short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t line_number, line_t *num_lines) {
-  register short i = 0;
+short find_rtarget_target(LINE *curr, TARGET *target, long true_line, long line_number, long *num_lines) {
+  short i = 0;
   bool target_found = FALSE, status = FALSE;
-  line_t multiplier = 0;
+  long multiplier = 0;
   short rc = RC_OK;
-  length_t start_col;
+  long start_col;
 
   /*
    * If the line is not in scope and scope is respected, return FALSE.
@@ -1694,7 +1612,6 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
     target_found = FALSE;
     multiplier = (target->rt[i].negative) ? -1L : 1L;
     switch (target->rt[i].target_type) {
-
       case TARGET_BLANK:
         if (true_line == line_number) {
           target_found = ((target->rt[i].not_target) ? TRUE : FALSE);
@@ -1711,7 +1628,6 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
         }
         target_found = is_blank(curr);
         break;
-
       case TARGET_NEW:
         if (true_line == line_number) {
           target_found = ((target->rt[i].not_target) ? TRUE : FALSE);
@@ -1728,7 +1644,6 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
         }
         target_found = curr->flags.new_flag;
         break;
-
       case TARGET_CHANGED:
         if (true_line == line_number) {
           target_found = ((target->rt[i].not_target) ? TRUE : FALSE);
@@ -1745,7 +1660,6 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
         }
         target_found = curr->flags.changed_flag;
         break;
-
       case TARGET_ALTERED:
         if (true_line == line_number) {
           target_found = ((target->rt[i].not_target) ? TRUE : FALSE);
@@ -1762,7 +1676,6 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
         }
         target_found = (curr->flags.changed_flag | curr->flags.new_flag);
         break;
-
       case TARGET_TAGGED:
         if (true_line == line_number) {
           target_found = ((target->rt[i].not_target) ? TRUE : FALSE);
@@ -1779,7 +1692,6 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
         }
         target_found = curr->flags.tag_flag;
         break;
-
       case TARGET_POINT:
         if (curr->first_name == NULL) {
           break;
@@ -1788,15 +1700,12 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
           target_found = TRUE;
         }
         break;
-
       case TARGET_STRING:
         /*
-         * If we are doing a SEARCH, start at focus column
-         * otherwise start at 0 for locate
-         * As focus_column is 1 based, then using focus_column
-         * analtered is the same as adding 1, so in a backwards search
-         * we have to subtract 1 for the previous column, and 1 to adjust
-         * from 1 based to 0 based (-2 in total).
+         * If we are doing a SEARCH, start at focus column otherwise start at 0 for locate
+         * As focus_column is 1 based, then using focus_column unaltered is the same as adding 1,
+         * so in a backwards search we have to subtract 1 for the previous column,
+         * and 1 to adjust from 1 based to 0 based (-2 in total).
          */
         if (target->search_semantics) {
           if (target->rt[0].negative) {
@@ -1817,18 +1726,16 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
         }
         /*
          * If we are processing the focus line we return immediately;
-         * we can't match on the focus line, unless we are running
-         * a SEARCH
+         * we can't match on the focus line, unless we are running a SEARCH
          */
         if (true_line == line_number && target->search_semantics == FALSE) {
           target_found = ((target->rt[i].not_target) ? TRUE : FALSE);
           break;
         }
         /*
-         * When we are SEARCHing we can't stop because the PREVIOUS
-         * line is NULL; there still could be strings on the line
-         * after the focus column. BUT HOW DO WE STOP ???
-         * SEEMS OK!
+         * When we are SEARCHing we can't stop because the PREVIOUS line is NULL;
+         * there still could be strings on the line after the focus column.
+         * BUT HOW DO WE STOP ??? SEEMS OK!
          */
         if (target->rt[0].negative) {
           if (curr->prev == NULL) {
@@ -1845,29 +1752,23 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
           rc = find_string_target(curr, &target->rt[i], start_col, target->search_semantics);
         }
         switch (rc) {
-
           case RC_OK:
             target->rt[i].found = target_found = TRUE;
             break;
-
           case RC_TARGET_NOT_FOUND:
             /*
-             * Target not found. If this is a search, we need to reset
-             * the focus_column to start searching at col 0
+             * Target not found. If this is a search, we need to reset the focus_column to start searching at col 0
              */
             target->focus_column = -1L;
             break;
-
           default:
             return (rc);
             break;
         }
         break;
-
       case TARGET_RELATIVE:
         /*
-         * If the command is TAG or ALL then we mark the nth line so a match
-         * here is based on
+         * If the command is TAG or ALL then we mark the nth line so a match here is based on
          */
         if (target->all_tag_command) {
           if (target->rt[i].numeric_target == 0) {
@@ -1894,12 +1795,11 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
           }
         }
         break;
-
       case TARGET_ABSOLUTE:
-        if (line_number == target->rt[i].numeric_target)
+        if (line_number == target->rt[i].numeric_target) {
           target_found = TRUE;
+        }
         break;
-
       case TARGET_REGEXP:
         if (true_line == line_number) {
           target_found = ((target->rt[i].not_target) ? TRUE : FALSE);
@@ -1916,20 +1816,16 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
         }
         rc = find_regexp(curr, &target->rt[i]);
         switch (rc) {
-
           case RC_OK:
             target->rt[i].found = target_found = TRUE;
             break;
-
           case RC_TARGET_NOT_FOUND:
             break;
-
           default:
             return (rc);
             break;
         }
         break;
-
       default:
         break;
     }
@@ -1937,15 +1833,12 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
       target->rt[i].found = target_found = (target_found) ? FALSE : TRUE;
     }
     switch (target->rt[i].boolean) {
-
       case ' ':
         status = target_found;
         break;
-
       case '&':
         status &= target_found;
         break;
-
       case '|':
         status |= target_found;
         break;
@@ -1954,10 +1847,10 @@ short find_rtarget_target(LINE *curr, TARGET *target, line_t true_line, line_t l
   return ((status) ? RC_OK : RC_TARGET_NOT_FOUND);
 }
 
-bool find_rtarget_column_target(char_t *line, length_t len, TARGET *target, length_t true_column, length_t column_number, line_t *num_columns) {
-  register short i = 0;
+bool find_rtarget_column_target(uchar *line, long len, TARGET *target, long true_column, long column_number, long *num_columns) {
+  short i = 0;
   bool target_found = FALSE, status = FALSE;
-  line_t multiplier = 0;
+  long multiplier = 0;
   LINE curr;
 
   if (column_number != true_column) {
@@ -1967,7 +1860,6 @@ bool find_rtarget_column_target(char_t *line, length_t len, TARGET *target, leng
     target_found = FALSE;
     multiplier = (target->rt[i].negative) ? -1L : 1L;
     switch (target->rt[i].target_type) {
-
       case TARGET_BLANK:
         if (true_column == column_number) {
           target_found = ((target->rt[i].not_target) ? TRUE : FALSE);
@@ -1987,24 +1879,23 @@ bool find_rtarget_column_target(char_t *line, length_t len, TARGET *target, leng
           target_found = FALSE;
         }
         break;
-
       case TARGET_STRING:
         if (column_number < CURRENT_VIEW->zone_start || column_number > CURRENT_VIEW->zone_end || column_number > len) {
           target_found = FALSE;
           break;
         }
         /*
-         * We need to determine if the string target starts in the
-         * column; column_number.
+         * We need to determine if the string target starts in the column; column_number.
          */
         curr.line = line;
         curr.length = len;
+
         /*
-         * If locating backwards, start the search 2 positions to the left
-         * of the current true_column. This is because true_column is 1 based, and
-         * our searching is 0 based, so the first decrement is to adjust 1-based
-         * to 0-based, and the second decrement is to put the cursor 1 position
-         * to the left of our focus column, otherwise it will possibly match.
+         * If locating backwards, start the search 2 positions to the left of the current true_column.
+         * This is because true_column is 1 based, and our searching is 0 based,
+         * so the first decrement is to adjust 1-based to 0-based,
+         * and the second decrement is to put the cursor 1 position to the left of our focus column,
+         * otherwise it will possibly match.
          */
         if (target->rt[i].negative) {
           true_column -= 2;
@@ -2013,19 +1904,16 @@ bool find_rtarget_column_target(char_t *line, length_t len, TARGET *target, leng
           target_found = TRUE;
         }
         break;
-
       case TARGET_ABSOLUTE:
         if (column_number == target->rt[i].numeric_target) {
           target_found = TRUE;
         }
         break;
-
       case TARGET_RELATIVE:
         if ((*num_columns * multiplier) == target->rt[i].numeric_target) {
           target_found = TRUE;
         }
         break;
-
       default:
         break;
     }
@@ -2033,15 +1921,12 @@ bool find_rtarget_column_target(char_t *line, length_t len, TARGET *target, leng
       target_found = (target_found) ? FALSE : TRUE;
     }
     switch (target->rt[i].boolean) {
-
       case ' ':
         status = target_found;
         break;
-
       case '&':
         status &= target_found;
         break;
-
       case '|':
         status |= target_found;
         break;
@@ -2050,13 +1935,13 @@ bool find_rtarget_column_target(char_t *line, length_t len, TARGET *target, leng
   return (status);
 }
 
-line_t find_next_in_scope(VIEW_DETAILS *view, LINE *in_curr, line_t line_number, short direction) {
+long find_next_in_scope(VIEW_DETAILS *view, LINE *in_curr, long line_number, short direction) {
   LINE *curr = in_curr;
 
   if (in_curr == NULL) {
     curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, line_number, CURRENT_FILE->number_lines);
   }
-  for (;; line_number += (line_t) direction) {
+  for (;; line_number += (long) direction) {
     if (IN_SCOPE(view, curr)) {
       break;
     }
@@ -2072,14 +1957,14 @@ line_t find_next_in_scope(VIEW_DETAILS *view, LINE *in_curr, line_t line_number,
   return (line_number);
 }
 
-line_t find_last_not_in_scope(VIEW_DETAILS *view, LINE *in_curr, line_t line_number, short direction) {
+long find_last_not_in_scope(VIEW_DETAILS *view, LINE *in_curr, long line_number, short direction) {
   LINE *curr = in_curr;
-  line_t offset = 0L;
+  long offset = 0L;
 
   if (in_curr == NULL) {
     curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, line_number, CURRENT_FILE->number_lines);
   }
-  for (;; line_number += (line_t) direction) {
+  for (;; line_number += (long) direction) {
     if (IN_SCOPE(view, curr)) {
       break;
     }
@@ -2097,7 +1982,7 @@ line_t find_last_not_in_scope(VIEW_DETAILS *view, LINE *in_curr, line_t line_num
   return (line_number + offset);
 }
 
-short validate_target(char_t *string, TARGET *target, long target_type, line_t true_line, bool display_parse_error, bool allow_error_display) {
+short validate_target(uchar *string, TARGET *target, long target_type, long true_line, bool display_parse_error, bool allow_error_display) {
   short rc = RC_OK;
 
   rc = parse_target(string, true_line, target, target_type, display_parse_error, allow_error_display, FALSE);
@@ -2111,8 +1996,8 @@ short validate_target(char_t *string, TARGET *target, long target_type, line_t t
   return (RC_OK);
 }
 
-void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short *number_focus_rows, line_t *new_focus_line, line_t *new_current_line, bool *limit_of_screen, bool *limit_of_file, bool *leave_cursor, short direction) {
-  register short i = 0;
+void calculate_scroll_values(uchar curr_screen, VIEW_DETAILS *curr_view, short *number_focus_rows, long *new_focus_line, long *new_current_line, bool *limit_of_screen, bool *limit_of_file, bool *leave_cursor, short direction) {
+  short i = 0;
   unsigned short y = 0;
 
   *limit_of_screen = *limit_of_file = FALSE;
@@ -2120,11 +2005,9 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
   *new_focus_line = (-1L);
   y = screen[curr_screen].rows[WINDOW_FILEAREA];
   switch (direction) {
-
     case DIRECTION_FORWARD:
       /*
-       * Determine the new focus line and the number of rows to adjust the
-       * cursor position.
+       * Determine the new focus line and the number of rows to adjust the cursor position.
        */
       for (i = 0; i < screen[curr_screen].rows[WINDOW_FILEAREA]; i++) {
         if (screen[curr_screen].sl[i].line_number == curr_view->focus_line) {
@@ -2138,14 +2021,13 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
         }
       }
       /*
-       * If we have NOT set a new focus line (because we are on the bottom
-       * of the screen) the new focus line is the next line in scope (if
-       * SHADOW is OFF). If SHADOW is ON, the new focus line is determined by
-       * the status of the current focus line.
+       * If we have NOT set a new focus line (because we are on the bottom of the screen)
+       * the new focus line is the next line in scope (if SHADOW is OFF).
+       * If SHADOW is ON, the new focus line is determined by the status of the current focus line.
        */
       if (*new_focus_line == (-1L)) {
         if (curr_view->shadow) {
-          *new_focus_line = screen[curr_screen].sl[y].line_number + ((screen[curr_screen].sl[y].number_lines_excluded == 0) ? 1L : (line_t) screen[curr_screen].sl[y].number_lines_excluded);
+          *new_focus_line = screen[curr_screen].sl[y].line_number + ((screen[curr_screen].sl[y].number_lines_excluded == 0) ? 1L : (long) screen[curr_screen].sl[y].number_lines_excluded);
         } else {
           if (screen[curr_screen].sl[y].current->next != NULL) {
             *new_focus_line = find_next_in_scope(curr_view, screen[curr_screen].sl[y].current->next, screen[curr_screen].sl[y].line_number + 1L, direction);
@@ -2153,8 +2035,7 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
         }
       }
       /*
-       * Determine the new current line and the number of rows to adjust the
-       * cursor position.
+       * Determine the new current line and the number of rows to adjust the cursor position.
        */
       *leave_cursor = TRUE;
       *new_current_line = (-1L);
@@ -2168,10 +2049,8 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
         }
       }
       /*
-       * If we have NOT set a new current line (only way this can happen is
-       * if all lines after the current line are RESERVED, SCALE or TABLINE)
-       * and the cursor is on the current line) the new current line is the
-       * next line in scope.
+       * If we have NOT set a new current line (only way this can happen is if all lines after the current line are RESERVED, SCALE or TABLINE)
+       * and the cursor is on the current line) the new current line is the next line in scope.
        */
       if (*new_current_line == (-1L)) {
         if (screen[curr_screen].sl[y].current->next != NULL) {
@@ -2188,11 +2067,9 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
         *limit_of_file = TRUE;
       }
       break;
-
     case DIRECTION_BACKWARD:
       /*
-       * Determine the new focus line and the number of rows to adjust the
-       * cursor position.
+       * Determine the new focus line and the number of rows to adjust the cursor position.
        */
       for (i = screen[curr_screen].rows[WINDOW_FILEAREA] - 1; i > -1; i--) {
         if (screen[curr_screen].sl[i].line_number == curr_view->focus_line) {
@@ -2206,10 +2083,9 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
         }
       }
       /*
-       * If we have NOT set a new focus line (because we are on the top
-       * of the screen) the new focus line is the prev line in scope (if
-       * SHADOW is OFF). If SHADOW is ON, the new focus line is determined by
-       * the status of the current focus line.
+       * If we have NOT set a new focus line (because we are on the top of the screen)
+       * the new focus line is the prev line in scope (if SHADOW is OFF).
+       * If SHADOW is ON, the new focus line is determined by the status of the current focus line.
        */
       if (*new_focus_line == (-1L)) {
         if (curr_view->shadow) {
@@ -2230,8 +2106,7 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
         }
       }
       /*
-       * Determine the new current line and the number of rows to adjust the
-       * cursor position.
+       * Determine the new current line and the number of rows to adjust the cursor position.
        */
       *leave_cursor = TRUE;
       *new_current_line = (-1L);
@@ -2245,10 +2120,8 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
         }
       }
       /*
-       * If we have NOT set a new current line (only way this can happen is
-       * if all lines before the current line are RESERVED, SCALE or TABLINE)
-       * and the cursor is on the current line) the new current line is the
-       * previous line in scope.
+       * If we have NOT set a new current line (only way this can happen is if all lines before the current line are RESERVED, SCALE or TABLINE)
+       * and the cursor is on the current line) the new current line is the previous line in scope.
        */
       if (*new_current_line == (-1L)) {
         if (screen[curr_screen].sl[y].current->prev != NULL) {
@@ -2271,8 +2144,8 @@ void calculate_scroll_values(char_t curr_screen, VIEW_DETAILS *curr_view, short 
   return;
 }
 
-short find_last_focus_line(char_t curr_screen, unsigned short *newrow) {
-  register short i = 0;
+short find_last_focus_line(uchar curr_screen, unsigned short *newrow) {
+  short i = 0;
   short row = (-1);
   short rc = RC_OK;
 
@@ -2288,8 +2161,8 @@ short find_last_focus_line(char_t curr_screen, unsigned short *newrow) {
   return (rc);
 }
 
-short find_first_focus_line(char_t curr_screen, unsigned short *newrow) {
-  register short i = 0;
+short find_first_focus_line(uchar curr_screen, unsigned short *newrow) {
+  short i = 0;
   short row = (-1);
   short rc = RC_OK;
 
@@ -2305,12 +2178,12 @@ short find_first_focus_line(char_t curr_screen, unsigned short *newrow) {
   return (rc);
 }
 
-char_t find_unique_char(char_t *str) {
-  register short i = 0;
+uchar find_unique_char(uchar *str) {
+  short i = 0;
 
   for (i = 254; i > 0; i--) {
-    if (strzeq(str, (char_t) i) == (-1)) {
-      return ((char_t) i);
+    if (strzeq(str, (uchar) i) == (-1)) {
+      return ((uchar) i);
     }
   }
   return (0);

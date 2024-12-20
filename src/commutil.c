@@ -2,39 +2,33 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* This file contains all utility functions used when processing       */
-/* commands.                                                           */
-
 #include "the.h"
 #include "proto.h"
+
 #include "key.h"
 #include "command.h"
 
-static char_t *build_defined_key_definition(int, char_t *, DEFINE *, int);
-static void save_last_command(char_t *, char_t *);
+static uchar *build_defined_key_definition(int, uchar *, DEFINE *, int);
+static void save_last_command(uchar *, uchar *);
 void AdjustThighlight(int);
 static bool save_target(TARGET *);
 
 #define HEXVAL(c) (((c)>'9')?(tolower(c)-'a'+10):((c)-'0'))
 
-static char_t  *cmd_history[MAX_SAVED_COMMANDS];
+static uchar *cmd_history[MAX_SAVED_COMMANDS];
 static short cmd_history_len[MAX_SAVED_COMMANDS];
-
 static short last_cmd = (-1), current_cmd = 0, number_cmds = 0, offset_cmd = 0;
 
-char_t  *last_command_for_reexecute;
+uchar *last_command_for_reexecute;
 short last_command_for_reexecute_len;
-
-char_t  *last_command_for_repeat;
+uchar *last_command_for_repeat;
 short last_command_for_repeat_len;
-
-char_t  *last_command_for_repeat_in_macro;
+uchar *last_command_for_repeat_in_macro;
 short last_command_for_repeat_in_macro_len;
 
 #define KEY_REDEF "/* Key re-definitions */"
 #define KEY_DEFAULT "/* Default key definitions */"
 #define KEY_MOUSE_REDEF "/* Mouse definitions */"
-
 /*
  * The following two static variables are for reserving space for the
  * parameters of a command. Space for temp_params is allocated and
@@ -42,8 +36,8 @@ short last_command_for_repeat_in_macro_len;
  * temp_params is > length_temp_params, reallocate a larger area and
  * set the value of length_temp_params to reflect the new size.
  */
-static char_t *temp_params = NULL;
-static length_t length_temp_params = 0;
+static uchar *temp_params = NULL;
+static long length_temp_params = 0;
 
 /*
  * The following two static variables are for reserving space for the
@@ -52,8 +46,8 @@ static length_t length_temp_params = 0;
  * temp_set_params is > length_temp_set_params, reallocate a larger area and
  * set the value of length_temp_set_params to reflect the new size.
  */
-static char_t *temp_set_params = NULL;
-static length_t length_temp_set_params = 0;
+static uchar *temp_set_params = NULL;
+static long length_temp_set_params = 0;
 
 /*
  * The following two static variables are for reserving space for the
@@ -62,8 +56,8 @@ static length_t length_temp_set_params = 0;
  * temp_macros is > length_temp_macros  reallocate a larger area and
  * set the value of length_temp_macros to reflect the new size.
  */
-static char_t *temp_macros = NULL;
-static length_t length_temp_macros = 0;
+static uchar *temp_macros = NULL;
+static long length_temp_macros = 0;
 
 /*
  * The following two static variables are for reserving space for the
@@ -72,8 +66,8 @@ static length_t length_temp_macros = 0;
  * tmp_cmd     is > length_tmp_cmd    , reallocate a larger area and
  * set the value of length_tmp_cmd     to reflect the new size.
  */
-static char_t *tmp_cmd = NULL;
-static length_t length_tmp_cmd = 0;
+static uchar *tmp_cmd = NULL;
+static long length_tmp_cmd = 0;
 
 /*
  * The following two        variables are for reserving space for the
@@ -82,8 +76,8 @@ static length_t length_tmp_cmd = 0;
  * temp_cmd    is > length_temp_cmd   , reallocate a larger area and
  * set the value of length_temp_cmd    to reflect the new size.
  */
-char_t *temp_cmd = NULL;
-static length_t length_temp_cmd = 0;
+uchar *temp_cmd = NULL;
+static long length_temp_cmd = 0;
 
 /*
  * The following two are to specify the first and last items in the
@@ -111,54 +105,55 @@ DEFINE *last_mouse_define = NULL;
  */
 LINE *key_first_line = NULL;
 LINE *key_last_line = NULL;
-line_t key_number_lines = 0L;
+long key_number_lines = 0L;
 
-AREAS  valid_areas[ATTR_MAX] = {
-  { (char_t *) "FILEAREA", 1, WINDOW_FILEAREA, TRUE },
-  { (char_t *) "CURLINE", 2, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "BLOCK", 1, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "CBLOCK", 2, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "CMDLINE", 1, WINDOW_COMMAND, TRUE },
-  { (char_t *) "IDLINE", 1, WINDOW_IDLINE, TRUE },
-  { (char_t *) "MSGLINE", 1, WINDOW_ERROR, FALSE },
-  { (char_t *) "ARROW", 1, WINDOW_ARROW, TRUE },
-  { (char_t *) "PREFIX", 2, WINDOW_PREFIX, TRUE },
-  { (char_t *) "CPREFIX", 3, WINDOW_PREFIX, TRUE },
-  { (char_t *) "PENDING", 1, WINDOW_PREFIX, FALSE },
-  { (char_t *) "SCALE", 1, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "TOFEOF", 2, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "CTOFEOF", 2, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "TABLINE", 1, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "SHADOW", 2, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "STATAREA", 2, WINDOW_STATAREA, TRUE },
-  { (char_t *) "DIVIDER", 1, WINDOW_DIVIDER, TRUE },
-  { (char_t *) "RESERVED", 1, WINDOW_RESERVED, FALSE },
-  { (char_t *) "NONDISP", 1, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "HIGHLIGHT", 2, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "CHIGHLIGHT", 3, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "THIGHLIGHT", 5, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "SLK", 3, WINDOW_SLK, FALSE },
-  { (char_t *) "GAP", 3, WINDOW_PREFIX, FALSE },
-  { (char_t *) "CGAP", 4, WINDOW_PREFIX, FALSE },
-  { (char_t *) "ALERT", 5, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "DIALOG", 6, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "BOUNDMARKER", 5, WINDOW_FILEAREA, FALSE },
-  { (char_t *) "FILETABS", 8, WINDOW_FILETABS, TRUE },
-  { (char_t *) "FILETABSDIV", 11, WINDOW_FILETABS, TRUE },
-  { (char_t *) "CURSORLINE", 6, WINDOW_FILEAREA, TRUE },
-  { (char_t *) "DIALOGBORDER", 12, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "DIALOGEDITFIELD", 15, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "DIALOGBUTTON", 12, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "DIALOGABUTTON", 13, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "POPUPBORDER", 11, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "POPUPCURLINE", 12, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "POPUP", 5, WINDOW_DIVIDER, FALSE },
-  { (char_t *) "POPUPDIVIDER", 12, WINDOW_DIVIDER, FALSE },
+AREAS valid_areas[ATTR_MAX]=
+{
+   {(uchar *)"FILEAREA"        ,1,WINDOW_FILEAREA   ,TRUE },
+   {(uchar *)"CURLINE"         ,2,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"BLOCK"           ,1,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"CBLOCK"          ,2,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"CMDLINE"         ,1,WINDOW_COMMAND    ,TRUE },
+   {(uchar *)"IDLINE"          ,1,WINDOW_IDLINE     ,TRUE },
+   {(uchar *)"MSGLINE"         ,1,WINDOW_ERROR      ,FALSE},
+   {(uchar *)"ARROW"           ,1,WINDOW_ARROW      ,TRUE },
+   {(uchar *)"PREFIX"          ,2,WINDOW_PREFIX     ,TRUE },
+   {(uchar *)"CPREFIX"         ,3,WINDOW_PREFIX     ,TRUE },
+   {(uchar *)"PENDING"         ,1,WINDOW_PREFIX     ,FALSE},
+   {(uchar *)"SCALE"           ,1,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"TOFEOF"          ,2,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"CTOFEOF"         ,2,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"TABLINE"         ,1,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"SHADOW"          ,2,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"STATAREA"        ,2,WINDOW_STATAREA   ,TRUE },
+   {(uchar *)"DIVIDER"         ,1,WINDOW_DIVIDER    ,TRUE },
+   {(uchar *)"RESERVED"        ,1,WINDOW_RESERVED   ,FALSE},
+   {(uchar *)"NONDISP"         ,1,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"HIGHLIGHT"       ,2,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"CHIGHLIGHT"      ,3,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"THIGHLIGHT"      ,5,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"SLK"             ,3,WINDOW_SLK        ,FALSE},
+   {(uchar *)"GAP"             ,3,WINDOW_PREFIX     ,FALSE},
+   {(uchar *)"CGAP"            ,4,WINDOW_PREFIX     ,FALSE},
+   {(uchar *)"ALERT"           ,5,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"DIALOG"          ,6,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"BOUNDMARKER"     ,5,WINDOW_FILEAREA   ,FALSE},
+   {(uchar *)"FILETABS"        ,8,WINDOW_FILETABS   ,TRUE },
+   {(uchar *)"FILETABSDIV"    ,11,WINDOW_FILETABS   ,TRUE },
+   {(uchar *)"CURSORLINE"      ,6,WINDOW_FILEAREA   ,TRUE },
+   {(uchar *)"DIALOGBORDER"   ,12,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"DIALOGEDITFIELD",15,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"DIALOGBUTTON"   ,12,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"DIALOGABUTTON"  ,13,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"POPUPBORDER"    ,11,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"POPUPCURLINE"   ,12,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"POPUP"           ,5,WINDOW_DIVIDER    ,FALSE},
+   {(uchar *)"POPUPDIVIDER"   ,12,WINDOW_DIVIDER    ,FALSE},
 };
 
-char_t *get_key_name(int key, int *shift) {
-  register short i = 0;
-  char_t *keyname = NULL;
+uchar *get_key_name(int key, int *shift) {
+  short i = 0;
+  uchar *keyname = NULL;
 
   /*
    * Get name of key...
@@ -174,13 +169,13 @@ char_t *get_key_name(int key, int *shift) {
   return (keyname);
 }
 
-char_t *get_key_definition(int key, int define_format, bool default_keys, bool mouse_key) {
-  register short i = 0;
+uchar *get_key_definition(int key, int define_format, bool default_keys, bool mouse_key) {
+  short i = 0;
   DEFINE *curr = NULL;
   bool check_redefined = TRUE;
   bool check_default = TRUE;
-  char_t *keyname = NULL;
-  char_t  key_buf[50];
+  uchar *keyname = NULL;
+  uchar key_buf[50];
   int dummy = 0;
 
   /*
@@ -192,8 +187,8 @@ char_t *get_key_definition(int key, int define_format, bool default_keys, bool m
     keyname = get_key_name(key, &dummy);
   }
   /*
-   * If key is invalid,  show it as a character and decimal; provided it
-   * is an ASCII or extended character.
+   * If key is invalid, show it as a character and decimal;
+   * provided it is an ASCII or extended character.
    */
   if (keyname == NULL) {
     if (define_format == THE_KEY_DEFINE_DEFINE) {
@@ -230,7 +225,7 @@ char_t *get_key_definition(int key, int define_format, bool default_keys, bool m
      * Next check to see if the key has been "defined".
      */
     curr = first_define;
-    if (build_defined_key_definition(key, temp_cmd, curr, define_format) != (char_t *) NULL) {
+    if (build_defined_key_definition(key, temp_cmd, curr, define_format) != (uchar *) NULL) {
       if (define_format != THE_KEY_DEFINE_RAW && define_format != THE_KEY_DEFINE_QUERY) {
         strcat((char *) temp_cmd, "\"");
       }
@@ -264,7 +259,7 @@ char_t *get_key_definition(int key, int define_format, bool default_keys, bool m
      * Next check to see if the key has been "defined".
      */
     curr = first_mouse_define;
-    if (build_defined_key_definition(key, temp_cmd, curr, define_format) != (char_t *) NULL) {
+    if (build_defined_key_definition(key, temp_cmd, curr, define_format) != (uchar *) NULL) {
       if (define_format != THE_KEY_DEFINE_RAW && define_format != THE_KEY_DEFINE_QUERY) {
         strcat((char *) temp_cmd, "\"");
       }
@@ -272,8 +267,8 @@ char_t *get_key_definition(int key, int define_format, bool default_keys, bool m
     }
   }
   /*
-   * If none of the above, it is unassigned. We should never get here if
-   * define_format is TRUE.
+   * If none of the above, it is unassigned.
+   * We should never get here if define_format is TRUE.
    */
   if (define_format == THE_KEY_DEFINE_RAW) {
     if (key < 256 && key >= 0) {
@@ -289,26 +284,25 @@ char_t *get_key_definition(int key, int define_format, bool default_keys, bool m
   return (temp_cmd);
 }
 
-static short execute_synonym(char_t *synonym, char_t *params) {
+static short execute_synonym(uchar *synonym, uchar *params) {
   DEFINE *curr = (DEFINE *) NULL;
   short rc = RC_FILE_NOT_FOUND;
-  char_t *key_cmd = NULL;
+  uchar *key_cmd = NULL;
   short macrorc = 0;
   int tokenised = 0;
   int params_len, def_params_len;
   char *spc;
 
   /*
-   * First check to see if the function key has been redefined and save
-   * all key redefinitions.  This is because we may be redefining a
-   * function key in the middle of its redefinition. eg ENTER key
+   * First check to see if the function key has been redefined and save all key redefinitions.
+   * This is because we may be redefining a function key in the middle of its redefinition. eg ENTER key
    */
   curr = first_synonym;
   while (curr != (DEFINE *) NULL) {
     if (equal(curr->synonym, synonym, curr->def_funkey)) {
       /*
-       * If there are no more files in the ring, and the command is not a
-       * command to edit a new file, then ignore the command.
+       * If there are no more files in the ring,
+       * and the command is not a command to edit a new file, then ignore the command.
        */
       if (number_of_files == 0 && curr->def_command != (-1) && !command[curr->def_command].edit_command) {
         rc = RC_OK;
@@ -316,24 +310,23 @@ static short execute_synonym(char_t *synonym, char_t *params) {
         break;
       }
       /*
-       * If running in read-only mode and the function selected is not valid
-       * display an error.
+       * If running in read-only mode and the function selected is not valid display an error.
        */
       if (number_of_files != 0 && ISREADONLY(CURRENT_FILE) && curr->def_command != (-1) && !command[curr->def_command].valid_in_readonly) {
-        display_error(56, (char_t *) "", FALSE);
+        display_error(56, (uchar *) "", FALSE);
         rc = RC_INVALID_ENVIRON;
         curr = NULL;
         break;
       }
       /*
-       * We need to sort out synonym arguments now. We can have arguments
-       * from the synonym's definition and also from the command line.
+       * We need to sort out synonym arguments now.
+       * We can have arguments from the synonym's definition and also from the command line.
        * Append them in that order.
        */
       def_params_len = strlen((char *) curr->def_params);
       params_len = strlen((char *) params);
-      if ((key_cmd = (char_t *) malloc (def_params_len + params_len + 2)) == NULL) {
-        display_error(30, (char_t *) "", FALSE);
+      if ((key_cmd = (uchar *) malloc(def_params_len + params_len + 2)) == NULL) {
+        display_error(30, (uchar *) "", FALSE);
         rc = RC_OUT_OF_MEMORY;
         curr = NULL;
         break;
@@ -351,17 +344,16 @@ static short execute_synonym(char_t *synonym, char_t *params) {
         }
         if (number_of_files > 0) {
           if (display_screens > 1) {
-            build_screen((char_t) other_screen);
-            display_screen((char_t) other_screen);
+            build_screen((uchar) other_screen);
+            display_screen((uchar) other_screen);
           }
           build_screen(current_screen);
           display_screen(current_screen);
         }
       } else {
         /*
-         * If operating in CUA mode, and a CUA block exists, check
-         * if the block should be reset or deleted before executing
-         * the command.
+         * If operating in CUA mode, and a CUA block exists,
+         * check if the block should be reset or deleted before executing the command.
          */
         if (INTERFACEx == INTERFACE_CUA && MARK_VIEW == CURRENT_VIEW && MARK_VIEW->mark_type == M_CUA) {
           ResetOrDeleteCUABlock(command[curr->def_command].cua_behaviour);
@@ -372,9 +364,9 @@ static short execute_synonym(char_t *synonym, char_t *params) {
         if (CURRENT_VIEW->thighlight_on && CURRENT_VIEW->thighlight_active) {
           AdjustThighlight(command[curr->def_command].thighlight_behaviour);
         }
-        rc = (*command[curr->def_command].function) ((char_t *) key_cmd);
+        rc = (*command[curr->def_command].function) ((uchar *) key_cmd);
       }
-      free (key_cmd);
+      free(key_cmd);
     }
     curr = curr->next;
   }
@@ -382,14 +374,14 @@ static short execute_synonym(char_t *synonym, char_t *params) {
 }
 
 short function_key(int key, int option, bool mouse_details_present) {
-  register short i = 0;
+  short i = 0;
   DEFINE *curr = (DEFINE *) NULL;
   DEFINE *tcurr = (DEFINE *) NULL;
   DEFINE *first_save = (DEFINE *) NULL, *last_save = (DEFINE *) NULL;
   short rc = RC_OK;
   short len = 0, num_cmds = 0;
-  char_t *key_cmd = NULL;
-  char_t tmpnum[15];
+  uchar *key_cmd = NULL;
+  uchar tmpnum[15];
   short macrorc = 0;
   int tokenised = 0;
 
@@ -402,9 +394,8 @@ short function_key(int key, int option, bool mouse_details_present) {
     return (rc);
   }
   /*
-   * First check to see if the function key has been redefined and save
-   * all key redefinitions.  This is because we may be redefining a
-   * function key in the middle of its redefinition. eg ENTER key
+   * First check to see if the function key has been redefined and save all key redefinitions.
+   * This is because we may be redefining a function key in the middle of its redefinition. eg ENTER key
    */
   curr = first_define;
   while (curr != (DEFINE *) NULL) {
@@ -417,17 +408,16 @@ short function_key(int key, int option, bool mouse_details_present) {
     curr = curr->next;
   }
   /*
-   * Now we have saved any current definition of the function key, use
-   * these definitions to drive the following...
+   * Now we have saved any current definition of the function key,
+   * use these definitions to drive the following...
    */
   curr = first_save;
   while (curr != (DEFINE *) NULL) {
     switch (option) {
-
       case OPTION_NORMAL:
         /*
-         * If there are no more files in the ring, and the command is not a
-         * command to edit a new file, then ignore the command.
+         * If there are no more files in the ring,
+         * and the command is not a command to edit a new file, then ignore the command.
          */
         if (number_of_files == 0 && curr->def_command != (-1) && !command[curr->def_command].edit_command) {
           rc = RC_OK;
@@ -439,13 +429,13 @@ short function_key(int key, int option, bool mouse_details_present) {
          * display an error.
          */
         if (number_of_files != 0 && ISREADONLY(CURRENT_FILE) && curr->def_command != (-1) && !command[curr->def_command].valid_in_readonly) {
-          display_error(56, (char_t *) "", FALSE);
+          display_error(56, (uchar *) "", FALSE);
           rc = RC_INVALID_ENVIRON;
           curr = NULL;
           break;
         }
-        if ((key_cmd = (char_t *) strdup ((char *) curr->def_params)) == NULL) {
-          display_error(30, (char_t *) "", FALSE);
+        if ((key_cmd = (uchar *) strdup((char*)curr->def_params)) == NULL) {
+          display_error(30, (uchar *) "", FALSE);
           rc = RC_OUT_OF_MEMORY;
           curr = NULL;
           break;
@@ -459,10 +449,9 @@ short function_key(int key, int option, bool mouse_details_present) {
               if (key == tcurr->def_funkey) {
                 /*
                  * The pcode returned from the interpreter needs
-                 * to be transfered from the copy of the key
-                 * definition (curr and first_save to the "real"
-                 * key definition found here.  Setting the
-                 * pcode pointer in tcurr to the pcode in curr
+                 * to be transfered from the copy of the key definition
+                 * (curr and first_save to the "real" key definition found here.
+                 * Setting the pcode pointer in tcurr to the pcode in curr
                  * and then setting pcode in curr to NULL stops
                  * the later call to dll_free() from freeing
                  * the memory associated with pcode.
@@ -477,17 +466,16 @@ short function_key(int key, int option, bool mouse_details_present) {
           }
           if (number_of_files > 0) {
             if (display_screens > 1) {
-              build_screen((char_t) other_screen);
-              display_screen((char_t) other_screen);
+              build_screen((uchar) other_screen);
+              display_screen((uchar) other_screen);
             }
             build_screen(current_screen);
             display_screen(current_screen);
           }
         } else {
           /*
-           * If operating in CUA mode, and a CUA block exists, check
-           * if the block should be reset or deleted before executing
-           * the command.
+           * If operating in CUA mode, and a CUA block exists,
+           * check if the block should be reset or deleted before executing the command.
            */
           if (INTERFACEx == INTERFACE_CUA && MARK_VIEW == CURRENT_VIEW && MARK_VIEW->mark_type == M_CUA) {
             ResetOrDeleteCUABlock(command[curr->def_command].cua_behaviour);
@@ -498,15 +486,14 @@ short function_key(int key, int option, bool mouse_details_present) {
           if (CURRENT_VIEW->thighlight_on && CURRENT_VIEW->thighlight_active) {
             AdjustThighlight(command[curr->def_command].thighlight_behaviour);
           }
-          rc = (*command[curr->def_command].function) ((char_t *) key_cmd);
+          rc = (*command[curr->def_command].function) ((uchar *) key_cmd);
         }
-        free (key_cmd);
+        free(key_cmd);
         if (rc != RC_OK && rc != RC_TOF_EOF_REACHED && rc != RC_NO_LINES_CHANGED && rc != RC_TARGET_NOT_FOUND) {
           curr = NULL;
           break;
         }
         break;
-
       case OPTION_EXTRACT:
         /*
          * If the request is to extract a keys commands, set a REXX variable
@@ -517,8 +504,8 @@ short function_key(int key, int option, bool mouse_details_present) {
         } else {
           len = strlen((char *) curr->def_params) + 1;
         }
-        if ((key_cmd = (char_t *) malloc (len)) == NULL) {
-          display_error(30, (char_t *) "", FALSE);
+        if ((key_cmd = (uchar *) malloc(len)) == NULL) {
+          display_error(30, (uchar *) "", FALSE);
           curr = NULL;
           rc = RC_OUT_OF_MEMORY;
           break;
@@ -527,12 +514,12 @@ short function_key(int key, int option, bool mouse_details_present) {
           strcpy((char *) key_cmd, (char *) command[curr->def_command].text);
           strcat((char *) key_cmd, " ");
           strcat((char *) key_cmd, (char *) curr->def_params);
-        } else
+        } else {
           strcpy((char *) key_cmd, (char *) curr->def_params);
-        rc = set_rexx_variable((char_t *) "SHOWKEY", key_cmd, strlen((char *) key_cmd), ++num_cmds);
-        free (key_cmd);
+        }
+        rc = set_rexx_variable((uchar *) "SHOWKEY", key_cmd, strlen((char *) key_cmd), ++num_cmds);
+        free(key_cmd);
         break;
-
       case OPTION_READV:
         /*
          * If the key hit is KEY_ENTER, KEY_RETURN or KEY_NUMENTER, or TAB terminate
@@ -544,8 +531,8 @@ short function_key(int key, int option, bool mouse_details_present) {
           break;
         }
         /*
-         * If the command is not allowed in READV CMDLINE, or a REXX macro is
-         * assigned to the key, return with an error.
+         * If the command is not allowed in READV CMDLINE,
+         * or a REXX macro is assigned to the key, return with an error.
          */
         if (curr->def_command == (-1)) {
           rc = RC_INVALID_ENVIRON;
@@ -560,20 +547,19 @@ short function_key(int key, int option, bool mouse_details_present) {
         /*
          * To get here, a valid READV CMDLINE command is present; execute it.
          */
-        if ((key_cmd = (char_t *) strdup ((char *) curr->def_params)) == NULL) {
-          display_error(30, (char_t *) "", FALSE);
+        if ((key_cmd = (uchar *) strdup((char*)curr->def_params)) == NULL) {
+          display_error(30, (uchar *) "", FALSE);
           rc = RC_OUT_OF_MEMORY;
           curr = NULL;
           break;
         }
-        rc = (*command[curr->def_command].function) ((char_t *) key_cmd);
-        free (key_cmd);
+        rc = (*command[curr->def_command].function) ((uchar *) key_cmd);
+        free(key_cmd);
         if (rc != RC_OK && rc != RC_TOF_EOF_REACHED && rc != RC_NO_LINES_CHANGED && rc != RC_TARGET_NOT_FOUND) {
           curr = NULL;
           break;
         }
         break;
-
       default:
         break;
     }
@@ -588,7 +574,7 @@ short function_key(int key, int option, bool mouse_details_present) {
   if (first_save) {
     if (option == OPTION_EXTRACT) {
       sprintf((char *) tmpnum, "%d", num_cmds);
-      rc = set_rexx_variable((char_t *) "SHOWKEY", tmpnum, strlen((char *) tmpnum), 0);
+      rc = set_rexx_variable((uchar *) "SHOWKEY", tmpnum, strlen((char *) tmpnum), 0);
       rc = num_cmds;
     }
     dll_free(first_save);
@@ -600,26 +586,23 @@ short function_key(int key, int option, bool mouse_details_present) {
   for (i = 0; command[i].text != NULL; i++) {
     if (key == command[i].funkey) {
       switch (option) {
-
         case OPTION_NORMAL:
           /*
-           * If running in read-only mode and the function selected is not valid
-           * display an error.
+           * If running in read-only mode and the function selected is not valid display an error.
            */
           if (number_of_files != 0 && ISREADONLY(CURRENT_FILE) && !command[i].valid_in_readonly) {
-            display_error(56, (char_t *) "", FALSE);
+            display_error(56, (uchar *) "", FALSE);
             rc = RC_INVALID_ENVIRON;
             break;
           }
-          if ((key_cmd = (char_t *) strdup ((char *) command[i].params)) == NULL) {
-            display_error(30, (char_t *) "", FALSE);
+          if ((key_cmd = (uchar *) strdup((char*)command[i].params)) == NULL) {
+            display_error(30, (uchar *) "", FALSE);
             rc = RC_OUT_OF_MEMORY;
             break;
           }
           /*
-           * If operating in CUA mode, and a CUA block exists, check
-           * if the block should be reset or deleted before executing
-           * the command.
+           * If operating in CUA mode, and a CUA block exists,
+           * check if the block should be reset or deleted before executing the command.
            */
           if (INTERFACEx == INTERFACE_CUA && MARK_VIEW == CURRENT_VIEW && MARK_VIEW->mark_type == M_CUA) {
             ResetOrDeleteCUABlock(command[i].cua_behaviour);
@@ -630,28 +613,26 @@ short function_key(int key, int option, bool mouse_details_present) {
           if (CURRENT_VIEW->thighlight_on && CURRENT_VIEW->thighlight_active) {
             AdjustThighlight(command[i].thighlight_behaviour);
           }
-          rc = (*command[i].function) ((char_t *) key_cmd);
-          free (key_cmd);
+          rc = (*command[i].function) ((uchar *) key_cmd);
+          free(key_cmd);
           break;
-
         case OPTION_EXTRACT:
           len = strlen((char *) command[i].text) + strlen((char *) command[i].params) + 10;
-          if ((key_cmd = (char_t *) malloc (len)) == NULL) {
-            display_error(30, (char_t *) "", FALSE);
+          if ((key_cmd = (uchar *) malloc(len)) == NULL) {
+            display_error(30, (uchar *) "", FALSE);
             rc = RC_OUT_OF_MEMORY;
             break;
           }
           strcpy((char *) key_cmd, "");
           key_cmd = build_default_key_definition(i, key_cmd);
-          rc = set_rexx_variable((char_t *) "SHOWKEY", key_cmd, strlen((char *) key_cmd), 1);
-          free (key_cmd);
-          rc = set_rexx_variable((char_t *) "SHOWKEY", (char_t *) "1", 1, 0);
+          rc = set_rexx_variable((uchar *) "SHOWKEY", key_cmd, strlen((char *) key_cmd), 1);
+          free(key_cmd);
+          rc = set_rexx_variable((uchar *) "SHOWKEY", (uchar *) "1", 1, 0);
           break;
-
         case OPTION_READV:
           /*
-           * If the key hit is KEY_ENTER, KEY_RETURN or KEY_NUMENTER, terminate
-           * the READV CMDLINE command.
+           * If the key hit is KEY_ENTER, KEY_RETURN or KEY_NUMENTER,
+           * terminate the READV CMDLINE command.
            */
           if (key == KEY_RETURN || key == KEY_ENTER || key == KEY_C_m || key == KEY_NUMENTER || key == 9) {
             rc = RC_READV_TERM;
@@ -667,26 +648,26 @@ short function_key(int key, int option, bool mouse_details_present) {
           /*
            * To get here, a valid READV CMDLINE command is present; execute it.
            */
-          if ((key_cmd = (char_t *) strdup ((char *) command[i].params)) == NULL) {
-            display_error(30, (char_t *) "", FALSE);
+          if ((key_cmd = (uchar *) strdup((char*)command[i].params)) == NULL) {
+            display_error(30, (uchar *) "", FALSE);
             rc = RC_OUT_OF_MEMORY;
             break;
           }
-          rc = (*command[i].function) ((char_t *) key_cmd);
-          free (key_cmd);
+          rc = (*command[i].function) ((uchar *) key_cmd);
+          free(key_cmd);
           break;
       }
       return (rc);
     }
   }
   if (option == OPTION_EXTRACT) {
-    rc = set_rexx_variable((char_t *) "SHOWKEY", (char_t *) "0", 1, 0);
+    rc = set_rexx_variable((uchar *) "SHOWKEY", (uchar *) "0", 1, 0);
   }
   return (RAW_KEY);
 }
 
 bool is_modifier_key(int key) {
-  register short i = 0;
+  short i = 0;
 
   /*
    * Get name of key...
@@ -699,12 +680,11 @@ bool is_modifier_key(int key) {
   return (FALSE);
 }
 
-char_t *build_default_key_definition(int key, char_t *buf) {
+uchar *build_default_key_definition(int key, uchar *buf) {
   /*
    * The argument, buf, MUST be long enough to to accept the full command
-   * and arguments and MUST have be nul terminated before this function
-   * is called.
-   * ---------------------------------------------------------------------
+   * and arguments and MUST have be nul terminated before this function is called.
+   *
    * If a SET command, prefix with 'set'
    */
   if (command[key].set_command) {
@@ -730,15 +710,14 @@ char_t *build_default_key_definition(int key, char_t *buf) {
   return (buf);
 }
 
-static char_t *build_defined_key_definition(int key, char_t *buf, DEFINE *curr, int define_format) {
+static uchar *build_defined_key_definition(int key, uchar *buf, DEFINE *curr, int define_format) {
   bool key_defined = FALSE;
   bool first_time = TRUE;
-  char_t delim[2];
+  uchar delim[2];
 
   /*
    * The argument, buf, MUST be long enough to to accept the full command
-   * and arguments and MUST have be nul terminated before this function
-   * is called.
+   * and arguments and MUST have be nul terminated before this function is called.
    */
   delim[1] = '\0';
   delim[0] = CURRENT_VIEW->linend_value;
@@ -775,17 +754,16 @@ static char_t *build_defined_key_definition(int key, char_t *buf, DEFINE *curr, 
     }
     curr = curr->next;
   }
-  return ((key_defined) ? buf : (char_t *) NULL);
+  return ((key_defined) ? buf : (uchar *) NULL);
 }
 
-char_t *build_synonym_definition(DEFINE *curr, char_t *name, char_t *buf, bool full_definition) {
-  char_t delim[2];
+uchar *build_synonym_definition(DEFINE *curr, uchar *name, uchar *buf, bool full_definition) {
+  uchar delim[2];
   char *cmd;
 
   /*
    * The argument, buf, MUST be long enough to to accept the full command
-   * and arguments and MUST have be nul terminated before this function
-   * is called.
+   * and arguments and MUST have be nul terminated before this function is called.
    */
   delim[1] = '\0';
   if (curr) {
@@ -819,14 +797,13 @@ short display_all_keys(void) {
   DEFINE *curr_define = NULL;
   int key = 0, save_funkey = 0;
   short rc = RC_OK;
-  register int i = 0;
-  char_t *keydef = NULL;
+  int i = 0;
+  uchar *keydef = NULL;
   VIEW_DETAILS *found_view = NULL;
   static bool first = TRUE;
 
   /*
-   * If this is the first time we've called this, create the pseudo file
-   * name.
+   * If this is the first time we've called this, create the pseudo file name.
    */
   if (first) {
     strcpy((char *) key_pathname, (char *) dir_pathname);
@@ -860,7 +837,7 @@ short display_all_keys(void) {
   /*
    * First display default key mappings...
    */
-  if ((curr = add_LINE(key_first_line, curr, (char_t *) KEY_DEFAULT, strlen(KEY_DEFAULT), 0, FALSE)) == NULL) {
+  if ((curr = add_LINE(key_first_line, curr, (uchar *) KEY_DEFAULT, strlen(KEY_DEFAULT), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   key_number_lines++;
@@ -878,7 +855,7 @@ short display_all_keys(void) {
   /*
    * ...next, display any key redefinitions.
    */
-  if ((curr = add_LINE(key_first_line, curr, (char_t *) KEY_REDEF, strlen(KEY_REDEF), 0, FALSE)) == NULL) {
+  if ((curr = add_LINE(key_first_line, curr, (uchar *) KEY_REDEF, strlen(KEY_REDEF), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   key_number_lines++;
@@ -897,7 +874,7 @@ short display_all_keys(void) {
   /*
    * ...last, display any mouse key definitions.
    */
-  if ((curr = add_LINE(key_first_line, curr, (char_t *) KEY_MOUSE_REDEF, strlen(KEY_MOUSE_REDEF), 0, FALSE)) == NULL) {
+  if ((curr = add_LINE(key_first_line, curr, (uchar *) KEY_MOUSE_REDEF, strlen(KEY_MOUSE_REDEF), 0, FALSE)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   key_number_lines++;
@@ -923,8 +900,8 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
   DEFINE *curr_define = NULL;
   int key = 0, save_funkey = 0;
   short rc = RC_OK;
-  register int i = 0;
-  char_t *keydef = NULL;
+  int i = 0;
+  uchar *keydef = NULL;
   int number_keys = 0;
 
   *number_keys_return = 0;
@@ -935,7 +912,7 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
         number_keys++;
         save_funkey = command[i].funkey;
         keydef = get_key_definition(command[i].funkey, THE_KEY_DEFINE_SHOW, TRUE, FALSE);
-        if ((rc = set_rexx_variable((char_t *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
+        if ((rc = set_rexx_variable((uchar *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
           return (rc);
         }
       }
@@ -948,7 +925,7 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
       if (key != curr_define->def_funkey) {
         number_keys++;
         keydef = get_key_definition(curr_define->def_funkey, THE_KEY_DEFINE_SHOW, FALSE, FALSE);
-        if ((rc = set_rexx_variable((char_t *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
+        if ((rc = set_rexx_variable((uchar *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
           return (rc);
         }
       }
@@ -965,7 +942,7 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
       if (key != curr_define->def_funkey) {
         number_keys++;
         keydef = get_key_definition(curr_define->def_funkey, THE_KEY_DEFINE_SHOW, FALSE, TRUE);
-        if ((rc = set_rexx_variable((char_t *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
+        if ((rc = set_rexx_variable((uchar *) "define", keydef, strlen((char *) keydef), number_keys)) != RC_OK) {
           return (rc);
         }
       }
@@ -977,20 +954,20 @@ int set_rexx_variables_for_all_keys(int key_type, int *number_keys_return) {
   return (RC_OK);
 }
 
-short command_line(char_t *cmd_line, bool command_only) {
+short command_line(uchar *cmd_line, bool command_only) {
   bool valid_command = FALSE;
   bool target_found;
   bool linend_status = (number_of_files) ? CURRENT_VIEW->linend_status : LINEND_STATUSx;
-  char_t linend_value = 0;
-  register short i = 0, j = 0;
+  uchar linend_value = 0;
+  short i = 0, j = 0;
   short rc = RC_OK;
-  char_t *cmd[MAX_COMMANDS + 1];
+  uchar *cmd[MAX_COMMANDS + 1];
   unsigned short num_commands = 0;
-  char_t command_delim[2];
-  char_t *command_entered = NULL;
-  char_t *saved_command = NULL;
-  char_t *cl_cmd = NULL;
-  char_t *cl_param = NULL;
+  uchar command_delim[2];
+  uchar *command_entered = NULL;
+  uchar *saved_command = NULL;
+  uchar *cl_cmd = NULL;
+  uchar *cl_param = NULL;
   short macrorc = 0;
   bool display_parse_error;
 
@@ -1017,8 +994,8 @@ short command_line(char_t *cmd_line, bool command_only) {
    * If the command is to be kept displayed on the command line, copy it.
    */
   if (*(cmd_line) == '&') {
-    if ((saved_command = (char_t *) strdup ((char *) cmd_line)) == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+    if ((saved_command = (uchar *) strdup((char*)cmd_line)) == NULL) {
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     cmd_line++;
@@ -1028,25 +1005,24 @@ short command_line(char_t *cmd_line, bool command_only) {
   /*
    * Copy the incoming cmd_line, so we can play with it.
    */
-  if ((command_entered = (char_t *) strdup ((char *) cmd_line)) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((command_entered = (uchar *) strdup((char*)cmd_line)) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
-   * Allocate some space to cl_cmd and cl_param for the a command when
-   * it is split into a command and its parameters.
+   * Allocate some space to cl_cmd and cl_param for the a command
+   * when it is split into a command and its parameters.
    */
-  if ((cl_cmd = (char_t *) malloc ((strlen((char *) cmd_line) + 1) * sizeof(char_t))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((cl_cmd = (uchar *) malloc((strlen((char *) cmd_line) + 1) * sizeof(uchar))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  if ((cl_param = (char_t *) malloc ((strlen((char *) cmd_line) + 1) * sizeof(char_t))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((cl_param = (uchar *) malloc((strlen((char *) cmd_line) + 1) * sizeof(uchar))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
-   * If [SET] LINENd is set to ON, split the line up into a number of
-   * individual commands.
+   * If [SET] LINENd is set to ON, split the line up into a number of individual commands.
    */
   if (linend_status && !define_command(cmd_line)) {
     command_delim[0] = linend_value;
@@ -1057,8 +1033,7 @@ short command_line(char_t *cmd_line, bool command_only) {
     num_commands = 1;
   }
   /*
-   * For each command entered, split it up into command and params, and
-   * process it...
+   * For each command entered, split it up into command and params, and process it...
    */
   for (j = 0; j < num_commands; j++) {
     /*
@@ -1067,7 +1042,7 @@ short command_line(char_t *cmd_line, bool command_only) {
     last_command_index = -1;
     valid_command = FALSE;
     split_command(cmd[j], cl_cmd, cl_param);
-    cl_cmd = MyStrip(cl_cmd, STRIP_BOTH, ' ');
+    cl_cmd = strstrip(cl_cmd, STRIP_BOTH, ' ');
     /*
      * Check for synonyms first.
      */
@@ -1080,16 +1055,17 @@ short command_line(char_t *cmd_line, bool command_only) {
       }
     }
     /*
-     * To reduce file accesses, check if command is COMMAND or MACRO, and treat
-     * both as though they were already prefixed with COMMAND
+     * To reduce file accesses, check if command is COMMAND or MACRO,
+     * and treat both as though they were already prefixed with COMMAND
      */
-    if (strcasecmp((char *) "COMMAND", (char *) cl_cmd) == 0 || strcasecmp((char *) "MACRO", (char *) cl_cmd) == 0) {
+    if (strcasecmp((char*) "COMMAND", (char *) cl_cmd) == 0 || strcasecmp((char *) "MACRO", (char *) cl_cmd) == 0) {
       command_only = 1;
     }
     /*
-     * Before we try the command array, if SET MACRO is ON and IMPMACRO is
-     * ON and we have not reached here via COMMAND command, try for a
-     * macro...
+     * Before we try the command array,
+     * if SET MACRO is ON and IMPMACRO is ON
+     * and we have not reached here via COMMAND command,
+     * try for a macro...
      */
     if (number_of_files > 0 && CURRENT_VIEW->macro && CURRENT_VIEW->imp_macro && !command_only) {
       rc = execute_macro(cmd[j], FALSE, &macrorc);
@@ -1111,9 +1087,8 @@ short command_line(char_t *cmd_line, bool command_only) {
       }
       rc = RC_OK;
       /*
-       * Check that the supplied command matches the command for the length
-       * of the command and that the length is at least as long as the
-       * necessary significance.
+       * Check that the supplied command matches the command for the length of the command
+       * and that the length is at least as long as the necessary significance.
        */
       if (equal(command[i].text, cl_cmd, command[i].min_len) && command[i].min_len != 0 && !command[i].sos_command) {
         /*
@@ -1129,43 +1104,42 @@ short command_line(char_t *cmd_line, bool command_only) {
         }
         valid_command = TRUE;
         /*
-         * Here is a big kludge. Because only a few commands need leading
-         * spaces to be present in temp_params and all other commands barf at
-         * leading spaces, we need to left truncate temp_params for most
-         * commands.
+         * Here is a big kludge.
+         * Because only a few commands need leading spaces to be present in temp_params
+         * and all other commands barf at leading spaces,
+         * we need to left truncate temp_params for most commands.
          */
         if (command[i].strip_param) {
-          cl_param = MyStrip(cl_param, command[i].strip_param, ' ');
+          cl_param = strstrip(cl_param, command[i].strip_param, ' ');
         }
         /*
-         * If we are currently processing the profile file as a result of
-         * reprofile, ignore those commands that are invalid.
+         * If we are currently processing the profile file as a result of reprofile,
+         * ignore those commands that are invalid.
          */
         if (profile_file_executions > 1 && in_reprofile && !command[i].valid_for_reprofile) {
           rc = RC_OK;
           break;
         }
         /*
-         * If there are no more files in the ring, and the command is not a
-         * command to edit a new file, then ignore the command.
+         * If there are no more files in the ring,
+         * and the command is not a command to edit a new file,
+         * then ignore the command.
          */
         if (number_of_files == 0 && !command[i].edit_command) {
           rc = RC_OK;
           break;
         }
         /*
-         * If running in read-only mode and the function selected is not valid
-         * display an error.
+         * If running in read-only mode and the function selected is not valid display an error.
          */
         if (number_of_files != 0 && ISREADONLY(CURRENT_FILE) && !command[i].valid_in_readonly) {
-          display_error(56, (char_t *) "", FALSE);
+          display_error(56, (uchar *) "", FALSE);
           rc = RC_INVALID_ENVIRON;
           break;
         }
         /*
-         * If operating in CUA mode, and a CUA block exists, check
-         * if the block should be reset or deleted before executing
-         * the command.
+         * If operating in CUA mode, and a CUA block exists,
+         * check if the block should be reset or deleted before executing the command.
          */
         if (INTERFACEx == INTERFACE_CUA && MARK_VIEW == CURRENT_VIEW && MARK_VIEW->mark_type == M_CUA) {
           ResetOrDeleteCUABlock(command[i].cua_behaviour);
@@ -1177,8 +1151,7 @@ short command_line(char_t *cmd_line, bool command_only) {
           AdjustThighlight(command[i].thighlight_behaviour);
         }
         /*
-         * Now call the function associated with the supplied command string
-         * and the possibly stripped parameters.
+         * Now call the function associated with the supplied command string and the possibly stripped parameters.
          */
         lastrc = rc = (*command[i].function) (cl_param);
         break;
@@ -1191,8 +1164,7 @@ short command_line(char_t *cmd_line, bool command_only) {
       break;
     }
     /*
-     * If we found and successfully executed a command above, process the
-     * next command.
+     * If we found and successfully executed a command above, process the next command.
      */
     if (valid_command) {
       save_last_command(cmd[j], cl_cmd);
@@ -1219,6 +1191,7 @@ short command_line(char_t *cmd_line, bool command_only) {
       save_last_command(cmd[j], cl_cmd);
       continue;
     }
+
     /*
      * If return is RC_INVALID_OPERAND, check if command is OS command...
      */
@@ -1229,8 +1202,7 @@ short command_line(char_t *cmd_line, bool command_only) {
       continue;
     }
     /*
-     * ...or if command is a macro command (as long as IMPMACRO is ON) and
-     * command_only is FALSE...
+     * ...or if command is a macro command (as long as IMPMACRO is ON) and command_only is FALSE...
      */
     if (CURRENT_VIEW->imp_macro && !command_only) {
       memmove(command_entered, cmd[j], strlen((char *) cmd[j]) + 1);
@@ -1273,14 +1245,14 @@ short command_line(char_t *cmd_line, bool command_only) {
     }
     save_last_command(cmd[j], cl_cmd);
   }
-  /* cleanup_command_line(); */
   if (saved_command) {
     Cmsg(saved_command);
-    free (saved_command);
+    free(saved_command);
   }
-  free (command_entered);
-  free (cl_cmd);
-  free (cl_param);
+  free(command_entered);
+  free(cl_cmd);
+  free(cl_param);
+
   return (rc);
 }
 
@@ -1306,12 +1278,12 @@ void cleanup_command_line(void) {
   return;
 }
 
-void split_command(char_t *cmd_line, char_t *cmd, char_t *param) {
-  length_t pos = 0;
-  char_t *param_ptr = NULL;
+void split_command(uchar *cmd_line, uchar *cmd, uchar *param) {
+  long pos = 0;
+  uchar *param_ptr = NULL;
 
   strcpy((char *) cmd, (char *) cmd_line);
-  MyStrip(cmd, STRIP_LEADING, ' ');
+  strstrip(cmd, STRIP_LEADING, ' ');
   /*
    * Special test here for ? and = command...
    */
@@ -1352,13 +1324,13 @@ void split_command(char_t *cmd_line, char_t *cmd, char_t *param) {
 #define STATE_WORD     1
 #define STATE_DELIM    2
 
-short param_split(char_t *params, char_t *word[], int words, char_t *delims, char_t param_type, char_t *strip, bool trailing_spaces_is_arg) {
-  register short k = 0, delims_len = strlen((char *) delims);
-  char_t j = 0;
-  length_t i = 0, len = 0;
-  char_t *param_ptr = NULL;
-  char_t *space_ptr = NULL;
-  char_t state = STATE_START;
+short param_split(uchar *params, uchar *word[], int words, uchar *delims, uchar param_type, uchar *strip, bool trailing_spaces_is_arg) {
+  short k = 0, delims_len = strlen((char *) delims);
+  uchar j = 0;
+  long i = 0, len = 0;
+  uchar *param_ptr = NULL;
+  uchar *space_ptr = NULL;
+  uchar state = STATE_START;
   short str_start = 0, str_end = (-1);
 
   /*
@@ -1373,27 +1345,21 @@ short param_split(char_t *params, char_t *word[], int words, char_t *delims, cha
    * Based on param_type, point param_ptr to appropriate buffer.
    */
   switch (param_type) {
-
     case TEMP_PARAM:
       param_ptr = temp_params;
       break;
-
     case TEMP_SET_PARAM:
       param_ptr = temp_set_params;
       break;
-
     case TEMP_MACRO:
       param_ptr = temp_macros;
       break;
-
     case TEMP_TEMP_CMD:
       param_ptr = temp_cmd;
       break;
-
     case TEMP_TMP_CMD:
       param_ptr = tmp_cmd;
       break;
-
     default:
       return (-1);
       break;
@@ -1406,8 +1372,9 @@ short param_split(char_t *params, char_t *word[], int words, char_t *delims, cha
   } else {
     memmove((char *) param_ptr, (char *) params, strlen((char *) params) + 1);
   }
+
   for (i = 0; i < words; i++) {
-    word[i] = (char_t *) "";
+    word[i] = (uchar *) "";
   }
   word[0] = param_ptr;
   len = strlen((char *) param_ptr);
@@ -1422,7 +1389,6 @@ short param_split(char_t *params, char_t *word[], int words, char_t *delims, cha
   str_start = 0;
   for (i = 0; i < len && j < words; i++) {
     switch (state) {
-
       case STATE_START:
         for (k = 0; k < delims_len; k++) {
           if (*(param_ptr + i) == *(delims + k)) {
@@ -1439,7 +1405,6 @@ short param_split(char_t *params, char_t *word[], int words, char_t *delims, cha
         }
         state = STATE_WORD;
         break;
-
       case STATE_WORD:
         for (k = 0; k < delims_len; k++) {
           if (*(param_ptr + i) == *(delims + k)) {
@@ -1453,7 +1418,6 @@ short param_split(char_t *params, char_t *word[], int words, char_t *delims, cha
           break;
         }
         break;
-
       case STATE_DELIM:
         state = STATE_WORD;
         for (k = 0; k < delims_len; k++) {
@@ -1473,7 +1437,7 @@ short param_split(char_t *params, char_t *word[], int words, char_t *delims, cha
   }
   for (i = 0; i < words; i++) {
     if (*(strip + i)) {
-      word[i] = MyStrip(word[i], *(strip + i), ' ');
+      word[i] = strstrip(word[i], *(strip + i), ' ');
     }
   }
   if (space_ptr) {
@@ -1482,6 +1446,11 @@ short param_split(char_t *params, char_t *word[], int words, char_t *delims, cha
   }
   return (j);
 }
+
+#define STATE_START        0
+#define STATE_WORD         1
+#define STATE_DELIM        2
+#define STATE_QUOTED_WORD  3
 
 /*
  * Handle args like:
@@ -1492,19 +1461,13 @@ short param_split(char_t *params, char_t *word[], int words, char_t *delims, cha
  * <"filename with spaces>
  * <nospacearg arg2>
  */
-
-#define STATE_START        0
-#define STATE_WORD         1
-#define STATE_DELIM        2
-#define STATE_QUOTED_WORD  3
-
-short quoted_param_split(char_t *params, char_t *word[], int words, char_t *delims, char_t param_type, char_t *strip, bool trailing_spaces_is_arg, char_t *quoted) {
-  register short k = 0, delims_len = strlen((char *) delims);
-  char_t j = 0, current_word;
-  length_t i = 0, len = 0;
-  char_t *param_ptr = NULL;
-  char_t *space_ptr = NULL;
-  char_t state = STATE_START;
+short quoted_param_split(uchar *params, uchar *word[], int words, uchar *delims, uchar param_type, uchar *strip, bool trailing_spaces_is_arg, uchar *quoted) {
+  short k = 0, delims_len = strlen((char *) delims);
+  uchar j = 0, current_word;
+  long i = 0, len = 0;
+  uchar *param_ptr = NULL;
+  uchar *space_ptr = NULL;
+  uchar state = STATE_START;
   short str_start = 0, str_end = (-1);
 
   /*
@@ -1519,27 +1482,21 @@ short quoted_param_split(char_t *params, char_t *word[], int words, char_t *deli
    * Based on param_type, point param_ptr to appropriate buffer.
    */
   switch (param_type) {
-
     case TEMP_PARAM:
       param_ptr = temp_params;
       break;
-
     case TEMP_SET_PARAM:
       param_ptr = temp_set_params;
       break;
-
     case TEMP_MACRO:
       param_ptr = temp_macros;
       break;
-
     case TEMP_TEMP_CMD:
       param_ptr = temp_cmd;
       break;
-
     case TEMP_TMP_CMD:
       param_ptr = tmp_cmd;
       break;
-
     default:
       return (-1);
       break;
@@ -1552,11 +1509,12 @@ short quoted_param_split(char_t *params, char_t *word[], int words, char_t *deli
   } else {
     memmove((char *) param_ptr, (char *) params, strlen((char *) params) + 1);
   }
+
   /*
    * Set all our return word values to empty strings
    */
   for (i = 0; i < words; i++) {
-    word[i] = (char_t *) "";
+    word[i] = (uchar *) "";
   }
   word[0] = param_ptr;
   /*
@@ -1576,7 +1534,6 @@ short quoted_param_split(char_t *params, char_t *word[], int words, char_t *deli
   str_start = 0;
   for (i = 0; i < len && j < words; i++) {
     switch (state) {
-
       case STATE_START:
         /*
          * Is the current character a delimiter?
@@ -1607,7 +1564,6 @@ short quoted_param_split(char_t *params, char_t *word[], int words, char_t *deli
           *(param_ptr + str_end) = '\0';
         }
         break;
-
       case STATE_QUOTED_WORD:
         if (quoted[current_word] == *(param_ptr + i)) {
           /*
@@ -1619,7 +1575,6 @@ short quoted_param_split(char_t *params, char_t *word[], int words, char_t *deli
           break;
         }
         break;
-
       case STATE_WORD:
         for (k = 0; k < delims_len; k++) {
           if (*(param_ptr + i) == *(delims + k)) {
@@ -1633,7 +1588,6 @@ short quoted_param_split(char_t *params, char_t *word[], int words, char_t *deli
           break;
         }
         break;
-
       case STATE_DELIM:
         state = STATE_START;
         for (k = 0; k < delims_len; k++) {
@@ -1658,19 +1612,17 @@ short quoted_param_split(char_t *params, char_t *word[], int words, char_t *deli
     }
   }
   /*
-   * Strip spaces from each word as specified unless
-   * we found a quoted value
+   * Strip spaces from each word as specified unless we found a quoted value
    */
   for (i = 0; i < words; i++) {
     if (quoted[i]) {
-      word[i] = MyStrip(word[i], STRIP_BOTH, quoted[i]);
+      word[i] = strstrip(word[i], STRIP_BOTH, quoted[i]);
     } else if (*(strip + i)) {
-      word[i] = MyStrip(word[i], *(strip + i), ' ');
+      word[i] = strstrip(word[i], *(strip + i), ' ');
     }
   }
   /*
-   * If we found a trailing space argument, set the last
-   * word to the start of the trailing space
+   * If we found a trailing space argument, set the last word to the start of the trailing space
    */
   if (space_ptr) {
     word[j] = space_ptr;
@@ -1679,10 +1631,10 @@ short quoted_param_split(char_t *params, char_t *word[], int words, char_t *deli
   return (j);
 }
 
-short command_split(char_t *params, char_t *word[], int words, char_t *delims, char_t *buffer) {
-  register short k, delims_len = strlen((char *) delims);
-  length_t i, len;
-  char_t j = 0;
+short command_split(uchar *params, uchar *word[], int words, uchar *delims, uchar *buffer) {
+  short k, delims_len = strlen((char *) delims);
+  long i, len;
+  uchar j = 0;
   bool end_of_string = FALSE, end_of_word = FALSE;
 
   /*
@@ -1693,8 +1645,9 @@ short command_split(char_t *params, char_t *word[], int words, char_t *delims, c
   } else {
     strcpy((char *) buffer, (char *) params);
   }
+
   for (i = 0; i < words; i++) {
-    word[i] = (char_t *) "";
+    word[i] = (uchar *) "";
   }
   j = 0;
   end_of_string = TRUE;
@@ -1719,8 +1672,8 @@ short command_split(char_t *params, char_t *word[], int words, char_t *delims, c
   return (j);
 }
 
-line_t get_true_line(bool respect_compat) {
-  line_t true_line = 0L;
+long get_true_line(bool respect_compat) {
+  long true_line = 0L;
 
   /*
    * Determine 'true_line'.
@@ -1733,9 +1686,9 @@ line_t get_true_line(bool respect_compat) {
   return (true_line);
 }
 
-length_t get_true_column(bool respect_compat) {
-  length_t true_column = 0;
-  short x;
+long get_true_column(bool respect_compat) {
+  long true_column = 0;
+  unsigned short x;
 
   /*
    * Determine 'true_column'.
@@ -1749,7 +1702,7 @@ length_t get_true_column(bool respect_compat) {
   return (true_column);
 }
 
-char_t next_char(LINE *curr, long *off, length_t end_col) {
+uchar next_char(LINE *curr, long *off, long end_col) {
   if (*(off) < (long) min(curr->length, end_col)) {
     (*(off))++;
     return (*(curr->line + ((*(off)) - 1L)));
@@ -1758,22 +1711,19 @@ char_t next_char(LINE *curr, long *off, length_t end_col) {
   return (0);
 }
 
-/* Parameters:                                                         */
-/*  key_value: numeric representation of function key                  */
-/*   commands: commands and parameters                                 */
-
-short add_define(DEFINE **first, DEFINE **last, int key_value, char_t *commands, bool instore, char_t *synonym, char_t linend) {
-  register short j = 0;
+short add_define(DEFINE **first, DEFINE **last, int key_value, uchar *commands, bool instore, uchar *synonym, uchar linend) {
+  short j = 0;
   short cmd_nr = 0;
-  char_t *word[MAX_COMMANDS + 1];
+  uchar *word[MAX_COMMANDS + 1];
   unsigned short num_commands = 0;
-  char_t command_delim[2];
+  uchar command_delim[2];
   short rc = RC_OK;
-  char_t *command_entered = NULL, *cl_cmd = NULL, *cl_param = NULL;
+  uchar *command_entered = NULL, *cl_cmd = NULL, *cl_param = NULL;
 
   /*
-   * If the commands argument is empty, delete the definition of the key
-   * definitions for the key, so just return.
+   * If the commands argument is empty,
+   * delete the definition of the key definitions for the key,
+   * so just return.
    */
   if (strcmp((char *) commands, "") == 0) {
     remove_define(first, last, key_value, synonym);
@@ -1785,35 +1735,32 @@ short add_define(DEFINE **first, DEFINE **last, int key_value, char_t *commands,
       rc = append_define(first, last, key_value, (-1), commands, NULL, 0, synonym, linend);
       return (rc);
     } else {
-      display_error(58, (char_t *) "instore macros", FALSE);
+      display_error(58, (uchar *) "instore macros", FALSE);
       return (RC_INVALID_OPERAND);
     }
   }
   /*
-   * To have reached here we are dealing with "plain" key definitions,
-   * rather than instore macros...
+   * To have reached here we are dealing with "plain" key definitions, rather than instore macros...
    * Copy the incoming commands, so we can play with it.
    */
-  if ((command_entered = (char_t *) strdup ((char *) commands)) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((command_entered = (uchar *) strdup((char*)commands)) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
-   * Allocate some space to cl_cmd and cl_param for the a command when
-   * it is split into a command and its parameters.
+   * Allocate some space to cl_cmd and cl_param for the a command when it is split into a command and its parameters.
    */
-  if ((cl_cmd = (char_t *) malloc ((strlen((char *) commands) + 1) * sizeof(char_t))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((cl_cmd = (uchar *) malloc((strlen((char *) commands) + 1) * sizeof(uchar))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  if ((cl_param = (char_t *) malloc ((strlen((char *) commands) + 1) * sizeof(char_t))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((cl_param = (uchar *) malloc((strlen((char *) commands) + 1) * sizeof(uchar))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   if (synonym) {
     /*
-     * If the is called from a SET SYNONYM call, then use the passed value
-     * for LINEND...
+     * If the is called from a SET SYNONYM call, then use the passed value for LINEND...
      */
     if (linend) {
       command_delim[0] = linend;
@@ -1831,8 +1778,7 @@ short add_define(DEFINE **first, DEFINE **last, int key_value, char_t *commands,
     }
   } else {
     /*
-     * If [SET] LINENd is set to ON, split the args up into a number of
-     * individual commands.
+     * If [SET] LINENd is set to ON, split the args up into a number of individual commands.
      */
     if (CURRENT_VIEW) {
       if (CURRENT_VIEW->linend_status) {
@@ -1850,12 +1796,13 @@ short add_define(DEFINE **first, DEFINE **last, int key_value, char_t *commands,
     }
   }
   /*
-   * For each command entered, split it up into command and params, and
-   * validate that each command is valid.  The cmd_nr is discarded here.
+   * For each command entered, split it up into command and params,
+   * and validate that each command is valid.
+   * The cmd_nr is discarded here.
    */
   for (j = 0; j < num_commands; j++) {
     split_command(word[j], cl_cmd, cl_param);
-    cl_cmd = MyStrip(cl_cmd, STRIP_BOTH, ' ');
+    cl_cmd = strstrip(cl_cmd, STRIP_BOTH, ' ');
     if ((cmd_nr = find_command(cl_cmd, FALSE)) == (-1)) {
       display_error(21, cl_cmd, FALSE);
       rc = RC_INVALID_OPERAND;
@@ -1863,14 +1810,13 @@ short add_define(DEFINE **first, DEFINE **last, int key_value, char_t *commands,
     }
   }
   /*
-   * Now we know each command is valid, we can remove any prior
-   * definition and assign the new one.
+   * Now we know each command is valid, we can remove any prior definition and assign the new one.
    */
   if (rc == RC_OK) {
     remove_define(first, last, key_value, synonym);
     for (j = 0; j < num_commands; j++) {
       split_command(word[j], cl_cmd, cl_param);
-      cl_cmd = MyStrip(cl_cmd, STRIP_BOTH, ' ');
+      cl_cmd = strstrip(cl_cmd, STRIP_BOTH, ' ');
       if ((cmd_nr = find_command(cl_cmd, FALSE)) == (-1)) {
         display_error(21, cl_cmd, FALSE);       /* this should not be reached */
         rc = RC_INVALID_OPERAND;
@@ -1882,34 +1828,30 @@ short add_define(DEFINE **first, DEFINE **last, int key_value, char_t *commands,
       }
     }
   }
-  free (command_entered);
-  free (cl_cmd);
-  free (cl_param);
+  free(command_entered);
+  free(cl_cmd);
+  free(cl_param);
   return (rc);
 }
 
-/* Parameters:                                                         */
-/*  key_value: numeric representation of function key                  */
-
-short remove_define(DEFINE **first, DEFINE **last, int key_value, char_t *synonym) {
+short remove_define(DEFINE **first, DEFINE **last, int key_value, uchar *synonym) {
   DEFINE *curr = NULL;
 
   /*
-   * Find all items in the linked list for the key_value and remove them
-   * from the list.
+   * Find all items in the linked list for the key_value and remove them from the list.
    */
   curr = *first;
   if (synonym) {
     while (curr != NULL) {
-      if (strcasecmp((char *) curr->synonym, (char *) synonym) == 0) {
+      if (strcasecmp((char*) curr->synonym, (char *) synonym) == 0) {
         if (curr->def_params != NULL) {
-          free (curr->def_params);
+          free(curr->def_params);
         }
         if (curr->pcode != NULL) {
-          free (curr->pcode);
+          free(curr->pcode);
         }
         if (curr->synonym != NULL) {
-          free (curr->synonym);
+          free(curr->synonym);
         }
         curr = dll_del(first, last, curr, DIRECTION_FORWARD);
       } else {
@@ -1920,10 +1862,10 @@ short remove_define(DEFINE **first, DEFINE **last, int key_value, char_t *synony
     while (curr != NULL) {
       if (curr->def_funkey == key_value) {
         if (curr->def_params != NULL) {
-          free (curr->def_params);
+          free(curr->def_params);
         }
         if (curr->pcode != NULL) {
-          free (curr->pcode);
+          free(curr->pcode);
         }
         curr = dll_del(first, last, curr, DIRECTION_FORWARD);
       } else {
@@ -1934,10 +1876,7 @@ short remove_define(DEFINE **first, DEFINE **last, int key_value, char_t *synony
   return (RC_OK);
 }
 
-/* Parameters:                                                         */
-/*  key_value: numeric representation of function key                  */
-
-short append_define(DEFINE **first, DEFINE **last, int key_value, short cmd, char_t *prm, char_t *pcode, int pcode_len, char_t *synonym, char_t linend) {
+short append_define(DEFINE **first, DEFINE **last, int key_value, short cmd, uchar *prm, uchar *pcode, int pcode_len, uchar *synonym, uchar linend) {
   DEFINE *curr = NULL;
 
   /*
@@ -1945,19 +1884,19 @@ short append_define(DEFINE **first, DEFINE **last, int key_value, short cmd, cha
    */
   curr = dll_add(*first, *last, sizeof(DEFINE));
   if (curr == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
-  curr->def_params = (char_t *) malloc ((strlen((char *) prm) + 1) * sizeof(char_t));
+  curr->def_params = (uchar *) malloc((strlen((char *) prm) + 1) * sizeof(uchar));
   if (curr->def_params == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   strcpy((char *) curr->def_params, (char *) prm);
   if (synonym) {
-    curr->synonym = (char_t *) malloc ((strlen((char *) synonym) + 1) * sizeof(char_t));
+    curr->synonym = (uchar *) malloc((strlen((char *) synonym) + 1) * sizeof(uchar));
     if (curr->synonym == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     strcpy((char *) curr->synonym, (char *) synonym);
@@ -1968,9 +1907,9 @@ short append_define(DEFINE **first, DEFINE **last, int key_value, short cmd, cha
   curr->def_command = cmd;
   curr->linend = linend;
   if (pcode && pcode_len) {
-    curr->pcode = (char_t *) malloc (pcode_len * sizeof(char_t));
+    curr->pcode = (uchar *) malloc(pcode_len * sizeof(uchar));
     if (curr->pcode == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     memcpy(curr->pcode, pcode, pcode_len);
@@ -1983,14 +1922,8 @@ short append_define(DEFINE **first, DEFINE **last, int key_value, short cmd, cha
   return (RC_OK);
 }
 
-/*   Function: determine if the string supplied is a valid abbrev for  */
-/*             a command.                                              */
-/* Parameters:                                                         */
-/*        cmd:               the string to be checked                  */
-/*        search_for_target: determine if command is a valid target    */
-
-short find_command(char_t *cmd, bool search_for_target) {
-  register short i = 0;
+short find_command(uchar *cmd, bool search_for_target) {
+  short i = 0;
   short rc = RC_OK;
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_BLOCK | TARGET_ALL;
@@ -2001,8 +1934,8 @@ short find_command(char_t *cmd, bool search_for_target) {
     }
   }
   /*
-   * To get here the command was not a 'command'. If we don't want to
-   * search for targets, exit with (-1).
+   * To get here the command was not a 'command'.
+   * If we don't want to search for targets, exit with (-1).
    */
   if (!search_for_target) {
     return (-1);
@@ -2030,7 +1963,7 @@ short find_command(char_t *cmd, bool search_for_target) {
 }
 
 void init_command(void) {
-  register short i = 0;
+  short i = 0;
 
   last_command_for_reexecute = NULL;
   last_command_for_reexecute_len = 0;
@@ -2045,7 +1978,7 @@ void init_command(void) {
   return;
 }
 
-void add_command(char_t *new_cmd) {
+void add_command(uchar *new_cmd) {
   int len_cmd;
 
   /*
@@ -2055,9 +1988,9 @@ void add_command(char_t *new_cmd) {
     return;
   }
   /*
-   * If the command to be added is the same as the current command or if
-   * the command line is empty or if the command is "=" or "?", return
-   * without adding command to array.
+   * If the command to be added is the same as the current command
+   * or if the command line is empty or if the command is "=" or "?",
+   * return without adding command to array.
    */
   if (!valid_command_to_save(new_cmd)) {
     return;
@@ -2080,11 +2013,10 @@ void add_command(char_t *new_cmd) {
     current_cmd = ++last_cmd;
   }
   /*
-   * Allocate/reallocate memory for current command if the new
-   * command length is > current command in array
+   * Allocate/reallocate memory for current command if the new command length is > current command in array
    */
   if (len_cmd > cmd_history_len[current_cmd]) {
-    cmd_history[current_cmd] = (char_t *) realloc (cmd_history[current_cmd], len_cmd + 1);
+    cmd_history[current_cmd] = (uchar *) realloc(cmd_history[current_cmd], len_cmd + 1);
     if (cmd_history[current_cmd] == NULL) {
       cmd_history_len[current_cmd] = 0;
       return;
@@ -2098,15 +2030,14 @@ void add_command(char_t *new_cmd) {
   return;
 }
 
-char_t *get_next_command(short direction, int num) {
-  char_t *ret_cmd = NULL;
+uchar *get_next_command(short direction, int num) {
+  uchar *ret_cmd = NULL;
 
   if (number_cmds == 0) {
-    return ((char_t *) NULL);
+    return ((uchar *) NULL);
   }
   while (num--) {
     switch (direction) {
-
       case DIRECTION_BACKWARD:
         if (current_cmd + 1 == number_cmds) {
           current_cmd = 0;
@@ -2115,7 +2046,6 @@ char_t *get_next_command(short direction, int num) {
           ret_cmd = cmd_history[++current_cmd];
         }
         break;
-
       case DIRECTION_FORWARD:
         if (current_cmd + offset_cmd < 0) {
           current_cmd = number_cmds - 1;
@@ -2126,7 +2056,6 @@ char_t *get_next_command(short direction, int num) {
         }
         offset_cmd = (-1);
         break;
-
       case DIRECTION_NONE:
         ret_cmd = cmd_history[current_cmd];
         break;
@@ -2135,7 +2064,7 @@ char_t *get_next_command(short direction, int num) {
   return (ret_cmd);
 }
 
-bool valid_command_to_save(char_t *save_cmd) {
+bool valid_command_to_save(uchar *save_cmd) {
   /*
    * If the command to be added is empty or is "=" or starts with "?",
    * return FALSE, otherwise return TRUE.
@@ -2146,21 +2075,21 @@ bool valid_command_to_save(char_t *save_cmd) {
   return (TRUE);
 }
 
-static void save_last_command(char_t *last_cmd, char_t *cmnd) {
+static void save_last_command(uchar *last_cmd, uchar *cmnd) {
   int last_cmd_len;
 
   /*
-   * If the command to be added is the same as the current command or if
-   * the command line is empty or if the command is "=" or "?", return
-   * without adding command to array.
-   * Save commands for repeat but NOT for execute if the command is
-   * run from a macro...
+   * If the command to be added is the same as the current command
+   * or if the command line is empty or if the command is "=" or "?",
+   * return without adding command to array.
+   *
+   * Save commands for repeat but NOT for execute if the command is run from a macro...
    */
   if (valid_command_to_save(last_cmd)) {
     last_cmd_len = strlen((char *) last_cmd);
     if (!in_macro) {
       if (last_cmd_len > last_command_for_reexecute_len) {
-        last_command_for_reexecute = (char_t *) realloc (last_command_for_reexecute, last_cmd_len + 1);
+        last_command_for_reexecute = (uchar *) realloc(last_command_for_reexecute, last_cmd_len + 1);
       }
       if (last_command_for_reexecute) {
         strcpy((char *) last_command_for_reexecute, (char *) last_cmd);
@@ -2169,10 +2098,10 @@ static void save_last_command(char_t *last_cmd, char_t *cmnd) {
         last_command_for_reexecute_len = 0;
       }
     }
-    if (!equal((char_t *) "repeat", cmnd, 4) && save_for_repeat) {
+    if (!equal((uchar *) "repeat", cmnd, 4) && save_for_repeat) {
       if (in_macro) {
         if (last_cmd_len > last_command_for_repeat_in_macro_len) {
-          last_command_for_repeat_in_macro = (char_t *) realloc (last_command_for_repeat_in_macro, last_cmd_len + 1);
+          last_command_for_repeat_in_macro = (uchar *) realloc(last_command_for_repeat_in_macro, last_cmd_len + 1);
         }
         if (last_command_for_repeat_in_macro) {
           strcpy((char *) last_command_for_repeat_in_macro, (char *) last_cmd);
@@ -2181,7 +2110,7 @@ static void save_last_command(char_t *last_cmd, char_t *cmnd) {
         }
       } else {
         if (last_cmd_len > last_command_for_repeat_len) {
-          last_command_for_repeat = (char_t *) realloc (last_command_for_repeat, last_cmd_len + 1);
+          last_command_for_repeat = (uchar *) realloc(last_command_for_repeat, last_cmd_len + 1);
         }
         if (last_command_for_repeat) {
           strcpy((char *) last_command_for_repeat, (char *) last_cmd);
@@ -2194,8 +2123,8 @@ static void save_last_command(char_t *last_cmd, char_t *cmnd) {
   return;
 }
 
-bool is_tab_col(length_t x) {
-  register short i = 0;
+bool is_tab_col(long x) {
+  short i = 0;
   bool rc = FALSE;
 
   for (i = 0; i < CURRENT_VIEW->numtabs; i++) {
@@ -2207,9 +2136,9 @@ bool is_tab_col(length_t x) {
   return (rc);
 }
 
-length_t find_next_tab_col(length_t x) {
-  register short i = 0;
-  length_t next_tab_col = 0;
+long find_next_tab_col(long x) {
+  short i = 0;
+  long next_tab_col = 0;
 
   for (i = 0; i < CURRENT_VIEW->numtabs; i++) {
     if (CURRENT_VIEW->tabs[i] > x) {
@@ -2220,9 +2149,9 @@ length_t find_next_tab_col(length_t x) {
   return (next_tab_col);
 }
 
-length_t find_prev_tab_col(length_t x) {
-  register short i = 0;
-  length_t next_tab_col = 0;
+long find_prev_tab_col(long x) {
+  short i = 0;
+  long next_tab_col = 0;
 
   for (i = CURRENT_VIEW->numtabs - 1; i > -1; i--) {
     if (CURRENT_VIEW->tabs[i] < x) {
@@ -2237,11 +2166,11 @@ length_t find_prev_tab_col(length_t x) {
 #define STATE_TAB    1
 
 short tabs_convert(LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_recovery) {
-  length_t i, j;
+  long i, j;
   bool expanded = FALSE;
   bool tabs_exhausted = FALSE;
   int state = STATE_NORMAL;
-  length_t tabcol = 0;
+  long tabcol = 0;
 
   /*
    * If we are expanding tabs to spaces, do the following...
@@ -2266,8 +2195,7 @@ short tabs_convert(LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_reco
                 if (j >= max_line_length) {
                   break;
                 }
-              }
-              while (j < tabcol);
+              } while (j < tabcol);
             }
           }
         } else {
@@ -2276,8 +2204,7 @@ short tabs_convert(LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_reco
             if (j >= max_line_length) {
               break;
             }
-          }
-          while ((j % TABI_Nx) != 0);
+          } while ((j % TABI_Nx) != 0);
         }
         expanded = TRUE;
       } else {
@@ -2294,9 +2221,9 @@ short tabs_convert(LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_reco
       if (add_to_recovery) {
         add_to_recovery_list(curr->line, curr->length);
       }
-      curr->line = (char_t *) realloc ((void *) curr->line, (j + 1) * sizeof(char_t));
-      if (curr->line == (char_t *) NULL) {
-        display_error(30, (char_t *) "", FALSE);
+      curr->line = (uchar *) realloc((void *) curr->line, (j + 1) * sizeof(uchar));
+      if (curr->line == (uchar *) NULL) {
+        display_error(30, (uchar *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
       /*
@@ -2309,7 +2236,6 @@ short tabs_convert(LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_reco
   } else {
     for (i = (curr->length) - 1, j = 0; i > (-1); i--) {
       switch (state) {
-
         case STATE_NORMAL:
           trec[j++] = *(curr->line + i);
           if (is_tab_col(i + 1) && i != 0) {
@@ -2320,7 +2246,6 @@ short tabs_convert(LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_reco
             }
           }
           break;
-
         case STATE_TAB:
           if (is_tab_col(i + 1) && i != 0) {
             if (*(curr->line + i) == ' ') {
@@ -2354,18 +2279,15 @@ short tabs_convert(LINE *curr, bool expand_tabs, bool use_tabs, bool add_to_reco
 
 /*
  * This code borrowed heavily from Regina!!
- * Input is a hex string, which is converted to a char string
- * representing the same information and returned.
  *
- * We have to concider the optional grouping of hex digits by spaces at
- * byte boundaries, and the possibility of having to pad first group
- * with a zero.
+ * Input is a hex string, which is converted to a char string representing the same information and returned.
  *
- * There is one performance problem with this. If the hex string is
- * normalized and long, we have to loop through the string twice, while
- * once would suffice. To determine whether or not to pad first group
- * with a zero, all of first group must be scanned, which is identical
- * to the whole string if it is normalized.
+ * We have to consider the optional grouping of hex digits by spaces at byte boundaries,
+ * and the possibility of having to pad first group with a zero.
+ *
+ * There is one performance problem with this.
+ * If the hex string is normalized and long, we have to loop through the string twice, while once would suffice.
+ * To determine whether or not to pad first group with a zero, all of first group must be scanned, which is identical to the whole string if it is normalized.
  */
 static int pack_hex(char *string, char *out) {
   char *ptr = NULL;             /* current digit in input hex string */
@@ -2376,27 +2298,27 @@ static int pack_hex(char *string, char *out) {
 
   res_ptr = out;
   /*
-   * Initiate pointers to current char in intput string, and to
-   * end+1 in input string.
+   * Initiate pointers to current char in intput string,
+   * and to end+1 in input string.
    */
   ptr = string;
   end_ptr = string + strlen(string);
   /*
-   * Explicitly check for space at start or end. Illegal space within
-   * the hex string is checked for during the loop.
+   * Explicitly check for space at start or end.
+   * Illegal space within the hex string is checked for during the loop.
    */
   if ((ptr < end_ptr) && ((isspace(*ptr)) || (isspace(*(end_ptr - 1))))) {
     return ((-1));
   }
   /*
    * Find the number of hex digits in the first group of hex digits.
-   * Let the variable 'byte_boundary' be a boolean, indicating if
-   * current char might be a byte boundary. I.e if byte_boundary is
-   * set, spaces are legal.
+   * Let the variable 'byte_boundary' be a boolean,
+   * indicating if current char might be a byte boundary.
+   * I.e if byte_boundary is set, spaces are legal.
    *
-   * Also, set the first byte in the output string. That is not
-   * necessary if the first group of hex digits has an even number of
-   * digits, but it is cheaper to do it always that check for it.
+   * Also, set the first byte in the output string.
+   * That is not necessary if the first group of hex digits has an even number of digits,
+   * but it is cheaper to do it always that check for it.
    */
   for (; (ptr < end_ptr) && (isxdigit(*ptr)); ptr++);
   byte_boundary = !((ptr - string) % 2);
@@ -2405,9 +2327,10 @@ static int pack_hex(char *string, char *out) {
    */
   *res_ptr = 0x00;
   /*
-   * Loop through the elements of the input string. Skip over spaces.
-   * Stuff hex digits into the output string, and report error
-   * for any other type of data.
+   * Loop through the elements of the input string.
+   * Skip over spaces.
+   * Stuff hex digits into the output string,
+   * and report error for any other type of data.
    */
   for (count = 1, ptr = string; ptr < end_ptr; ptr++, count++) {
     if (isspace(*ptr)) {
@@ -2420,8 +2343,9 @@ static int pack_hex(char *string, char *out) {
       }
     } else if (isxdigit(*ptr)) {
       /*
-       * Stuff it into the output array, either as upper or lower
-       * part of a byte, depending on the value of 'byte_boundary'.
+       * Stuff it into the output array,
+       * either as upper or lower part of a byte,
+       * depending on the value of 'byte_boundary'.
        * Then toggle the value of 'byte_boundary'.
        */
       if (byte_boundary) {
@@ -2437,9 +2361,10 @@ static int pack_hex(char *string, char *out) {
     }
   }
   /*
-   * Set the length and do 'redundant' check for problems. In
-   * particular, check 'byte_boundary' to verify that the last group
-   * of hex digits ended at a byte boundary; report error if not.
+   * Set the length and do 'redundant' check for problems.
+   * In particular, check 'byte_boundary' to verify that
+   * the last group of hex digits ended at a byte boundary;
+   * report error if not.
    */
   if (!byte_boundary) {
     return ((-1));
@@ -2447,18 +2372,17 @@ static int pack_hex(char *string, char *out) {
   return res_ptr - out;
 }
 
-short convert_hex_strings(char_t *str) {
-  length_t i = 0;
-  char_t *p = NULL;
+short convert_hex_strings(uchar *str) {
+  long i = 0;
+  uchar *p = NULL;
   bool dec_char = FALSE;
-  char_t *temp_str;
-  char_t *ptr, *end_ptr, *first_non_blank = NULL, *last_non_blank = NULL;
+  uchar *temp_str;
+  uchar *ptr, *end_ptr, *first_non_blank = NULL, *last_non_blank = NULL;
   short num = 0;
   int str_len;
 
   /*
-   * If the string is less than 4 chars; d'3', then it can't be a hex/dec
-   * value.
+   * If the string is less than 4 chars; d'3', then it can't be a hex/dec value.
    */
   str_len = strlen((char *) str);
   if (str_len < 4) {
@@ -2467,7 +2391,7 @@ short convert_hex_strings(char_t *str) {
   /*
    * Allocate some termporary space; it MUST be <= input string
    */
-  temp_str = (char_t *) alloca(str_len + 1);
+  temp_str = (uchar *) alloca(str_len + 1);
   if (temp_str == NULL) {
     return (-2);
   }
@@ -2477,36 +2401,36 @@ short convert_hex_strings(char_t *str) {
    * Determine the first and last non-blank characters...
    */
   for (ptr = str; ptr < end_ptr; ptr++) {
-    if (*ptr != (char_t) ' ') {
+    if (*ptr != (uchar) ' ') {
       first_non_blank = ptr;
       break;
     }
   }
   for (ptr = str; ptr < end_ptr; end_ptr--) {
-    if (*end_ptr != (char_t) ' ') {
+    if (*end_ptr != (uchar) ' ') {
       last_non_blank = end_ptr;
       break;
     }
   }
   /*
-   * If the number of non-blank characters is less than 4 it can't be
-   * a hex/dec value.
+   * If the number of non-blank characters is less than 4 it can't be a hex/dec value.
    */
   if (last_non_blank - first_non_blank < 3) {
     return (str_len);
   }
   /*
-   * Check if the first non-blank character is d,D,x or X and it has '
-   * as its 2nd non-blank character and as its last non-blank character
+   * Check if the first non-blank character is d,D,x or X
+   * and it has ' as its 2nd non-blank character
+   * and as its last non-blank character
    * If not, then return with string unchanged.
    */
-  if (*last_non_blank != (char_t) '\'' || *(first_non_blank + 1) != (char_t) '\'') {
+  if (*last_non_blank != (uchar) '\'' || *(first_non_blank + 1) != (uchar) '\'') {
     return (str_len);
   }
   temp_str[0] = toupper(*first_non_blank);
-  if (temp_str[0] == (char_t) 'D') {
+  if (temp_str[0] == (uchar) 'D') {
     dec_char = TRUE;
-  } else if (temp_str[0] == (char_t) 'X') {
+  } else if (temp_str[0] == (uchar) 'X') {
     dec_char = FALSE;
   } else {
     return (str_len);
@@ -2514,25 +2438,25 @@ short convert_hex_strings(char_t *str) {
   /*
    * If we got here we can validate (and change) the contents of the string.
    */
-  *(last_non_blank) = (char_t) '\0';
+  *(last_non_blank) = (uchar) '\0';
   if (dec_char == FALSE) {
     i = pack_hex((char *) (first_non_blank + 2), (char *) temp_str);
     if (i != (-1)) {
       memcpy(str, temp_str, i);
     }
   } else {
-    p = (char_t *) strtok((char *) first_non_blank + 2, " ");
+    p = (uchar *) strtok((char *) first_non_blank + 2, " ");
     while (p != NULL) {
-      if (equal((char_t *) "000000", p, 1)) {
-        temp_str[i++] = (char_t) 0;
+      if (equal((uchar *) "000000", p, 1)) {
+        temp_str[i++] = (uchar) 0;
       } else {
         num = atoi((char *) p);
         if (num < 1 || num > 255) {
           return ((-1));
         }
-        temp_str[i++] = (char_t) num;
+        temp_str[i++] = (uchar) num;
       }
-      p = (char_t *) strtok(NULL, " ");
+      p = (uchar *) strtok(NULL, " ");
     }
     memcpy(str, temp_str, i);
   }
@@ -2541,15 +2465,15 @@ short convert_hex_strings(char_t *str) {
 
 short marked_block(bool in_current_view) {
   if (batch_only) {             /* block commands invalid in batch */
-    display_error(24, (char_t *) "", FALSE);
+    display_error(24, (uchar *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (MARK_VIEW == (VIEW_DETAILS *) NULL) {     /* no marked block */
-    display_error(44, (char_t *) "", FALSE);
+    display_error(44, (uchar *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (MARK_VIEW != CURRENT_VIEW && in_current_view) { /* marked block not in current view */
-    display_error(45, (char_t *) "", FALSE);
+    display_error(45, (uchar *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   return (RC_OK);
@@ -2575,9 +2499,10 @@ short restore_THE(void) {
     return (RC_OK);
   }
   getyx(CURRENT_WINDOW, y, x);
+
   if (display_screens > 1) {
-    touch_screen((char_t) other_screen);
-    refresh_screen((char_t) other_screen);
+    touch_screen((uchar) other_screen);
+    refresh_screen((uchar) other_screen);
     if (!horizontal) {
       touchwin(divider);
       wnoutrefresh(divider);
@@ -2600,9 +2525,9 @@ short restore_THE(void) {
 
 #define SETSOS_PARAMS  2
 
-short execute_set_sos_command(bool set_command, char_t *params) {
-  char_t *word[SETSOS_PARAMS + 1];
-  char_t strip[SETSOS_PARAMS];
+short execute_set_sos_command(bool set_command, uchar *params) {
+  uchar *word[SETSOS_PARAMS + 1];
+  uchar strip[SETSOS_PARAMS];
   unsigned short num_params = 0;
   short rc = RC_OK, command_index = 0;
 
@@ -2610,7 +2535,7 @@ short execute_set_sos_command(bool set_command, char_t *params) {
   strip[1] = STRIP_NONE;
   num_params = param_split(params, word, SETSOS_PARAMS, WORD_DELIMS, TEMP_SET_PARAM, strip, FALSE);
   if (num_params < 1) {
-    display_error(1, (char_t *) "", FALSE);
+    display_error(1, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if ((command_index = valid_command_type(set_command, word[0])) == RC_NOT_COMMAND) {
@@ -2624,8 +2549,8 @@ short execute_set_sos_command(bool set_command, char_t *params) {
     last_command_index = command_index;
   }
   /*
-   * If the SOS command is being executed while in READV CMDLINE, only
-   * execute those commands that are allowed...
+   * If the SOS command is being executed while in READV CMDLINE,
+   * only execute those commands that are allowed...
    */
   if (in_readv) {
     if (command[command_index].valid_readv) {
@@ -2633,9 +2558,8 @@ short execute_set_sos_command(bool set_command, char_t *params) {
     }
   } else {
     /*
-     * If operating in CUA mode, and a CUA block exists, check
-     * if the block should be reset or deleted before executing
-     * the command.
+     * If operating in CUA mode, and a CUA block exists,
+     * check if the block should be reset or deleted before executing the command.
      */
     if (INTERFACEx == INTERFACE_CUA && MARK_VIEW == CURRENT_VIEW && MARK_VIEW->mark_type == M_CUA) {
       ResetOrDeleteCUABlock(command[command_index].cua_behaviour);
@@ -2651,8 +2575,8 @@ short execute_set_sos_command(bool set_command, char_t *params) {
   return (rc);
 }
 
-short valid_command_type(bool set_command, char_t *cmd_line) {
-  register short i;
+short valid_command_type(bool set_command, uchar *cmd_line) {
+  short i;
   short rc = RC_NOT_COMMAND;
 
   for (i = 0; command[i].text != NULL; i++) {
@@ -2663,9 +2587,8 @@ short valid_command_type(bool set_command, char_t *cmd_line) {
       continue;
     }
     /*
-     * Check that the supplied command matches the command for the length
-     * of the command and that the length is at least as long as the
-     * necessary significance.
+     * Check that the supplied command matches the command for the length of the command
+     * and that the length is at least as long as the necessary significance.
      */
     if (equal(command[i].text, cmd_line, command[i].min_len) && command[i].min_len != 0) {
       if (set_command && command[i].set_command) {
@@ -2681,40 +2604,34 @@ short valid_command_type(bool set_command, char_t *cmd_line) {
   return (rc);
 }
 
-short allocate_temp_space(length_t length, char_t param_type) {
-  char_t *temp_ptr = NULL;
-  length_t *temp_length = NULL;
+short allocate_temp_space(long length, uchar param_type) {
+  uchar *temp_ptr = NULL;
+  long *temp_length = NULL;
 
   /*
    * Based on param_type, point param_ptr to appropriate buffer.
    */
   switch (param_type) {
-
     case TEMP_PARAM:
       temp_ptr = temp_params;
       temp_length = &length_temp_params;
       break;
-
     case TEMP_SET_PARAM:
       temp_ptr = temp_set_params;
       temp_length = &length_temp_set_params;
       break;
-
     case TEMP_MACRO:
       temp_ptr = temp_macros;
       temp_length = &length_temp_macros;
       break;
-
     case TEMP_TMP_CMD:
       temp_ptr = tmp_cmd;
       temp_length = &length_tmp_cmd;
       break;
-
     case TEMP_TEMP_CMD:
       temp_ptr = temp_cmd;
       temp_length = &length_temp_cmd;
       break;
-
     default:
       return (-1);
       break;
@@ -2723,39 +2640,33 @@ short allocate_temp_space(length_t length, char_t param_type) {
     return (RC_OK);
   }
   if (temp_ptr == NULL) {
-    temp_ptr = (char_t *) malloc (sizeof(char_t) * (length + 1));
+    temp_ptr = (uchar *) malloc(sizeof(uchar) * (length + 1));
   } else {
-    temp_ptr = (char_t *) realloc (temp_ptr, sizeof(char_t) * (length + 1));
+    temp_ptr = (uchar *) realloc(temp_ptr, sizeof(uchar) * (length + 1));
   }
   if (temp_ptr == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * Based on param_type, point param_ptr to appropriate buffer.
    */
   switch (param_type) {
-
     case TEMP_PARAM:
       temp_params = temp_ptr;
       break;
-
     case TEMP_SET_PARAM:
       temp_set_params = temp_ptr;
       break;
-
     case TEMP_MACRO:
       temp_macros = temp_ptr;
       break;
-
     case TEMP_TMP_CMD:
       tmp_cmd = temp_ptr;
       break;
-
     case TEMP_TEMP_CMD:
       temp_cmd = temp_ptr;
       break;
-
     default:
       return (-1);
       break;
@@ -2764,67 +2675,58 @@ short allocate_temp_space(length_t length, char_t param_type) {
   return (RC_OK);
 }
 
-void free_temp_space(char_t param_type) {
-  char_t *temp_ptr = NULL;
-  length_t *temp_length = 0;
+void free_temp_space(uchar param_type) {
+  uchar *temp_ptr = NULL;
+  long *temp_length = 0;
 
   /*
    * Based on param_type, point param_ptr to appropriate buffer.
    */
   switch (param_type) {
-
     case TEMP_PARAM:
       temp_ptr = temp_params;
       temp_params = NULL;
       temp_length = &length_temp_params;
       break;
-
     case TEMP_SET_PARAM:
       temp_ptr = temp_set_params;
       temp_params = NULL;
       temp_length = &length_temp_set_params;
       break;
-
     case TEMP_MACRO:
       temp_ptr = temp_macros;
       temp_macros = NULL;
       temp_length = &length_temp_macros;
       break;
-
     case TEMP_TMP_CMD:
       temp_ptr = tmp_cmd;
       tmp_cmd = NULL;
       temp_length = &length_tmp_cmd;
       break;
-
     case TEMP_TEMP_CMD:
       temp_ptr = temp_cmd;
       temp_cmd = NULL;
       temp_length = &length_temp_cmd;
       break;
-
     default:
       return;
       break;
   }
-  free (temp_ptr);
+  free(temp_ptr);
   *temp_length = 0;
   return;
 }
 
-char_t calculate_actual_row(short base, short off, row_t rows, bool force_in_view) {
+uchar calculate_actual_row(short base, short off, ushort rows, bool force_in_view) {
   short row = 0;
 
   switch (base) {
-
     case POSITION_TOP:
       row = off;
       break;
-
     case POSITION_MIDDLE:
       row = (rows / 2) + off;
       break;
-
     case POSITION_BOTTOM:
       row = rows + off + 1;
       break;
@@ -2835,30 +2737,30 @@ char_t calculate_actual_row(short base, short off, row_t rows, bool force_in_vie
   if ((row < 0 || row > rows) && force_in_view) {
     row = rows / 2;
   }
-  return ((char_t) row - 1);
+  return ((uchar) row - 1);
 }
 
-short get_valid_macro_file_name(char_t *inmacroname, char_t *filename, char_t *macro_ext, short *errnum) {
-  register short i = 0;
-  char_t delims[3];
+short get_valid_macro_file_name(uchar *inmacroname, uchar *filename, uchar *macro_ext, short *errnum) {
+  short i = 0;
+  uchar delims[3];
   bool file_found = FALSE;
-  char_t  macroname[MAX_FILE_NAME + 1];
+  uchar macroname[MAX_FILE_NAME + 1];
   int len_macroname = strlen((char *) inmacroname);
   int len_macro_suffix = strlen((char *) macro_ext);
   bool append_suffix = TRUE;
 
   /*
-   * Create the full name of the macro file by prepending the default
-   * macropath provided the filename does not already contain a path.
+   * Create the full name of the macro file by prepending the default macropath
+   * provided the filename does not already contain a path.
    */
   strcpy((char *) macroname, (char *) inmacroname);
   strrmdup(strtrans(macroname, OSLASH, ISLASH), ISLASH, TRUE);
   strcpy((char *) delims, (char *) ISTR_SLASH);
   if (strpbrk((char *) macroname, (char *) delims) == NULL && *(macroname) != '~') {
     /*
-     * The supplied macro file name does not contain a path...so for each
-     * directory in the_macro_path, try to find the supplied file in that
-     * directory.
+     * The supplied macro file name does not contain a path...
+     * so for each directory in the_macro_path,
+     * try to find the supplied file in that directory.
      */
     if (len_macroname > len_macro_suffix) {
       if (strcmp((char *) macroname + (len_macroname - len_macro_suffix), (char *) macro_ext) == 0) {
@@ -2876,9 +2778,9 @@ short get_valid_macro_file_name(char_t *inmacroname, char_t *filename, char_t *m
       if (*(filename + strlen((char *) filename) - 1) != ISLASH) {
         strcat((char *) filename, (char *) ISTR_SLASH);
       }
-      strcat((char *) filename, (char *) macroname);      /* append the file name */
+      strcat((char *) filename, (char *) macroname);    /* append the file name */
       if (append_suffix) {
-        strcat((char *) filename, (char *) macro_ext);    /* append default suffix */
+        strcat((char *) filename, (char *) macro_ext);  /* append default suffix */
       }
       if (file_exists(filename) == THE_FILE_EXISTS) {   /* check if file exists... */
         file_found = TRUE;
@@ -2894,10 +2796,10 @@ short get_valid_macro_file_name(char_t *inmacroname, char_t *filename, char_t *m
       return (RC_FILE_NOT_FOUND);
     }
   } else {                      /* file contains a path specifier */
-  /*
-   * The supplied macro file name does contain a path...so just check to
-   * ensure that the file exists.
-   */
+    /*
+     * The supplied macro file name does contain a path...so just check to
+     * ensure that the file exists.
+     */
     if (splitpath(macroname) != RC_OK) {
       *errnum = 9;
       return (RC_FILE_NOT_FOUND);
@@ -2920,13 +2822,12 @@ short get_valid_macro_file_name(char_t *inmacroname, char_t *filename, char_t *m
   return (RC_OK);
 }
 
-bool define_command(char_t *cmd_line) {
-  register short i = 0;
-  char_t buf[7];
+bool define_command(uchar *cmd_line) {
+  short i = 0;
+  uchar buf[7];
 
   /*
-   * First check if the command is a synonym, and use the real name to
-   * search the command array.
+   * First check if the command is a synonym, and use the real name to search the command array.
    */
   memset(buf, '\0', 7);
   memcpy(buf, cmd_line, min(6, strlen((char *) cmd_line)));
@@ -2944,12 +2845,12 @@ bool define_command(char_t *cmd_line) {
   return (FALSE);
 }
 
-int find_key_name(char_t *keyname) {
-  register int i = 0;
+int find_key_name(uchar *keyname) {
+  int i = 0;
   int key = (-1);
 
   for (i = 0; key_table[i].mnemonic != NULL; i++) {
-    if (strcasecmp((char *) keyname, (char *) key_table[i].mnemonic) == 0) {
+    if (strcasecmp((char*)keyname, (char*)key_table[i].mnemonic) == 0) {
       key = key_table[i].key_value;
       break;
     }
@@ -2957,13 +2858,13 @@ int find_key_name(char_t *keyname) {
   return (key);
 }
 
-int readv_cmdline(char_t *initial, WINDOW *dw, int start_col) {
+int readv_cmdline(uchar *initial, WINDOW *dw, int start_col) {
   int key = 0;
   short rc = RC_OK;
-  char_t buf[3];
+  uchar buf[3];
 
   if (CURRENT_WINDOW_COMMAND == (WINDOW *) NULL) {
-    display_error(86, (char_t *) "", FALSE);
+    display_error(86, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   buf[1] = '\0';
@@ -2982,9 +2883,10 @@ int readv_cmdline(char_t *initial, WINDOW *dw, int start_col) {
   }
   wrefresh(CURRENT_WINDOW_COMMAND);
   for (;;) {
-    key = wgetch(CURRENT_WINDOW_COMMAND);
+    key = my_getch(CURRENT_WINDOW_COMMAND);
     if (key == KEY_MOUSE) {
       int b, ba, bm, y, x;
+
       if (get_mouse_info(&b, &ba, &bm) != RC_OK) {
         continue;
       }
@@ -3001,6 +2903,7 @@ int readv_cmdline(char_t *initial, WINDOW *dw, int start_col) {
           break;
         }
         continue;
+
       }
       /*
        * Got a valid button. Check if its a click or press
@@ -3016,17 +2919,15 @@ int readv_cmdline(char_t *initial, WINDOW *dw, int start_col) {
     } else {
       rc = function_key(key, OPTION_READV, FALSE);
       switch (rc) {
-
         case RC_READV_TERM:
           break;
-
         case RAW_KEY:
           if (rc >= RAW_KEY) {
             if (rc > RAW_KEY) {
               key = rc - (RAW_KEY * 2);
             }
             if (key < 256 && key >= 0) {
-              buf[0] = (char_t) key;
+              buf[0] = (uchar) key;
               rc = Text(buf);
             }
           }
@@ -3056,7 +2957,7 @@ int readv_cmdline(char_t *initial, WINDOW *dw, int start_col) {
 
 short execute_mouse_commands(int key) {
   DEFINE *curr = (DEFINE *) NULL;
-  char_t *key_cmd = NULL;
+  uchar *key_cmd = NULL;
   short rc = RC_OK;
   short macrorc = 0;
 
@@ -3064,26 +2965,26 @@ short execute_mouse_commands(int key) {
   while (curr != (DEFINE *) NULL) {
     if (key == curr->def_funkey) {
       /*
-       * If running in read-only mode and the function selected is not valid
-       * display an error.
+       * If running in read-only mode and the function selected is not valid display an error.
        */
       if (curr->def_command != (-1) && ISREADONLY(CURRENT_FILE) && !command[curr->def_command].valid_in_readonly) {
-        display_error(56, (char_t *) "", FALSE);
+        display_error(56, (uchar *) "", FALSE);
         rc = RC_INVALID_ENVIRON;
         curr = NULL;
         break;
       }
       /*
-       * If there are no more files in the ring, and the command is not a
-       * command to edit a new file, then ignore the command.
+       * If there are no more files in the ring,
+       * and the command is not a command to edit a new file,
+       * then ignore the command.
        */
       if (curr->def_command != (-1) && number_of_files == 0 && !command[curr->def_command].edit_command) {
         rc = RC_OK;
         curr = NULL;
         break;
       }
-      if ((key_cmd = (char_t *) strdup ((char *) curr->def_params)) == NULL) {
-        display_error(30, (char_t *) "", FALSE);
+      if ((key_cmd = (uchar *) strdup((char*)curr->def_params)) == NULL) {
+        display_error(30, (uchar *) "", FALSE);
         rc = RC_OUT_OF_MEMORY;
         curr = NULL;
         break;
@@ -3092,9 +2993,8 @@ short execute_mouse_commands(int key) {
         rc = execute_macro_instore(key_cmd, &macrorc, &curr->pcode, &curr->pcode_len, NULL, curr->def_funkey);
       } else {
         /*
-         * If operating in CUA mode, and a CUA block exists, check
-         * if the block should be reset or deleted before executing
-         * the command.
+         * If operating in CUA mode, and a CUA block exists,
+         * check if the block should be reset or deleted before executing the command.
          */
         if (INTERFACEx == INTERFACE_CUA && MARK_VIEW == CURRENT_VIEW && MARK_VIEW->mark_type == M_CUA) {
           ResetOrDeleteCUABlock(command[curr->def_command].cua_behaviour);
@@ -3105,9 +3005,9 @@ short execute_mouse_commands(int key) {
         if (CURRENT_VIEW->thighlight_on && CURRENT_VIEW->thighlight_active) {
           AdjustThighlight(command[curr->def_command].thighlight_behaviour);
         }
-        rc = (*command[curr->def_command].function) ((char_t *) key_cmd);
+        rc = (*command[curr->def_command].function) ((uchar *) key_cmd);
       }
-      free (key_cmd);
+      free(key_cmd);
       if (rc != RC_OK && rc != RC_TOF_EOF_REACHED && rc != RC_NO_LINES_CHANGED && rc != RC_TARGET_NOT_FOUND) {
         curr = NULL;
         break;
@@ -3123,29 +3023,30 @@ short execute_mouse_commands(int key) {
 
 #define NM_PARAMS  2
 
-short validate_n_m(char_t *params, short *col1, short *col2) {
-  char_t *word[NM_PARAMS + 1];
-  char_t strip[NM_PARAMS];
+short validate_n_m(uchar *params, short *col1, short *col2) {
+  uchar *word[NM_PARAMS + 1];
+  uchar strip[NM_PARAMS];
   unsigned short num_params = 0;
   short rc = RC_OK;
 
   /*
-   * Validate the parameters that have been supplied. One only
-   * parameter MUST be supplied. The first parameter MUST be a positive
-   * integer. The second can be a positive integer or '*'. If no second
-   * parameter is supplied, defaults to p1. The second parameter MUST be
-   * >= first parameter. '*' is regarded as the biggest number and is
-   * literally 255.
+   * Validate the parameters that have been supplied.
+   * One only parameter MUST be supplied.
+   * The first parameter MUST be a positive integer.
+   * The second can be a positive integer or '*'.
+   * If no second parameter is supplied, defaults to p1.
+   * The second parameter MUST be >= first parameter.
+   * '*' is regarded as the biggest number and is literally 255.
    */
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
   num_params = param_split(params, word, NM_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params < 1) {
-    display_error(3, (char_t *) "", FALSE);
+    display_error(3, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (num_params > 2) {
-    display_error(2, (char_t *) "", FALSE);
+    display_error(2, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   if (!valid_positive_integer(word[0])) {
@@ -3178,16 +3079,15 @@ short validate_n_m(char_t *params, short *col1, short *col2) {
 }
 
 void ResetOrDeleteCUABlock(int cua_behaviour) {
-  length_t save_col;
-  line_t save_line;
+  long save_col;
+  long save_line;
 
   if (cua_behaviour & CUA_RESET_BLOCK) {
-    Reset((char_t *) "BLOCK");
+    Reset((uchar *) "BLOCK");
   } else if (cua_behaviour & CUA_DELETE_BLOCK) {
     /*
-     * Determine start of block, and save this position so
-     * we can move the cursor there after deleting the
-     * marked block.
+     * Determine start of block, and save this position
+     * so we can move the cursor there after deleting the marked block.
      */
     if ((CURRENT_VIEW->mark_start_line * max_line_length) + CURRENT_VIEW->mark_start_col < (CURRENT_VIEW->mark_end_line * max_line_length) + CURRENT_VIEW->mark_end_col) {
       save_line = CURRENT_VIEW->mark_start_line;
@@ -3232,16 +3132,16 @@ bool save_target(TARGET *target) {
   return string_target;
 }
 
-short execute_locate(char_t *cmd, bool display_parse_error, bool search_semantics, bool *target_found) {
-  line_t save_focus_line = 0L;
-  line_t save_current_line = 0L;
+short execute_locate(uchar *cmd, bool display_parse_error, bool search_semantics, bool *target_found) {
+  long save_focus_line = 0L;
+  long save_current_line = 0L;
   TARGET target;
   long target_type;
   bool negative = FALSE;
   short rc;
   bool wrapped = FALSE;
-  line_t true_line = 0L;
-  length_t focus_column;
+  long true_line = 0L;
+  long focus_column;
 
   if (target_found) {
     *target_found = FALSE;
@@ -3293,7 +3193,7 @@ short execute_locate(char_t *cmd, bool display_parse_error, bool search_semantic
           rc = save_lastop(LASTOP_LOCATE, target.string);
         }
         if (rc != RC_OK) {
-          display_error(30, (char_t *) "", FALSE);
+          display_error(30, (uchar *) "", FALSE);
           return rc;
         }
       }
@@ -3308,15 +3208,14 @@ short execute_locate(char_t *cmd, bool display_parse_error, bool search_semantic
     }
   }
   /*
-   * If a valid target and found, go there and execute any following
-   * command.
+   * If a valid target and found, go there and execute any following command.
    */
   if (rc == RC_OK) {
     if (target_found) {
       *target_found = TRUE;
     }
     if (wrapped) {
-      display_error(0, (char_t *) "Wrapped...", FALSE);
+      display_error(0, (uchar *) "Wrapped...", FALSE);
       CURRENT_VIEW->focus_line = save_focus_line;
       CURRENT_VIEW->current_line = save_current_line;
       build_screen(current_screen);
@@ -3334,7 +3233,7 @@ short execute_locate(char_t *cmd, bool display_parse_error, bool search_semantic
         rc = save_lastop(LASTOP_LOCATE, target.string);
       }
       if (rc != RC_OK) {
-        display_error(30, (char_t *) "", FALSE);
+        display_error(30, (uchar *) "", FALSE);
         return rc;
       }
     }
@@ -3344,10 +3243,6 @@ short execute_locate(char_t *cmd, bool display_parse_error, bool search_semantic
     if (target.num_lines) {
       rc = advance_current_or_focus_line(target.num_lines);
     }
-    /*
-     * If SEARCHing reposition the cursor or current_column
-     * to the FIRST NO SET target.focus_column to found column and use that!!
-     */
     if (search_semantics) {
       if (CURRENT_VIEW->current_window == WINDOW_FILEAREA) {
         THEcursor_goto(CURRENT_VIEW->focus_line, target.focus_column + 1);
@@ -3367,7 +3262,7 @@ short execute_locate(char_t *cmd, bool display_parse_error, bool search_semantic
       display_screen(current_screen);
     }
     if ((rc == RC_OK || rc == RC_TOF_EOF_REACHED) && target.spare != (-1)) {
-      rc = command_line(MyStrip(target.rt[target.spare].string, STRIP_LEADING, ' '), FALSE);
+      rc = command_line(strstrip(target.rt[target.spare].string, STRIP_LEADING, ' '), FALSE);
     }
     /*
      * Don't free the target if THIGHLIGHT is on
@@ -3382,27 +3277,28 @@ short execute_locate(char_t *cmd, bool display_parse_error, bool search_semantic
 }
 
 /*
- * This function adjusts displayed lines in the other screen if the display lines
- * are changed in the current screen. Used by SET SELECT, SET DISPLAY, ALL, MORE and LESS
+ * This function adjusts displayed lines in the other screen if the display lines are changed in the current screen.
+ * Used by SET SELECT, SET DISPLAY, ALL, MORE and LESS
  */
 void adjust_other_screen_shadow_lines(void) {
   /*
    * If the same file is in the other screen, refresh it
    */
-  if (display_screens > 1 && SCREEN_FILE(current_screen) == SCREEN_FILE((char_t) (other_screen))) {
+  if (display_screens > 1 && SCREEN_FILE(current_screen) == SCREEN_FILE((uchar) (other_screen))) {
     OTHER_VIEW->current_line = find_next_in_scope(OTHER_VIEW, NULL, OTHER_VIEW->current_line, DIRECTION_FORWARD);
-    build_screen((char_t) (other_screen));
-    if (!line_in_view((char_t) (other_screen), OTHER_VIEW->focus_line)) {
+    build_screen((uchar) (other_screen));
+    if (!line_in_view((uchar) (other_screen), OTHER_VIEW->focus_line)) {
       OTHER_VIEW->focus_line = OTHER_VIEW->current_line;
       pre_process_line(OTHER_VIEW, OTHER_VIEW->focus_line, (LINE *) NULL);
-      build_screen((char_t) (other_screen));
+      build_screen((uchar) (other_screen));
     }
-    display_screen((char_t) (other_screen));
+    display_screen((uchar) (other_screen));
   }
+
   return;
 }
 
-int is_file_in_ring(char_t *fpath, char_t *fname) {
+int is_file_in_ring(uchar *fpath, uchar *fname) {
   VIEW_DETAILS *curr = vd_first;
 
   while (curr) {
@@ -3414,13 +3310,13 @@ int is_file_in_ring(char_t *fpath, char_t *fname) {
   return FALSE;
 }
 
-int save_lastop(int idx, char_t *op) {
+int save_lastop(int idx, uchar *op) {
   int op_len;
   int rc = RC_OK;
 
   op_len = strlen((char *) op);
   if (op_len > lastop[idx].value_len) {
-    lastop[idx].value = (char_t *) realloc (lastop[idx].value, op_len + 1);
+    lastop[idx].value = (uchar *) realloc(lastop[idx].value, op_len + 1);
   }
   if (lastop[idx].value) {
     strcpy((char *) lastop[idx].value, (char *) op);
@@ -3432,7 +3328,8 @@ int save_lastop(int idx, char_t *op) {
   return rc;
 }
 
-char_t *get_command_name(int idx, bool *set_command, bool *sos_command) {
+uchar *get_command_name(int idx, bool *set_command, bool *sos_command) {
+
   if (idx < 0 || idx >= sizeof(command) / sizeof(struct commands) - 1) {
     return NULL;
   }

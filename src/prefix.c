@@ -2,51 +2,52 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* Prefix commands.                                         */
-
 #include "the.h"
 #include "proto.h"
 
 /*-------------------------- declarations -----------------------------*/
 
 static short parse_prefix_command (THE_PPC *);
+static void split_prefix_command (uchar *, THE_PPC *);
+
 static short invalidate_prefix (THE_PPC *, char *);
-static short prefix_makecurr (THE_PPC *, short, line_t);
-static short prefix_add (THE_PPC *, short, line_t);
-static short prefix_duplicate (THE_PPC *, short, line_t);
-static short prefix_copy (THE_PPC *, short, line_t);
-static short prefix_move (THE_PPC *, short, line_t);
-static short prefix_overlay (THE_PPC *, short, line_t);
-static short prefix_lowercase (THE_PPC *, short, line_t);
-static short prefix_uppercase (THE_PPC *, short, line_t);
-static short prefix_delete (THE_PPC *, short, line_t);
-static short prefix_point (THE_PPC *, short, line_t);
-static short prefix_shift_left (THE_PPC *, short, length_t);
-static short prefix_shift_right (THE_PPC *, short, length_t);
-static short prefix_bounds_shift_left (THE_PPC *, short, length_t);
-static short prefix_bounds_shift_right (THE_PPC *, short, length_t);
-static short prefix_tabline (THE_PPC *, short, line_t);
-static short prefix_scale (THE_PPC *, short, line_t);
-static short prefix_show (THE_PPC *, short, line_t);
-static short prefix_exclude (THE_PPC *, short, line_t);
-static short prefix_block_duplicate (THE_PPC *, short, line_t);
-static short prefix_block_copy (THE_PPC *, short, line_t);
-static short prefix_block_move (THE_PPC *, short, line_t);
-static short prefix_block_overlay (THE_PPC *, short, line_t);
-static short prefix_block_lowercase (THE_PPC *, short, line_t);
-static short prefix_block_uppercase (THE_PPC *, short, line_t);
-static short prefix_block_delete (THE_PPC *, short, line_t);
-static short prefix_block_shift_left (THE_PPC *, short, length_t);
-static short prefix_block_shift_right (THE_PPC *, short, length_t);
-static short prefix_block_bounds_shift_left (THE_PPC *, short, length_t);
-static short prefix_block_bounds_shift_right (THE_PPC *, short, length_t);
-static short prefix_block_exclude (THE_PPC *, short, line_t);
+static short post_prefix_add (THE_PPC *, short, long);
+
+static short prefix_makecurr (THE_PPC *, short, long);
+static short prefix_add (THE_PPC *, short, long);
+static short prefix_duplicate (THE_PPC *, short, long);
+static short prefix_copy (THE_PPC *, short, long);
+static short prefix_move (THE_PPC *, short, long);
+static short prefix_lowercase (THE_PPC *, short, long);
+static short prefix_uppercase (THE_PPC *, short, long);
+static short prefix_delete (THE_PPC *, short, long);
+static short prefix_point (THE_PPC *, short, long);
+static short prefix_shift_left (THE_PPC *, short, long);
+static short prefix_shift_right (THE_PPC *, short, long);
+static short prefix_bounds_shift_left (THE_PPC *, short, long);
+static short prefix_bounds_shift_right (THE_PPC *, short, long);
+static short prefix_tabline (THE_PPC *, short, long);
+static short prefix_scale (THE_PPC *, short, long);
+static short prefix_show (THE_PPC *, short, long);
+static short prefix_exclude (THE_PPC *, short, long);
+static short prefix_block_duplicate (THE_PPC *, short, long);
+static short prefix_block_copy (THE_PPC *, short, long);
+static short prefix_block_move (THE_PPC *, short, long);
+static short prefix_block_lowercase (THE_PPC *, short, long);
+static short prefix_block_uppercase (THE_PPC *, short, long);
+static short prefix_block_delete (THE_PPC *, short, long);
+static short prefix_block_shift_left (THE_PPC *, short, long);
+static short prefix_block_shift_right (THE_PPC *, short, long);
+static short prefix_block_bounds_shift_left (THE_PPC *, short, long);
+static short prefix_block_bounds_shift_right (THE_PPC *, short, long);
+static short prefix_block_exclude (THE_PPC *, short, long);
+
 static THE_PPC *find_top_ppc (THE_PPC *, short);
 static THE_PPC *find_target_ppc (void);
+
 static THE_PPC *calculate_target_line (void);
+
 static short try_rexx_prefix_macro (THE_PPC *);
-static void split_prefix_command (char_t *, THE_PPC *);
-static short post_prefix_add (THE_PPC *, short, line_t);
 
 /*
  * The following two are to specify the first and last items in the
@@ -59,115 +60,113 @@ LINE *last_prefix_synonym = NULL;
  * The view in which the pending list is being executed.
  */
 static VIEW_DETAILS *vd_pending;
-static char_t pending_screen;
+static uchar pending_screen;
 
-#define PENDING_VIEW                (vd_pending)
-#define PENDING_FILE                (vd_pending->file_for_view)
-#define PENDING_SCREEN              screen[pending_screen]
-#define PENDING_WINDOW              (PENDING_SCREEN.win[vd_pending->current_window])
+#define PENDING_VIEW           (vd_pending)
+#define PENDING_FILE           (vd_pending->file_for_view)
+#define PENDING_SCREEN         screen[pending_screen]
+#define PENDING_WINDOW         (PENDING_SCREEN.win[vd_pending->current_window])
 
-#define THE_PPC_NO_TARGET        (-1)
-#define THE_PPC_NO_COMMAND       (-2)
+#define THE_PPC_NO_TARGET      (-1)
+#define THE_PPC_NO_COMMAND     (-2)
 
 #define THE_PPC_TARGET_PREVIOUS  3
 #define THE_PPC_TARGET_FOLLOWING 4
+
 /* the above two defines correspond to the position in the pc[] array  */
 /* and should be changed if the position in pc[] array changes.        */
 
 #define NUMBER_PREFIX_COMMANDS 33
-static PREFIX_COMMAND  pc[2][NUMBER_PREFIX_COMMANDS] = {
+
+static PREFIX_COMMAND pc[2][NUMBER_PREFIX_COMMANDS] = {
   {
-   /* THE, XEDIT, KEDIT, KEDITW compatibility mode prefix commands */
-   /* environment commands... */
-   { (char_t *) "tabl", 4, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_tabline, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
-   { (char_t *) "scale", 5, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_scale, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
-   { (char_t *) "/", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_makecurr, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 50, NULL, FALSE, TRUE},
-   /* targets... */
-/* 3 */ { (char_t *) "p", 1, PC_NOT_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_VALID_BOF, PC_INVALID_RO, NULL, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, TRUE},
-/* 4 */ { (char_t *) "f", 1, PC_NOT_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, NULL, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, TRUE},
-   /* block commands... */
-   { (char_t *) "lcc", 3, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_lowercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "ucc", 3, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_uppercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "\"\"", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_duplicate, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, FALSE, FALSE},
-   { (char_t *) "cc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_copy, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "mm", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_move, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "oo", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_overlay, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "dd", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_delete, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 10, NULL, FALSE, FALSE},
-   { (char_t *) "xx", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_block_exclude, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "<<", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) ">>", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "((", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_bounds_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "))", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_bounds_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   /* line commands - no targets... */
-   { (char_t *) "lc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_lowercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "uc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_uppercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   /* line commands with targets... */
-   { (char_t *) "c", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_copy, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "m", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_move, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "o", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_overlay, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "d", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_delete, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 10, NULL, FALSE, FALSE},
-   /* line commands - no targets... */
-   { (char_t *) ".", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_point, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, TRUE, FALSE},
-   { (char_t *) "\"", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_duplicate, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, FALSE, FALSE},
-   { (char_t *) "s", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_show, MAX_LONG, PC_IGNORE_SCOPE, PC_USE_LAST_IN_SCOPE, 30, NULL, FALSE, TRUE},
-   { (char_t *) "x", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_exclude, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "<", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) ">", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "(", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_bounds_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) ")", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_bounds_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "i", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_add, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 60, post_prefix_add, FALSE, FALSE},
-   { (char_t *) "a", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_add, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 60, post_prefix_add, FALSE, FALSE},
-    },
+    /* THE, XEDIT, KEDIT, KEDITW compatibility mode prefix commands */
+    /* environment commands... */
+    { (uchar *) "tabl", 4, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_tabline, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
+    { (uchar *) "scale", 5, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_scale, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
+    { (uchar *) "/", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_makecurr, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 50, NULL, FALSE, TRUE},
+    /* targets... */
+    /* 3 */ { (uchar *) "p", 1, PC_NOT_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_VALID_BOF, PC_INVALID_RO, NULL, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, TRUE},
+    /* 4 */ { (uchar *) "f", 1, PC_NOT_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, NULL, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, TRUE},
+    /* block commands... */
+    { (uchar *) "lcc", 3, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_lowercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "ucc", 3, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_uppercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "\"\"", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_duplicate, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, FALSE, FALSE},
+    { (uchar *) "cc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_copy, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "mm", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_move, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "dd", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_delete, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 10, NULL, FALSE, FALSE},
+    { (uchar *) "xx", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_block_exclude, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "<<", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) ">>", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "((", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_bounds_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "))", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_bounds_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    /* line commands - no targets... */
+    { (uchar *) "lc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_lowercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "uc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_uppercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    /* line commands with targets... */
+    { (uchar *) "c", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_copy, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "m", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_move, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "d", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_delete, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 10, NULL, FALSE, FALSE},
+    /* line commands - no targets... */
+    { (uchar *) ".", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_point, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, TRUE, FALSE},
+    { (uchar *) "\"", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_duplicate, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, FALSE, FALSE},
+    { (uchar *) "s", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_show, MAX_LONG, PC_IGNORE_SCOPE, PC_USE_LAST_IN_SCOPE, 30, NULL, FALSE, TRUE},
+    { (uchar *) "x", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_exclude, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "<", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) ">", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "(", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_bounds_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) ")", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_bounds_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "i", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_add, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 60, post_prefix_add, FALSE, FALSE},
+    { (uchar *) "a", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_add, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 60, post_prefix_add, FALSE, FALSE},
+  },
   {
-   /* ISPF compatibility mode prefix commands */
-   /* environment commands... */
-   { (char_t *) "tabs", 4, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_tabline, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
-   { (char_t *) "cols", 4, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_scale, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
-   { (char_t *) "bounds", 6, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_scale, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
-   /* targets... */
-/* 3 */ { (char_t *) "b", 1, PC_NOT_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_VALID_BOF, PC_INVALID_RO, NULL, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, TRUE},
-/* 4 */ { (char_t *) "a", 1, PC_NOT_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, NULL, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, TRUE},
-   /* block commands... */
-   { (char_t *) "lcc", 3, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_lowercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "ucc", 3, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_uppercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "rr", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_duplicate, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, FALSE, FALSE},
-   { (char_t *) "cc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_copy, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "mm", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_move, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "oo", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_overlay, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "dd", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_delete, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 10, NULL, FALSE, FALSE},
-   { (char_t *) "xx", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_block_exclude, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "<<", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) ">>", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "((", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_bounds_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "))", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_bounds_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   /* line commands - no targets... */
-   { (char_t *) "lc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_lowercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "uc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_uppercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   /* line commands with targets... */
-   { (char_t *) "c", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_copy, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "m", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_move, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "o", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_overlay, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "d", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_delete, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 10, NULL, FALSE, FALSE},
-   /* line commands - no targets... */
-   { (char_t *) ".", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_point, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, TRUE, FALSE},
-   { (char_t *) "r", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_duplicate, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, FALSE, FALSE},
-   { (char_t *) "s", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_show, MAX_LONG, PC_IGNORE_SCOPE, PC_USE_LAST_IN_SCOPE, 30, NULL, FALSE, TRUE},
-   { (char_t *) "x", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_exclude, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "<", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) ">", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "(", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_bounds_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) ")", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_bounds_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
-   { (char_t *) "i", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_add, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 60, post_prefix_add, FALSE, FALSE},
-    }
+    /* ISPF compatibility mode prefix commands */
+    /* environment commands... */
+    { (uchar *) "tabs", 4, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_tabline, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
+    { (uchar *) "cols", 4, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_scale, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
+    { (uchar *) "bounds", 6, PC_IS_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_scale, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, FALSE},
+    /* targets... */
+    /* 3 */ { (uchar *) "b", 1, PC_NOT_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_VALID_BOF, PC_INVALID_RO, NULL, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, TRUE},
+    /* 4 */ { (uchar *) "a", 1, PC_NOT_ACTION, PC_NO_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, NULL, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 0, NULL, FALSE, TRUE},
+    /* block commands... */
+    { (uchar *) "lcc", 3, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_lowercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "ucc", 3, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_uppercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "rr", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_duplicate, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, FALSE, FALSE},
+    { (uchar *) "cc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_copy, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "mm", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_move, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "dd", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_delete, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 10, NULL, FALSE, FALSE},
+    { (uchar *) "xx", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_block_exclude, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "<<", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) ">>", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "((", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_bounds_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "))", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_IS_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_block_bounds_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    /* line commands - no targets... */
+    { (uchar *) "lc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_lowercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "uc", 2, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_uppercase, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    /* line commands with targets... */
+    { (uchar *) "c", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_copy, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "m", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_move, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "d", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_delete, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 10, NULL, FALSE, FALSE},
+    /* line commands - no targets... */
+    { (uchar *) ".", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_VALID_BOF, PC_VALID_RO, prefix_point, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, TRUE, FALSE},
+    { (uchar *) "r", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_duplicate, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 40, NULL, FALSE, FALSE},
+    { (uchar *) "s", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_show, MAX_LONG, PC_IGNORE_SCOPE, PC_USE_LAST_IN_SCOPE, 30, NULL, FALSE, TRUE},
+    { (uchar *) "x", 1, PC_IS_ACTION, PC_MULTIPLES, PC_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_VALID_RO, prefix_exclude, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "<", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) ">", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "(", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_bounds_shift_left, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) ")", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_INVALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_bounds_shift_right, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 30, NULL, FALSE, FALSE},
+    { (uchar *) "i", 1, PC_IS_ACTION, PC_MULTIPLES, PC_NO_FULL_TARGET, PC_NOT_BLOCK, PC_TARGET_NOT_REQD, PC_VALID_TOF, PC_INVALID_BOF, PC_INVALID_RO, prefix_add, 1L, PC_RESPECT_SCOPE, PC_NO_USE_LAST_IN_SCOPE, 60, post_prefix_add, FALSE, FALSE},
+  }
 };
 
-line_t prefix_current_line;
+long prefix_current_line;
 bool in_prefix_macro = FALSE;   /* indicate if processing prefix macro */
 
 short execute_prefix_commands(void) {
   short ispf_idx, cmd_idx = 0, rc = RC_OK;
-  char_t *mult;
-  line_t long_mult = 0L;
+  uchar *mult;
+  long long_mult = 0L;
   LINE *curr;
   THE_PPC *curr_ppc = NULL, *top_ppc;
   TARGET target;
@@ -177,8 +176,7 @@ short execute_prefix_commands(void) {
   int save_number_of_files;
 
   /*
-   * Setup pending values for the view, file and screen to be used by all
-   * pending prefix commands.
+   * Setup pending values for the view, file and screen to be used by all pending prefix commands.
    */
   pending_screen = current_screen;
   PENDING_VIEW = CURRENT_VIEW;
@@ -217,8 +215,8 @@ short execute_prefix_commands(void) {
   curr_ppc = PENDING_FILE->first_ppc;
   while (curr_ppc) {
     /*
-     * To imitate XEDIT behaviour, ignore a prefix command if the line on which the prefix command
-     * has been entered is not in scope.
+     * To imitate XEDIT behaviour, ignore a prefix command
+     * if the line on which the prefix command has been entered is not in scope.
      */
     curr = lll_find(PENDING_FILE->first_line, PENDING_FILE->last_line, curr_ppc->ppc_line_number, PENDING_FILE->number_lines);
     if (!(IN_SCOPE(PENDING_VIEW, curr) || PENDING_VIEW->scope_all || pc[ispf_idx][curr_ppc->ppc_cmd_idx].allowed_on_shadow_line == TRUE)) {
@@ -241,8 +239,8 @@ short execute_prefix_commands(void) {
       continue;
     }
     /*
-     * Set the pending prefix to processed before we execute as the executing
-     * prefix command is not pending at the time it is executed.
+     * Set the pending prefix to processed before we execute
+     * as the executing prefix command is not pending at the time it is executed.
      * For the top part of a block command, we have to "unprocess" it later
      */
     curr_ppc->ppc_current_command = TRUE;
@@ -252,14 +250,13 @@ short execute_prefix_commands(void) {
     if (rexx_support) {         /* if REXX support is in effect ... */
       save_number_of_files = number_of_files;
       /*
-       * first determine if the command is a prefix macro BEFORE looking for
-       * standard prefix commands.
+       * first determine if the command is a prefix macro BEFORE looking for standard prefix commands.
        */
       rc = try_rexx_prefix_macro(curr_ppc);
       /*
-       * If at this point there are no more files in the ring; we assume that
-       * this was caused by exitting the last file in the ring from a prefix
-       * macro, exit and ignore any more prefix commands. This is messy !!!
+       * If at this point there are no more files in the ring;
+       * we assume that this was caused by exitting the last file in the ring from a prefix macro,
+       * exit and ignore any more prefix commands. This is messy !!!
        */
       if (number_of_files == 0) {
         return (RC_COMMAND_NO_FILES);
@@ -278,8 +275,7 @@ short execute_prefix_commands(void) {
     }
     curr_ppc->ppc_current_command = FALSE;
     /*
-     * if no prefix macro found for the prefix command, check to see if it
-     * is a standard prefix command.
+     * if no prefix macro found for the prefix command, check to see if it is a standard prefix command.
      */
     if ((cmd_idx = parse_prefix_command(curr_ppc)) == THE_PPC_NO_TARGET) {
       invalidate_prefix(curr_ppc, NULL);
@@ -291,18 +287,16 @@ short execute_prefix_commands(void) {
       continue;
     }
     /*
-     * If running in read-only mode and the function selected is not valid
-     * display an error.
+     * If running in read-only mode and the function selected is not valid display an error.
      */
     if (ISREADONLY(PENDING_FILE) && !pc[ispf_idx][cmd_idx].valid_in_readonly) {
-      display_error(56, (char_t *) "", FALSE);
+      display_error(56, (uchar *) "", FALSE);
       invalidate_prefix(curr_ppc, NULL);
       curr_ppc = curr_ppc->next;
       continue;
     }
     /*
-     * Set the block_command flag for the current prefix command to the
-     * appropriate value for the prefix command.
+     * Set the block_command flag for the current prefix command to the appropriate value for the prefix command.
      */
     curr_ppc->ppc_block_command = pc[ispf_idx][cmd_idx].block_prefix_command;
     /*
@@ -312,18 +306,17 @@ short execute_prefix_commands(void) {
       top_ppc = find_top_ppc(curr_ppc, curr_ppc->ppc_cmd_idx);
       if (top_ppc == NULL) {
         /*
-         * For the top part of a block command, we have to set it back to
-         * "unprocessed"
-         curr_ppc->ppc_processed = FALSE;
+         * For the top part of a block command, we have to set it back to "unprocessed"
          */
+        // curr_ppc->ppc_processed = FALSE;
         curr_ppc = curr_ppc->next;
         continue;
       }
       /*
        * If we have the second instance of a block command work out any arguments.
        * This is done like:
-       * If the top instance has an arg, use that, otherwise use the argument from the second
-       * (current) instance
+       *   If the top instance has an arg, use that,
+       *   otherwise use the argument from the second (current) instance
        */
       if (*(top_ppc->ppc_op[0]) && strlen((char *) top_ppc->ppc_op[0]) != 0) {
         mult = top_ppc->ppc_op[0];
@@ -338,8 +331,7 @@ short execute_prefix_commands(void) {
      * and find any associated pending commands.
      */
     /*
-     * If the command does not allow parameters and there are parameters,
-     * error.
+     * If the command does not allow parameters and there are parameters, error.
      */
     if (!pc[ispf_idx][cmd_idx].multiples_allowed && strcmp((char *) mult, "") != 0) {
       invalidate_prefix(curr_ppc, NULL);
@@ -347,8 +339,7 @@ short execute_prefix_commands(void) {
       continue;
     }
     /*
-     * If the command does allow parameters and there are no parameters,
-     * set to default...
+     * If the command does allow parameters and there are no parameters, set to default...
      */
     rc = RC_OK;
     if (strcmp((char *) mult, "") == 0) {
@@ -415,8 +406,8 @@ short execute_prefix_commands(void) {
     curr_ppc = curr_ppc->next;
   }
   /*
-   * The "cleared" pending prefix commands now need to be deleted from
-   * the linked list...
+   * The "cleared" pending prefix commands now need to be deleted from the linked list...
+   *
    * Only clear the pending prefix command if it is NOT a builtin prefix command
    * and it was NOT created by SET PENDING (ie it was typed into the prefix area
    */
@@ -471,14 +462,13 @@ short execute_prefix_commands(void) {
 }
 
 static short parse_prefix_command(THE_PPC *curr_ppc) {
-  register short i = 0;
+  short i = 0;
   short rc = RC_OK;
   LINE *curr = NULL;
   int ispf_idx = (compatible_feel == COMPAT_ISPF) ? 1 : 0;
 
   /*
-   * For each pending prefix command for the current view, execute the
-   * appropriate command.
+   * For each pending prefix command for the current view, execute the appropriate command.
    */
   rc = THE_PPC_NO_TARGET;
   if (blank_field(curr_ppc->ppc_command)) {     /* if prefix command is blank, return */
@@ -495,8 +485,7 @@ static short parse_prefix_command(THE_PPC *curr_ppc) {
       continue;
     }
     /*
-     * Now that a match on synonym is made, determine the original prefix
-     * command associated with that synonym...
+     * Now that a match on synonym is made, determine the original prefix command associated with that synonym...
      */
     for (i = 0; i < NUMBER_PREFIX_COMMANDS; i++) {
       if (pc[ispf_idx][i].cmd == NULL) {
@@ -508,15 +497,13 @@ static short parse_prefix_command(THE_PPC *curr_ppc) {
       }
     }
     /*
-     * To get here we found a prefix synonym, but no matching original
-     * command, so return an error.
+     * To get here we found a prefix synonym, but no matching original command, so return an error.
      */
     curr_ppc->ppc_cmd_idx = (-1);
     return (rc);
   }
   /*
-   * We don't have a prefix synonym for the supplied command; look
-   * for builtin prefix commands.
+   * We don't have a prefix synonym for the supplied command; look for builtin prefix commands.
    * Builtin prefix commands are case insensitive
    */
   for (i = 0; i < NUMBER_PREFIX_COMMANDS; i++) {
@@ -533,8 +520,7 @@ static short parse_prefix_command(THE_PPC *curr_ppc) {
     }
   }
   /*
-   * If command not found, set a flag in ppc[] array to indicate command
-   * is invalid.
+   * If command not found, set a flag in ppc[] array to indicate command is invalid.
    */
   if (rc == THE_PPC_NO_TARGET) {
     curr_ppc->ppc_cmd_idx = (-1);
@@ -542,19 +528,19 @@ static short parse_prefix_command(THE_PPC *curr_ppc) {
   return (rc);
 }
 
-static short prefix_makecurr(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  line_t top_line = curr_ppc->ppc_line_number;
+static short prefix_makecurr(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long top_line = curr_ppc->ppc_line_number;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   execute_makecurr(pending_screen, PENDING_VIEW, top_line);
   if (number_lines != 0L) {
-    PENDING_VIEW->current_column = (length_t) number_lines;
+    PENDING_VIEW->current_column = (long) number_lines;
   }
   return (0);
 }
 
-static short prefix_tabline(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  line_t top_line = curr_ppc->ppc_line_number;
+static short prefix_tabline(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long top_line = curr_ppc->ppc_line_number;
   short tab_row = 0;
 
   if ((tab_row = get_row_for_focus_line(pending_screen, top_line, (-1))) != (-1)) {
@@ -566,8 +552,8 @@ static short prefix_tabline(THE_PPC *curr_ppc, short cmd_idx, line_t number_line
   return (0);
 }
 
-static short prefix_scale(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  line_t top_line = curr_ppc->ppc_line_number;
+static short prefix_scale(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long top_line = curr_ppc->ppc_line_number;
   short scale_row = 0;
 
   if ((scale_row = get_row_for_focus_line(pending_screen, top_line, (-1))) != (-1)) {
@@ -579,11 +565,11 @@ static short prefix_scale(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines)
   return (0);
 }
 
-static short prefix_show(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  line_t i = 0;
+static short prefix_show(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long i = 0;
   short rc = RC_OK;
-  line_t top_line = curr_ppc->ppc_line_number;
-  line_t target_line = 0L;
+  long top_line = curr_ppc->ppc_line_number;
+  long target_line = 0L;
   LINE *curr = NULL;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
@@ -603,8 +589,7 @@ static short prefix_show(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) 
     return (-1);
   }
   /*
-   * For a negative target, show the lines from the end of the excluded
-   * block.
+   * For a negative target, show the lines from the end of the excluded block.
    */
   if (number_lines < 0) {
     target_line = find_last_not_in_scope(PENDING_VIEW, curr, top_line, DIRECTION_FORWARD);
@@ -618,8 +603,7 @@ static short prefix_show(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) 
     }
   } else {
     /*
-     * For a positive target, show the lines from the start of the excluded
-     * block.
+     * For a positive target, show the lines from the start of the excluded block.
      */
     for (i = 0; i < number_lines; i++) {
       curr->select = PENDING_VIEW->display_high;
@@ -632,9 +616,9 @@ static short prefix_show(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) 
   return (rc);
 }
 
-static short prefix_exclude(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_exclude(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   short rc = RC_OK;
-  line_t top_line = curr_ppc->ppc_line_number;
+  long top_line = curr_ppc->ppc_line_number;
   LINE *curr = NULL;
   short direction = DIRECTION_FORWARD;
 
@@ -643,8 +627,7 @@ static short prefix_exclude(THE_PPC *curr_ppc, short cmd_idx, line_t number_line
     return (-1);
   }
   /*
-   * If the high value of SET DISPLAY is 255, we can't exclude any lines
-   * so exit.
+   * If the high value of SET DISPLAY is 255, we can't exclude any lines so exit.
    */
   if (PENDING_VIEW->display_high == 255) {
     return (rc);
@@ -659,8 +642,7 @@ static short prefix_exclude(THE_PPC *curr_ppc, short cmd_idx, line_t number_line
    */
   curr = lll_find(PENDING_FILE->first_line, PENDING_FILE->last_line, top_line, PENDING_FILE->number_lines);
   /*
-   * For the number of lines affected, change the select level if the
-   * line is in scope.
+   * For the number of lines affected, change the select level if the line is in scope.
    */
   while (number_lines != 0) {
     if (IN_SCOPE(PENDING_VIEW, curr)) {
@@ -683,22 +665,22 @@ static short prefix_exclude(THE_PPC *curr_ppc, short cmd_idx, line_t number_line
   return (rc);
 }
 
-static short prefix_add(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_add(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   short rc = (-1);
-  line_t top_line = curr_ppc->ppc_line_number;
+  long top_line = curr_ppc->ppc_line_number;
 
   if (top_line == PENDING_FILE->number_lines + 1) {
     top_line--;
   }
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
-  rc = insert_new_line(pending_screen, PENDING_VIEW, (char_t *) "", 0, number_lines, top_line, FALSE, FALSE, TRUE, PENDING_VIEW->display_low, FALSE, FALSE);
+  rc = insert_new_line(pending_screen, PENDING_VIEW, (uchar *) "", 0, number_lines, top_line, FALSE, FALSE, TRUE, PENDING_VIEW->display_low, FALSE, FALSE);
   return (rc);
 }
 
-static short prefix_duplicate(THE_PPC *curr_ppc, short cmd_idx, line_t number_occ) {
+static short prefix_duplicate(THE_PPC *curr_ppc, short cmd_idx, long number_occ) {
   short rc = (-1);
-  line_t top_line = curr_ppc->ppc_line_number;
-  line_t lines_affected = 0L;
+  long top_line = curr_ppc->ppc_line_number;
+  long lines_affected = 0L;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   if (top_line != 0L && top_line != PENDING_FILE->number_lines + 1) {
@@ -707,9 +689,9 @@ static short prefix_duplicate(THE_PPC *curr_ppc, short cmd_idx, line_t number_oc
   return (rc);
 }
 
-static short prefix_copy(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  line_t bottom_line = 0L, target_line = 0L, lines_affected = 0L;
-  line_t top_line = curr_ppc->ppc_line_number;
+static short prefix_copy(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long bottom_line = 0L, target_line = 0L, lines_affected = 0L;
+  long top_line = curr_ppc->ppc_line_number;
   THE_PPC *target_ppc = NULL;
   short rc = (-1);
 
@@ -726,9 +708,9 @@ static short prefix_copy(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) 
   return (rc);
 }
 
-static short prefix_move(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  line_t bottom_line = 0L, target_line = 0L, lines_affected = 0L;
-  line_t top_line = curr_ppc->ppc_line_number;
+static short prefix_move(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long bottom_line = 0L, target_line = 0L, lines_affected = 0L;
+  long top_line = curr_ppc->ppc_line_number;
   THE_PPC *target_ppc = NULL;
   short rc = (-1);
 
@@ -753,9 +735,9 @@ static short prefix_move(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) 
   return (rc);
 }
 
-static short prefix_point(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_point(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   int rc = RC_OK;
-  char_t  buf[MAX_PREFIX_WIDTH + 2];
+  uchar buf[MAX_PREFIX_WIDTH + 2];
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   strcpy((char *) buf, ".");
@@ -767,10 +749,10 @@ static short prefix_point(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines)
   return (rc);
 }
 
-static short prefix_delete(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_delete(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   short rc = (-1);
-  line_t top_line = curr_ppc->ppc_line_number;
-  line_t bottom_line = 0L, target_line = 0L, lines_affected = 0L;
+  long top_line = curr_ppc->ppc_line_number;
+  long bottom_line = 0L, target_line = 0L, lines_affected = 0L;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   if (!VIEW_TOF(PENDING_VIEW, top_line) && !VIEW_BOF(PENDING_VIEW, top_line)) {
@@ -781,8 +763,8 @@ static short prefix_delete(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines
   return (rc);
 }
 
-static short prefix_shift_left(THE_PPC *curr_ppc, short cmd_idx, length_t number_cols) {
-  line_t top_line = curr_ppc->ppc_line_number;
+static short prefix_shift_left(THE_PPC *curr_ppc, short cmd_idx, long number_cols) {
+  long top_line = curr_ppc->ppc_line_number;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   if (top_line != 0L && top_line != PENDING_FILE->number_lines + 1) {
@@ -791,8 +773,8 @@ static short prefix_shift_left(THE_PPC *curr_ppc, short cmd_idx, length_t number
   return (0);
 }
 
-static short prefix_shift_right(THE_PPC *curr_ppc, short cmd_idx, length_t number_cols) {
-  line_t start_line = curr_ppc->ppc_line_number;
+static short prefix_shift_right(THE_PPC *curr_ppc, short cmd_idx, long number_cols) {
+  long start_line = curr_ppc->ppc_line_number;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   if (start_line != 0L && start_line != PENDING_FILE->number_lines + 1) {
@@ -801,8 +783,8 @@ static short prefix_shift_right(THE_PPC *curr_ppc, short cmd_idx, length_t numbe
   return (0);
 }
 
-static short prefix_bounds_shift_left(THE_PPC *curr_ppc, short cmd_idx, length_t number_cols) {
-  line_t top_line = curr_ppc->ppc_line_number;
+static short prefix_bounds_shift_left(THE_PPC *curr_ppc, short cmd_idx, long number_cols) {
+  long top_line = curr_ppc->ppc_line_number;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   if (top_line != 0L && top_line != PENDING_FILE->number_lines + 1) {
@@ -811,8 +793,8 @@ static short prefix_bounds_shift_left(THE_PPC *curr_ppc, short cmd_idx, length_t
   return (0);
 }
 
-static short prefix_bounds_shift_right(THE_PPC *curr_ppc, short cmd_idx, length_t number_cols) {
-  line_t start_line = curr_ppc->ppc_line_number;
+static short prefix_bounds_shift_right(THE_PPC *curr_ppc, short cmd_idx, long number_cols) {
+  long start_line = curr_ppc->ppc_line_number;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   if (start_line != 0L && start_line != PENDING_FILE->number_lines + 1) {
@@ -821,10 +803,10 @@ static short prefix_bounds_shift_right(THE_PPC *curr_ppc, short cmd_idx, length_
   return (0);
 }
 
-static short prefix_lowercase(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  line_t start_line = curr_ppc->ppc_line_number;
-  length_t start_col = PENDING_VIEW->zone_start - 1;
-  length_t end_col = PENDING_VIEW->zone_end - 1;
+static short prefix_lowercase(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long start_line = curr_ppc->ppc_line_number;
+  long start_col = PENDING_VIEW->zone_start - 1;
+  long end_col = PENDING_VIEW->zone_end - 1;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   if (start_line != 0L && start_line != PENDING_FILE->number_lines + 1) {
@@ -833,10 +815,10 @@ static short prefix_lowercase(THE_PPC *curr_ppc, short cmd_idx, line_t number_li
   return (0);
 }
 
-static short prefix_uppercase(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  line_t start_line = curr_ppc->ppc_line_number;
-  length_t start_col = PENDING_VIEW->zone_start - 1;
-  length_t end_col = PENDING_VIEW->zone_end - 1;
+static short prefix_uppercase(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long start_line = curr_ppc->ppc_line_number;
+  long start_col = PENDING_VIEW->zone_start - 1;
+  long end_col = PENDING_VIEW->zone_end - 1;
 
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   if (start_line != 0L && start_line != PENDING_FILE->number_lines + 1) {
@@ -845,14 +827,9 @@ static short prefix_uppercase(THE_PPC *curr_ppc, short cmd_idx, line_t number_li
   return (0);
 }
 
-static short prefix_overlay(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_block_duplicate(THE_PPC *curr_ppc, short cmd_idx, long number_occ) {
   short rc = (-1);
-  return (rc);
-}
-
-static short prefix_block_duplicate(THE_PPC *curr_ppc, short cmd_idx, line_t number_occ) {
-  short rc = (-1);
-  line_t top_line = 0L, bottom_line = 0L, lines_affected = 0L;
+  long top_line = 0L, bottom_line = 0L, lines_affected = 0L;
   THE_PPC *top_ppc = NULL;
 
   if ((top_ppc = find_top_ppc(curr_ppc, cmd_idx)) == NULL) {
@@ -868,9 +845,9 @@ static short prefix_block_duplicate(THE_PPC *curr_ppc, short cmd_idx, line_t num
   return (rc);
 }
 
-static short prefix_block_copy(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_block_copy(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   short rc = (-1);
-  line_t top_line = 0L, bottom_line = 0L, target_line = 0L, lines_affected = 0L;
+  long top_line = 0L, bottom_line = 0L, target_line = 0L, lines_affected = 0L;
   THE_PPC *top_ppc = NULL;
   THE_PPC *target_ppc = NULL;
 
@@ -892,9 +869,9 @@ static short prefix_block_copy(THE_PPC *curr_ppc, short cmd_idx, line_t number_l
   return (rc);
 }
 
-static short prefix_block_move(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_block_move(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   short rc = (-1);
-  line_t top_line = 0L, bottom_line = 0L, target_line = 0L, num_lines = 0L, lines_affected = 0L;
+  long top_line = 0L, bottom_line = 0L, target_line = 0L, num_lines = 0L, lines_affected = 0L;
   THE_PPC *top_ppc = NULL;
   THE_PPC *target_ppc = NULL;
 
@@ -932,9 +909,9 @@ static short prefix_block_move(THE_PPC *curr_ppc, short cmd_idx, line_t number_l
   return (rc);
 }
 
-static short prefix_block_delete(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_block_delete(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   short rc = (-1);
-  line_t top_line = 0L, bottom_line = 0L, lines_affected = 0L;
+  long top_line = 0L, bottom_line = 0L, lines_affected = 0L;
   THE_PPC *top_ppc = NULL;
 
   if ((top_ppc = find_top_ppc(curr_ppc, cmd_idx)) == NULL) {
@@ -950,8 +927,8 @@ static short prefix_block_delete(THE_PPC *curr_ppc, short cmd_idx, line_t number
   return (rc);
 }
 
-static short prefix_block_shift_left(THE_PPC *curr_ppc, short cmd_idx, length_t number_cols) {
-  line_t top_line = 0L, bottom_line = 0L;
+static short prefix_block_shift_left(THE_PPC *curr_ppc, short cmd_idx, long number_cols) {
+  long top_line = 0L, bottom_line = 0L;
   THE_PPC *top_ppc = NULL;
 
   if ((top_ppc = find_top_ppc(curr_ppc, cmd_idx)) == NULL) {
@@ -967,8 +944,8 @@ static short prefix_block_shift_left(THE_PPC *curr_ppc, short cmd_idx, length_t 
   return (0);
 }
 
-static short prefix_block_shift_right(THE_PPC *curr_ppc, short cmd_idx, length_t number_cols) {
-  line_t top_line = 0L, bottom_line = 0L;
+static short prefix_block_shift_right(THE_PPC *curr_ppc, short cmd_idx, long number_cols) {
+  long top_line = 0L, bottom_line = 0L;
   THE_PPC *top_ppc = NULL;
 
   if ((top_ppc = find_top_ppc(curr_ppc, cmd_idx)) == NULL) {
@@ -984,9 +961,9 @@ static short prefix_block_shift_right(THE_PPC *curr_ppc, short cmd_idx, length_t
   return (0);
 }
 
-static short prefix_block_exclude(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short prefix_block_exclude(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   short rc = RC_OK;
-  line_t top_line = 0L, bottom_line = 0L, num_lines = 0L, i = 0L;
+  long top_line = 0L, bottom_line = 0L, num_lines = 0L, i = 0L;
   LINE *curr = NULL;
   THE_PPC *top_ppc = NULL;
 
@@ -1001,8 +978,7 @@ static short prefix_block_exclude(THE_PPC *curr_ppc, short cmd_idx, line_t numbe
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   clear_pending_prefix_command(top_ppc, PENDING_FILE, (LINE *) NULL);
   /*
-   * If the high value of SET DISPLAY is 255, we can't exclude any lines
-   * so exit.
+   * If the high value of SET DISPLAY is 255, we can't exclude any lines so exit.
    */
   if (PENDING_VIEW->display_high == 255) {
     return (rc);
@@ -1012,8 +988,7 @@ static short prefix_block_exclude(THE_PPC *curr_ppc, short cmd_idx, line_t numbe
    */
   curr = lll_find(PENDING_FILE->first_line, PENDING_FILE->last_line, top_line, PENDING_FILE->number_lines);
   /*
-   * For the number of lines affected, change the select level if the
-   * line is in scope.
+   * For the number of lines affected, change the select level if the line is in scope.
    */
   for (i = 0; i < num_lines; i++) {
     if (IN_SCOPE(PENDING_VIEW, curr)) {
@@ -1031,8 +1006,8 @@ static short prefix_block_exclude(THE_PPC *curr_ppc, short cmd_idx, line_t numbe
   return (rc);
 }
 
-static short prefix_block_bounds_shift_left(THE_PPC *curr_ppc, short cmd_idx, length_t number_cols) {
-  line_t top_line = 0L, bottom_line = 0L;
+static short prefix_block_bounds_shift_left(THE_PPC *curr_ppc, short cmd_idx, long number_cols) {
+  long top_line = 0L, bottom_line = 0L;
   THE_PPC *top_ppc = NULL;
 
   if ((top_ppc = find_top_ppc(curr_ppc, cmd_idx)) == NULL) {
@@ -1048,8 +1023,8 @@ static short prefix_block_bounds_shift_left(THE_PPC *curr_ppc, short cmd_idx, le
   return (0);
 }
 
-static short prefix_block_bounds_shift_right(THE_PPC *curr_ppc, short cmd_idx, length_t number_cols) {
-  line_t top_line = 0L, bottom_line = 0L;
+static short prefix_block_bounds_shift_right(THE_PPC *curr_ppc, short cmd_idx, long number_cols) {
+  long top_line = 0L, bottom_line = 0L;
   THE_PPC *top_ppc = NULL;
 
   if ((top_ppc = find_top_ppc(curr_ppc, cmd_idx)) == NULL) {
@@ -1059,17 +1034,16 @@ static short prefix_block_bounds_shift_right(THE_PPC *curr_ppc, short cmd_idx, l
   bottom_line = curr_ppc->ppc_line_number;
   top_line = (top_line == 0L) ? 1L : top_line;
   bottom_line = (bottom_line == PENDING_FILE->number_lines + 1L) ? bottom_line - 1L : bottom_line;
-
   clear_pending_prefix_command(curr_ppc, PENDING_FILE, (LINE *) NULL);
   clear_pending_prefix_command(top_ppc, PENDING_FILE, (LINE *) NULL);
   execute_shift_command(pending_screen, PENDING_VIEW, FALSE, number_cols, top_line, bottom_line - top_line + 1L, FALSE, TARGET_UNFOUND, FALSE, TRUE);
   return (0);
 }
 
-static short prefix_block_lowercase(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  length_t start_col = PENDING_VIEW->zone_start - 1;
-  length_t end_col = PENDING_VIEW->zone_end - 1;
-  line_t top_line = 0L, bottom_line = 0L;
+static short prefix_block_lowercase(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long start_col = PENDING_VIEW->zone_start - 1;
+  long end_col = PENDING_VIEW->zone_end - 1;
+  long top_line = 0L, bottom_line = 0L;
   THE_PPC *top_ppc = NULL;
 
   if ((top_ppc = find_top_ppc(curr_ppc, cmd_idx)) == NULL) {
@@ -1085,10 +1059,10 @@ static short prefix_block_lowercase(THE_PPC *curr_ppc, short cmd_idx, line_t num
   return (0);
 }
 
-static short prefix_block_uppercase(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  length_t start_col = PENDING_VIEW->zone_start - 1;
-  length_t end_col = PENDING_VIEW->zone_end - 1;
-  line_t top_line = 0L, bottom_line = 0L;
+static short prefix_block_uppercase(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
+  long start_col = PENDING_VIEW->zone_start - 1;
+  long end_col = PENDING_VIEW->zone_end - 1;
+  long top_line = 0L, bottom_line = 0L;
   THE_PPC *top_ppc = NULL;
 
   if ((top_ppc = find_top_ppc(curr_ppc, cmd_idx)) == NULL) {
@@ -1104,14 +1078,9 @@ static short prefix_block_uppercase(THE_PPC *curr_ppc, short cmd_idx, line_t num
   return (0);
 }
 
-static short prefix_block_overlay(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
-  short rc = (-1);
-  return (rc);
-}
-
 static short invalidate_prefix(THE_PPC *curr_ppc, char *template) {
   short len = 0;
-  char_t  buf[MAX_PREFIX_WIDTH + 150];
+  uchar buf[MAX_PREFIX_WIDTH + 150];
 
   if (*(curr_ppc->ppc_orig_command) != '?') {
     len = strlen((char *) curr_ppc->ppc_orig_command);
@@ -1119,8 +1088,7 @@ static short invalidate_prefix(THE_PPC *curr_ppc, char *template) {
     *(curr_ppc->ppc_orig_command + len + 1) = '\0';
   }
   /*
-   * ensure that there is no chance that a 'real' prefix command can be
-   * executed.
+   * ensure that there is no chance that a 'real' prefix command can be executed.
    */
   curr_ppc->ppc_cmd_idx = THE_PPC_NO_COMMAND;
   /*
@@ -1131,7 +1099,7 @@ static short invalidate_prefix(THE_PPC *curr_ppc, char *template) {
   } else {
     sprintf((char *) buf, template, curr_ppc->ppc_orig_command + 1);
   }
-  display_error(0, (char_t *) buf, FALSE);
+  display_error(0, (uchar *) buf, FALSE);
   return (RC_OK);
 }
 
@@ -1211,27 +1179,24 @@ static THE_PPC *calculate_target_line(void) {
   }
   target_ppc->ppc_cmd_param = 0L;
   switch (target_ppc->ppc_cmd_idx) {
-
     case THE_PPC_TARGET_PREVIOUS:
       /*
-       * If the target line is NOT top of file line and the target type is
-       * PREVIOUS, subtract 1 from the target line.
+       * If the target line is NOT top of file line and the target type is PREVIOUS,
+       * subtract 1 from the target line.
        */
       if (!TOF(target_ppc->ppc_line_number)) {
         target_ppc->ppc_cmd_param = (-1);
       }
       break;
-
     case THE_PPC_TARGET_FOLLOWING:
       /*
-       * If the target line is the bottom of file and the target type is
-       * FOLLOWING, subtract 1 from the target line.
+       * If the target line is the bottom of file and the target type is FOLLOWING,
+       * subtract 1 from the target line.
        */
       if (BOF(target_ppc->ppc_line_number)) {
         target_ppc->ppc_cmd_param = (-1);
       }
       break;
-
     default:
       break;
   }
@@ -1240,8 +1205,8 @@ static THE_PPC *calculate_target_line(void) {
 
 static short try_rexx_prefix_macro(THE_PPC *curr_ppc) {
   short pmacro_rc = 0, errnum = 0;
-  line_t line_number = 0L;
-  char_t  pm_parms[(MAX_PREFIX_WIDTH * 4) + 1];
+  long line_number = 0L;
+  uchar pm_parms[(MAX_PREFIX_WIDTH * 4) + 1];
   short macrorc = 0;
   int i;
 
@@ -1255,8 +1220,7 @@ static short try_rexx_prefix_macro(THE_PPC *curr_ppc) {
   if (errnum == 0) {
     line_number = curr_ppc->ppc_line_number;
     /*
-     * If the prefix command was entered on a shadow line, pass this to
-     * the prefix macro...
+     * If the prefix command was entered on a shadow line, pass this to the prefix macro...
      */
     if (curr_ppc->ppc_shadow_line) {
       sprintf((char *) pm_parms, " PREFIX %s SHADOW %ld", curr_ppc->ppc_command, line_number);
@@ -1269,7 +1233,7 @@ static short try_rexx_prefix_macro(THE_PPC *curr_ppc) {
         strcat((char *) pm_parms, (char *) curr_ppc->ppc_op[i]);
       }
     }
-    strcat((char *) temp_cmd, (char *) pm_parms); /* add on the parameter list */
+    strcat((char *) temp_cmd, (char *) pm_parms);       /* add on the parameter list */
     prefix_current_line = line_number;
     in_prefix_macro = TRUE;
     /*
@@ -1289,7 +1253,7 @@ static short try_rexx_prefix_macro(THE_PPC *curr_ppc) {
 #define STATE_DIGIT_OPERAND 3
 #define STATE_REM_OPERAND 4
 
-static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
+static void split_prefix_command(uchar *str, THE_PPC *curr_ppc) {
   int opt_idx[PPC_OPERANDS] = { 0, };
   char cmd[MAX_PREFIX_WIDTH];
   int cmd_idx = 0;
@@ -1302,7 +1266,6 @@ static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
     lastch = ch;
     ch = str[i];
     switch (state) {
-
       case STATE_BEFORE_CMD:
         /*
          * determine what the cmd starts with:
@@ -1318,9 +1281,9 @@ static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
         } else if (isdigit(ch)) {
           if (isspace(lastch)) {
             /*
-             * When we get a space, increment the option number. Don't do
-             * this if we are processing the last option; include the spaces
-             * as part of the last option
+             * When we get a space, increment the option number.
+             * Don't do this if we are processing the last option;
+             * include the spaces as part of the last option
              */
             if (option < PPC_OPERANDS - 1) {
               option++;
@@ -1338,7 +1301,6 @@ static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
           break;
         }
         break;
-
       case STATE_ALPHA_CMD:
         if (isalpha(ch)) {
           cmd[cmd_idx] = ch;
@@ -1359,7 +1321,6 @@ static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
           state = STATE_REM_OPERAND;
         }
         break;
-
       case STATE_OTHER_CMD:
         if (isspace(ch) || isalpha(ch) || isdigit(ch)) {
           /*
@@ -1379,7 +1340,6 @@ static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
           cmd_idx++;
         }
         break;
-
       case STATE_DIGIT_OPERAND:        /* only valid BEFORE CMD */
         if (isspace(ch)) {
           if (option == PPC_OPERANDS - 1) {
@@ -1405,10 +1365,9 @@ static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
           state = STATE_OTHER_CMD;
         }
         break;
-        /*
-         * Operands after the command delimited by spaces:
-         */
-
+      /*
+       * Operands after the command delimited by spaces:
+       */
       case STATE_REM_OPERAND:  /* only valid AFTER CMD */
         if (option < PPC_OPERANDS - 1) {
           if (isspace(ch)) {
@@ -1423,7 +1382,6 @@ static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
         curr_ppc->ppc_op[option][opt_idx[option]] = ch;
         opt_idx[option]++;
         break;
-
       default:
         break;
     }
@@ -1442,9 +1400,9 @@ static void split_prefix_command(char_t *str, THE_PPC *curr_ppc) {
   }
 }
 
-void add_prefix_command(char_t curr_screen, VIEW_DETAILS *curr_view, LINE *curr, line_t line_number, bool block_command, bool set_by_pending) {
-  register short i = 0;
-  char_t temp_prefix_array[MAX_PREFIX_WIDTH + 1];
+void add_prefix_command(uchar curr_screen, VIEW_DETAILS *curr_view, LINE *curr, long line_number, bool block_command, bool set_by_pending) {
+  short i = 0;
+  uchar temp_prefix_array[MAX_PREFIX_WIDTH + 1];
   THE_PPC *curr_ppc = NULL;
   bool redisplay_screen = FALSE;
 
@@ -1465,14 +1423,14 @@ void add_prefix_command(char_t curr_screen, VIEW_DETAILS *curr_view, LINE *curr,
     redisplay_screen = TRUE;
   } else {
     /*
-     * If the input line already points to an entry in the array, use the
-     * existing entry in the array, otherwise add to the next entry.
+     * If the input line already points to an entry in the array,
+     * use the existing entry in the array, otherwise add to the next entry.
      */
     curr_ppc = pll_find(curr_view->file_for_view->first_ppc, line_number);
     if (curr_ppc == NULL) {     /* not found */
       curr_ppc = pll_add(&curr_view->file_for_view->first_ppc, sizeof(THE_PPC), line_number);
       if (curr_ppc == NULL) {
-        display_error(30, (char_t *) "", FALSE);
+        display_error(30, (uchar *) "", FALSE);
         return;
       }
     }
@@ -1503,25 +1461,20 @@ void add_prefix_command(char_t curr_screen, VIEW_DETAILS *curr_view, LINE *curr,
   return;
 }
 
-/* Parameters:                                                         */
-/*    synonym: synonym for prefix macro                                */
-/*  macroname: name of REXX macro file                                 */
-
-short add_prefix_synonym(char_t *synonym, char_t *macroname) {
+short add_prefix_synonym(uchar *synonym, uchar *macroname) {
   LINE *curr = NULL;
 
   /*
-   * First thing is to delete any definitions that may exist for the
-   * supplied synonym.
+   * First thing is to delete any definitions that may exist for the supplied synonym.
    */
   curr = first_prefix_synonym;
   while (curr != NULL) {
     if (strcmp((char *) curr->name, (char *) synonym) == 0) {
       if (curr->name != NULL) {
-        free (curr->name);
+        free(curr->name);
       }
       if (curr->line != NULL) {
-        free (curr->line);
+        free(curr->line);
       }
       curr = lll_del(&first_prefix_synonym, &last_prefix_synonym, curr, DIRECTION_FORWARD);
     } else {
@@ -1530,7 +1483,7 @@ short add_prefix_synonym(char_t *synonym, char_t *macroname) {
   }
   /*
    * If synonym and macroname are the same we are deleting the synonym
-   * (already done above); just don't add it. Bug 3313877
+   * (already done above); just don't add it.
    */
   if (strcmp((char *) synonym, (char *) macroname) != 0) {
     /*
@@ -1538,18 +1491,18 @@ short add_prefix_synonym(char_t *synonym, char_t *macroname) {
      */
     curr = lll_add(first_prefix_synonym, last_prefix_synonym, sizeof(LINE));
     if (curr == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    curr->line = (char_t *) malloc ((strlen((char *) macroname) + 1) * sizeof(char_t));
+    curr->line = (uchar *) malloc((strlen((char *) macroname) + 1) * sizeof(uchar));
     if (curr->line == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     strcpy((char *) curr->line, (char *) macroname);
-    curr->name = (char_t *) malloc ((strlen((char *) synonym) + 1) * sizeof(char_t));
+    curr->name = (uchar *) malloc((strlen((char *) synonym) + 1) * sizeof(uchar));
     if (curr->name == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     strcpy((char *) curr->name, (char *) synonym);
@@ -1561,20 +1514,20 @@ short add_prefix_synonym(char_t *synonym, char_t *macroname) {
   return (RC_OK);
 }
 
-char_t *find_prefix_synonym(char_t *synonym) {
+uchar *find_prefix_synonym(uchar *synonym) {
   LINE *curr = NULL;
 
   curr = first_prefix_synonym;
   while (curr != NULL) {
     if (strcmp((char *) synonym, (char *) curr->name) == 0) {
-      return ((char_t *) curr->line);
+      return ((uchar *) curr->line);
     }
     curr = curr->next;
   }
   return (synonym);
 }
 
-char_t *find_prefix_oldname(char_t *oldname) {
+uchar *find_prefix_oldname(uchar *oldname) {
   LINE *curr = NULL;
 
   curr = first_prefix_synonym;
@@ -1587,17 +1540,16 @@ char_t *find_prefix_oldname(char_t *oldname) {
   return (oldname);
 }
 
-char_t *get_prefix_command(line_t prefix_index) {
+uchar *get_prefix_command(long prefix_index) {
   int ispf_idx = (compatible_feel == COMPAT_ISPF) ? 1 : 0;
 
   /*
-   * Just return a pointer to the prefix command associated with the
-   * supplied index.
+   * Just return a pointer to the prefix command associated with the supplied index.
    */
   return (pc[ispf_idx][prefix_index].cmd);
 }
 
-static short post_prefix_add(THE_PPC *curr_ppc, short cmd_idx, line_t number_lines) {
+static short post_prefix_add(THE_PPC *curr_ppc, short cmd_idx, long number_lines) {
   short rc = RC_OK;
   unsigned short y = 0;
 

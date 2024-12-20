@@ -42,12 +42,14 @@ char *command;                  /* and zero-terminated */
   int pid;
   char *exec;
 
-  if (!arguments)               /* Allocate some initial memory */
+  if (!arguments) {             /* Allocate some initial memory */
     arguments = (char **) allocm((argnum = 20) * sizeof(char *)), hashtable = hashcreate(hashbuckets = 251);
-  while (command[0] == ' ')
-    command++;                  /* Ignore leading spaces */
+  }
+  while (command[0] == ' ') {
+    command++;  /* Ignore leading spaces */
+  }
   arguments[argc++] = command;  /* Store the start of arg[0] */
-  for (i = j = 0; (c = command[j]); j++) {        /* Start tokenising... */
+  for (i = j = 0; (c = command[j]); j++) {      /* Start tokenising... */
     if (c == quote) {
       quote = 0;
       continue;
@@ -66,8 +68,9 @@ char *command;                  /* and zero-terminated */
       j--;
       if (argc + 1 >= argnum) {
         arguments = (char **) realloc((char *) arguments, sizeof(char *) * (argnum += 10));
-        if (!arguments)
+        if (!arguments) {
           die(Emem);
+        }
       }
       arguments[argc++] = command + i;
       continue;
@@ -75,20 +78,24 @@ char *command;                  /* and zero-terminated */
     command[i++] = c;
   }
   command[i++] = 0;             /* 0-terminate the last argument */
-  if (!arguments[argc - 1][0])
-    argc--;                     /* In case there were trailing spaces */
-  if (!argc)
-    return 0;                   /* Null string: just return */
+  if (!arguments[argc - 1][0]) {
+    argc--;  /* In case there were trailing spaces */
+  }
+  if (!argc) {
+    return 0;  /* Null string: just return */
+  }
   arguments[argc++] = 0;        /* Add the terminating NULL */
-  if (!strcmp(arguments[0], "hash"))    /* "hash" is built in */
+  if (!strcmp(arguments[0], "hash")) {  /* "hash" is built in */
     return hashcmd(arguments), 0;
+  }
   exec = locate(arguments[0]);  /* Locate the command */
   if (!(pid = vfork())) {
     execv(exec, arguments);     /* Execute command */
-    if (errno == ENOENT)        /* did not exist */
+    if (errno == ENOENT) {      /* did not exist */
       fprintf(stderr, "%s: Command not found.\n", arguments[0]);
-    else
-      perror(exec);             /* some other error */
+    } else {
+      perror(exec);  /* some other error */
+    }
     _exit(-3);
   }
   if (pid == -1) {
@@ -106,16 +113,17 @@ int buckets;                    /* the number of hash buckets */
 {
   register unsigned i = 0;
 
-  while (*string)
+  while (*string) {
     i += (i << 3) + *string++;
-  /* return (((i*40503L)&65535)*buckets)/65536;*//* multiplicative hashing: when
+  }
+  /* return (((i*40503L)&65535)*buckets)/65536; *//* multiplicative hashing: when
      buckets is a power of 2 */
   return i % buckets;           /* division method: when buckets is a prime such
                                    that 16^k=a(mod buckets) for small k and a */
 }
 
 static hashitem **hashcreate(buckets)
-                          /* Create hash table as array of null pointers */
+/* Create hash table as array of null pointers */
 int buckets;                    /* Number of buckets in hash table */
 {
   hashitem **table = (hashitem **) allocm(buckets * sizeof(char *));
@@ -129,21 +137,25 @@ static void *search(name, exist)        /* Search for a name in the hash table  
 char *name;                     /* if exist=1, the result is a pointer to */
 int *exist;                     /* the item; if exist=0 the result is a   */
 
-                                /* "next" field where the new item would  */
-{                               /* be inserted                            */
+/* "next" field where the new item would  */
+{
+  /* be inserted                            */
   int h = hashfn(name, hashbuckets);
   hashitem **i = &hashtable[h];
   hashitem *j;
   int c;
 
-  if (!(j = *i))
-    return *exist = 0, (void *) i;      /* No elements in this bucket */
-  while ((c = strcmp(name, (char *) (j + 1)))) {  /* stop when correct element found */
-    if (c < 0)
-      return *exist = 0, (void *) i;    /* gone too far down the list */
+  if (!(j = *i)) {
+    return *exist = 0, (void *) i;  /* No elements in this bucket */
+  }
+  while ((c = strcmp(name, (char *) (j + 1)))) {        /* stop when correct element found */
+    if (c < 0) {
+      return *exist = 0, (void *) i;  /* gone too far down the list */
+    }
     i = &(j->next);
-    if (!(j = *i))
-      return *exist = 0, (void *) i;    /* no next element in list */
+    if (!(j = *i)) {
+      return *exist = 0, (void *) i;  /* no next element in list */
+    }
   }
   return *exist = 1, (void *) j;
 }
@@ -175,7 +187,7 @@ char *name;
         strcpy(test + i + 1, name);     /* add slash and name */
         if (!access(test, X_OK)) {      /* if it is executable... */
           new = (hashitem *)    /* make a new hash item */
-              allocm(sizeof(hashitem) + strlen(name) + strlen(test) + 2);
+                allocm(sizeof(hashitem) + strlen(name) + strlen(test) + 2);
           old = (hashitem **) hash;     /* this points to the previous link field */
           new->next = *old;
           *old = new;
@@ -194,8 +206,9 @@ char *name;
       new = (hashitem *) hash;
       new->hits++;
       ans = (char *) (new + 1) + new->data;
-      if (new->dot && !access(name, X_OK))      /* If "." came in the path before */
-        return name;            /* the named directory, check "." */
+      if (new->dot && !access(name, X_OK)) {    /* If "." came in the path before */
+        return name;  /* the named directory, check "." */
+      }
       return ans;               /* first, then return the stored  */
     }                           /* name.                          */
   }
@@ -224,21 +237,24 @@ char *args[];
 
   if (args[i = 1])              /* some arguments exist */
     while (args[i]) {
-      if (!strcmp(args[i], "-r"))
-        hashclear();            /* Clear table */
-      else
-        locate(args[i]);        /* add argument to table */
+      if (!strcmp(args[i], "-r")) {
+        hashclear();  /* Clear table */
+      } else {
+        locate(args[i]);  /* add argument to table */
+      }
       i++;
-  } else {                      /* no arguments: print table */
+    } else {                      /* no arguments: print table */
     hits = 0;
     for (i = 0; i < hashbuckets; i++)
       for (j = 0, h = hashtable[i]; h; h = h->next) {
-        if (!hits++)
+        if (!hits++) {
           puts(" hits    cost    command");
+        }
         putchar(j++ ? '+' : ' ');
         printf("%-7d %-7d %s\n", h->hits, h->expense, (char *) (h + 1) + h->data);
       }
-    if (!hits)
+    if (!hits) {
       puts("No commands in hash table.");
+    }
   }
 }

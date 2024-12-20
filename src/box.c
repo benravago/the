@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* This file contains all functions relating to box operations.        */
-
 #include "the.h"
 #include "proto.h"
 
@@ -11,16 +9,16 @@
 struct _boxp {
   short action;
   short mark_type;
-  length_t src_start_col;
-  length_t dst_start_col;
-  length_t src_end_col;
-  length_t num_cols;
-  line_t src_start_line;
-  line_t dst_start_line;
-  line_t src_end_line;
-  line_t num_lines;
-  line_t cursor_y;
-  length_t cursor_x;
+  long src_start_col;
+  long dst_start_col;
+  long src_end_col;
+  long num_cols;
+  long src_start_line;
+  long dst_start_line;
+  long src_end_line;
+  long num_lines;
+  long cursor_y;
+  long cursor_x;
   LINE *curr_src;
   LINE *curr_dst;
   VIEW_DETAILS *src_view;
@@ -28,31 +26,31 @@ struct _boxp {
 };
 typedef struct _boxp BOXP;
 
-static short box_copy_to_temp(BOXP *);
-static short box_copy_from_temp(BOXP *, bool);
-static short box_copy_stream_from_temp(BOXP *, bool);
-static short box_delete(BOXP *);
-static short box_move(BOXP *, bool, bool);
-static short box_fill(BOXP *, char_t);
+static short box_copy_to_temp(BOXP*);
+static short box_copy_from_temp(BOXP*, bool);
+static short box_copy_stream_from_temp(BOXP*, bool);
+static short box_delete(BOXP*);
+static short box_move(BOXP*, bool, bool);
+static short box_fill(BOXP*, uchar);
 
-void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) {
+void box_operations(short action, uchar reset, bool boverlay, uchar fillchar) {
   BOXP boxp;
   unsigned short y = 0, x = 0;
-  length_t offset = 0;
+  long offset = 0;
   short save_mark_type = MARK_VIEW->mark_type;
   bool same_view = FALSE;
 
   /*
-   * This procedure is for copying, deleting, filling, moving and
-   * overlaying box blocks. Box blocks consist of BOX, WORD, COLUMN,
-   * STREAM and CUA blocks. In fact every type of block that isn't
-   * a LINE block.
-   * blocks.
+   * This procedure is for copying, deleting, filling, moving and overlaying box blocks.
+   * Box blocks consist of BOX, WORD, COLUMN, STREAM and CUA blocks.
+   * In fact every type of block that isn't a LINE block.
    */
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
+
   /*
-   * If the command was issued on the command line then the destination
-   * line is the current line and the destination column is 0;
+   * If the command was issued on the command line then
+   * the destination line is the current line and
+   * the destination column is 0;
    */
   if (CURRENT_VIEW->current_window == WINDOW_COMMAND) {
     if (CURRENT_VIEW->current_line == 0L) {
@@ -79,7 +77,6 @@ void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) 
     same_view = TRUE;
   }
   boxp.mark_type = MARK_VIEW->mark_type;
-
   /*
    * CUA block can have start position after end position
    */
@@ -94,12 +91,12 @@ void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) 
     boxp.src_end_line = MARK_VIEW->mark_end_line;
     boxp.src_end_col = MARK_VIEW->mark_end_col - 1;
   }
-
   boxp.num_cols = MARK_VIEW->mark_end_col - MARK_VIEW->mark_start_col + 1;
   /*
    * If the block type is COLUMN, the number of lines to operate on is
-   * the number of lines in the source file and the destination start
-   * line is line 1. Reset these values set above.
+   * the number of lines in the source file and
+   * the destination start line is line 1.
+   * Reset these values set above.
    */
   if (MARK_VIEW->mark_type == M_COLUMN) {
     boxp.num_lines = MARK_VIEW->file_for_view->number_lines - boxp.src_start_line + 1L;
@@ -108,8 +105,7 @@ void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) 
     boxp.num_lines = boxp.src_end_line - boxp.src_start_line + 1L;
   }
   /*
-   * Find the current LINE pointer for both the source and destination
-   * lines.
+   * Find the current LINE pointer for both the source and destination lines.
    */
   boxp.curr_src = lll_find(MARK_FILE->first_line, MARK_FILE->last_line, boxp.src_start_line, MARK_FILE->number_lines);
   if (action != BOX_D) {
@@ -120,19 +116,15 @@ void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) 
    */
   boxp.action = action;
   switch (action) {
-
     case BOX_D:
       box_delete(&boxp);
       break;
-
     case BOX_M:
       box_move(&boxp, boverlay, TRUE);
       break;
-
     case BOX_C:
       box_move(&boxp, boverlay, TRUE);
       break;
-
     case BOX_F:
       box_fill(&boxp, fillchar);
       break;
@@ -142,15 +134,15 @@ void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) 
    */
   increment_alt(CURRENT_FILE);
   /*
-   * Set the parameters in the MARK_VIEW to OFF, and
-   * redraw the view if different from the current view
+   * Set the parameters in the MARK_VIEW to OFF,
+   * and redraw the view if different from the current view
    */
   MARK_VIEW->marked_line = MARK_VIEW->marked_col = FALSE;
   MARK_VIEW->mark_type = M_NONE;
-  MARK_VIEW = (VIEW_DETAILS *) NULL;
+  MARK_VIEW = (VIEW_DETAILS*) NULL;
   if (!same_view && display_screens > 1) {
-    build_screen((char_t) (other_screen));
-    display_screen((char_t) (other_screen));
+    build_screen((uchar) (other_screen));
+    display_screen((uchar) (other_screen));
   }
   /*
    * If we are not resetting the block, set up block markers...
@@ -172,23 +164,25 @@ void box_operations(short action, char_t reset, bool boverlay, char_t fillchar) 
     MARK_VIEW->marked_line = MARK_VIEW->marked_col = TRUE;
     wmove(CURRENT_WINDOW, y, x - offset);
   }
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
   build_screen(current_screen);
-  display_screen(current_screen);       /* should only call this is the marked block is in view */
+  display_screen(current_screen); /* should only call this is the marked block is in view */
   return;
 }
 
-void box_paste_from_clipboard(LINE *curr_src, line_t numlines, line_t numcols) {
+void box_paste_from_clipboard(LINE* curr_src, long numlines, long numcols) {
   BOXP boxp;
   unsigned short x = 0;
 
   /*
    * This procedure is for copying from clipboard.
    */
-  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
+  post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL, TRUE);
+
   /*
-   * If the command was issued on the command line then the destination
-   * line is the current line and the destination column is 0;
+   * If the command was issued on the command line then
+   * the destination line is the current line and
+   * the destination column is 0;
    */
   if (CURRENT_VIEW->current_window == WINDOW_COMMAND) {
     if (CURRENT_VIEW->current_line == 0L) {
@@ -196,7 +190,7 @@ void box_paste_from_clipboard(LINE *curr_src, line_t numlines, line_t numcols) {
     } else {
       boxp.dst_start_line = CURRENT_VIEW->current_line;
     }
-    boxp.dst_start_col = 0;     /* maybe this should current column TODO */
+    boxp.dst_start_col = 0; /* maybe this should current column TODO */
   } else {
     if (CURRENT_VIEW->focus_line == 0L) {
       boxp.dst_start_line = 1L;
@@ -219,8 +213,7 @@ void box_paste_from_clipboard(LINE *curr_src, line_t numlines, line_t numcols) {
   boxp.num_cols = numcols;
   boxp.num_lines = numlines;
   /*
-   * Find the current LINE pointer for both the source and destination
-   * lines.
+   * Find the current LINE pointer for both the source and destination lines.
    */
   boxp.curr_src = curr_src;
   boxp.curr_dst = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, boxp.dst_start_line, CURRENT_FILE->number_lines);
@@ -236,7 +229,7 @@ void box_paste_from_clipboard(LINE *curr_src, line_t numlines, line_t numcols) {
   /*
    * Redisplay the screen
    */
-  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
+  pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE*) NULL);
   build_screen(current_screen);
   display_screen(current_screen);
   /*
@@ -248,29 +241,26 @@ void box_paste_from_clipboard(LINE *curr_src, line_t numlines, line_t numcols) {
   return;
 }
 
-static short box_delete(BOXP *prm) {
-  line_t i = 0L;
-  length_t j = 0;
-  length_t num_to_move = 0, length_diff = 0;
+static short box_delete(BOXP* prm) {
+  long i = 0L;
+  long j = 0;
+  long num_to_move = 0, length_diff = 0;
   short rc = 0;
   bool shadow_found = FALSE;
   bool advance_line_ptr = TRUE;
-  LINE *curr = NULL;
+  LINE* curr = NULL;
 
   curr = prm->curr_src;
   for (i = 0L; i < prm->num_lines; i++) {
     advance_line_ptr = TRUE;
     rc = processable_line(prm->src_view, prm->src_start_line + i, curr);
     switch (rc) {
-
       case LINE_SHADOW:
         shadow_found = TRUE;
         break;
-
       case LINE_TOF:
       case LINE_EOF:
         break;
-
       default:
         if ((prm->mark_type == M_STREAM || prm->mark_type == M_CUA) && prm->src_start_line != prm->src_end_line) {
           if (i == 0) {
@@ -285,9 +275,9 @@ static short box_delete(BOXP *prm) {
           } else if (i + 1 == prm->num_lines) { /* last line of stream block */
             if (curr->length > 0) {
               add_to_recovery_list(curr->line, curr->length);
-              curr->length = (length_t) (prm->src_end_col < curr->length - 1) ? curr->length - prm->src_end_col - 1 : 0;
+              curr->length = (long) (prm->src_end_col < curr->length - 1) ? curr->length - prm->src_end_col - 1 : 0;
               for (j = 0; j < curr->length; j++) {
-                *(curr->line + (length_t) (line_t) j) = *(curr->line + prm->src_end_col + j + 1);
+                *(curr->line + (long)j) = *(curr->line + prm->src_end_col + j + 1);
               }
             }
           } else {
@@ -296,24 +286,24 @@ static short box_delete(BOXP *prm) {
             advance_line_ptr = FALSE;
           }
         } else {
-          if ((line_t) curr->length >= (line_t) MARK_VIEW->mark_start_col) {
-            num_to_move = (length_t) max((line_t) curr->length - (line_t) MARK_VIEW->mark_end_col, 0L);
-            length_diff = (length_t) min((line_t) MARK_VIEW->mark_end_col - (line_t) MARK_VIEW->mark_start_col + 1L, (line_t) curr->length - (line_t) MARK_VIEW->mark_start_col + 1L);
+          if ((long) curr->length >= (long) MARK_VIEW->mark_start_col) {
+            num_to_move = (long) max((long) curr->length - (long) MARK_VIEW->mark_end_col, 0L);
+            length_diff = (long) min((long) MARK_VIEW->mark_end_col - (long) MARK_VIEW->mark_start_col + 1L, (long) curr->length - (long) MARK_VIEW->mark_start_col + 1L);
           } else {
             num_to_move = length_diff = 0;
           }
           if (length_diff != 0) {
             add_to_recovery_list(curr->line, curr->length);
-            curr->length = (length_t) ((line_t) curr->length - (line_t) length_diff);
+            curr->length = (long) ((long) curr->length - (long) length_diff);
             for (j = 0; j < num_to_move; j++) {
-              *(curr->line + (length_t) ((line_t) j + (line_t) MARK_VIEW->mark_start_col - 1L)) = *(curr->line + prm->src_start_col + j + prm->num_cols);
+              *(curr->line + (long) ((long) j + (long) MARK_VIEW->mark_start_col - 1L)) = *(curr->line + prm->src_start_col + j + prm->num_cols);
             }
             *(curr->line + curr->length) = '\0';        /* null terminate */
           }
         }
     }
     if (advance_line_ptr) {
-      curr = curr->next;        /* this should NEVER go past the end */
+      curr = curr->next;  /* this should NEVER go past the end */
     }
   }
   /*
@@ -323,15 +313,15 @@ static short box_delete(BOXP *prm) {
   if ((prm->mark_type == M_STREAM || prm->mark_type == M_CUA) && prm->src_start_line != prm->src_end_line && !shadow_found) {
     curr = prm->curr_src;
     if (curr->next->length > 0) {
-      curr->line = (char_t *) realloc ((void *) curr->line, (curr->length + curr->next->length) * sizeof(char_t));
+      curr->line = (uchar *) realloc((void *) curr->line, (curr->length + curr->next->length) * sizeof(uchar));
       if (curr->line == NULL) {
-        display_error(30, (char_t *) "", FALSE);
+        display_error(30, (uchar *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
       memcpy((char *) curr->line + curr->length, (char *) curr->next->line, curr->next->length);
       curr->length += curr->next->length;
       if (curr->length > max_line_length) {
-        display_error(0, (char_t *) "Truncated", FALSE);
+        display_error(0, (uchar *) "Truncated", FALSE);
         curr->length = max_line_length;
       }
       *(curr->line + curr->length) = '\0';      /* do we need to do this anymore ? */
@@ -344,8 +334,8 @@ static short box_delete(BOXP *prm) {
 
 static short box_move(BOXP *prm, bool boverlay, bool copy_to_temp) {
   LINE *save_src = NULL, *temp_src = NULL;
-  line_t save_src_start_line = 0L;
-  length_t save_src_start_col = 0;
+  long save_src_start_line = 0L;
+  long save_src_start_col = 0;
 
   save_src_start_col = prm->src_start_col;
   save_src_start_line = prm->src_start_line;
@@ -364,7 +354,7 @@ static short box_move(BOXP *prm, bool boverlay, bool copy_to_temp) {
     prm->src_start_col = 0;
   }
   if ((prm->mark_type == M_STREAM || prm->mark_type == M_CUA) && prm->num_lines != 1) {
-    box_copy_stream_from_temp(prm, boverlay);   /* copy box from temp to file */
+    box_copy_stream_from_temp(prm, boverlay);  /* copy box from temp to file */
   } else {
     box_copy_from_temp(prm, boverlay);  /* copy box from temp to file */
   }
@@ -378,12 +368,13 @@ static short box_move(BOXP *prm, bool boverlay, bool copy_to_temp) {
   if (prm->dst_start_col > prm->src_start_col + prm->num_cols && prm->action == BOX_M) {
     box_delete(prm);
   }
+
   return (RC_OK);
 }
 
 static short box_copy_to_temp(BOXP *prm) {
   LINE *first_save = NULL, *save_src = NULL, *tmp = NULL;
-  line_t i = 0L;
+  long i = 0L;
   short rc = RC_OK;
 
   tmp = prm->curr_src;
@@ -428,9 +419,9 @@ static short box_copy_to_temp(BOXP *prm) {
 }
 
 static short box_copy_from_temp(BOXP *prm, bool boverlay) {
-  line_t dst_lineno = 0L;
-  length_t j = 0;
-  char_t chr = 0;
+  long dst_lineno = 0L;
+  long j = 0;
+  uchar chr = 0;
   short line_type = 0;
 
   dst_lineno = prm->dst_start_line;
@@ -441,7 +432,7 @@ static short box_copy_from_temp(BOXP *prm, bool boverlay) {
         break;
       }
       if (line_type == LINE_TOF || line_type == LINE_EOF) {
-        if ((prm->curr_dst = add_LINE(prm->dst_view->file_for_view->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
+        if ((prm->curr_dst = add_LINE(prm->dst_view->file_for_view->first_line, prm->curr_dst->prev, (uchar *) "", 0, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
         CURRENT_FILE->number_lines++;
@@ -453,9 +444,9 @@ static short box_copy_from_temp(BOXP *prm, bool boverlay) {
     pre_process_line(prm->dst_view, dst_lineno, prm->curr_dst); /* copy dest line into rec */
     for (j = 0; j < prm->num_cols; j++) {
       if (prm->src_start_col + j + 1 > prm->curr_src->length) {
-        chr = (char_t) ' ';
+        chr = (uchar) ' ';
       } else {
-        chr = (char_t) * (prm->curr_src->line + prm->src_start_col + j);
+        chr = (uchar) * (prm->curr_src->line + prm->src_start_col + j);
       }
       if (boverlay) {
         rec[prm->dst_start_col + j] = chr;
@@ -482,7 +473,7 @@ static short box_copy_from_temp(BOXP *prm, bool boverlay) {
 }
 
 static short box_copy_stream_from_temp(BOXP *prm, bool boverlay) {
-  line_t dst_lineno = 0L, i = 0L;
+  long dst_lineno = 0L, i = 0L;
   short line_type = 0;
   int mystart = 0;
   bool full_line = TRUE;
@@ -501,7 +492,7 @@ static short box_copy_stream_from_temp(BOXP *prm, bool boverlay) {
           break;
         }
         if (line_type == LINE_TOF || line_type == LINE_EOF) {
-          if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
+          if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (uchar *) "", 0, 0, TRUE)) == (LINE *) NULL) {
             return (RC_OUT_OF_MEMORY);
           }
           CURRENT_FILE->number_lines++;
@@ -534,8 +525,9 @@ static short box_copy_stream_from_temp(BOXP *prm, bool boverlay) {
     }
     prm->num_lines = dst_lineno - prm->dst_start_line;
   } else {
-    // In non-overlay mode treat the stream block similar to a line block
-
+    /*
+     * In non-overlay mode treat the stream block similar to a line block
+     */
     /*
      * This function copies saved lines from a multi-line stream block.
      * The line to which the stream block is copied is split at the
@@ -552,7 +544,7 @@ static short box_copy_stream_from_temp(BOXP *prm, bool boverlay) {
         break;
       }
       if (line_type == LINE_TOF || line_type == LINE_EOF) {
-        if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (char_t *) "", 0, 0, TRUE)) == (LINE *) NULL) {
+        if ((prm->curr_dst = add_LINE(CURRENT_FILE->first_line, prm->curr_dst->prev, (uchar *) "", 0, 0, TRUE)) == (LINE *) NULL) {
           return (RC_OUT_OF_MEMORY);
         }
         CURRENT_FILE->number_lines++;
@@ -565,7 +557,6 @@ static short box_copy_stream_from_temp(BOXP *prm, bool boverlay) {
      * Now have a line that we can split.
      */
     curr = prm->curr_dst;
-
     for (i = 0; i < prm->num_lines; i++) {
       if (i == 0) {
         /*
@@ -624,8 +615,8 @@ static short box_copy_stream_from_temp(BOXP *prm, bool boverlay) {
   return (RC_OK);
 }
 
-static short box_fill(BOXP *prm, char_t fillchar) {
-  line_t i = 0L;
+static short box_fill(BOXP *prm, uchar fillchar) {
+  long i = 0L;
   int mystart, mynum;
 
   for (i = 0L; i < prm->num_lines; i++) {

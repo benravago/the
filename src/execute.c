@@ -2,13 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* This file contains all functions that actually execute one or other */
-/* commands.                                                           */
-
 #include "the.h"
 #include "proto.h"
 
-static short selective_change(TARGET *target, char_t *old_str, length_t len_old_str, char_t *new_str, length_t len_new_str, line_t true_line, line_t last_true_line, length_t start_col) {
+static short selective_change(TARGET *target, uchar *old_str, long len_old_str, uchar *new_str, long len_new_str, long true_line, long last_true_line, long start_col) {
   register short i = 0;
   short y = 0, x = 0, rc = RC_OK;
   int key = 0;
@@ -17,9 +14,11 @@ static short selective_change(TARGET *target, char_t *old_str, length_t len_old_
   TARGET save_target;
 
   getyx(CURRENT_WINDOW_FILEAREA, y, x);
-  /* move cursor to old string a la cmatch */
-  /* display message */
-  /* accept key - C next, - N change, - Q to quit */
+  /*
+   * move cursor to old string a la cmatch
+   * display message
+   * accept key - C next, - N change, - Q to quit
+   */
   CURRENT_VIEW->focus_line = true_line;
   /*
    * Check if the true_line is in the currently displayed window.
@@ -60,24 +59,22 @@ static short selective_change(TARGET *target, char_t *old_str, length_t len_old_
   while (key == 0) {
     build_screen(current_screen);
     /*
-     * Set the applicable fields of the target with the values from the
-     * string to be changed
+     * Set the applicable fields of the target with the values from the string to be changed
      */
     if (CURRENT_VIEW->thighlight_on) {
       CURRENT_VIEW->thighlight_target.rt[0].length = (changed) ? len_new_str : len_old_str;
     }
     display_screen(current_screen);
     if (changed) {
-      display_prompt((char_t *) "Press 'N' for next,'C' to undo 'Q' to quit");
+      display_prompt((uchar *) "Press 'N' for next,'C' to undo 'Q' to quit");
     } else {
-      display_prompt((char_t *) "Press 'N' for next,'C' to change 'Q' to quit");
+      display_prompt((uchar *) "Press 'N' for next,'C' to change 'Q' to quit");
     }
     wmove(CURRENT_WINDOW_FILEAREA, y, x);
     wrefresh(CURRENT_WINDOW_FILEAREA);
-    key = wgetch(CURRENT_WINDOW_FILEAREA);
+    key = my_getch(CURRENT_WINDOW_FILEAREA);
     clear_msgline(-1);
     switch (key) {
-
       case 'N':
       case 'n':
         if (changed) {
@@ -86,7 +83,6 @@ static short selective_change(TARGET *target, char_t *old_str, length_t len_old_
           rc = SKIP;
         }
         break;
-
       case 'C':
       case 'c':
         if (changed) {
@@ -103,7 +99,6 @@ static short selective_change(TARGET *target, char_t *old_str, length_t len_old_
         changed = (changed) ? FALSE : TRUE;
         key = 0;
         break;
-
       case 'Q':
       case 'q':
         if (changed) {
@@ -112,7 +107,6 @@ static short selective_change(TARGET *target, char_t *old_str, length_t len_old_
           rc = QUIT;
         }
         break;
-
       default:
         key = 0;
         break;
@@ -129,34 +123,34 @@ static short selective_change(TARGET *target, char_t *old_str, length_t len_old_
   return (rc);
 }
 
-short execute_change_command(char_t *in_params, bool selective) {
-  line_t num_lines = 0L, long_n = 0L, long_m = 0L;
+short execute_change_command(uchar *in_params, bool selective) {
+  long num_lines = 0L, long_n = 0L, long_m = 0L;
   LINE *curr = NULL;
-  char_t *old_str = NULL, *new_str = NULL;
+  uchar *old_str = NULL, *new_str = NULL;
   short rc = 0, selective_rc = RC_OK;
   short direction = DIRECTION_FORWARD;
   long number_changes = 0L, number_of_changes = 0L, number_of_occ = 0L;
-  length_t start_col = 0, real_start = 0, real_end = 0, loc = 0;
-  line_t true_line = 0L, last_true_line = 0L, number_lines = 0L;
-  line_t num_actual_lines = 0L, abs_num_lines = 0L, i = 0L;
-  line_t num_file_lines = 0L;
-  length_t len_old_str = 0, len_new_str = 0;
+  long start_col = 0, real_start = 0, real_end = 0, loc = 0;
+  long true_line = 0L, last_true_line = 0L, number_lines = 0L;
+  long num_actual_lines = 0L, abs_num_lines = 0L, i = 0L;
+  long num_file_lines = 0L;
+  long len_old_str = 0, len_new_str = 0;
   TARGET target;
-  char_t  message[100];
+  uchar message[100];
   bool lines_based_on_scope = FALSE;
-  char_t *save_params = NULL;
-  char_t *params;
+  uchar *save_params = NULL;
+  uchar *params;
   short save_target_type = TARGET_RELATIVE;
-  length_t str_length = 0;
+  long str_length = 0;
 
   /*
-   * If no arguments have been supplied, pass the last change command
-   * to be executed. If no last change command, return error 39.
+   * If no arguments have been supplied, pass the last change command to be executed.
+   * If no last change command, return error 39.
    */
   if (blank_field(in_params)) {
     params = (selective) ? lastop[LASTOP_SCHANGE].value : lastop[LASTOP_CHANGE].value;
     if (blank_field(params)) {
-      display_error(39, (char_t *) "", FALSE);
+      display_error(39, (uchar *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
   } else {
@@ -165,15 +159,15 @@ short execute_change_command(char_t *in_params, bool selective) {
   /*
    * Save the parameters for later...
    */
-  if ((save_params = (char_t *) strdup ((char *) params)) == NULL) {
+  if ((save_params = (uchar *) strdup((char*)params)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
   /*
-   * Validate the parameters that have been supplied. Up to 4 parameters
-   * may be supplied. The first is the string to change and its new
-   * value, the second is the target, the third is the number of times
-   * to change the value on one line and lastly is which occurrence to
-   * change first.
+   * Validate the parameters that have been supplied.
+   * Up to 4 parameters may be supplied.
+   * The first is the string to change and its new value, the second is the target,
+   * the third is the number of times to change the value on one line
+   * and lastly is which occurrence to change first.
    */
   initialise_target(&target);
   rc = split_change_params(params, &old_str, &new_str, &target, &long_n, &long_m);
@@ -201,41 +195,35 @@ short execute_change_command(char_t *in_params, bool selective) {
   if (CURRENT_VIEW->hex) {
     len_old_str = convert_hex_strings(old_str);
     switch (len_old_str) {
-
       case -1:                 /* invalid hex value */
         free_target(&target);
         display_error(32, old_str, FALSE);
-        free (save_params);
+        free(save_params);
         return (RC_INVALID_OPERAND);
         break;
-
       case -2:                 /* memory exhausted */
         free_target(&target);
-        display_error(30, (char_t *) "", FALSE);
-        free (save_params);
+        display_error(30, (uchar *) "", FALSE);
+        free(save_params);
         return (RC_OUT_OF_MEMORY);
         break;
-
       default:
         break;
     }
     len_new_str = convert_hex_strings(new_str);
     switch (len_new_str) {
-
       case -1:                 /* invalid hex value */
         free_target(&target);
         display_error(32, new_str, FALSE);
-        free (save_params);
+        free(save_params);
         return (RC_INVALID_OPERAND);
         break;
-
       case -2:                 /* memory exhausted */
         free_target(&target);
-        display_error(30, (char_t *) "", FALSE);
-        free (save_params);
+        display_error(30, (uchar *) "", FALSE);
+        free(save_params);
         return (RC_OUT_OF_MEMORY);
         break;
-
       default:
         break;
     }
@@ -251,19 +239,19 @@ short execute_change_command(char_t *in_params, bool selective) {
   } else {
     rc = save_lastop(LASTOP_CHANGE, save_params);
   }
-  free (save_params);
+  free(save_params);
   if (rc != RC_OK) {
     free_target(&target);
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return rc;
   }
   /*
-   * If the number of lines is zero, don't make any  changes. Exit with
-   * no rows changed.
+   * If the number of lines is zero, don't make any changes.
+   * Exit with no rows changed.
    */
   if (num_lines == 0L) {
     free_target(&target);
-    display_error(36, (char_t *) "", FALSE);
+    display_error(36, (uchar *) "", FALSE);
     return (RC_NO_LINES_CHANGED);
   }
   if (num_lines < 0) {
@@ -273,6 +261,7 @@ short execute_change_command(char_t *in_params, bool selective) {
     direction = DIRECTION_FORWARD;
     abs_num_lines = num_lines;
   }
+
   if (true_line != CURRENT_VIEW->focus_line) {
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   }
@@ -285,8 +274,7 @@ short execute_change_command(char_t *in_params, bool selective) {
       }
     } else {
       /*
-       * For ISPF implement a change with no target as find first target, change it
-       * and finish.
+       * For ISPF implement a change with no target as find first target, change it and finish.
        */
       if (compatible_feel == COMPAT_ISPF && target.rt == NULL) {
         if (number_of_changes > 0) {
@@ -300,15 +288,12 @@ short execute_change_command(char_t *in_params, bool selective) {
     }
     rc = processable_line(CURRENT_VIEW, true_line, curr);
     switch (rc) {
-
       case LINE_SHADOW:
         break;
-
       case LINE_TOF:
       case LINE_EOF:
         num_actual_lines++;
         break;
-
       default:
         pre_process_line(CURRENT_VIEW, true_line, curr);
         loc = 0;
@@ -344,7 +329,7 @@ short execute_change_command(char_t *in_params, bool selective) {
               /* the following block is done for change or confirm of sch */
               if (!selective) {
                 memdeln(rec, start_col, rec_len, len_old_str);
-                rec_len = (length_t) max((line_t) start_col, (line_t) rec_len - (line_t) len_old_str);
+                rec_len = (long) max((long) start_col, (long) rec_len - (long) len_old_str);
                 meminsmem(rec, new_str, len_new_str, start_col, max_line_length, rec_len);
                 rec_len += len_new_str;
                 if (rec_len > max_line_length) {
@@ -359,7 +344,6 @@ short execute_change_command(char_t *in_params, bool selective) {
                 selective_rc = selective_change(&target, old_str, len_old_str, new_str, len_new_str, true_line, last_true_line, start_col);
                 last_true_line = true_line;
                 switch (selective_rc) {
-
                   case QUITOK:
                   case RC_OK:
                     start_col += len_new_str;
@@ -370,11 +354,9 @@ short execute_change_command(char_t *in_params, bool selective) {
                       loc = (-1);
                     }
                     break;
-
                   case SKIP:
                     start_col += len_old_str;
                     break;
-
                   case QUIT:
                     break;
                 }
@@ -387,7 +369,7 @@ short execute_change_command(char_t *in_params, bool selective) {
               start_col += len_old_str;
               number_of_occ++;
             }
-            if (number_of_changes > long_n - 1) { /* || number_of_occ > long_n-1) */
+            if (number_of_changes > long_n - 1) { /* || number_of_occ > long_n-1 */
               loc = (-1);
             }
           }
@@ -408,8 +390,8 @@ short execute_change_command(char_t *in_params, bool selective) {
     } else {
       curr = curr->prev;
     }
-    true_line += (line_t) (direction);
-    num_file_lines += (line_t) (direction);
+    true_line += (long) (direction);
+    num_file_lines += (long) (direction);
     if (curr == NULL) {
       break;
     }
@@ -419,18 +401,16 @@ short execute_change_command(char_t *in_params, bool selective) {
    * If no changes were made, display error message and return.
    */
   if (number_changes == 0L) {
-    display_error(36, (char_t *) "", FALSE);
+    display_error(36, (uchar *) "", FALSE);
     pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
     return (RC_NO_LINES_CHANGED);
   }
   /*
-   * Increment the alteration count here, once irrespective of the number
-   * of lines changed.
+   * Increment the alteration count here, once irrespective of the number of lines changed.
    */
   increment_alt(CURRENT_FILE);
   /*
-   * If STAY is OFF, change the current and focus lines by the number
-   * of lines calculated from the target.
+   * If STAY is OFF, change the current and focus lines by the number of lines calculated from the target.
    */
   if (selective) {
     if (!CURRENT_VIEW->stay) {  /* stay is off */
@@ -453,22 +433,22 @@ short execute_change_command(char_t *in_params, bool selective) {
   return rc;
 }
 
-short insert_new_line(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *line, length_t len, line_t num_lines, line_t true_line, bool start_left_col, bool make_current, bool inc_alt, char_t select, bool move_cursor, bool sos_command) {
-  line_t i;
+short insert_new_line(uchar curr_screen, VIEW_DETAILS *curr_view, uchar *line, long len, long num_lines, long true_line, bool start_left_col, bool make_current, bool inc_alt, uchar select, bool move_cursor, bool sos_command) {
+  long i;
   LINE *curr = NULL, *save_curr = NULL;
   unsigned short x = 0, y = 0;
-  length_t new_col = 0;
+  long new_col = 0;
   bool on_bottom_of_file = FALSE, on_bottom_of_screen = FALSE;
   short number_focus_rows = 0;
   bool leave_cursor = FALSE;
-  line_t new_focus_line = 0L, new_current_line = 0L;
+  long new_focus_line = 0L, new_current_line = 0L;
 
   if (!curr_view->scope_all) {
     true_line = find_last_not_in_scope(curr_view, NULL, true_line, DIRECTION_FORWARD);
   }
   /*
-   * If we are on the 'Bottom of File' line reduce the true_line by 1
-   * so that the new line is added before the bottom line.
+   * If we are on the 'Bottom of File' line
+   * reduce the true_line by 1 so that the new line is added before the bottom line.
    */
   if (true_line == (curr_view->file_for_view->number_lines + 1L)) {
     true_line--;
@@ -479,19 +459,19 @@ short insert_new_line(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *line,
    */
   curr = lll_find(curr_view->file_for_view->first_line, curr_view->file_for_view->last_line, true_line, curr_view->file_for_view->number_lines);
   /*
-   * Insert into the linked list the number of lines specified. All lines
-   * will contain a blank line and a length of zero.
+   * Insert into the linked list the number of lines specified.
+   * All lines will contain a blank line and a length of zero.
    */
   save_curr = curr;
   for (i = 0; i < num_lines; i++) {
     if ((curr = add_LINE(curr_view->file_for_view->first_line, curr, line, len, select, TRUE)) == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
   }
   /*
-   * Fix the positioning of the marked block (if there is one and it is
-   * in the current view) and any pending prefix commands.
+   * Fix the positioning of the marked block (if there is one and it is in the current view)
+   * and any pending prefix commands.
    */
   adjust_marked_lines(TRUE, true_line, num_lines);
   adjust_pending_prefix(curr_view, TRUE, true_line, num_lines);
@@ -508,7 +488,6 @@ short insert_new_line(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *line,
    */
   if (move_cursor) {
     switch (curr_view->current_window) {
-
       case WINDOW_COMMAND:
         curr_view->focus_line = true_line + 1L;
         if (make_current) {
@@ -516,7 +495,6 @@ short insert_new_line(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *line,
         }
         pre_process_line(curr_view, curr_view->focus_line, (LINE *) NULL);
         break;
-
       case WINDOW_FILEAREA:
       case WINDOW_PREFIX:
         build_screen(curr_screen);
@@ -560,8 +538,7 @@ short insert_new_line(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *line,
           wmove(SCREEN_WINDOW(curr_screen), y - ((leave_cursor) ? 0 : 1), new_col);
         } else {
           /*
-           * We are in the middle of the window, so just move the cursor down
-           * 1 line.
+           * We are in the middle of the window, so just move the cursor down 1 line.
            */
           wmove(SCREEN_WINDOW(curr_screen), y + number_focus_rows, new_col);
           curr_view->focus_line = new_focus_line;
@@ -580,7 +557,7 @@ short insert_new_line(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *line,
 
 #define SHELL "SHELL"
 
-short execute_os_command(char_t *cmd, bool quiet, bool pause) {
+short execute_os_command(uchar *cmd, bool quiet, bool pause) {
   short rc = 0;
 
   if (!quiet && curses_started) {
@@ -591,7 +568,7 @@ short execute_os_command(char_t *cmd, bool quiet, bool pause) {
     suspend_curses();
   }
   if (allocate_temp_space(strlen((char *) cmd), TEMP_TEMP_CMD) != RC_OK) {
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   if (strcmp((char *) cmd, "") == 0) {
@@ -603,7 +580,7 @@ short execute_os_command(char_t *cmd, bool quiet, bool pause) {
   } else {
     strcpy((char *) temp_cmd, (char *) cmd);
   }
-  if (strcmp((char *) temp_cmd, "") == 0) {  /* no SHELL env variable set */
+  if (strcmp((char *) temp_cmd, "") == 0) {     /* no SHELL env variable set */
     printf("No SHELL environment variable set - using /bin/sh\n");
     fflush(stdout);
     strcpy((char *) temp_cmd, "/bin/sh");
@@ -618,7 +595,7 @@ short execute_os_command(char_t *cmd, bool quiet, bool pause) {
   }
   if (!quiet && curses_started) {
     if (pause) {
-      (void) wgetch(stdscr);
+      (void) my_getch(stdscr);
     }
     resume_curses();
     restore_THE();
@@ -629,7 +606,7 @@ short execute_os_command(char_t *cmd, bool quiet, bool pause) {
   return (rc);
 }
 
-short execute_makecurr(char_t curr_screen, VIEW_DETAILS *curr_view, line_t line) {
+short execute_makecurr(uchar curr_screen, VIEW_DETAILS *curr_view, long line) {
   unsigned short y = 0, x = 0;
 
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
@@ -650,14 +627,14 @@ short execute_makecurr(char_t curr_screen, VIEW_DETAILS *curr_view, line_t line)
   return (RC_OK);
 }
 
-short execute_shift_command(char_t curr_screen, VIEW_DETAILS *curr_view, bool shift_left, length_t num_cols, line_t true_line, line_t num_lines, bool lines_based_on_scope, long target_type, bool sos, bool zone_shift) {
+short execute_shift_command(uchar curr_screen, VIEW_DETAILS *curr_view, bool shift_left, long num_cols, long true_line, long num_lines, bool lines_based_on_scope, long target_type, bool sos, bool zone_shift) {
   LINE *curr = NULL;
-  line_t abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
-  line_t num_file_lines = 0L, i = 0L;
-  line_t num_actual_lines = 0L;
-  length_t left_col = 0L, right_col = 0L;
-  length_t j = 0;
-  length_t actual_cols = 0;
+  long abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
+  long num_file_lines = 0L, i = 0L;
+  long num_actual_lines = 0L;
+  long left_col = 0L, right_col = 0L;
+  long j = 0;
+  long actual_cols = 0;
   short rc = RC_OK;
   short direction = (num_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
   bool adjust_alt = FALSE;
@@ -677,17 +654,14 @@ short execute_shift_command(char_t curr_screen, VIEW_DETAILS *curr_view, bool sh
         break;
       }
     }
-    rc = processable_line(curr_view, true_line + (line_t) (i * direction), curr);
+    rc = processable_line(curr_view, true_line + (long) (i * direction), curr);
     switch (rc) {
-
       case LINE_SHADOW:
         break;
-
       case LINE_TOF:
       case LINE_EOF:
         num_actual_lines++;
         break;
-
       default:
         memset(trec, ' ', max_line_length);
         memcpy(trec, curr->line, curr->length);
@@ -731,7 +705,7 @@ short execute_shift_command(char_t curr_screen, VIEW_DETAILS *curr_view, bool sh
           }
           if (trec_len > max_line_length) {
             trec_len = max_line_length;
-            display_error(0, (char_t *) "Truncated", FALSE);
+            display_error(0, (uchar *) "Truncated", FALSE);
           }
           actual_cols = num_cols;
         }
@@ -748,9 +722,9 @@ short execute_shift_command(char_t curr_screen, VIEW_DETAILS *curr_view, bool sh
            * Realloc the dynamic memory for the line if the line is now longer.
            */
           if (trec_len > curr->length) {
-            curr->line = (char_t *) realloc ((void *) curr->line, (trec_len + 1) * sizeof(char_t));
+            curr->line = (uchar *) realloc((void *) curr->line, (trec_len + 1) * sizeof(uchar));
             if (curr->line == NULL) {
-              display_error(30, (char_t *) "", FALSE);
+              display_error(30, (uchar *) "", FALSE);
               return (RC_OUT_OF_MEMORY);
             }
           }
@@ -773,7 +747,7 @@ short execute_shift_command(char_t curr_screen, VIEW_DETAILS *curr_view, bool sh
     } else {
       curr = curr->next;
     }
-    num_file_lines += (line_t) direction;
+    num_file_lines += (long) direction;
     if (curr == NULL) {
       break;
     }
@@ -797,11 +771,11 @@ short execute_shift_command(char_t curr_screen, VIEW_DETAILS *curr_view, bool sh
   return rc;
 }
 
-short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, unsigned int tag_flag, line_t true_line, line_t num_lines, bool lines_based_on_scope, long target_type) {
+short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, unsigned int tag_flag, long true_line, long num_lines, bool lines_based_on_scope, long target_type) {
   LINE *curr = NULL;
-  line_t abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
-  line_t num_file_lines = 0L, i = 0L;
-  line_t num_actual_lines = 0L;
+  long abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
+  long num_file_lines = 0L, i = 0L;
+  long num_actual_lines = 0L;
   short rc = RC_OK;
   short direction = (num_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
   bool adjust_alt = FALSE;
@@ -818,17 +792,14 @@ short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, uns
         break;
       }
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (long) (i * direction), curr);
     switch (rc) {
-
       case LINE_SHADOW:
         break;
-
       case LINE_TOF:
       case LINE_EOF:
         num_actual_lines++;
         break;
-
       default:
         if (new_flag < 2) {
           curr->flags.new_flag = new_flag;
@@ -850,7 +821,7 @@ short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, uns
     } else {
       curr = curr->next;
     }
-    num_file_lines += (line_t) direction;
+    num_file_lines += (long) direction;
     if (curr == NULL) {
       break;
     }
@@ -878,20 +849,18 @@ short execute_set_lineflag(unsigned int new_flag, unsigned int changed_flag, uns
  * Returns TRUE if a line was changed, FALSE otherwise.
  * This function MUST preceed execute_change_case().
  */
-static bool change_case(char_t *str, length_t start, length_t end, char_t which_case) {
-  length_t i;
+static bool change_case(uchar *str, long start, long end, uchar which_case) {
+  long i;
   bool altered = FALSE;
 
   for (i = start; i < end + 1; i++) {
     switch (which_case) {
-
       case CASE_UPPER:
         if (islower(*(str + i))) {
           *(str + i) = toupper(*(str + i));
           altered = TRUE;
         }
         break;
-
       case CASE_LOWER:
         if (isupper(*(str + i))) {
           *(str + i) = tolower(*(str + i));
@@ -903,10 +872,10 @@ static bool change_case(char_t *str, length_t start, length_t end, char_t which_
   return (altered);
 }
 
-short do_actual_change_case(line_t true_line, line_t num_lines, char_t which_case, bool lines_based_on_scope, short direction, length_t start_col, length_t end_col) {
+short do_actual_change_case(long true_line, long num_lines, uchar which_case, bool lines_based_on_scope, short direction, long start_col, long end_col) {
   bool adjust_alt = FALSE;
   LINE *curr = NULL;
-  line_t i, num_actual_lines = 0L, num_file_lines = 0L;
+  long i, num_actual_lines = 0L, num_file_lines = 0L;
   short rc = RC_OK;
 
   /*
@@ -927,21 +896,19 @@ short do_actual_change_case(line_t true_line, line_t num_lines, char_t which_cas
         break;
       }
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (long) (i * direction), curr);
     switch (rc) {
-
       case LINE_SHADOW:
         break;
-
       case LINE_TOF:
       case LINE_EOF:
         num_actual_lines++;
         break;
-
       default:
         add_to_recovery_list(curr->line, curr->length);
         if (MARK_VIEW && (MARK_VIEW->mark_type == M_STREAM || MARK_VIEW->mark_type == M_CUA)) {
           int mystart = 0, myend = curr->length - 1;
+
           if (true_line + i == MARK_VIEW->mark_start_line) {
             mystart = start_col;
           }
@@ -967,7 +934,7 @@ short do_actual_change_case(line_t true_line, line_t num_lines, char_t which_cas
     } else {
       curr = curr->prev;
     }
-    num_file_lines += (line_t) direction;
+    num_file_lines += (long) direction;
     if (curr == NULL) {
       break;
     }
@@ -983,10 +950,10 @@ short do_actual_change_case(line_t true_line, line_t num_lines, char_t which_cas
   return rc;
 }
 
-short execute_change_case(char_t *params, char_t which_case) {
-  line_t num_lines = 0L, true_line = 0L;
+short execute_change_case(uchar *params, uchar which_case) {
+  long num_lines = 0L, true_line = 0L;
   short direction = 0;
-  length_t start_col = 0, end_col = 0;
+  long start_col = 0, end_col = 0;
   short rc = RC_OK;
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL;
@@ -998,7 +965,7 @@ short execute_change_case(char_t *params, char_t which_case) {
    * If no parameter is supplied, 1 is assumed.
    */
   if (strcmp("", (char *) params) == 0) {
-    params = (char_t *) "+1";
+    params = (uchar *) "+1";
   }
   initialise_target(&target);
   if ((rc = validate_target(params, &target, target_type, get_true_line(TRUE), TRUE, TRUE)) != RC_OK) {
@@ -1018,8 +985,7 @@ short execute_change_case(char_t *params, char_t which_case) {
   }
   true_line = target.true_line;
   /*
-   * If the target is BLOCK set the left and right margins to be the
-   * margins of the BOX BLOCK, otherwise use ZONE settings.
+   * If the target is BLOCK set the left and right margins to be the margins of the BOX BLOCK, otherwise use ZONE settings.
    */
   start_col = CURRENT_VIEW->zone_start - 1;
   end_col = CURRENT_VIEW->zone_end - 1;
@@ -1045,25 +1011,15 @@ short execute_change_case(char_t *params, char_t which_case) {
   return (rc);
 }
 
-/* Parameters:                                                         */
-/*    command: the command being executed; COPY,DELETE,DUPLICATE,MOVE  */
-/*     source: where the command is executed; COMMAND, PREFIX, BLOCK   */
-/* start_line: the first line (or only line) number to be acted on     */
-/*   end_line: the last line number to be acted on                     */
-/*  dest_line: the destination line for copy,move and duplicate. For   */
-/*             delete this is not applicable.                          */
-/*    num_occ: the number of times to execute the command; only for DUP*/
-/* lines_affected: number of "real" lines affected by copy operation   */
-
-short rearrange_line_blocks(char_t command, char_t source, line_t start_line, line_t end_line, line_t dest_line, line_t num_occ, VIEW_DETAILS *src_view, VIEW_DETAILS *dst_view, bool lines_based_on_scope, line_t *lines_affected) {
-  line_t j = 0, k = 0;
+short rearrange_line_blocks(uchar command, uchar source, long start_line, long end_line, long dest_line, long num_occ, VIEW_DETAILS *src_view, VIEW_DETAILS *dst_view, bool lines_based_on_scope, long *lines_affected) {
+  long j = 0, k = 0;
   short rc = RC_OK;
   static unsigned short y = 0, x = 0;
   bool dst_inside_src = FALSE, lines_added = FALSE, reset_block = FALSE;
   bool dest_in_block = FALSE;
   short direction = 0;
-  line_t num_lines = 0L, off = 0L, adjust_line = dest_line, num_actual_lines = 0L;
-  line_t i = 0L, num_pseudo_lines = 0L;
+  long num_lines = 0L, off = 0L, adjust_line = dest_line, num_actual_lines = 0L;
+  long i = 0L, num_pseudo_lines = 0L;
   LINE *curr_src = NULL, *curr_dst = NULL;
   LINE *save_curr_src = NULL, *save_curr_dst = NULL;
   FILE_DETAILS *src_file = NULL, *dst_file = NULL;
@@ -1079,7 +1035,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
    * This block of commands is for copying lines...
    */
   switch (command) {
-
     case COMMAND_COPY:
     case COMMAND_OVERLAY_COPY:
     case COMMAND_MOVE_COPY_SAME:
@@ -1087,26 +1042,23 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
     case COMMAND_DUPLICATE:
       lines_added = TRUE;
       switch (source) {
-
         case SOURCE_BLOCK:
         case SOURCE_BLOCK_RESET:
           if (src_view == dst_view && dest_line >= start_line && dest_line < end_line) {
             dest_in_block = TRUE;
           }
           break;
-
         case SOURCE_PREFIX:
           if (dest_line >= start_line && dest_line < end_line) {
             dest_in_block = TRUE;
           }
           break;
-
         default:
           break;
       }
       /*
-       * If the destination line is within the marked block then we have to
-       * handle the processing of the src_curr pointer differently.
+       * If the destination line is within the marked block
+       * then we have to handle the processing of the src_curr pointer differently.
        */
       if (dest_in_block) {
         dst_inside_src = TRUE;
@@ -1138,19 +1090,16 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
           }
           rc = processable_line(src_view, start_line + (i * direction), curr_src);
           switch (rc) {
-
             case LINE_SHADOW:
               break;
-
             case LINE_TOF:
             case LINE_EOF:
               num_actual_lines++;
               num_pseudo_lines++;
               break;
-
             default:
               if ((curr_dst = add_LINE(dst_file->first_line, curr_dst, curr_src->line, curr_src->length, dst_view->display_low, TRUE)) == NULL) { /* curr_src->select == NULL */
-                display_error(30, (char_t *) "", FALSE);
+                display_error(30, (uchar *) "", FALSE);
                 return (RC_OUT_OF_MEMORY);
               }
               /*
@@ -1184,7 +1133,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
       dst_file->number_lines += (num_actual_lines - num_pseudo_lines) * num_occ;
       *lines_affected = (num_actual_lines - num_pseudo_lines) * num_occ;
       break;
-
     default:
       break;
   }
@@ -1192,7 +1140,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
    * This block of commands is for deleting lines...
    */
   switch (command) {
-
     case COMMAND_OVERLAY_DELETE:
     case COMMAND_DELETE:
     case COMMAND_MOVE_DELETE_SAME:
@@ -1218,12 +1165,10 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
         }
         rc = processable_line(dst_view, start_line + (i * direction), curr_dst);
         switch (rc) {
-
           case LINE_TOF:
           case LINE_EOF:
             num_actual_lines++; /* this is meant to fall through */
             num_pseudo_lines++;
-
           case LINE_SHADOW:
             if (direction == DIRECTION_FORWARD) {
               curr_dst = curr_dst->next;
@@ -1231,7 +1176,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
               curr_dst = curr_dst->prev;
             }
             break;
-
           default:
             if (command != COMMAND_MOVE_DELETE_SAME) {
               add_to_recovery_list(curr_dst->line, curr_dst->length);
@@ -1245,7 +1189,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
       }
       dst_file->number_lines -= (num_actual_lines - num_pseudo_lines) * num_occ;
       break;
-
     default:
       break;
   }
@@ -1262,7 +1205,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
     getyx(CURRENT_WINDOW, y, x);
   }
   switch (command) {
-
     case COMMAND_COPY:
     case COMMAND_OVERLAY_COPY:
     case COMMAND_MOVE_COPY_SAME:
@@ -1275,6 +1217,7 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
         dst_view->focus_line = dest_line + 1L;
         if (dst_view == CURRENT_SCREEN.screen_view) {
           unsigned short last_focus_row = 0;
+
           find_last_focus_line(current_screen, &last_focus_row);
           if (dest_line >= CURRENT_SCREEN.sl[last_focus_row].line_number) {
             dst_view->current_line = dst_view->focus_line;
@@ -1289,6 +1232,7 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
         }
         if (dst_view->current_window != WINDOW_COMMAND && dst_view == CURRENT_SCREEN.screen_view) {
           unsigned short last_focus_row = 0;
+
           find_last_focus_line(current_screen, &last_focus_row);
           if (y == last_focus_row) {
             dst_view->current_line = dst_view->focus_line;
@@ -1299,7 +1243,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
         }
       }
       break;
-
     case COMMAND_DELETE:
     case COMMAND_OVERLAY_DELETE:
     case COMMAND_MOVE_DELETE_SAME:
@@ -1308,11 +1251,9 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
         if (IN_VIEW(dst_view, dest_line)) {
           if (dst_view->current_line > dst_file->number_lines + 1L) {
             /*
-             * This is better than before, but the cursor still ends up NOT on the
-             * focus line ?????
+             * This is better than before, but the cursor still ends up NOT on the focus line ?????
              */
             dst_view->current_line = dst_file->number_lines + 1L;
-            // dst_view->focus_line = dst_view->current_line;
             dst_view->focus_line = dest_line;
           } else {
             dst_view->focus_line = dest_line;
@@ -1356,7 +1297,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
       }
       dst_view->current_line = find_next_in_scope(dst_view, NULL, dst_view->current_line, DIRECTION_FORWARD);
       break;
-
     default:
       break;
   }
@@ -1364,7 +1304,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
    * This block of commands is for adjusting prefix and block lines...
    */
   switch (source) {
-
     case SOURCE_BLOCK:
     case SOURCE_BLOCK_RESET:
       adjust_pending_prefix(dst_view, lines_added, adjust_line, (num_actual_lines - num_pseudo_lines) * num_occ);
@@ -1372,14 +1311,11 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
         adjust_marked_lines(lines_added, adjust_line, (num_actual_lines - num_pseudo_lines) * num_occ);
       } else {
         switch (command) {
-
           case COMMAND_MOVE_DELETE_DIFF:
             src_view->marked_line = src_view->marked_col = FALSE;
             break;
-
           case COMMAND_OVERLAY_DELETE:
             break;
-
           default:
             if (command == COMMAND_COPY && src_view != dst_view) {
               src_view->marked_line = src_view->marked_col = FALSE;
@@ -1408,7 +1344,6 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
         }
       }
       break;
-
     case SOURCE_PREFIX:
     case SOURCE_COMMAND:
       adjust_marked_lines(lines_added, adjust_line, (num_actual_lines - num_pseudo_lines) * num_occ);
@@ -1419,8 +1354,8 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
     pre_process_line(CURRENT_VIEW, dst_view->focus_line, (LINE *) NULL);
   }
   if ((source == SOURCE_BLOCK || source == SOURCE_BLOCK_RESET) && display_screens > 1) {
-    build_screen((char_t) (other_screen));
-    display_screen((char_t) (other_screen));
+    build_screen((uchar) (other_screen));
+    display_screen((uchar) (other_screen));
   }
   if (command != COMMAND_MOVE_DELETE_DIFF && command != COMMAND_MOVE_COPY_SAME && command != COMMAND_OVERLAY_COPY && command != COMMAND_OVERLAY_DELETE) {
     build_screen(current_screen);
@@ -1434,26 +1369,20 @@ short rearrange_line_blocks(char_t command, char_t source, line_t start_line, li
   return (RC_OK);
 }
 
-/* Parameters:                                                         */
-/*       name: the name of the line to be processed                    */
-/*  true_line: the line number of the line                             */
-/*   point_on: indicates if the line name is to be turned on or off    */
-
-short execute_set_point(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *name, line_t true_line, bool point_on) {
+short execute_set_point(uchar curr_screen, VIEW_DETAILS *curr_view, uchar *name, long true_line, bool point_on) {
   LINE *curr = NULL;
-  line_t dummy = 0L;
-  char_t *this_name;
+  long dummy = 0L;
+  uchar *this_name;
   THELIST *curr_name;
 
   /*
-   * Find a line that already has the same name. If one exists, remove
-   * the name from that line. This is done whether we are adding a name
-   * or deleting it.
+   * Find a line that already has the same name.
+   * If one exists, remove the name from that line.
+   * This is done whether we are adding a name or deleting it.
    */
   if ((curr = find_named_line(name, &dummy, FALSE)) != (LINE *) NULL) {
     /*
-     * We found a line with the specified name; remove it from
-     * the list of names for this line
+     * We found a line with the specified name; remove it from the list of names for this line
      * Find the name in the list and remove the name...
      */
     curr_name = find_line_name(curr, name);
@@ -1462,16 +1391,16 @@ short execute_set_point(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *nam
     }
   }
   if (point_on) {
-    // Doesn't matter if the name didn't exist; we are adding a name.
     /*
+     * Doesn't matter if the name didn't exist; we are adding a name.
      * Find the focus line...
      */
     curr = lll_find(curr_view->file_for_view->first_line, curr_view->file_for_view->last_line, true_line, curr_view->file_for_view->number_lines);
     /*
      * Allocate space for the name and add it to the start of the linked list
      */
-    if ((this_name = (char_t *) malloc (strlen((char *) name) + 1)) == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+    if ((this_name = (uchar *) malloc(strlen((char *) name) + 1)) == NULL) {
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     strcpy((char *) this_name, (char *) name);
@@ -1488,32 +1417,27 @@ short execute_set_point(char_t curr_screen, VIEW_DETAILS *curr_view, char_t *nam
   return (RC_OK);
 }
 
-/* Parameters: col   - current column position within rec              */
-
-short execute_wrap_word(length_t col) {
-  length_t i = 0;
-  length_t col_break = 0, cursor_offset = 0;
+short execute_wrap_word(long col) {
+  long i = 0;
+  long col_break = 0, cursor_offset = 0;
   LINE *curr = NULL, *next_line = NULL;
   bool bnewline = FALSE, cursor_wrap = FALSE;
-  char_t *buf = NULL, *word_to_wrap = NULL;
-  length_t next_line_start = 0, length_word = 0, last_col = 0;
+  uchar *buf = NULL, *word_to_wrap = NULL;
+  long next_line_start = 0, length_word = 0, last_col = 0;
   short rc = RC_OK;
 
   /*
-   * This function is called when the length of the focus line exceeds
-   * the right margin. If the cursor is positioned in the last word of
-   * the line, the cursor moves with that word to the next line.
-   * If the combined length of the word to be wrapped and a space and the
-   * line following the focus line exceeds the right margin, a new line
-   * is inserted with the word being wrapped, otherwise the word to be
-   * wrapped is prepended to the following line.
+   * This function is called when the length of the focus line exceeds the right margin.
+   * If the cursor is positioned in the last word of the line, the cursor moves with that word to the next line.
+   * If the combined length of the word to be wrapped and a space and the line following the focus line exceeds the right margin,
+   * a new line is inserted with the word being wrapped, otherwise the word to be wrapped is prepended to the following line.
    *
+   * -
    * Find the current LINE pointer for the focus_line.
    */
   curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, CURRENT_VIEW->focus_line, CURRENT_FILE->number_lines);
   /*
-   * Determine where to start splitting the line in relation to end of
-   * line...
+   * Determine where to start splitting the line in relation to end of line...
    */
   col_break = memreveq(rec, ' ', rec_len);
   /*
@@ -1527,18 +1451,16 @@ short execute_wrap_word(length_t col) {
    */
   col_break++;
   /*
-   * Make a null terminated string out of current line so we can grab the
-   * word to be wrapped.
+   * Make a null terminated string out of current line so we can grab the word to be wrapped.
    */
   rec[rec_len] = '\0';
   /*
    * Point to word to wrap and determine its length.
    */
   length_word = rec_len - col_break;
-  word_to_wrap = (char_t *) rec + col_break;
+  word_to_wrap = (uchar *) rec + col_break;
   /*
-   * If the position of the cursor is before the word to wrap leave the
-   * cursor where it is.
+   * If the position of the cursor is before the word to wrap leave the cursor where it is.
    */
   if (col >= col_break) {
     cursor_wrap = TRUE;
@@ -1547,8 +1469,7 @@ short execute_wrap_word(length_t col) {
     cursor_wrap = FALSE;
   }
   /*
-   * Now we have to work out if a new line is to added or we prepend to
-   * the following line...
+   * Now we have to work out if a new line is to added or we prepend to the following line...
    */
   if (curr->next->next == NULL) { /* next line bottom of file */
     bnewline = TRUE;
@@ -1570,9 +1491,9 @@ short execute_wrap_word(length_t col) {
   /*
    * Save the word to be wrapped...
    */
-  buf = (char_t *) malloc (length_word + CURRENT_VIEW->margin_left);
+  buf = (uchar *) malloc(length_word + CURRENT_VIEW->margin_left);
   if (buf == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   memcpy(buf, word_to_wrap, length_word);
@@ -1602,7 +1523,7 @@ short execute_wrap_word(length_t col) {
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line + 1L, (LINE *) NULL, TRUE);
     pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   }
-  free (buf);
+  free(buf);
   /*
    * We now should know if the cursor is to wrap or stay where it is.
    */
@@ -1610,7 +1531,7 @@ short execute_wrap_word(length_t col) {
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     build_screen(current_screen);
     THEcursor_down(current_screen, CURRENT_VIEW, TRUE);
-    rc = Sos_firstchar((char_t *) "");
+    rc = Sos_firstchar((uchar *) "");
     for (i = 0; i < cursor_offset + 1; i++) {
       rc = THEcursor_right(TRUE, FALSE);
     }
@@ -1624,18 +1545,13 @@ short execute_wrap_word(length_t col) {
   return (rc);
 }
 
-/* Parameters: action  - split, join or spltjoin                       */
-/*             aligned - whether to align text or not                  */
-/*             cursor  - whether to split focus line at cursor or      */
-/*                       command line at current column                */
-
 short execute_split_join(short action, bool aligned, bool cursorarg) {
-  length_t i = 0;
-  length_t num_cols = 0, num_blanks_focus = 0, num_blanks_next = 0;
+  long i = 0;
+  long num_cols = 0, num_blanks_focus = 0, num_blanks_next = 0;
   unsigned short x = 0, y = 0;
   LINE *curr = NULL;
-  line_t true_line = 0L;
-  length_t col = 0;
+  long true_line = 0L;
+  long col = 0;
 
   /*
    * Determine line and column to use.
@@ -1657,7 +1573,7 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
    * Reject the command if true_line is top or bottom of file.
    */
   if (VIEW_TOF(CURRENT_VIEW, true_line) || VIEW_BOF(CURRENT_VIEW, true_line)) {
-    display_error(38, (char_t *) "", FALSE);
+    display_error(38, (uchar *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   /*
@@ -1673,7 +1589,6 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
   curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, true_line, CURRENT_FILE->number_lines);
   getyx(CURRENT_WINDOW, y, x);
   switch (action) {
-
     case SPLTJOIN_SPLIT:
       /*
        * Copy any changes in the focus line to the linked list.
@@ -1688,8 +1603,8 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
       }
       curr->flags.changed_flag = TRUE;
       /*
-       * Calculate the number of leading blanks on the current line so that
-       * the new line can have this many blanks prepended to align properly.
+       * Calculate the number of leading blanks on the current line
+       * so that the new line can have this many blanks prepended to align properly.
        */
       if (aligned) {
         num_cols = memne(curr->line, ' ', curr->length);
@@ -1712,11 +1627,10 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
         pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
       } else {
         pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
-        Sos_delend((char_t *) "");
+        Sos_delend((uchar *) "");
         post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
       }
       break;
-
     case SPLTJOIN_JOIN:
       if (curr->next->next == NULL) {
         /*
@@ -1725,10 +1639,9 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
         return (RC_INVALID_ENVIRON);
       }
       /*
-       * Calculate the number of leading blanks for the focus line and also
-       * for the line to be joined. To align the join properly, we have to
-       * remove up the number of leading blanks in the focus line from the
-       * beginning of the line to be joined.
+       * Calculate the number of leading blanks for the focus line and also for the line to be joined.
+       * To align the join properly, we have to remove up the number of leading blanks in the focus line
+       * from the beginning of the line to be joined.
        */
       if (aligned) {
         num_blanks_focus = memne(curr->line, ' ', curr->length);
@@ -1747,13 +1660,14 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
        * If the join would result in exceeding line length (or future TRUNC column)
        */
       if (col + curr->next->length - num_cols > max_line_length) {
-        display_error(154, (char_t *) "", FALSE);
+        display_error(154, (uchar *) "", FALSE);
         return (RC_NO_LINES_CHANGED);
       }
       /*
        * Copy any changes in the focus line to the linked list.
        */
       post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
+
       if (CURRENT_VIEW->current_window == WINDOW_COMMAND) {
         pre_process_line(CURRENT_VIEW, CURRENT_VIEW->current_line, (LINE *) NULL);
       }
@@ -1772,8 +1686,7 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
         y++;
       }
       /*
-       * Decrement the number of lines counter for the current file and move
-       * the cursor to the appropriate line.
+       * Decrement the number of lines counter for the current file and move the cursor to the appropriate line.
        */
       CURRENT_FILE->number_lines--;
       if (CURRENT_VIEW->current_window == WINDOW_FILEAREA) {
@@ -1798,8 +1711,8 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
     }
   }
   /*
-   * Fix the positioning of the marked block (if there is one and it is
-   * in the current view) and any pending prefix commands.
+   * Fix the positioning of the marked block (if there is one and it is in the current view)
+   * and any pending prefix commands.
    */
   adjust_marked_lines((bool) ((action == SPLTJOIN_SPLIT) ? TRUE : FALSE), true_line, 1L);
   adjust_pending_prefix(CURRENT_VIEW, (bool) ((action == SPLTJOIN_SPLIT) ? TRUE : FALSE), true_line, 1L);
@@ -1808,23 +1721,22 @@ short execute_split_join(short action, bool aligned, bool cursorarg) {
   return (RC_OK);
 }
 
-short execute_put(char_t *params, bool putdel) {
-  line_t num_lines = 0L, true_line = 0L, num_file_lines = 0L, end_line = 0L;
+short execute_put(uchar *params, bool putdel) {
+  long num_lines = 0L, true_line = 0L, num_file_lines = 0L;
   bool append = FALSE;
-  char_t *filename = NULL;
+  uchar *filename = NULL;
   short rc = RC_OK;
-  length_t start_col = 0, end_col = max_line_length;
+  long start_col = 0, end_col = max_line_length;
   bool lines_based_on_scope = TRUE;
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL | TARGET_SPARE;
   short direction = DIRECTION_FORWARD;
-  bool clip = FALSE;
 
   /*
    * If there are no arguments, default to "1"...
    */
   if (strcmp("", (char *) params) == 0) {
-    params = (char_t *) "1";
+    params = (uchar *) "1";
   }
   /*
    * Validate first argument as a target...
@@ -1842,24 +1754,19 @@ short execute_put(char_t *params, bool putdel) {
     filename = tempfilename;
     fprintf(stderr, "1:%s\n", filename);
   } else {
-    if (equal((char_t *) "clip:", MyStrip(target.rt[target.spare].string, STRIP_BOTH, ' '), 5)) {
-      clip = TRUE;
-    } else {
-      /*
-       * Remove leading and trailing spaces, then remove any leading and trailing
-       * double quotes
-       */
-      target.rt[target.spare].string = MyStrip(MyStrip(target.rt[target.spare].string, STRIP_BOTH, ' '), STRIP_BOTH, '"');
-      if ((rc = splitpath(target.rt[target.spare].string)) != RC_OK) {
-        display_error(10, target.rt[target.spare].string, FALSE);
-        free_target(&target);
-        return (rc);
-      }
-      strcpy((char *) temp_cmd, (char *) sp_path);
-      strcat((char *) temp_cmd, (char *) sp_fname);
-      filename = temp_cmd;
-      append = TRUE;
+    /*
+     * Remove leading and trailing spaces, then remove any leading and trailing double quotes
+     */
+    target.rt[target.spare].string = strstrip(strstrip(target.rt[target.spare].string, STRIP_BOTH, ' '), STRIP_BOTH, '"');
+    if ((rc = splitpath(target.rt[target.spare].string)) != RC_OK) {
+      display_error(10, target.rt[target.spare].string, FALSE);
+      free_target(&target);
+      return (rc);
     }
+    strcpy((char *) temp_cmd, (char *) sp_path);
+    strcat((char *) temp_cmd, (char *) sp_fname);
+    filename = temp_cmd;
+    append = TRUE;
   }
   true_line = target.true_line;
   num_lines = target.num_lines;
@@ -1868,28 +1775,20 @@ short execute_put(char_t *params, bool putdel) {
    */
   direction = (target.num_lines < 0L) ? DIRECTION_BACKWARD : DIRECTION_FORWARD;
   /*
-   * If the marked block is a BOX block, set up the left and right column
-   * values.
+   * If the marked block is a BOX block, set up the left and right column values.
    */
   if (target.rt[0].target_type == TARGET_BLOCK_CURRENT) {
     lines_based_on_scope = FALSE;
     if (MARK_VIEW->mark_type == M_BOX || MARK_VIEW->mark_type == M_STREAM || MARK_VIEW->mark_type == M_WORD || MARK_VIEW->mark_type == M_CUA) {
       start_col = MARK_VIEW->mark_start_col - 1;
       end_col = MARK_VIEW->mark_end_col - 1;
-      end_line = MARK_VIEW->mark_end_line;
+      // end_line = MARK_VIEW->mark_end_line;
     }
   }
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
-  if (clip) {
-    if ((rc = setclipboard(CURRENT_FILE, filename, TRUE, num_lines, true_line, end_line, &num_file_lines, append, start_col, end_col, FALSE, lines_based_on_scope, target.rt[0].target_type)) != RC_OK) {
-      free_target(&target);
-      return (rc);
-    }
-  } else {
-    if ((rc = save_file(CURRENT_FILE, filename, TRUE, num_lines, true_line, &num_file_lines, append, start_col, end_col, FALSE, lines_based_on_scope, FALSE)) != RC_OK) {
-      free_target(&target);
-      return (rc);
-    }
+  if ((rc = save_file(CURRENT_FILE, filename, TRUE, num_lines, true_line, &num_file_lines, append, start_col, end_col, FALSE, lines_based_on_scope, FALSE)) != RC_OK) {
+    free_target(&target);
+    return (rc);
   }
   /*
    * If we are executing a putd command, delete the target...
@@ -1898,9 +1797,8 @@ short execute_put(char_t *params, bool putdel) {
     rc = DeleteLine(target.string);
   } else {
     /*
-     * If STAY is OFF, change the current and focus lines by the number
-     * of lines calculated from the target. This is only applicable for
-     * PUT and NOT for PUTDEL.
+     * If STAY is OFF, change the current and focus lines by the number of lines calculated from the target.
+     * This is only applicable for PUT and NOT for PUTDEL.
      */
     resolve_current_and_focus_lines(current_screen, CURRENT_VIEW, true_line, num_file_lines, direction, FALSE, FALSE);
   }
@@ -1910,19 +1808,19 @@ short execute_put(char_t *params, bool putdel) {
 
 #define MAC_PARAMS  3
 
-short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
+short execute_macro(uchar *params, bool error_on_not_found, short *macrorc) {
   short rc = RC_OK;
   short errnum = 0;
   FILE *fp = NULL;
-  char_t *word[MAC_PARAMS + 1];
-  char_t strip[MAC_PARAMS];
-  char_t quoted[MAC_PARAMS];
+  uchar *word[MAC_PARAMS + 1];
+  uchar strip[MAC_PARAMS];
+  uchar quoted[MAC_PARAMS];
   unsigned short num_params = 0;
-  char_t *macroname = NULL;
+  uchar *macroname = NULL;
   bool save_in_macro = in_macro;
   bool allow_interactive = FALSE;
-  char_t *tmpfilename = NULL;
-  char_t *tmpargs = NULL;
+  uchar *tmpfilename = NULL;
+  uchar *tmpargs = NULL;
 
   /*
    * Validate the parameters. At least 1 must be present, the filename.
@@ -1933,7 +1831,7 @@ short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
   quoted[1] = '\0';
   num_params = quoted_param_split(params, word, MAC_PARAMS - 1, WORD_DELIMS, TEMP_PARAM, strip, TRUE, quoted);
   if (num_params == 0) {
-    display_error(3, (char_t *) "", FALSE);
+    display_error(3, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -1948,7 +1846,7 @@ short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
     quoted[2] = '\0';
     num_params = quoted_param_split(params, word, MAC_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, TRUE, quoted);
     if (num_params == 1) {
-      display_error(3, (char_t *) "", FALSE);
+      display_error(3, (uchar *) "", FALSE);
       return (RC_INVALID_OPERAND);
     }
     tmpfilename = word[1];
@@ -1962,8 +1860,8 @@ short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
   /*
    * Allocate some space for macroname...
    */
-  if ((macroname = (char_t *) malloc ((MAX_FILE_NAME + 1) * sizeof(char_t))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((macroname = (uchar *) malloc((MAX_FILE_NAME + 1) * sizeof(uchar))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   /*
@@ -1974,13 +1872,11 @@ short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
    * Validate the return code...
    */
   switch (rc) {
-
     case RC_OK:
       /*
        * If RC_OK, continue to process the macro...
        */
       break;
-
     case RC_FILE_NOT_FOUND:
       /*
        * If RC_FILE_NOT_FOUND and IMPOS is not on, display an error and exit.
@@ -1989,16 +1885,15 @@ short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
       if (error_on_not_found) {
         display_error(errnum, tmpfilename, FALSE);
       }
-      free (macroname);
+      free(macroname);
       return (rc);
       break;
-
     default:
       /*
        * All other cases, display error and return.
        */
       display_error(errnum, tmpfilename, FALSE);
-      free (macroname);
+      free(macroname);
       return (rc);
   }
   /*
@@ -2020,10 +1915,10 @@ short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     rc = execute_macro_file(macroname, tmpargs, macrorc, allow_interactive);
     if (rc != RC_OK) {
-      display_error(54, (char_t *) "", FALSE);
+      display_error(54, (uchar *) "", FALSE);
       rc = RC_SYSTEM_ERROR;
     }
-    free (macroname);
+    free(macroname);
   } else {
     /*
      * ...otherwise, process the file as a non-REXX macro file...
@@ -2037,23 +1932,23 @@ short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
       rc = execute_command_file(fp);
       fclose(fp);
     }
-    free (macroname);
+    free(macroname);
     if (rc == RC_SYSTEM_ERROR) {
-      display_error(53, (char_t *) "", FALSE);
+      display_error(53, (uchar *) "", FALSE);
     }
     if (rc == RC_NOREXX_ERROR) {
-      display_error(52, (char_t *) "", FALSE);
+      display_error(52, (uchar *) "", FALSE);
     }
   }
   /*
-   * Set in_macro = FALSE to indicate we are out of the macro and do a
-   * show_page() now as long as there are still file(s) in the ring.
+   * Set in_macro = FALSE to indicate we are out of the macro
+   * and do a show_page() now as long as there are still file(s) in the ring.
    */
   in_macro = save_in_macro;
   if (number_of_files > 0) {
     if (display_screens > 1) {
-      build_screen((char_t) (other_screen));
-      display_screen((char_t) (other_screen));
+      build_screen((uchar) (other_screen));
+      display_screen((uchar) (other_screen));
     }
     build_screen(current_screen);
     display_screen(current_screen);
@@ -2061,7 +1956,7 @@ short execute_macro(char_t *params, bool error_on_not_found, short *macrorc) {
   return (rc);
 }
 
-short write_macro(char_t *defn) {
+short write_macro(uchar *defn) {
   int len, i;
 
   if (record_fp) {
@@ -2081,31 +1976,32 @@ short write_macro(char_t *defn) {
   return 0;
 }
 
-short execute_set_on_off(char_t *inparams, bool *flag, bool error_display) {
+short execute_set_on_off(uchar *inparams, bool *flag, bool error_display) {
   short rc = RC_OK;
   int len = 0;
-  char_t *params = NULL;
+  uchar *params = NULL;
 
   /*
    * Make a copy of the arguments so we can split them up
    */
-  if ((params = (char_t *) strdup ((char *) inparams)) == NULL) {
+  if ((params = (uchar *) strdup((char*)inparams)) == NULL) {
     if (error_display) {
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
     }
     return (RC_OUT_OF_MEMORY);
   }
   /*
    * Strip the leading and trailing spaces from parameters...
    */
-  params = MyStrip(params, STRIP_BOTH, ' ');
+  params = strstrip(params, STRIP_BOTH, ' ');
   /*
    * Validate the parameter. It must be ON or OFF.
    */
   len = strlen((char *) params);
+
   if ((len < 2) || (toupper(params[0]) != 'O')) {
     if (error_display) {
-      display_error(1, (char_t *) inparams, FALSE);
+      display_error(1, (uchar *) inparams, FALSE);
     }
     rc = RC_INVALID_OPERAND;
   } else {
@@ -2116,27 +2012,27 @@ short execute_set_on_off(char_t *inparams, bool *flag, bool error_display) {
         *flag = TRUE;
       } else {
         if (error_display) {
-          display_error(1, (char_t *) inparams, FALSE);
+          display_error(1, (uchar *) inparams, FALSE);
         }
         rc = RC_INVALID_OPERAND;
       }
     }
   }
-  free (params);
+  free(params);
   return (rc);
 }
 
-short execute_set_row_position(char_t *inparams, short *base, short *off) {
+short execute_set_row_position(uchar *inparams, short *base, short *off) {
   short rc = RC_OK;
-  char_t *params = NULL, *save_param_ptr = NULL;
+  uchar *params = NULL, *save_param_ptr = NULL;
 
   /*
    * Strip the leading and trailing spaces from parameters...
    */
-  if ((params = save_param_ptr = (char_t *) strdup ((char *) inparams)) == NULL) {
+  if ((params = save_param_ptr = (uchar *) strdup((char*)inparams)) == NULL) {
     return (RC_OUT_OF_MEMORY);
   }
-  params = MyStrip(params, STRIP_BOTH, ' ');
+  params = strstrip(params, STRIP_BOTH, ' ');
   /*
    * Parse the position parameter...
    */
@@ -2148,23 +2044,24 @@ short execute_set_row_position(char_t *inparams, short *base, short *off) {
     } else {
       if ((*params != '-' && *params != '+') || ((*off = atoi((char *) params)) == 0)) {
         display_error(1, inparams, FALSE);
-        free (save_param_ptr);
+        free(save_param_ptr);
         return (RC_INVALID_OPERAND);
       }
     }
   } else {
     if ((*off = atoi((char *) params)) == 0) {
       display_error(1, inparams, FALSE);
-      free (save_param_ptr);
+      free(save_param_ptr);
       return (RC_INVALID_OPERAND);
     }
     *base = (*off > 0) ? POSITION_TOP : POSITION_BOTTOM;
   }
-  free (save_param_ptr);
+  free(save_param_ptr);
   return (rc);
 }
 
-short processable_line(VIEW_DETAILS *view, line_t true_line, LINE *curr) {
+short processable_line(VIEW_DETAILS *view, long true_line, LINE *curr) {
+
   if (VIEW_TOF(view, true_line)) {
     return (LINE_TOF);
   }
@@ -2177,9 +2074,9 @@ short processable_line(VIEW_DETAILS *view, line_t true_line, LINE *curr) {
   return (LINE_SHADOW);
 }
 
-short execute_expand_compress(char_t *params, bool expand, bool inc_alt, bool use_tabs, bool add_to_recovery) {
-  line_t i = 0L, num_actual_lines = 0L;
-  line_t num_lines = 0L, true_line = 0L, num_file_lines = 0L;
+short execute_expand_compress(uchar *params, bool expand, bool inc_alt, bool use_tabs, bool add_to_recovery) {
+  long i = 0L, num_actual_lines = 0L;
+  long num_lines = 0L, true_line = 0L, num_file_lines = 0L;
   short direction = 0, rc = RC_OK;
   LINE *curr = NULL;
   TARGET target;
@@ -2193,7 +2090,7 @@ short execute_expand_compress(char_t *params, bool expand, bool inc_alt, bool us
    */
   true_line = get_true_line(TRUE);
   if (strcmp("", (char *) params) == 0) {
-    params = (char_t *) "1";
+    params = (uchar *) "1";
   }
   initialise_target(&target);
   if ((rc = validate_target(params, &target, target_type, true_line, TRUE, TRUE)) != RC_OK) {
@@ -2205,20 +2102,17 @@ short execute_expand_compress(char_t *params, bool expand, bool inc_alt, bool us
    */
   if (target.rt[0].target_type == TARGET_BLOCK_CURRENT) {
     switch (MARK_VIEW->mark_type) {
-
       case M_BOX:
       case M_COLUMN:
       case M_WORD:
-        display_error(48, (char_t *) "", FALSE);
+        display_error(48, (uchar *) "", FALSE);
         rc = RC_INVALID_OPERAND;
         break;
-
       case M_STREAM:
       case M_CUA:
-        display_error(49, (char_t *) "", FALSE);
+        display_error(49, (uchar *) "", FALSE);
         rc = RC_INVALID_OPERAND;
         break;
-
       default:
         break;
     }
@@ -2259,18 +2153,14 @@ short execute_expand_compress(char_t *params, bool expand, bool inc_alt, bool us
         break;
       }
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (long) (i * direction), curr);
     switch (rc) {
-
       case LINE_SHADOW:
         break;
-
-      // case LINE_TOF_EOF:
       case LINE_TOF:
       case LINE_EOF:
         num_actual_lines++;
         break;
-
       default:
         rc = tabs_convert(curr, expand, use_tabs, add_to_recovery);
         if (rc == RC_FILE_CHANGED) {
@@ -2287,7 +2177,7 @@ short execute_expand_compress(char_t *params, bool expand, bool inc_alt, bool us
     } else {
       curr = curr->prev;
     }
-    num_file_lines += (line_t) direction;
+    num_file_lines += (long) direction;
     if (curr == NULL) {
       break;
     }
@@ -2299,8 +2189,7 @@ short execute_expand_compress(char_t *params, bool expand, bool inc_alt, bool us
     increment_alt(CURRENT_FILE);
   }
   /*
-   * If STAY is OFF, change the current and focus lines by the number
-   * of lines calculated from the target.
+   * If STAY is OFF, change the current and focus lines by the number of lines calculated from the target.
    */
   pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   resolve_current_and_focus_lines(current_screen, CURRENT_VIEW, true_line, num_file_lines, direction, TRUE, FALSE);
@@ -2312,9 +2201,9 @@ short execute_expand_compress(char_t *params, bool expand, bool inc_alt, bool us
   return (rc);
 }
 
-short execute_select(char_t *params, bool relative, short off) {
-  line_t i = 0L, num_actual_lines = 0L;
-  line_t num_lines = 0L, true_line = 0L;
+short execute_select(uchar *params, bool relative, short off) {
+  long i = 0L, num_actual_lines = 0L;
+  long num_lines = 0L, true_line = 0L;
   short direction = 0, rc = RC_OK;
   LINE *curr = NULL;
   TARGET target;
@@ -2362,17 +2251,14 @@ short execute_select(char_t *params, bool relative, short off) {
         break;
       }
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (i * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (long) (i * direction), curr);
     switch (rc) {
-
       case LINE_SHADOW:
         break;
-
       case LINE_TOF:
       case LINE_EOF:
         num_actual_lines++;
         break;
-
       default:
         if (relative) {
           if (((short) curr->select + off) > MAX_SELECT_LEVEL) {
@@ -2407,13 +2293,12 @@ short execute_select(char_t *params, bool relative, short off) {
   return (rc);
 }
 
-short execute_move_cursor(char_t curr_screen, VIEW_DETAILS *curr_view, length_t col) {
+short execute_move_cursor(uchar curr_screen, VIEW_DETAILS *curr_view, long col) {
   short y = 0, x = 0;
-  col_t new_screen_col = 0;
-  length_t new_verify_col = 0;
+  ushort new_screen_col = 0;
+  long new_verify_col = 0;
 
   switch (curr_view->current_window) {
-
     case WINDOW_FILEAREA:
       getyx(SCREEN_WINDOW(curr_screen), y, x);
       calculate_new_column(curr_screen, curr_view, x, curr_view->verify_col, col, &new_screen_col, &new_verify_col);
@@ -2424,7 +2309,6 @@ short execute_move_cursor(char_t curr_screen, VIEW_DETAILS *curr_view, length_t 
       }
       wmove(SCREEN_WINDOW(curr_screen), y, new_screen_col);
       break;
-
     case WINDOW_COMMAND:
       getyx(SCREEN_WINDOW(curr_screen), y, x);
       calculate_new_column(curr_screen, curr_view, x, cmd_verify_col, col, &new_screen_col, &new_verify_col);
@@ -2434,7 +2318,6 @@ short execute_move_cursor(char_t curr_screen, VIEW_DETAILS *curr_view, length_t 
       }
       wmove(SCREEN_WINDOW(curr_screen), y, new_screen_col);
       break;
-
     default:                   /* PREFIX */
       /*
        * Don't do anything for PREFIX window...
@@ -2447,22 +2330,22 @@ short execute_move_cursor(char_t curr_screen, VIEW_DETAILS *curr_view, length_t 
   return (RC_OK);
 }
 
-short execute_find_command(char_t *str, long target_type) {
+short execute_find_command(uchar *str, long target_type) {
   short rc = RC_OK;
-  length_t save_zone_start = CURRENT_VIEW->zone_start;
-  length_t save_zone_end = CURRENT_VIEW->zone_end;
+  long save_zone_start = CURRENT_VIEW->zone_start;
+  long save_zone_end = CURRENT_VIEW->zone_end;
   bool save_arbchar_status = CURRENT_VIEW->arbchar_status;
   bool save_hex = CURRENT_VIEW->hex;
   bool negative = FALSE, wrapped = FALSE;
-  char_t save_arbchar_single = CURRENT_VIEW->arbchar_single;
+  uchar save_arbchar_single = CURRENT_VIEW->arbchar_single;
   TARGET target;
-  line_t true_line = 0L;
-  line_t save_focus_line = CURRENT_VIEW->focus_line;
-  line_t save_current_line = CURRENT_VIEW->current_line;
+  long true_line = 0L;
+  long save_focus_line = CURRENT_VIEW->focus_line;
+  long save_current_line = CURRENT_VIEW->current_line;
 
-  if (strcmp((char *) str, "") == 0) {       /* no argument supplied */
+  if (strcmp((char *) str, "") == 0) {  /* no argument supplied */
     if (lastop[LASTOP_FIND].value == NULL || strcmp((char *) lastop[LASTOP_FIND].value, "") == 0) {
-      display_error(39, (char_t *) "", FALSE);
+      display_error(39, (uchar *) "", FALSE);
       return (RC_INVALID_OPERAND);
     } else {
       str = lastop[LASTOP_FIND].value;
@@ -2502,7 +2385,7 @@ short execute_find_command(char_t *str, long target_type) {
    * Save the last target...
    */
   if (save_lastop(LASTOP_FIND, str) != RC_OK) {
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return rc;
   }
   /*
@@ -2511,21 +2394,19 @@ short execute_find_command(char_t *str, long target_type) {
   if (rc == RC_TARGET_NOT_FOUND) {
     if (wrapped) {
       /*
-       * Put the current and focus lines back the way they were
-       * before wrapping.
+       * Put the current and focus lines back the way they were before wrapping.
        */
       CURRENT_VIEW->focus_line = save_focus_line;
       CURRENT_VIEW->current_line = save_current_line;
       pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
     }
-    display_error(34, (char_t *) "", FALSE);
+    display_error(34, (uchar *) "", FALSE);
     free_target(&target);
     return (rc);
   }
   /*
    * Target found, so advance the cursor...
    */
-  // post_process_line(CURRENT_VIEW,save_focus_line,(LINE *)NULL,TRUE);
   if (wrapped) {
     CURRENT_VIEW->focus_line = save_focus_line;
     CURRENT_VIEW->current_line = save_current_line;
@@ -2540,21 +2421,21 @@ short execute_find_command(char_t *str, long target_type) {
   rc = advance_current_or_focus_line(target.num_lines);
   free_target(&target);
   if (wrapped) {
-    display_error(0, (char_t *) "Wrapped...", FALSE);
+    display_error(0, (uchar *) "Wrapped...", FALSE);
   }
   return (rc);
 }
 
-short execute_modify_command(char_t *str) {
+short execute_modify_command(uchar *str) {
   register short i = 0;
   short itemno = 0;
-  char_t item_type = 0;
+  uchar item_type = 0;
 
   if ((itemno = find_query_item(str, strlen((char *) str), &item_type)) == (-1) || !(item_type & QUERY_MODIFY)) {
     display_error(1, str, FALSE);
     return (RC_INVALID_OPERAND);
   }
-  itemno = get_item_values(1, itemno, (char_t *) "", QUERY_MODIFY, 0L, NULL, 0L);
+  itemno = get_item_values(1, itemno, (uchar *) "", QUERY_MODIFY, 0L, NULL, 0L);
   strcpy((char *) temp_cmd, "set");
   for (i = 0; i < itemno + 1; i++) {
     strcat((char *) temp_cmd, " ");
@@ -2563,13 +2444,13 @@ short execute_modify_command(char_t *str) {
   return (RC_OK);
 }
 
-/*
- * start_col is 1 based; ie first column is column 1
- */
-length_t calculate_rec_len(short action, char_t *rec, length_t current_rec_len, length_t start_col, line_t num_cols, short trailing) {
-  length_t new_rec_len = 0;
-  length_t end_col = start_col + num_cols - 1;
+long calculate_rec_len(short action, uchar *rec, long current_rec_len, long start_col, long num_cols, short trailing) {
+  long new_rec_len = 0;
+  long end_col = start_col + num_cols - 1;
 
+  /*
+   * start_col is 1 based; ie first column is column 1
+   */
   if (num_cols <= 0) {
     new_rec_len = current_rec_len;
   } else if (trailing == TRAILING_OFF) {
@@ -2581,13 +2462,11 @@ length_t calculate_rec_len(short action, char_t *rec, length_t current_rec_len, 
     }
   } else {
     switch (action) {
-
       case ADJUST_DELETE:
         if (start_col < current_rec_len) {
-          new_rec_len = (length_t) (line_t) current_rec_len - (min((line_t) current_rec_len - (line_t) start_col, num_cols));
+          new_rec_len = (long) (long) current_rec_len - (min((long) current_rec_len - (long) start_col, num_cols));
         }
         break;
-
       case ADJUST_INSERT:
         if (start_col > current_rec_len) {
           new_rec_len = min(end_col, max_line_length);
@@ -2595,7 +2474,6 @@ length_t calculate_rec_len(short action, char_t *rec, length_t current_rec_len, 
           new_rec_len = min(current_rec_len + num_cols, max_line_length);
         }
         break;
-
       case ADJUST_OVERWRITE:
         if (end_col > current_rec_len) {
           new_rec_len = min(end_col, max_line_length);
@@ -2608,11 +2486,11 @@ length_t calculate_rec_len(short action, char_t *rec, length_t current_rec_len, 
   return (new_rec_len);
 }
 
-static short set_editv(char_t *var, char_t *val, bool editv_file, bool rexx_var) {
+static short set_editv(uchar *var, uchar *val, bool editv_file, bool rexx_var) {
   short rc = RC_OK;
   LINE *curr = NULL;
   int len_var = 0, len_val = 0;
-  char_t *value = NULL;
+  uchar *value = NULL;
   LINE *first = NULL;
 
   first = (editv_file) ? CURRENT_FILE->editv : editv;
@@ -2624,7 +2502,7 @@ static short set_editv(char_t *var, char_t *val, bool editv_file, bool rexx_var)
     }
   } else {
     if (val == NULL) {
-      value = (char_t *) "";
+      value = (uchar *) "";
     } else {
       value = val;
     }
@@ -2634,12 +2512,12 @@ static short set_editv(char_t *var, char_t *val, bool editv_file, bool rexx_var)
   curr = lll_locate(first, var);
   if (curr) {                   /* found an existing variable */
     if (len_val > curr->length) {
-      curr->line = (char_t *) realloc (curr->line, (len_val + 1) * sizeof(char_t));
+      curr->line = (uchar *) realloc(curr->line, (len_val + 1) * sizeof(uchar));
       if (curr->line == NULL) {
         if (rexx_var && value) {
-          free (value);
+          free(value);
         }
-        display_error(30, (char_t *) "", FALSE);
+        display_error(30, (uchar *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
       }
     }
@@ -2656,9 +2534,9 @@ static short set_editv(char_t *var, char_t *val, bool editv_file, bool rexx_var)
     curr = lll_add(first, NULL, sizeof(LINE));
     if (curr == NULL) {
       if (rexx_var && value) {
-        free (value);
+        free(value);
       }
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     /*
@@ -2670,38 +2548,38 @@ static short set_editv(char_t *var, char_t *val, bool editv_file, bool rexx_var)
     } else {
       editv = curr;
     }
-    curr->line = (char_t *) malloc ((len_val + 1) * sizeof(char_t));
+    curr->line = (uchar *) malloc((len_val + 1) * sizeof(uchar));
     if (curr->line == NULL) {
       if (rexx_var && value) {
-        free (value);
+        free(value);
       }
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     strcpy((char *) curr->line, (char *) value);
     curr->length = len_val;
-    curr->name = (char_t *) malloc ((len_var + 1) * sizeof(char_t));
+    curr->name = (uchar *) malloc((len_var + 1) * sizeof(uchar));
     if (curr->name == NULL) {
       if (rexx_var && value) {
-        free (value);
+        free(value);
       }
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     strcpy((char *) curr->name, (char *) var);
   }
   if (rexx_var && value) {
-    free (value);
+    free(value);
   }
   return (rc);
 }
 
 #define EDITV_PARAMS  2
 
-short execute_editv(short editv_type, bool editv_file, char_t *params) {
-  char_t *word[EDITV_PARAMS + 1];
-  char_t strip[EDITV_PARAMS];
-  char_t *p = NULL, *str = NULL;
+short execute_editv(short editv_type, bool editv_file, uchar *params) {
+  uchar *word[EDITV_PARAMS + 1];
+  uchar strip[EDITV_PARAMS];
+  uchar *p = NULL, *str = NULL;
   unsigned short num_params = 0;
   LINE *curr = NULL, *first = NULL;
   int key = 0, lineno = 0, i, len_str, len_name, rem, x;
@@ -2709,56 +2587,50 @@ short execute_editv(short editv_type, bool editv_file, char_t *params) {
 
   first = (editv_file) ? CURRENT_FILE->editv : editv;
   switch (editv_type) {
-
     case EDITV_SETL:
       strip[0] = STRIP_BOTH;
       strip[1] = STRIP_NONE;
       num_params = param_split(params, word, EDITV_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
       if (num_params == 0) {
-        display_error(3, (char_t *) "", FALSE);
+        display_error(3, (uchar *) "", FALSE);
         return (RC_INVALID_OPERAND);
       }
       rc = set_editv(word[0], word[1], editv_file, FALSE);
       break;
-
     case EDITV_SET:
-      p = (char_t *) strtok((char *) params, " ");
+      p = (uchar *) strtok((char *) params, " ");
       while (p != NULL) {
-        str = (char_t *) strtok(NULL, " ");
+        str = (uchar *) strtok(NULL, " ");
         rc = set_editv(p, str, editv_file, FALSE);
         if (str == NULL) {
           break;
         }
-        p = (char_t *) strtok(NULL, " ");
+        p = (uchar *) strtok(NULL, " ");
       }
       break;
-
     case EDITV_PUT:
-      p = (char_t *) strtok((char *) params, " ");
+      p = (uchar *) strtok((char *) params, " ");
       while (p != NULL) {
-        // p = make_upper( p ); not needed as set_editv() uppercases this anyway
         rc = set_editv(p, NULL, editv_file, TRUE);
-        p = (char_t *) strtok(NULL, " ");
+        p = (uchar *) strtok(NULL, " ");
       }
       break;
-
     case EDITV_GET:
-      p = (char_t *) strtok((char *) params, " ");
+      p = (uchar *) strtok((char *) params, " ");
       while (p != NULL) {
         p = make_upper(p);
         curr = lll_locate(first, p);
         if (curr && curr->line) {
           str = curr->line;
         } else {
-          str = (char_t *) "";
+          str = (uchar *) "";
         }
         if (set_rexx_variable(p, str, strlen((char *) str), -1) != RC_OK) {
           break;
         }
-        p = (char_t *) strtok(NULL, " ");
+        p = (uchar *) strtok(NULL, " ");
       }
       break;
-
     case EDITV_GETSTEM:
       len_name = strlen((char *) params);
       if (params[len_name - 1] != '.') {
@@ -2772,7 +2644,7 @@ short execute_editv(short editv_type, bool editv_file, char_t *params) {
           if (curr->line) {
             str = curr->line;
           } else {
-            str = (char_t *) "";
+            str = (uchar *) "";
           }
           rc = set_rexx_variable(curr->name, str, strlen((char *) str), -1);
           if (rc != RC_OK) {
@@ -2782,7 +2654,6 @@ short execute_editv(short editv_type, bool editv_file, char_t *params) {
         curr = curr->next;
       }
       break;
-
     case EDITV_LIST:
       wclear(stdscr);
       if (blank_field(params)) {
@@ -2791,7 +2662,7 @@ short execute_editv(short editv_type, bool editv_file, char_t *params) {
           if (curr->line) {
             str = curr->line;
           } else {
-            str = (char_t *) "";
+            str = (uchar *) "";
           }
           attrset(A_BOLD);
           mvaddstr(lineno, 0, (char *) curr->name);
@@ -2824,14 +2695,14 @@ short execute_editv(short editv_type, bool editv_file, char_t *params) {
           curr = curr->next;
         }
       } else {
-        p = (char_t *) strtok((char *) params, " ");
+        p = (uchar *) strtok((char *) params, " ");
         while (p != NULL) {
           p = make_upper(p);
           curr = lll_locate(first, p);
           if (curr && curr->line) {
             str = curr->line;
           } else {
-            str = (char_t *) "";
+            str = (uchar *) "";
           }
           attrset(A_BOLD);
           mvaddstr(lineno, 0, (char *) p);
@@ -2861,13 +2732,13 @@ short execute_editv(short editv_type, bool editv_file, char_t *params) {
             addch(*(str + i));
           }
           lineno++;
-          p = (char_t *) strtok(NULL, " ");
+          p = (uchar *) strtok(NULL, " ");
         }
       }
       mvaddstr(terminal_lines - 2, 0, HIT_ANY_KEY);
       refresh();
       for (;;) {
-        key = wgetch(stdscr);
+        key = my_getch(stdscr);
         if (key == KEY_MOUSE) {
           continue;
         }
@@ -2876,7 +2747,7 @@ short execute_editv(short editv_type, bool editv_file, char_t *params) {
         }
         break;
       }
-      Redraw((char_t *) "");
+      Redraw((uchar *) "");
       break;
   }
   return (rc);
@@ -2889,14 +2760,14 @@ short execute_editv(short editv_type, bool editv_file, char_t *params) {
 #define STATE_DEFBUTTON    4
 #define STATE_ICON         5
 
-short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
+short prepare_dialog(uchar *params, bool alert, uchar *stemname) {
   short rc = RC_OK;
   int len_params = strlen((char *) params);
-  char_t delimiter;
+  uchar delimiter;
   int len_prompt, len_title, len_initial, i, j, k, state = STATE_START;
   short button = BUTTON_OK;
   short default_button = 1;
-  char_t *prompt = NULL, *initial = NULL, *title = NULL;
+  uchar *prompt = NULL, *initial = NULL, *title = NULL;
   bool editfield = FALSE;
   bool found;
   int button_len[4];
@@ -2913,12 +2784,12 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
    * Can only run from a Rexx macro...
    */
   if (!in_macro || !rexx_support) {
-    display_error(53, (char_t *) "", FALSE);
+    display_error(53, (uchar *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   /*
-   * Defining these constants this way is done because non-ansi compilers
-   * can't handle definitions like int a[2] = {0,1};
+   * Defining these constants this way is done because
+   * non-ansi compilers can't handle definitions like int a[2] = {0,1};
    */
   button_len[0] = 2;
   button_text[0] = "ok";
@@ -2932,6 +2803,7 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
   button_len[3] = 11;
   button_text[3] = "yesnocancel";
   button_num[3] = 3;
+
   icon_len[0] = 15;
   icon_text[0] = "iconexclamation";
   icon_len[1] = 15;
@@ -2971,7 +2843,7 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
    * Did we get a delimiter ?
    */
   if (i == len_params) {        /* no, then use defaults */
-    prompt = (char_t *) malloc (len_params * sizeof(char_t));
+    prompt = (uchar *) malloc(len_params * sizeof(uchar));
     if (prompt == NULL) {
       display_error(30, params, FALSE);
       return (RC_INVALID_OPERAND);
@@ -2979,7 +2851,7 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
     strcpy((char *) prompt, (char *) params);
   } else {                      /* yes, we may have other options... */
     len_prompt = i;
-    prompt = (char_t *) malloc (1 + (len_prompt * sizeof(char_t)));
+    prompt = (uchar *) malloc(1 + (len_prompt * sizeof(uchar)));
     if (prompt == NULL) {
       display_error(30, params, FALSE);
       return (RC_INVALID_OPERAND);
@@ -2994,7 +2866,6 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
         break;
       }
       switch (state) {
-
         case STATE_START:
           if (params[i] == 'E' || params[i] == 'e') {
             state = STATE_EDITFIELD;
@@ -3023,7 +2894,6 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
-
         case STATE_EDITFIELD:
           if (len_params < 4) {
             display_error(1, params, FALSE);
@@ -3068,7 +2938,7 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
             break;
           }
           len_initial = i;
-          initial = (char_t *) malloc (1 + (len_initial * sizeof(char_t)));
+          initial = (uchar *) malloc(1 + (len_initial * sizeof(uchar)));
           if (initial == NULL) {
             display_error(30, params, FALSE);
             rc = RC_INVALID_OPERAND;
@@ -3082,9 +2952,8 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
           state = STATE_START;
           i = 0;
           break;
-
         case STATE_TITLE:
-          if (len_params < 6 || memcmpi(params, (char_t *) "title ", 6) != 0) {
+          if (len_params < 6 || memcmpi(params, (uchar *) "title ", 6) != 0) {
             display_error(1, params, FALSE);
             rc = RC_INVALID_OPERAND;
             break;
@@ -3105,7 +2974,7 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
             break;
           }
           len_title = i + 2;    /* allow for leading and trailing space */
-          title = (char_t *) malloc (1 + (len_title * sizeof(char_t)));
+          title = (uchar *) malloc(1 + (len_title * sizeof(uchar)));
           if (title == NULL) {
             display_error(30, params, FALSE);
             rc = RC_INVALID_OPERAND;
@@ -3120,13 +2989,11 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
           i = 0;
           state = STATE_START;
           break;
-
         case STATE_ICON:
-          if (len_params >= 5 && memcmpi(params, (char_t *) "icon", 4) == 0) {
+          if (len_params >= 5 && memcmpi(params, (uchar *) "icon", 4) == 0) {
             /*
-             * Find the first space, or end of string; set
-             * the space to nul, and see if the "string" matches
-             * one of the valid icon strings.
+             * Find the first space, or end of string;
+             * set the space to nul, and see if the "string" matches one of the valid icon strings.
              */
             for (j = 0; j < len_params; j++) {
               if (*params + j == ' ') {
@@ -3136,7 +3003,7 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
             }
             found = FALSE;
             for (k = 0; k < 4; k++) {
-              if (equal((char_t *) icon_text[k], params, 5)) {
+              if (equal((uchar *) icon_text[k], params, 5)) {
                 icon = k;
                 found = TRUE;
                 break;
@@ -3162,11 +3029,10 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
           state = STATE_START;
           i = 0;
           break;
-
         case STATE_BUTTON:
           button = -1;
           for (i = 0; i < 4; i++) {
-            if (len_params >= button_len[i] && memcmpi(params, (char_t *) button_text[i], button_len[i]) == 0 && (len_params == button_len[i] || *(params + button_len[i]) == ' ')) {
+            if (len_params >= button_len[i] && memcmpi(params, (uchar *) button_text[i], button_len[i]) == 0 && (len_params == button_len[i] || *(params + button_len[i]) == ' ')) {
               button = i;
               break;
             }
@@ -3182,7 +3048,6 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
           state = STATE_START;
           i = 0;
           break;
-
         case STATE_DEFBUTTON:
           if (len_params < 6) {
             display_error(1, params, FALSE);
@@ -3227,10 +3092,10 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
           params += i;
           strtrunc(params);
           len_params = strlen((char *) params);
+
           state = STATE_START;
           i = 0;
           break;
-
         default:
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
@@ -3242,29 +3107,29 @@ short prepare_dialog(char_t *params, bool alert, char_t *stemname) {
     }
   }
   if (default_button < 1) {
-    display_error(5, (char_t *) num, FALSE);
+    display_error(5, (uchar *) num, FALSE);
     rc = RC_INVALID_OPERAND;
   }
   if (default_button > button_num[button]) {
-    display_error(6, (char_t *) num, FALSE);
+    display_error(6, (uchar *) num, FALSE);
     rc = RC_INVALID_OPERAND;
   }
   if (rc == RC_OK) {
     rc = execute_dialog(prompt, title, initial, editfield, button, (short) (default_button - 1), stemname, icon, alert);
   }
   if (prompt) {
-    free (prompt);
+    free(prompt);
   }
   if (initial) {
-    free (initial);
+    free(initial);
   }
   if (title) {
-    free (title);
+    free(title);
   }
   return (rc);
 }
 
-short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfield, short button, short default_button, char_t *stemname, short icon, bool alert) {
+short execute_dialog(uchar *prompt, uchar *title, uchar *initial, bool editfield, short button, short default_button, uchar *stemname, short icon, bool alert) {
   short rc = RC_OK;
   int key, num_buttons = 0, i;
   short title_length = 0, initial_length = 0, max_width, cursor_pos = 0;
@@ -3272,9 +3137,9 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
   char *prompt_line[MAXIMUM_DIALOG_LINES + 2];
   WINDOW *dialog_win = NULL;
   WINDOW *save_command_window = NULL;
-  char_t *save_cmd_rec = NULL;
-  char_t *editfield_buf = NULL;
-  length_t save_cmd_rec_len;
+  uchar *save_cmd_rec = NULL;
+  uchar *editfield_buf = NULL;
+  long save_cmd_rec_len;
   short dw_lines, dw_cols, dw_y, dw_x;
   short editfield_col = -1;
   char *button_text[3];
@@ -3282,10 +3147,10 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
   short button_col[3];
   short max_button_len = 0;
   short item_selected = -1;
-  char_t button_buf[15];
+  uchar button_buf[15];
   bool in_editfield;
-  line_t save_max_line_length = 0;
-  char_t save_current_window = CURRENT_VIEW->current_window;
+  long save_max_line_length = 0;
+  uchar save_current_window = CURRENT_VIEW->current_window;
 
   /*
    * Split the prompt up into multiple lines if applicable
@@ -3309,8 +3174,7 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
     }
   }
   /*
-   * work out dimensions of dialog box based on length of prompt, title,
-   * buttons, initial value and width of screen
+   * work out dimensions of dialog box based on length of prompt, title, buttons, initial value and width of screen
    */
   max_width = terminal_cols - 2;
   if (title) {
@@ -3349,14 +3213,12 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
   memset(button_col, 0, sizeof(button_col));
   memset(button_text, 0, sizeof(button_text));
   switch (button) {
-
     case BUTTON_OK:
       num_buttons = 1;
       button_text[0] = " OK ";
       button_len[0] = 4;
       button_col[0] = (dw_cols - 4) / 2;
       break;
-
     case BUTTON_YESNO:
       num_buttons = 2;
       button_text[0] = " YES ";
@@ -3366,7 +3228,6 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
       button_col[0] = (dw_cols / 4) - (button_len[0] / 2);
       button_col[1] = (dw_cols / 2) + ((dw_cols / 4) - (button_len[1] / 2));
       break;
-
     case BUTTON_OKCANCEL:
       num_buttons = 2;
       button_text[0] = " OK ";
@@ -3376,7 +3237,6 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
       button_col[0] = (dw_cols / 4) - (button_len[0] / 2);
       button_col[1] = (dw_cols / 2) + ((dw_cols / 4) - (button_len[1] / 2));
       break;
-
     case BUTTON_YESNOCANCEL:
       num_buttons = 3;
       button_text[0] = " YES ";
@@ -3396,18 +3256,18 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
   dialog_win = newwin(dw_lines, dw_cols, dw_y, dw_x);
   if (dialog_win == NULL) {
     CURRENT_VIEW->current_window = save_current_window;
-    THERefresh((char_t *) "");
+    THERefresh((uchar *) "");
     restore_THE();
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   keypad(dialog_win, TRUE);
   if (editfield) {
-    editfield_buf = (char_t *) malloc (dw_cols + 1);
+    editfield_buf = (uchar *) malloc(dw_cols + 1);
     if (editfield_buf == NULL) {
       CURRENT_VIEW->current_window = save_current_window;
       delwin(dialog_win);
-      display_error(30, (char_t *) "", FALSE);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     if (initial) {
@@ -3419,12 +3279,12 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
      * Save the CMDLINE contents
      */
     save_cmd_rec_len = cmd_rec_len;
-    save_cmd_rec = (char_t *) malloc (save_cmd_rec_len + 1);
+    save_cmd_rec = (uchar *) malloc(save_cmd_rec_len + 1);
     if (save_cmd_rec == NULL) {
       CURRENT_VIEW->current_window = save_current_window;
       delwin(dialog_win);
-      free (editfield_buf);
-      display_error(30, (char_t *) "", FALSE);
+      free(editfield_buf);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     memcpy((char *) save_cmd_rec, (char *) cmd_rec, cmd_rec_len);
@@ -3439,9 +3299,9 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
       delwin(CURRENT_WINDOW_COMMAND);
       CURRENT_WINDOW_COMMAND = save_command_window;
       delwin(dialog_win);
-      free (save_cmd_rec);
-      free (editfield_buf);
-      display_error(30, (char_t *) "", FALSE);
+      free(save_cmd_rec);
+      free(editfield_buf);
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
     wattrset(CURRENT_WINDOW_COMMAND, set_colour(CURRENT_FILE->attr + ATTR_DIA_EDITFIELD));
@@ -3470,8 +3330,7 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
    */
   if (editfield) {
     /*
-     * Now we have passed any checks that result in a premature return
-     * change the contents of the cmd_rec
+     * Now we have passed any checks that result in a premature return change the contents of the cmd_rec
      */
     in_editfield = TRUE;
     draw_cursor(TRUE);
@@ -3492,15 +3351,16 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
       if (default_button == i) {
         wattrset(dialog_win, set_colour(CURRENT_FILE->attr + ATTR_DIA_ABUTTON));
         cursor_pos = button_col[i];
-      } else
+      } else {
         wattrset(dialog_win, set_colour(CURRENT_FILE->attr + ATTR_DIA_BUTTON));
+      }
       wmove(dialog_win, dw_lines - 3, button_col[i]);
       waddstr(dialog_win, button_text[i]);
     }
     if (in_editfield) {
       /*
-       * Go into the pseudo command line and process it until
-       * an exit key is pressed. On exit make the first button active.
+       * Go into the pseudo command line and process it until an exit key is pressed.
+       * On exit make the first button active.
        */
       draw_cursor(TRUE);
       rc = readv_cmdline(editfield_buf, dialog_win, editfield_col);
@@ -3512,10 +3372,8 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
       editfield_col = -1;
       if (rc == RC_READV_TERM_MOUSE) {
         /*
-         * we terminated the readv_cmdline() with the press of a
-         * mouse button outside the CMDLINE. make it look like the
-         * mouse was just clicked so we can check if the click happened
-         * on a button
+         * we terminated the readv_cmdline() with the press of a mouse button outside the CMDLINE.
+         * make it look like the mouse was just clicked so we can check if the click happened on a button
          */
         key = KEY_MOUSE;
       } else {
@@ -3523,17 +3381,17 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
       }
     } else {
       /*
-       * Display the dialog window and pseudo command line
-       * and get a key.
+       * Display the dialog window and pseudo command line and get a key.
        */
       wrefresh(dialog_win);
       if (editfield) {
         wrefresh(CURRENT_WINDOW_COMMAND);
       }
-      key = wgetch(CURRENT_WINDOW_COMMAND);
+      key = my_getch(CURRENT_WINDOW_COMMAND);
     }
     if (key == KEY_MOUSE) {
       int b, ba, bm, y, x;
+
       if (get_mouse_info(&b, &ba, &bm) != RC_OK) {
         continue;
       }
@@ -3552,6 +3410,7 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
        */
       if (y == dw_lines - 3) {
         bool found = FALSE;
+
         for (i = 0; i < num_buttons; i++) {
           if (x >= button_col[i] && x <= (button_col[i] + button_len[i])) {
             found = TRUE;
@@ -3623,12 +3482,12 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
   if (editfield) {
     set_rexx_variable(stemname, editfield_buf, strlen((char *) editfield_buf), 1);
   } else {
-    set_rexx_variable(stemname, (char_t *) "", 0, 1);
+    set_rexx_variable(stemname, (uchar *) "", 0, 1);
   }
   /*
    * Set DIALOG.0 to 2
    */
-  set_rexx_variable(stemname, (char_t *) "2", 1, 0);
+  set_rexx_variable(stemname, (uchar *) "2", 1, 0);
   /*
    * If we had an editfield, restore the CMDLINE window and contents (if there
    * was a CMDLINE window)
@@ -3650,15 +3509,15 @@ short execute_dialog(char_t *prompt, char_t *title, char_t *initial, bool editfi
         Cmsg(save_cmd_rec);
       }
     }
-    free (save_cmd_rec);
-    free (editfield_buf);
+    free(save_cmd_rec);
+    free(editfield_buf);
   }
-  THERefresh((char_t *) "");
+  THERefresh((uchar *) "");
   restore_THE();
   return (rc);
 }
 
-int get_non_separator_line(int current_line, int num_args, char_t **args, int direction) {
+int get_non_separator_line(int current_line, int num_args, uchar **args, int direction) {
   int i;
   int offset_lines = 0;
 
@@ -3691,19 +3550,19 @@ int get_non_separator_line(int current_line, int num_args, char_t **args, int di
 #define STATE_POPUP_LOCATION_BELOW   8
 #define STATE_POPUP_KEYS             9
 
-short prepare_popup(char_t *params) {
+short prepare_popup(uchar *params) {
   int len_params = strlen((char *) params);
-  char_t delimiter = ' ';
+  uchar delimiter = ' ';
   int i, j, state = STATE_START, other_options = 0;
-  char  str_initial[20];
+  char str_initial[20];
   short rc = RC_OK, num_items = 0, len;
   short height = 0, width = 0, pad_height = 0, pad_width = 0;
   int x = -1, y = -1, args_allocated;
   unsigned short begy, begx;
-  char_t **args = NULL;
+  uchar **args = NULL;
   bool invalid_item = FALSE, trailing_delimiter;
   int initial = 0;
-  char  key_name[30];
+  char key_name[30];
   char location = 'C';
   char *keyname_start[MAXIMUM_POPUP_KEYS];
   int keyname_index = 0;
@@ -3712,7 +3571,7 @@ short prepare_popup(char_t *params) {
    * Must run from a Rexx macro...
    */
   if (!in_macro || !rexx_support) {
-    display_error(53, (char_t *) "", FALSE);
+    display_error(53, (uchar *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   strtrunc(params);
@@ -3722,7 +3581,6 @@ short prepare_popup(char_t *params) {
       break;
     }
     switch (state) {
-
       case STATE_START:
         if (params[i] == 'E' || params[i] == 'e') {
           state = STATE_POPUP_ESCAPE;
@@ -3767,9 +3625,8 @@ short prepare_popup(char_t *params) {
         params++;               /* throw away first delimiter */
         state = STATE_POPUP_CONTENT;
         break;
-
       case STATE_POPUP_ESCAPE:
-        if (len_params < 6 || memcmpi(params, (char_t *) "escape", 6) != 0) {
+        if (len_params < 6 || memcmpi(params, (uchar *) "escape", 6) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3778,14 +3635,15 @@ short prepare_popup(char_t *params) {
         strtrunc(params);
         len_params = strlen((char *) params);
         for (j = 0; j < len_params; j++) {
-          if (*(params + j) == ' ')
+          if (*(params + j) == ' ') {
             break;
+          }
           key_name[j] = *(params + j);
         }
         key_name[j] = '\0';
-        popup_escape_key = find_key_name((char_t *) key_name);
+        popup_escape_key = find_key_name((uchar *) key_name);
         if (popup_escape_key == -1) {
-          display_error(13, (char_t *) key_name, FALSE);
+          display_error(13, (uchar *) key_name, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
@@ -3795,9 +3653,8 @@ short prepare_popup(char_t *params) {
         state = STATE_START;
         i = 0;
         break;
-
       case STATE_POPUP_KEYS:
-        if (len_params < 4 || memcmpi(params, (char_t *) "keys", 4) != 0) {
+        if (len_params < 4 || memcmpi(params, (uchar *) "keys", 4) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3812,7 +3669,7 @@ short prepare_popup(char_t *params) {
           }
           if (*(params + j) == ',') {
             if (keyname_index >= 20) {
-              display_error(2, (char_t *) "Maximum of 20 KEYS allowed.", FALSE);
+              display_error(2, (uchar *) "Maximum of 20 KEYS allowed.", FALSE);
               rc = RC_INVALID_OPERAND;
               break;
             }
@@ -3831,9 +3688,9 @@ short prepare_popup(char_t *params) {
          * we have the list of keynames, now split them up into individual keys
          */
         for (j = 0; j < keyname_index; j++) {
-          popup_escape_keys[j] = find_key_name((char_t *) keyname_start[j]);
+          popup_escape_keys[j] = find_key_name((uchar *) keyname_start[j]);
           if (popup_escape_keys[j] == -1) {
-            display_error(13, (char_t *) keyname_start[j], FALSE);
+            display_error(13, (uchar *) keyname_start[j], FALSE);
             rc = RC_INVALID_OPERAND;
             break;
           }
@@ -3846,9 +3703,8 @@ short prepare_popup(char_t *params) {
         state = STATE_START;
         i = 0;
         break;
-
       case STATE_POPUP_LOCATION_CENTRE:
-        if (len_params < 6 || (memcmpi(params, (char_t *) "centre", 6) != 0 && memcmpi(params, (char_t *) "center", 6) != 0)) {
+        if (len_params < 6 || (memcmpi(params, (uchar *) "centre", 6) != 0 && memcmpi(params, (uchar *) "center", 6) != 0)) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3861,9 +3717,8 @@ short prepare_popup(char_t *params) {
         i = 0;
         state = STATE_START;
         break;
-
       case STATE_POPUP_LOCATION_TEXT:
-        if (len_params < 4 || memcmpi(params, (char_t *) "text", 4) != 0) {
+        if (len_params < 4 || memcmpi(params, (uchar *) "text", 4) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3876,9 +3731,8 @@ short prepare_popup(char_t *params) {
         i = 0;
         state = STATE_START;
         break;
-
       case STATE_POPUP_LOCATION_ABOVE:
-        if (len_params < 4 || memcmpi(params, (char_t *) "above", 5) != 0) {
+        if (len_params < 4 || memcmpi(params, (uchar *) "above", 5) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3891,9 +3745,8 @@ short prepare_popup(char_t *params) {
         i = 0;
         state = STATE_START;
         break;
-
       case STATE_POPUP_LOCATION_BELOW:
-        if (len_params < 4 || memcmpi(params, (char_t *) "below", 5) != 0) {
+        if (len_params < 4 || memcmpi(params, (uchar *) "below", 5) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3906,9 +3759,8 @@ short prepare_popup(char_t *params) {
         i = 0;
         state = STATE_START;
         break;
-
       case STATE_POPUP_LOCATION_MOUSE:
-        if (len_params < 5 || memcmpi(params, (char_t *) "mouse", 5) != 0) {
+        if (len_params < 5 || memcmpi(params, (uchar *) "mouse", 5) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3921,9 +3773,8 @@ short prepare_popup(char_t *params) {
         i = 0;
         state = STATE_START;
         break;
-
       case STATE_POPUP_INITIAL:
-        if (len_params < 7 || memcmpi(params, (char_t *) "initial", 7) != 0) {
+        if (len_params < 7 || memcmpi(params, (uchar *) "initial", 7) != 0) {
           display_error(1, params, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
@@ -3938,14 +3789,14 @@ short prepare_popup(char_t *params) {
           str_initial[j] = *(params + j);
         }
         str_initial[j] = '\0';
-        if (!valid_positive_integer((char_t *) str_initial)) {
-          display_error(4, (char_t *) str_initial, FALSE);
+        if (!valid_positive_integer((uchar *) str_initial)) {
+          display_error(4, (uchar *) str_initial, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
         initial = atoi((char *) str_initial);
         if (initial == 0) {
-          display_error(5, (char_t *) str_initial, FALSE);
+          display_error(5, (uchar *) str_initial, FALSE);
           rc = RC_INVALID_OPERAND;
           break;
         }
@@ -3956,7 +3807,6 @@ short prepare_popup(char_t *params) {
         i = 0;
         state = STATE_START;
         break;
-
       case STATE_POPUP_CONTENT:
         len_params = strlen((char *) params);
         /*
@@ -3986,9 +3836,9 @@ short prepare_popup(char_t *params) {
          * Allocate the first 100 pointers...
          */
         args_allocated = 100;
-        args = (char_t **) malloc (sizeof(char_t *) * args_allocated);
+        args = (uchar **) malloc(sizeof(uchar *) * args_allocated);
         if (args == NULL) {
-          display_error(30, (char_t *) "", FALSE);
+          display_error(30, (uchar *) "", FALSE);
           rc = RC_OUT_OF_MEMORY;
           break;
         }
@@ -4002,9 +3852,9 @@ short prepare_popup(char_t *params) {
             args[num_items++] = params + j + 1;
             if (num_items > args_allocated) {
               args_allocated += 100;
-              args = (char_t **) realloc (args, sizeof(char_t *) * args_allocated);
+              args = (uchar **) realloc(args, sizeof(uchar *) * args_allocated);
               if (args == NULL) {
-                display_error(30, (char_t *) "", FALSE);
+                display_error(30, (uchar *) "", FALSE);
                 rc = RC_OUT_OF_MEMORY;
                 break;
               }
@@ -4045,7 +3895,6 @@ short prepare_popup(char_t *params) {
         other_options++;
         len_params = 0;
         break;
-
       default:
         display_error(1, params, FALSE);
         rc = RC_INVALID_OPERAND;
@@ -4056,40 +3905,33 @@ short prepare_popup(char_t *params) {
     }
   }
   /*
-   * If we have an error from the above, or if ESCAPE is the only option
-   * specified.
+   * If we have an error from the above, or if ESCAPE is the only option specified.
    */
   if (rc == RC_OK && other_options != 0) {
     /*
-     * If the location specified is MOUSE and this wasn't called from a
-     * mouse key, or no mouse support is available, return an error.
+     * If the location specified is MOUSE and this wasn't called from a mouse key,
+     * or no mouse support is available, return an error.
      */
     switch (location) {
-
       case 'M':
         get_saved_mouse_pos(&y, &x);
         break;
-
       case 'C':
         x = (terminal_cols - width) / 2;
         y = (terminal_lines - height) / 2;
         break;
-
       case 'T':
         /*
-         * Get the current window text position and get the
-         * global offset from the window start coordinates.
+         * Get the current window text position and get the global offset from the window start coordinates.
          */
         getyx(CURRENT_WINDOW, y, x);
         getbegyx(CURRENT_WINDOW, begy, begx);
         y = (y + begy);
         x = (x + begx);
         break;
-
       case 'B':
         /*
-         * Get the current window text position and get the
-         * global offset from the window start coordinates.
+         * Get the current window text position and get the global offset from the window start coordinates.
          */
         getyx(CURRENT_WINDOW, y, x);
         getbegyx(CURRENT_WINDOW, begy, begx);
@@ -4099,15 +3941,13 @@ short prepare_popup(char_t *params) {
           height = terminal_lines - y - 1;
         }
         if (height < 3) {
-          display_error(0, (char_t *) "No room to display POPUP window", FALSE);
+          display_error(0, (uchar *) "No room to display POPUP window", FALSE);
           return (RC_INVALID_OPERAND);
         }
         break;
-
       case 'A':
         /*
-         * Get the current window text position and get the
-         * global offset from the window start coordinates.
+         * Get the current window text position and get the global offset from the window start coordinates.
          */
         getyx(CURRENT_WINDOW, y, x);
         getbegyx(CURRENT_WINDOW, begy, begx);
@@ -4118,35 +3958,32 @@ short prepare_popup(char_t *params) {
         }
         y = y - height + 1;
         if (height < 3) {
-          display_error(0, (char_t *) "No room to display POPUP window", FALSE);
+          display_error(0, (uchar *) "No room to display POPUP window", FALSE);
           return (RC_INVALID_OPERAND);
         }
         break;
-
       default:
         break;
     }
     /*
-     * If the location specified is MOUSE and this wasn't called from a
-     * mouse key, or no mouse support is available, return an error.
+     * If the location specified is MOUSE and this wasn't called from a mouse key,
+     * or no mouse support is available, return an error.
      */
     if (x == -1) {
-      free (args);
-      display_error(0, (char_t *) "No mouse support", FALSE);
+      free(args);
+      display_error(0, (uchar *) "No mouse support", FALSE);
       return (RC_INVALID_ENVIRON);
     }
     /*
-     * Ensure that any supplied initial value fits within the number of lines
-     * in the content
+     * Ensure that any supplied initial value fits within the number of lines in the content
      */
     if (initial > num_items) {
-      free (args);
-      display_error(6, (char_t *) str_initial, FALSE);
+      free(args);
+      display_error(6, (uchar *) str_initial, FALSE);
       return (RC_INVALID_OPERAND);
     }
     /*
-     * Make the window fit by adjusting the top left corner if it would
-     * run over the right edge.
+     * Make the window fit by adjusting the top left corner if it would run over the right edge.
      */
     if (x + width > terminal_cols) {
       x = terminal_cols - width;
@@ -4158,24 +3995,18 @@ short prepare_popup(char_t *params) {
     /*
      * Free up the memory used by args
      */
-    free (args);
+    free(args);
   }
   return (rc);
 }
 
-/*
- * num_args number of lines in popup
- * highlighted_line 0 based index into list of lines in popup
- * y_offset line number in list of lines that is the top line of the popup (0 based)
- * y_overlap difference between the number of lines in list and displayable lines. +ve if more lines in list than can be displayed
- */
-short execute_popup(int y, int x, int height, int width, int pad_height, int pad_width, int initial, int num_args, char_t **args, int keyname_index) {
+short execute_popup(int y, int x, int height, int width, int pad_height, int pad_width, int initial, int num_args, uchar **args, int keyname_index) {
   short rc = RC_OK;
   int key, i, j, screenx = x, screeny = y;
   WINDOW *dialog_win = NULL;
   WINDOW *pad;
   short item_selected = -1, highlighted_line;
-  char  buf[20];        /* enough for a number */
+  char buf[20];                 /* enough for a number */
   bool time_to_quit;
   int x_offset = 0, y_offset = 0;
   int x_overlap, y_overlap;
@@ -4196,7 +4027,7 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
   } else {
     highlighted_line = initial - 1;
     if (args[highlighted_line][0] == '-') {
-      display_error(0, (char_t *) "Specified initial line is a separator", FALSE);
+      display_error(0, (uchar *) "Specified initial line is a separator", FALSE);
       return (RC_INVALID_OPERAND);
     }
     /*
@@ -4218,14 +4049,14 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
    */
   dialog_win = newwin(height, width, y, x);
   if (dialog_win == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   keypad(dialog_win, TRUE);
   pad = newpad(pad_height, pad_width);
   if (pad == NULL) {
     delwin(dialog_win);
-    display_error(30, (char_t *) "", FALSE);
+    display_error(30, (uchar *) "", FALSE);
     return (RC_OUT_OF_MEMORY);
   }
   wbkgd(pad, set_colour(CURRENT_FILE->attr + ATTR_POPUP));
@@ -4278,6 +4109,7 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
     key = wgetch(stdscr);
     if (key == KEY_MOUSE) {
       int b, ba, bm, y, x;
+
       if (get_mouse_info(&b, &ba, &bm) != RC_OK) {
         return (RC_OK);
       }
@@ -4326,7 +4158,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
     } else {
       time_to_quit = FALSE;
       switch (key) {
-
         case 9:
         case KEY_DOWN:
           /* increment highlighted line and check we haven't gone past the end of the list */
@@ -4341,14 +4172,14 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
             offset_lines = get_non_separator_line(highlighted_line, num_args, args, 1);
             if (offset_lines == 0) {
               /*
-               * we couldn't find a non-separator line before the end of the list, so leave the current
-               * line as the highlighted line
+               * we couldn't find a non-separator line before the end of the list,
+               * so leave the current line as the highlighted line
                */
               highlighted_line--;
             } else {
               /*
-               * we found a non-separator line before the end of the list, so advance the
-               * highlighted line by offset_lines and scroll the same number of lines
+               * we found a non-separator line before the end of the list,
+               * so advance the highlighted line by offset_lines and scroll the same number of lines
                */
               highlighted_line += offset_lines;
               scroll_lines = offset_lines;
@@ -4358,15 +4189,15 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
             /*
              * The number of lines in the list is > the window size...
              */
-            if (highlighted_line + 2 >= y_offset + height && y_offset < y_overlap)
+            if (highlighted_line + 2 >= y_offset + height && y_offset < y_overlap) {
               /*
-               * The new highlighted line is now below the last displayed line.  Change the offset into
-               * the list by the number of rows we scrolled in the above code.
+               * The new highlighted line is now below the last displayed line.
+               * Change the offset into the list by the number of rows we scrolled in the above code.
                */
               y_offset += 1 + scroll_lines;
+            }
           }
           break;
-
         case KEY_NPAGE:
           /* advance a page full if we have plenty of lines remaining */
           highlighted_line += (height - 2);
@@ -4382,21 +4213,21 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
             offset_lines = get_non_separator_line(highlighted_line, num_args, args, 1);
             if (offset_lines == 0) {
               /*
-               * we couldn't find a non-separator line before the end of the list, so leave the current
-               * line as the highlighted line. This won't work need something other than --
+               * we couldn't find a non-separator line before the end of the list,
+               * so leave the current line as the highlighted line.
+               * This won't work need something other than --
                */
               highlighted_line--;
             } else {
               /*
-               * we found a non-separator line before the end of the list, so advance the
-               * highlighted line by offset_lines and scroll the same number of lines
+               * we found a non-separator line before the end of the list,
+               * so advance the highlighted line by offset_lines and scroll the same number of lines
                */
               highlighted_line += offset_lines;
               scroll_lines = offset_lines;
             }
           }
           break;
-
         case KEY_UP:
           if (--highlighted_line < 0) {
             highlighted_line = 0;
@@ -4419,7 +4250,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
             }
           }
           break;
-
         case KEY_PPAGE:
           /* retreat a page full if we have plenty of lines remaining */
           highlighted_line -= (height - 2);
@@ -4435,14 +4265,15 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
             offset_lines = get_non_separator_line(highlighted_line, num_args, args, 1);
             if (offset_lines == 0) {
               /*
-               * we couldn't find a non-separator line before the end of the list, so leave the current
-               * line as the highlighted line. This won't work need something other than --
+               * we couldn't find a non-separator line before the end of the list,
+               * so leave the current line as the highlighted line.
+               * This won't work need something other than --
                */
               highlighted_line--;
             } else {
               /*
-               * we found a non-separator line before the end of the list, so advance the
-               * highlighted line by offset_lines and scroll the same number of lines
+               * we found a non-separator line before the end of the list,
+               * so advance the highlighted line by offset_lines and scroll the same number of lines
                */
               highlighted_line += offset_lines;
               scroll_lines = offset_lines;
@@ -4452,7 +4283,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
             y_offset = 0;
           }
           break;
-
         case KEY_RIGHT:
           if (x_overlap) {
             if (x_offset < x_overlap) {
@@ -4460,7 +4290,6 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
             }
           }
           break;
-
         case KEY_LEFT:
           if (x_overlap) {
             if (x_offset) {
@@ -4468,17 +4297,14 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
             }
           }
           break;
-
         case 10:
         case 13:
           item_selected = highlighted_line;
           time_to_quit = TRUE;
           break;
-
         case 'q':
           time_to_quit = TRUE;
           break;
-
         default:
           if (key == popup_escape_key) {
             time_to_quit = TRUE;
@@ -4506,29 +4332,28 @@ short execute_popup(int y, int x, int height, int width, int pad_height, int pad
   delwin(dialog_win);
   draw_cursor(TRUE);
   /*
-   * Set the Rexx variables POPUP.0, POPUP.1 and POPUP.2 depending
-   * on whether an item was selected and which item.
+   * Set the Rexx variables POPUP.0, POPUP.1 and POPUP.2 depending on whether an item was selected and which item.
    */
   if (item_selected == -1) {
-    set_rexx_variable((char_t *) "POPUP", (char_t *) "", 0, 1);
-    set_rexx_variable((char_t *) "POPUP", (char_t *) "0", 1, 2);
+    set_rexx_variable((uchar *) "POPUP", (uchar *) "", 0, 1);
+    set_rexx_variable((uchar *) "POPUP", (uchar *) "0", 1, 2);
   } else {
-    set_rexx_variable((char_t *) "POPUP", args[item_selected], strlen((char *) args[item_selected]), 1);
+    set_rexx_variable((uchar *) "POPUP", args[item_selected], strlen((char *) args[item_selected]), 1);
     i = sprintf(buf, "%d", item_selected + 1);
-    set_rexx_variable((char_t *) "POPUP", (char_t *) buf, i, 2);
+    set_rexx_variable((uchar *) "POPUP", (uchar *) buf, i, 2);
   }
   i = sprintf(buf, "%d", highlighted_line + 1);
-  set_rexx_variable((char_t *) "POPUP", (char_t *) buf, i, 3);
+  set_rexx_variable((uchar *) "POPUP", (uchar *) buf, i, 3);
   /*
    * Set the index to the escape key
    */
   i = sprintf(buf, "%d", escape_key_index);
-  set_rexx_variable((char_t *) "POPUP", (char_t *) buf, i, 4);
+  set_rexx_variable((uchar *) "POPUP", (uchar *) buf, i, 4);
   /*
    * Set the 0th value to the number of values in popup. array
    */
-  set_rexx_variable((char_t *) "POPUP", (char_t *) "4", 1, 0);
-  THERefresh((char_t *) "");
+  set_rexx_variable((uchar *) "POPUP", (uchar *) "4", 1, 0);
+  THERefresh((uchar *) "");
   restore_THE();
   return (rc);
 }
@@ -4537,38 +4362,37 @@ short execute_preserve(VIEW_DETAILS *src_vd, PRESERVED_VIEW_DETAILS **preserved_
   short rc = RC_OK;
 
   /*
-   * If we already have preserved settings, don't allocate more
-   * memory, just use what's there...
+   * If we already have preserved settings, don't allocate more memory, just use what's there...
    */
   if (*preserved_view_details == NULL) {
     /*
      * Allocate memory for preserved VIEW and FILE details
      */
-    if ((*preserved_view_details = (PRESERVED_VIEW_DETAILS *) malloc (sizeof(PRESERVED_VIEW_DETAILS))) == NULL) {
-      display_error(30, (char_t *) "", FALSE);
+    if ((*preserved_view_details = (PRESERVED_VIEW_DETAILS *) malloc(sizeof(PRESERVED_VIEW_DETAILS))) == NULL) {
+      display_error(30, (uchar *) "", FALSE);
       return (RC_OUT_OF_MEMORY);
     }
-    if ((*preserved_file_details = (PRESERVED_FILE_DETAILS *) malloc (sizeof(PRESERVED_FILE_DETAILS))) == NULL) {
-      display_error(30, (char_t *) "", FALSE);
-      free (*preserved_view_details);
+    if ((*preserved_file_details = (PRESERVED_FILE_DETAILS *) malloc(sizeof(PRESERVED_FILE_DETAILS))) == NULL) {
+      display_error(30, (uchar *) "", FALSE);
+      free(*preserved_view_details);
       *preserved_view_details = NULL;
       return (RC_OUT_OF_MEMORY);
     }
-    if (((*preserved_file_details)->attr = (COLOUR_ATTR *) malloc (ATTR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
-      display_error(30, (char_t *) "", FALSE);
-      free (*preserved_view_details);
+    if (((*preserved_file_details)->attr = (COLOUR_ATTR *) malloc(ATTR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
+      display_error(30, (uchar *) "", FALSE);
+      free(*preserved_view_details);
       *preserved_view_details = NULL;
-      free (*preserved_file_details);
+      free(*preserved_file_details);
       *preserved_file_details = NULL;
       return (RC_OUT_OF_MEMORY);
     }
-    if (((*preserved_file_details)->ecolour = (COLOUR_ATTR *) malloc (ECOLOUR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
-      display_error(30, (char_t *) "", FALSE);
-      free ((*preserved_file_details)->attr);
+    if (((*preserved_file_details)->ecolour = (COLOUR_ATTR *) malloc(ECOLOUR_MAX * sizeof(COLOUR_ATTR))) == NULL) {
+      display_error(30, (uchar *) "", FALSE);
+      free((*preserved_file_details)->attr);
       (*preserved_file_details)->attr = NULL;
-      free (*preserved_view_details);
+      free(*preserved_view_details);
       *preserved_view_details = NULL;
-      free (*preserved_file_details);
+      free(*preserved_file_details);
       *preserved_file_details = NULL;
       return (RC_OUT_OF_MEMORY);
     }
@@ -4669,7 +4493,7 @@ short execute_restore(VIEW_DETAILS *dst_vd, PRESERVED_VIEW_DETAILS **preserved_v
    * If we don't have any preserved settings, return an error.
    */
   if (*preserved_view_details == NULL) {
-    display_error(51, (char_t *) "", FALSE);
+    display_error(51, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -4761,17 +4585,16 @@ short execute_restore(VIEW_DETAILS *dst_vd, PRESERVED_VIEW_DETAILS **preserved_v
   /*
    * Free any memory for preserved VIEW and FILE details
    */
-  free ((*preserved_view_details));
+  free((*preserved_view_details));
   (*preserved_view_details) = NULL;
-  free ((*preserved_file_details)->attr);
+  free((*preserved_file_details)->attr);
   (*preserved_file_details)->attr = NULL;
-  free ((*preserved_file_details)->ecolour);
+  free((*preserved_file_details)->ecolour);
   (*preserved_file_details)->ecolour = NULL;
-  free (*preserved_file_details);
+  free(*preserved_file_details);
   (*preserved_file_details) = NULL;
   /*
-   * Now that all the settings are back in place apply any screen
-   * changes...
+   * Now that all the settings are back in place apply any screen changes...
    */
   if (rebuild_screen) {
     set_screen_defaults();

@@ -19,18 +19,16 @@
 #define MM_MASK(a) (a->tm_mon)
 #define YY_MASK(a) ((a->tm_year)+1900)
 
-#define fsize_t long
-
 struct dirfile {
-  char_t *fname;              /* file name */
-  char_t *lname;              /* link name */
-  mode_t fattr;               /* file attributes */
-  fsize_t fsize;              /* size of file */
-  char_t f_hh;                /* hour */
-  char_t f_mi;                /* minute */
-  char_t f_ss;                /* second */
-  char_t f_dd;                /* day */
-  char_t f_mm;                /* month */
+  uchar *fname;                 /* file name */
+  uchar *lname;                 /* link name */
+  mode_t fattr;                 /* file attributes */
+  long  fsize;                  /* size of file */
+  uchar f_hh;                   /* hour */
+  uchar f_mi;                   /* minute */
+  uchar f_ss;                   /* second */
+  uchar f_dd;                   /* day */
+  uchar f_mm;                   /* month */
   int f_yy;                     /* year */
   int facl;                     /* acl */
   int fname_length;             /* length of filename */
@@ -42,11 +40,11 @@ int size_comp();                /* this has been deliberatly left undefined */
 int name_comp();                /* this has been deliberatly left undefined */
 int dir_comp();                 /* this has been deliberatly left undefined */
 
-char_t *make_full(char_t *, char_t *);
+uchar *make_full(uchar *, uchar *);
 
-short getfiles(char_t *, char_t *, struct dirfile **, struct dirfile **);
+short getfiles(uchar *, uchar *, struct dirfile **, struct dirfile **);
 
-char_t *file_attrs(mode_t, char_t *, int);
-char_t *file_date(struct dirfile *, char_t *);
-char_t *file_time(struct dirfile *, char_t *);
+uchar *file_attrs(mode_t, uchar *, int);
+uchar *file_date(struct dirfile *, uchar *);
+uchar *file_time(struct dirfile *, uchar *);
 

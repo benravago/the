@@ -2,19 +2,17 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* Processing for single input mode                         */
-
 #include "the.h"
 #include "proto.h"
 
 #include <sys/select.h>
 
-static length_t tmp_len;
-static char_t tmp_str[2 * MAX_FILE_NAME + 100];
+static long tmp_len;
+static uchar tmp_str[2 * MAX_FILE_NAME + 100];
 
 static int fifo_fd;
 
-int initialise_fifo(LINE *first_file_name, line_t startup_line, length_t startup_column, bool ro) {
+int initialise_fifo(LINE *first_file_name, long startup_line, long startup_column, bool ro) {
   LINE *current_file_name;
   int am_client = 0, rc;
   char *ronly;
@@ -26,8 +24,8 @@ int initialise_fifo(LINE *first_file_name, line_t startup_line, length_t startup
     if (file_writable(fifo_name)) {
       fifo_fd = open((char *) fifo_name, O_WRONLY);
       if (fifo_fd == (-1)) {
-        display_error(0, (char_t *) "Warning: Unable to run in single instance mode: open() failed", FALSE);
-        display_error(0, (char_t *) strerror(errno), FALSE);
+        display_error(0, (uchar *) "Warning: Unable to run in single instance mode: open() failed", FALSE);
+        display_error(0, (uchar *) strerror(errno), FALSE);
       } else {
         current_file_name = first_file_name;
         while (current_file_name != NULL) {
@@ -43,8 +41,7 @@ int initialise_fifo(LINE *first_file_name, line_t startup_line, length_t startup
               ronly = "";
             }
             /*
-             * If line and/or column specified on command line, use
-             * them to reposition file...
+             * If line and/or column specified on command line, use them to reposition file...
              */
             if (startup_line != 0L || startup_column != 0) {
               tmp_len = sprintf((char *) tmp_str, "x %s%s#cursor goto %ld %ld%s", sp_path, sp_fname, (startup_line) ? startup_line : 1, (startup_column) ? startup_column : 1, ronly);
@@ -52,10 +49,10 @@ int initialise_fifo(LINE *first_file_name, line_t startup_line, length_t startup
               tmp_len = sprintf((char *) tmp_str, "x %s%s%s", sp_path, sp_fname, ronly);
             }
             if (write(fifo_fd, &tmp_len, sizeof(tmp_len)) == (-1)) {
-              display_error(0, (char_t *) strerror(errno), FALSE);
+              display_error(0, (uchar *) strerror(errno), FALSE);
             }
             if (write(fifo_fd, tmp_str, tmp_len) == (-1)) {
-              display_error(0, (char_t *) strerror(errno), FALSE);
+              display_error(0, (uchar *) strerror(errno), FALSE);
             }
           }
           current_file_name = current_file_name->next;
@@ -67,21 +64,21 @@ int initialise_fifo(LINE *first_file_name, line_t startup_line, length_t startup
         am_client = 1;
       }
     } else {
-      display_error(0, (char_t *) "Warning: Unable to run in single instance mode: fifo not writable", FALSE);
-      display_error(0, (char_t *) strerror(errno), FALSE);
+      display_error(0, (uchar *) "Warning: Unable to run in single instance mode: fifo not writable", FALSE);
+      display_error(0, (uchar *) strerror(errno), FALSE);
     }
   } else {
     /*
      * The FIFO doesn't exists, so we assume we are the server here...
      */
     if (mkfifo((char *) fifo_name, S_IWUSR | S_IRUSR) == (-1)) {
-      display_error(0, (char_t *) "Warning: Unable to run in single instance mode: mkfifo() failed", FALSE);
-      display_error(0, (char_t *) strerror(errno), FALSE);
+      display_error(0, (uchar *) "Warning: Unable to run in single instance mode: mkfifo() failed", FALSE);
+      display_error(0, (uchar *) strerror(errno), FALSE);
     } else {
       fifo_fd = open((char *) fifo_name, O_RDWR);
       if (fifo_fd == -1) {
-        display_error(0, (char_t *) "Warning: Unable to run in single instance mode open() failed:", FALSE);
-        display_error(0, (char_t *) strerror(errno), FALSE);
+        display_error(0, (uchar *) "Warning: Unable to run in single instance mode open() failed:", FALSE);
+        display_error(0, (uchar *) strerror(errno), FALSE);
       } else {
         single_instance_server = TRUE;
       }
@@ -90,7 +87,6 @@ int initialise_fifo(LINE *first_file_name, line_t startup_line, length_t startup
      * We are the server, so return with 0 to enable the caller to continue...
      */
   }
-
   return am_client;
 }
 
@@ -99,7 +95,7 @@ int process_fifo_input(int key) {
   fd_set readfds;
   int curses_fd;
   bool le_status = CURRENT_VIEW->linend_status;
-  char_t le_value = CURRENT_VIEW->linend_value;
+  uchar le_value = CURRENT_VIEW->linend_value;
   VIEW_DETAILS *le_view;
 
   if (key == -1) {
@@ -121,11 +117,10 @@ int process_fifo_input(int key) {
         return key;
       }
       /*
-       * Sleep for 100 milliseconds to ensure the remainder of the
-       * data is in the fifo. Yuck!
+       * Sleep for 100 milliseconds to ensure the remainder of the data is in the fifo. Yuck!
        */
       napms(100);
-      if (read(fifo_fd, tmp_str, tmp_len * sizeof(char_t)) < 0) {
+      if (read(fifo_fd, tmp_str, tmp_len * sizeof(uchar)) < 0) {
         return key;
       }
       /*
@@ -143,11 +138,10 @@ int process_fifo_input(int key) {
       (void) command_line(tmp_str, TRUE);
       le_view->linend_status = le_status;
       le_view->linend_value = le_value;
-      THERefresh((char_t *) "");
+      THERefresh((uchar *) "");
       key = 0;
     }
   }
-
   return key;
 }
 

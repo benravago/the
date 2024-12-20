@@ -2,26 +2,22 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* The body of the program.                                   */
-
 #include "the.h"
 #include "proto.h"
 
 bool prefix_changed = FALSE;
 
-
 void editor(void) {
   short y = 0, x = 0;
 
   /*
-   * Reset any command line positioning parameters so only those files
-   * edited from the command line take on the line/col, command line
-   * position.
+   * Reset any command line positioning parameters
+   * so only those files edited from the command line
+   * take on the line/col, command line position.
    */
   startup_line = startup_column = 0;
-
   if (display_screens > 1) {
-    display_screen((char_t) (other_screen));
+    display_screen((uchar) (other_screen));
   }
   getyx(CURRENT_WINDOW, y, x);
   wmove(CURRENT_WINDOW, y, x);
@@ -34,7 +30,6 @@ void editor(void) {
       wrefresh(CURRENT_WINDOW);
     }
   }
-
   for (;;) {
     if (process_key(-1, FALSE) != RC_OK) {
       break;
@@ -46,38 +41,35 @@ void editor(void) {
 int process_key(int key, bool mouse_details_present) {
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
-  char_t string_key[2];
+  uchar string_key[2];
 
   string_key[1] = '\0';
-
   if (is_termresized()) {
     (void) THE_Resize(0, 0);
-    (void) THERefresh((char_t *) "");
+    (void) THERefresh((uchar *) "");
   }
   if (single_instance_server) {
     key = process_fifo_input(key);
   }
   if (key == (-1)) {
-    key = wgetch(CURRENT_WINDOW);
+    key = my_getch(CURRENT_WINDOW);
   }
   if (key != KEY_MOUSE) {
     if (!mouse_details_present) {
       reset_saved_mouse_pos();
     }
   }
-
   if (is_termresized()) {
     return (RC_OK);
   }
   if (key == KEY_RESIZE) {
     (void) THE_Resize(0, 0);
-    (void) THERefresh((char_t *) "");
+    (void) THERefresh((uchar *) "");
     return (RC_OK);
   }
   if (key == -1) {
     return (RC_OK);
   }
-
   initial = FALSE;              /* set first time a key is requested */
   if (error_on_screen) {
     clear_msgline(key);
@@ -117,7 +109,7 @@ int process_key(int key, bool mouse_details_present) {
       ctime_buf[24] = '\0';
       fprintf(record_fp, "/* Recording of macro ended %s */\n", ctime_buf);
       fclose(record_fp);
-      free (record_status);
+      free(record_status);
       record_fp = NULL;
       record_status = NULL;
       /*
@@ -127,12 +119,10 @@ int process_key(int key, bool mouse_details_present) {
       getyx(CURRENT_WINDOW, y, x);
       wmove(CURRENT_WINDOW, y, x);
       wrefresh(CURRENT_WINDOW);
-
       return (RC_OK);
     }
     /*
-     * If we are recording a macro, write the key definintion
-     * here
+     * If we are recording a macro, write the key definintion here
      */
     write_macro(get_key_definition(key, THE_KEY_DEFINE_RAW, TRUE, (bool) ((key == KEY_MOUSE) ? TRUE : FALSE)));
   }
@@ -142,17 +132,15 @@ int process_key(int key, bool mouse_details_present) {
   if (number_of_files == 0) {
     return (RC_INVALID_ENVIRON);
   }
-
   if (rc >= RAW_KEY) {
     if (rc > RAW_KEY) {
       key = rc - (RAW_KEY * 2);
     }
     if (key < 256 && key >= 0) {
-      string_key[0] = (char_t) key;
+      string_key[0] = (uchar) key;
       /*
-       * If operating in CUA mode, and a CUA block exists, check
-       * if the block should be reset or deleted before executing
-       * the command.
+       * If operating in CUA mode, and a CUA block exists,
+       * check if the block should be reset or deleted before executing the command.
        */
       if (INTERFACEx == INTERFACE_CUA && CURRENT_VIEW->mark_type == M_CUA) {
         ResetOrDeleteCUABlock(CUA_DELETE_BLOCK);
@@ -160,14 +148,12 @@ int process_key(int key, bool mouse_details_present) {
       (void) Text(string_key);
     }
   }
-
   show_statarea();
-
   if (display_screens > 1 && SCREEN_FILE(0) == SCREEN_FILE(1)) {
-    build_screen((char_t) (other_screen));
-    display_screen((char_t) (other_screen));
-    /* refresh_screen(other_screen);*/
-    show_heading((char_t) (other_screen));
+    build_screen((uchar) (other_screen));
+    display_screen((uchar) (other_screen));
+    /*    refresh_screen(other_screen);*/
+    show_heading((uchar) (other_screen));
   }
   refresh_screen(current_screen);
   if (error_on_screen) {
@@ -179,18 +165,17 @@ int process_key(int key, bool mouse_details_present) {
     wmove(CURRENT_WINDOW, y, x);
     wnoutrefresh(CURRENT_WINDOW);
   }
-
   doupdate();
   return (RC_OK);
 }
 
-short EditFile(char_t *fn, bool external_command_line) {
+short EditFile(uchar *fn, bool external_command_line) {
   short rc = RC_OK, y = 0, x = 0;
   VIEW_DETAILS *save_current_view = NULL;
   VIEW_DETAILS *previous_current_view = NULL;
-  char_t save_prefix = 0;
+  uchar save_prefix = 0;
   short save_gap = 0;
-  row_t save_cmd_line = 0;
+  ushort save_cmd_line = 0;
   bool save_id_line = 0;
 
   /*
@@ -208,8 +193,8 @@ short EditFile(char_t *fn, bool external_command_line) {
     return (rc);
   }
   /*
-   * If there are still file(s) in the ring, clear the command line and
-   * save any changes to the focus line.
+   * If there are still file(s) in the ring,
+   * clear the command line and save any changes to the focus line.
    */
   if (number_of_files > 0) {
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
@@ -218,8 +203,8 @@ short EditFile(char_t *fn, bool external_command_line) {
   }
   previous_current_view = CURRENT_VIEW;
   /*
-   * Save the position of the cursor for the current view before getting
-   * the contents of the new file...
+   * Save the position of the cursor for the current view
+   * before getting the contents of the new file...
    */
   if (curses_started && number_of_files > 0) {
     if (CURRENT_WINDOW_COMMAND != NULL) {
@@ -244,8 +229,7 @@ short EditFile(char_t *fn, bool external_command_line) {
     return (rc);
   }
   /*
-   * If more than one screen is displayed, sort out which view is to be
-   * displayed...
+   * If more than one screen is displayed, sort out which view is to be displayed...
    */
   if (display_screens > 1) {
     save_current_view = CURRENT_VIEW;
@@ -254,8 +238,9 @@ short EditFile(char_t *fn, bool external_command_line) {
   } else {
     if (number_of_files > 0) {
       /*
-       * If the position of the prefix or command line for the new view is
-       * different from the previous view, rebuild the windows...
+       * If the position of the prefix or
+       * command line for the new view is different from the previous view,
+       * rebuild the windows...
        */
       if ((save_prefix & PREFIX_LOCATION_MASK) != (CURRENT_VIEW->prefix & PREFIX_LOCATION_MASK) || save_gap != CURRENT_VIEW->prefix_gap || save_cmd_line != CURRENT_VIEW->cmd_line || save_id_line != CURRENT_VIEW->id_line) {
         set_screen_defaults();
@@ -267,8 +252,7 @@ short EditFile(char_t *fn, bool external_command_line) {
       }
     }
     /*
-     * Re-calculate CURLINE for the new view in case the CURLINE is no
-     * longer in the display area.
+     * Re-calculate CURLINE for the new view in case the CURLINE is no longer in the display area.
      */
     prepare_view(current_screen);
   }
@@ -300,15 +284,14 @@ short EditFile(char_t *fn, bool external_command_line) {
     profile_file_executions++;
     in_reprofile = TRUE;
     if (execute_profile) {
-      if (local_prf != (char_t *) NULL) {
+      if (local_prf != (uchar *) NULL) {
         rc = get_profile(local_prf, prf_arg);
       }
     }
     in_reprofile = FALSE;
   }
   /*
-   * If the result of processing the profile file results in no files
-   * in the ring, we need to get out NOW.
+   * If the result of processing the profile file results in no files in the ring, we need to get out NOW.
    */
   if (number_of_files == 0) {
     return (rc);
@@ -316,8 +299,7 @@ short EditFile(char_t *fn, bool external_command_line) {
   /* pre_process_line(CURRENT_VIEW,CURRENT_VIEW->focus_line,(LINE *)NULL);*/
   build_screen(current_screen);
   /*
-   * If startup values were specified on the command, line, move cursor
-   * there...
+   * If startup values were specified on the command, line, move cursor there...
    */
   if (startup_line != 0 || startup_column != 0) {
     THEcursor_goto(startup_line, startup_column);
@@ -347,15 +329,15 @@ short EditFile(char_t *fn, bool external_command_line) {
     show_statarea();
   }
   /*
-   * If we have a Rexx interpreter, register a handler for ring.x where
-   * x is the number of files in the ring.
+   * If we have a Rexx interpreter,
+   * register a handler for ring.x where x is the number of files in the ring.
    */
   if (rexx_support) {
-    char_t tmp[20];
+    uchar tmp[20];
+
     sprintf((char *) tmp, "ring.%ld", number_of_files + ((compatible_feel == COMPAT_XEDIT) ? 1 : 0));
     MyRexxRegisterFunctionExe(tmp);
   }
-
   return (rc);
 }
 

@@ -1,5 +1,7 @@
 /* Functions of REXX/imc relating to the SAA API     (C) Ian Collier 1994 */
 
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,7 +19,6 @@
 #include "globals.h"
 #include "functions.h"
 
-#define INCL_REXXSAA
 #include "rexxsaa.h"
 
 static void halt_handler();     /* handle halt signals */
@@ -76,43 +77,56 @@ static int rexxdepth = 0;       /* nesting level of RexxStart() */
 static void rexxterm(old)       /* Destroy the REXX data structures */
 struct status *old;
 {
-  if (cstackptr)
+  if (cstackptr) {
     free(cstackptr), cstackptr = 0;
-  if (pstackptr)
+  }
+  if (pstackptr) {
     free(pstackptr), pstackptr = 0;
-  if (sgstack)
+  }
+  if (sgstack) {
     free(sgstack), sgstack = 0;
+  }
   if (source)
     free(source[0]),            /* the file name */
-        free(source[1]),        /* the source characters */
-        free((char *) source), source = 0;
+         free(source[1]),        /* the source characters */
+         free((char *) source), source = 0;
   if (prog)
     free(prog[0].line),         /* the program characters */
-        free((char *) prog), prog = 0;
-  if (labelptr)
+         free((char *) prog), prog = 0;
+  if (labelptr) {
     free(labelptr), labelptr = 0;
+  }
   if (rexxdepth == 0) {
-    if (varstk)
+    if (varstk) {
       free(varstk), varstk = 0;
-    if (vartab)
+    }
+    if (vartab) {
       free(vartab), vartab = 0;
-    if (hashlen[2])
-      hashfree();               /* This *shouldn't* close stdin, stdout or stderr, but
+    }
+    if (hashlen[2]) {
+      hashfree();
+    }               /* This *shouldn't* close stdin, stdout or stderr, but
                                    havoc might ensue anyway if the REXX program changed
                                    them... */
-    if (workptr)
+    if (workptr) {
       free(workptr), workptr = 0;
-    if (pull)
+    }
+    if (pull) {
       free(pull), pull = 0;
-    if (varnamebuf)
+    }
+    if (varnamebuf) {
       free(varnamebuf), varnamebuf = 0;
-    if (ttyin && ttyin != stdin)
+    }
+    if (ttyin && ttyin != stdin) {
       fclose(ttyin), ttyin = 0;
-    if (ttyout && ttyout != stdout)
+    }
+    if (ttyout && ttyout != stdout) {
       fclose(ttyout), ttyout = 0;
+    }
     /* Neutralise OPTIONs */
-    if (traceout != stderr)
+    if (traceout != stderr) {
       fclose(traceout), traceout = stderr;
+    }
     setrcflag = 0;
     exposeflag = 0;
   } else {
@@ -190,56 +204,64 @@ PRXSTRING result;
   struct fileinfo *info;        /* for initialising stdin, stdout, stderr */
   char *basename;               /* basename of the program to execute */
   char *tail;                   /* file extension of the program */
-  extern char *month[];         /* from rxdate() in rxfn.c */
   char **arglist = 0;           /* a copy of the argument addresses */
   int *arglens = 0;             /* a copy of the argument lengths */
   int i, j;
   long n;
   char *howcall;                /* string to represent calltype */
   char sourcestring[200];       /* string for "parse source" */
-  int olddepth = rexxdepth;
   char env[maxenviron + 1];     /* a copy of the environment name */
   volatile sighandler sigint, sigterm, sighup,  /* saved signal handlers */
-   sigquit, sigsegv, sigbus, sigill, sigpipe;
+           sigquit, sigsegv, sigbus, sigill, sigpipe;
   struct status old;
   jmp_buf exbuf;                /* buffer for exitbuf */
 
-/* construct version string (should be constant, but it's easier this way) */
+  /* construct version string (should be constant, but it's easier this way) */
   sprintf(version, "REXX/imc-%s %s", VER, LEVEL);
   if (flags & RXVERSION) {
     puts(version);
-    if (flags == RXVERSION)
+    if (flags == RXVERSION) {
       return 0;
+    }
   }
 
   /* Argument checking */
-  if (instore && instore[1].strptr)
-    return 1;                   /* no tokenised program.  May be fixed later... */
-  if (instore && !(instore[0].strptr && instore[0].strlength))
-    return 1;                   /* no macros.  May possibly be fixed later... */
-  if (!name) {
-    if (instore)
-      name = "anonymous";
-    else
-      return 1;
+  if (instore && instore[1].strptr) {
+    return 1;  /* no tokenised program.  May be fixed later... */
   }
-  if (envname && strlen(envname) > maxenviron)
+  if (instore && !(instore[0].strptr && instore[0].strlength)) {
+    return 1;  /* no macros.  May possibly be fixed later... */
+  }
+  if (!name) {
+    if (instore) {
+      name = "anonymous";
+    } else {
+      return 1;
+    }
+  }
+  if (envname && strlen(envname) > maxenviron) {
     return 1;
-  if (calltype != RXCOMMAND && calltype != RXFUNCTION && calltype != RXSUBROUTINE)
+  }
+  if (calltype != RXCOMMAND && calltype != RXFUNCTION && calltype != RXSUBROUTINE) {
     return 1;
+  }
 
   if (!(flags & RXEXITS))
-    for (i = 0; i < RXEXITNUM; i++)
-      exitlist[i] = 0;          /* prepare to set exits */
+    for (i = 0; i < RXEXITNUM; i++) {
+      exitlist[i] = 0;  /* prepare to set exits */
+    }
   if (myexits)
     for (i = 0; myexits[i].sysexit_code != RXENDLST; i++) {
-      if (!exitlen)
-        return RXEXIT_NOTREG;   /* unregistered exit name */
+      if (!exitlen) {
+        return RXEXIT_NOTREG;  /* unregistered exit name */
+      }
       for (j = 0; j < exits && strcmp(exittable[j].name, myexits[i].sysexit_name); j++);
-      if (j == exits || !exittable[j].handler)
+      if (j == exits || !exittable[j].handler) {
         return RXEXIT_NOTREG;
-      if (myexits[i].sysexit_code >= RXEXITNUM)
+      }
+      if (myexits[i].sysexit_code >= RXEXITNUM) {
         return RXEXIT_BADTYPE;  /* unrecognised exit code */
+      }
       exitlist[myexits[i].sysexit_code] = exittable[j].handler;
     }
 
@@ -286,18 +308,21 @@ PRXSTRING result;
     old.arg = curargs;
     old.arglen = curarglen;
     old.exitbuf = exitbuf;
-    exitbuf = addressof(exbuf);
+    exitbuf = &exbuf;
   } else {
     interplev = -1;
-    exitbuf = addressof(exbuf);
+    exitbuf = &exbuf;
   }
-  if (!envtablelen)
+  if (!envtablelen) {
     envinit();
+  }
   if (!hashlen[2]) {
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < 3; i++) {
       hashptr[i] = allocm(hashlen[i] = 256), ehashptr[i] = 0;
-    if (!hashlen[2])
+    }
+    if (!hashlen[2]) {
       return Emem;
+    }
   }
 
   if ((i = setjmp(*exitbuf))) { /* catch error during setup */
@@ -306,36 +331,43 @@ PRXSTRING result;
   }
 
   /* Initialise all the global variables */
-  if (traceout == 0)
+  if (traceout == 0) {
     traceout = stderr;
+  }
   if (rexxdepth == 0) {
 
     varstk = (int *) allocm(varstklen = 256), varstkptr = 0, varstk[0] = varstk[1] = 0, vartab = allocm(vartablen = 1024);
     worklen = maxvarname + 10, workptr = allocm(worklen), pull = allocm(pulllen = 256), varnamebuf = allocm(varnamelen = maxvarname);
-    if (!(ttyin = fopen("/dev/tty", "r")))
+    if (!(ttyin = fopen("/dev/tty", "r"))) {
       ttyin = stdin;
-    if (!(ttyout = fopen("/dev/tty", "w")))
+    }
+    if (!(ttyout = fopen("/dev/tty", "w"))) {
       ttyout = stderr;
+    }
     (info = fileinit("stdin", cnull, stdin))->lastwr = 0;       /* set up stdin */
     info->rdpos = info->wrpos;  /* wrpos has been set to the current position */
     info->rdline = info->wrline;        /* now rdpos will be there as well */
     fileinit("stdout", cnull, stdout)->wr = -1; /* set up stdout and stderr */
     fileinit("stderr", cnull, stderr)->wr = -1; /* for writing */
   }
-  cstackptr = allocm(cstacklen = 256), ecstackptr = 0, pstackptr = allocm(pstacklen = 512), pstacklev = epstackptr = 0, sgstack = (struct sigstruct *) malloc(sizeof(struct sigstruct) * (sigstacklen = 20));
-  if (!(flags & RXDIGITS))
+  cstackptr = allocm(cstacklen = 256), ecstackptr = 0, pstackptr = allocm(pstacklen = 512), pstacklev = epstackptr = 0,
+                                                                                                        sgstack = (struct sigstruct *) malloc(sizeof(struct sigstruct) * (sigstacklen = 20));
+  if (!(flags & RXDIGITS)) {
     precision = 9;
+  }
   fuzz = 9;
   numform = 0;
   trcresult = 0;
   timeflag &= 4;
-  if (!(flags & RXMAIN))
+  if (!(flags & RXMAIN)) {
     trcflag = Tfailures;
+  }
   psource = sourcestring;
 
   if ((i = setjmp(*exitbuf))) {
-    if (i != Esig && exitlist[RXTER])
+    if (i != Esig && exitlist[RXTER]) {
       exitcall(RXTER, RXTEREXT, (PEXIT) 0);
+    }
     goto RexxEnd;               /* catch execution errors */
   }
 #define sigsetup(var,sig,handler) if((var=signal(sig,handler))!=SIG_DFL)\
@@ -351,67 +383,79 @@ PRXSTRING result;
   sigill = signal(SIGILL, error_handler);
 #undef sigsetup
 
-/* Get the program's details and load it */
-  if ((basename = strrchr(name, '/')))
+  /* Get the program's details and load it */
+  if ((basename = strrchr(name, '/'))) {
     basename++;
-  else
-    basename = name;            /* basename points to the file's name */
-  if ((tail = strrchr(basename, '.')) && strlen(tail) < maxextension && tail[1])
-    strcpy(extension, tail);    /* this will be the default extension */
-  else
-    strcpy(extension, rexxext());       /* if none, use the system default */
+  } else {
+    basename = name;  /* basename points to the file's name */
+  }
+  if ((tail = strrchr(basename, '.')) && strlen(tail) < maxextension && tail[1]) {
+    strcpy(extension, tail);  /* this will be the default extension */
+  } else {
+    strcpy(extension, rexxext());  /* if none, use the system default */
+  }
   extlen = strlen(extension);
   if (instore) {
     input = allocm(ilen = instore[0].strlength);
     memcpy(input, instore[0].strptr, ilen);
     strcpy(fname, name);
   } else {
-    if (which(name, (flags & RXOPTIONX) || !(flags & RXMAIN), fname) != 1)      /* search for the file */
-      errordata = fname, die(-3);       /* error - not found */
-    if (!(input = load(fname, &ilen)))
-      errordata = fname, die(-3);       /* Error - could not load file */
+    if (which(name, (flags & RXOPTIONX) || !(flags & RXMAIN), fname) != 1) {    /* search for the file */
+      errordata = fname, die(-3);  /* error - not found */
+    }
+    if (!(input = load(fname, &ilen))) {
+      errordata = fname, die(-3);  /* Error - could not load file */
+    }
   }
   tokenise(input, ilen, 0, flags & RXOPTIONX);
   source[0] = allocm(strlen(fname) + 1);
   strcpy(source[0], fname);
-/* construct source string (one per invocation of RexxStart) */
+  /* construct source string (one per invocation of RexxStart) */
   howcall = (calltype & RXSUBROUTINE) ? "SUBROUTINE" : (calltype & RXFUNCTION) ? "FUNCTION" : "COMMAND";
   if (!envname) {
     envname = env;
     if (tail && tail[1] && strlen(tail) <= maxenviron) {
-      for (i = 0; tail[i + 1]; i++)
+      for (i = 0; tail[i + 1]; i++) {
         env[i] = uc(tail[i + 1]);
+      }
       env[i] = 0;
-    } else
+    } else {
       strcpy(env, "UNIX");
+    }
   }
   address2 = address1 = address0 = envsearch(envname);
-  if (address1 < 0)
+  if (address1 < 0) {
     die(Emem);
-  if (callname)
+  }
+  if (callname) {
     basename = callname;
+  }
   sprintf(psource, "UNIX %s %s %s %s", howcall, source[0], basename, envname);
-/* call the interpreter */
+  /* call the interpreter */
   arglist = (char **) allocm((argc + 1) * sizeof(char *));
   arglens = (int *) allocm((argc + 1) * four);
   for (i = 0; i < argc; i++) {
     arglist[i] = argv[i].strptr, arglens[i] = argv[i].strlength;
-    if (!arglist[i])
+    if (!arglist[i]) {
       arglist[i] = (char *) -1, arglens[i] = -1;
+    }
   }
   arglist[argc] = 0;
   arglens[argc] = 0;
 
   interplev = 0;
   rexxdepth++;
-  if (exitlist[RXINI])
+  if (exitlist[RXINI]) {
     exitcall(RXINI, RXINIEXT, (PEXIT) 0);
+  }
   answer = interpreter(&anslen, 1, basename, calltype, arglist, arglens, 0, 0);
-  if (exitlist[RXTER])
+  if (exitlist[RXTER]) {
     exitcall(RXTER, RXTEREXT, (PEXIT) 0);
+  }
   rexxdepth--;
-  if (rc)
+  if (rc) {
     *rc = 1 << 15;
+  }
   i = answer && anslen && answer[0] == '-';
   if (answer && anslen > i) {
     for (n = 0; i < anslen; i++) {
@@ -425,32 +469,38 @@ PRXSTRING result;
         break;
       }
     }
-    if (i > 0 && rc)
+    if (i > 0 && rc) {
       *rc = answer[0] == '-' ? -n : n;
-    else if (flags & RXMAIN)    /* environment raises an error for non-integer */
+    } else if (flags & RXMAIN) { /* environment raises an error for non-integer */
       interplev = -1, die(Enonint);
+    }
   }
   if (result) {
-    if (!answer)
+    if (!answer) {
       result->strptr = 0, result->strlength = 0;
-    else {
+    } else {
       if (!result->strptr || result->strlength < anslen) {
-        if ((result->strptr = malloc(anslen)))
+        if ((result->strptr = malloc(anslen))) {
           result->strlength = anslen;
-        else
+        } else {
           result->strlength = 0;
-      } else
+        }
+      } else {
         result->strlength = anslen;
-      if (result->strptr)
+      }
+      if (result->strptr) {
         memcpy(result->strptr, answer, anslen);
+      }
     }
   }
   i = 0;
 RexxEnd:
-  if (arglist)
+  if (arglist) {
     free(arglist);
-  if (arglens)
+  }
+  if (arglens) {
     free(arglens);
+  }
 
   rexxterm(&old);               /* put everything back as it was */
   /* restore signal handlers to their previous values */
@@ -486,8 +536,9 @@ int sig;
     default:
       sigdata[Ihalt] = "SIGTERM";
   }
-  if (sig != SIGINT && delayed[Ihalt] > 2)
+  if (sig != SIGINT && delayed[Ihalt] > 2) {
     fputs("Emergency stop\n", ttyout), longjmp(*exitbuf, Esig);
+  }
 }
 
 /* SIGPIPE causes the interpreter to stop immediately unless */
@@ -495,8 +546,9 @@ int sig;
 /* ignored (the write or flush will return an error).        */
 static void pipe_handler(sig) /*ARGSUSED*/ int sig;
 {
-  if (!sigpipeflag)
+  if (!sigpipeflag) {
     error_handler(sig);
+  }
   signal(sig, pipe_handler);    /* required on SysV */
 }
 
@@ -516,8 +568,9 @@ int sig;
     case SIGILL:
       fputs("Illegal instruction", ttyout);
   }
-  if (sig != SIGPIPE)
+  if (sig != SIGPIPE) {
     fputs(" (cleaning up)\n", ttyout);
+  }
   longjmp(*exitbuf, Esig);
 }
 
@@ -554,10 +607,11 @@ RXSTRING *returnval;
   *flags = RXSUBCOM_ERROR;
   cmd[command->strlength] = 0;  /* there should always be room for this kludge */
   ret = (char) (system(cmd) / 256);
-  if (ret == 1 || ret < 0)
+  if (ret == 1 || ret < 0) {
     *flags = RXSUBCOM_FAILURE;
-  else if (ret == 0)
+  } else if (ret == 0) {
     *flags = RXSUBCOM_OK;
+  }
   sprintf(returnval->strptr, "%d", ret);
   returnval->strlength = strlen(returnval->strptr);
   return 0;
@@ -575,10 +629,11 @@ RXSTRING *returnval;
   *flags = RXSUBCOM_ERROR;
   cmd[command->strlength] = 0;
   ret = shell(cmd);
-  if (ret < 0)
+  if (ret < 0) {
     *flags = RXSUBCOM_FAILURE;
-  else if (ret == 0)
+  } else if (ret == 0) {
     *flags = RXSUBCOM_OK;
+  }
   sprintf(returnval->strptr, "%d", ret);
   returnval->strlength = strlen(returnval->strptr);
   return 0;
@@ -617,8 +672,9 @@ char *name;
   struct environ *tmp;
 
   for (i = 0; i < envs; i++)
-    if (!strcmp(envtable[i].name, name))
+    if (!strcmp(envtable[i].name, name)) {
       return i;
+    }
   /* if the name is not found, make an undefined environment. */
   if (++envs == envtablelen) {
     envtablelen += 16;
@@ -644,15 +700,19 @@ unsigned char *area;
 {
   int i;
 
-  if (!envtablelen)
+  if (!envtablelen) {
     envinit();
-  if (strlen(name) > maxenviron)
+  }
+  if (strlen(name) > maxenviron) {
     return RXSUBCOM_BADTYPE;
+  }
   i = envsearch(name);
-  if (i < 0)
+  if (i < 0) {
     return RXSUBCOM_NOEMEM;
-  if (envtable[i].defined)
+  }
+  if (envtable[i].defined) {
     return RXSUBCOM_NOTREG;
+  }
   envtable[i].handler = handler;
   envtable[i].area = area;
   envtable[i].defined = 1;
@@ -665,22 +725,26 @@ char *name, *mod;
   int ans = RXSUBCOM_OK;
   int i;
 
-  if (strlen(name) > maxenviron)
+  if (strlen(name) > maxenviron) {
     return RXSUBCOM_BADTYPE;
-  if (!envtablelen)
+  }
+  if (!envtablelen) {
     return RXSUBCOM_NOTREG;
+  }
   i = envsearch(name);
-  if (i < 0)
+  if (i < 0) {
     return RXSUBCOM_NOTREG;
-  if (!envtable[i].defined)
+  }
+  if (!envtable[i].defined) {
     ans = RXSUBCOM_NOTREG;
-  else {
+  } else {
     envtable[i].handler = defaulthandler;
     envtable[i].area = 0;
     envtable[i].defined = 0;
   }
-  while (envs && !envtable[envs - 1].defined)
-    envs--;                     /* reclaim unused entries */
+  while (envs && !envtable[envs - 1].defined) {
+    envs--;  /* reclaim unused entries */
+  }
   return ans;
 }
 
@@ -692,25 +756,32 @@ unsigned char *area;
   int ans = RXSUBCOM_OK;
   int i;
 
-  if (flag)
+  if (flag) {
     *flag = RXSUBCOM_NOTREG;
-  if (strlen(name) > maxenviron)
+  }
+  if (strlen(name) > maxenviron) {
     return RXSUBCOM_BADTYPE;
-  if (!envtablelen)
+  }
+  if (!envtablelen) {
     return RXSUBCOM_NOTREG;
+  }
   i = envsearch(name);
-  if (i < 0)
+  if (i < 0) {
     return RXSUBCOM_NOTREG;
-  if (!envtable[i].defined)
+  }
+  if (!envtable[i].defined) {
     ans = RXSUBCOM_NOTREG;
-  if (i == envs - 1)
+  }
+  if (i == envs - 1) {
     envs--;
-  else if (area && envtable[i].area)
+  } else if (area && envtable[i].area) {
     memcpy(area, envtable[i].area, 8);
-  else if (area)
+  } else if (area) {
     memset(area, 0, 8);
-  if (flag)
+  }
+  if (flag) {
     *flag = ans;
+  }
   return ans;
 }
 
@@ -739,10 +810,11 @@ char *cmd, **ans;
     rxcmd.rxcmd_retc = output;
     if (exitcall(RXCMD, RXCMDHST, &rxcmd) == RXEXIT_HANDLED) {
       rc = 0;
-      if (rxcmd.rxcmd_flags.rxfcfail)
+      if (rxcmd.rxcmd_flags.rxfcfail) {
         rc = Efailure;
-      else if (rxcmd.rxcmd_flags.rxfcerr)
+      } else if (rxcmd.rxcmd_flags.rxfcerr) {
         rc = Eerror;
+      }
       if (!output.strptr) {
         *ans = "0";
         *anslen = 1;
@@ -775,10 +847,12 @@ char *cmd, **ans;
       free(output.strptr);
     }
   }
-  if (rc == RXSUBCOM_OK)
+  if (rc == RXSUBCOM_OK) {
     return 0;
-  if (rc == RXSUBCOM_FAILURE)
+  }
+  if (rc == RXSUBCOM_FAILURE) {
     return Efailure;
+  }
   return Eerror;
 }
 
@@ -801,8 +875,9 @@ SHVBLOCK *request;
   char *valptr;
   int lev;
 
-  if (rexxdepth == 0)
+  if (rexxdepth == 0) {
     return RXSHV_NOAVL;
+  }
   for (; request; ret |= request->shvret, request = request->shvnext) {
     name = request->shvname.strptr;
     namelen = request->shvname.strlength;
@@ -812,15 +887,17 @@ SHVBLOCK *request;
       case RXSHV_SYDRO:        /* turn symbolic into direct */
       case RXSHV_SYSET:
         mtest(workptr, worklen, namelen + 1, namelen + 1 - worklen);
-        for (i = 0; i < namelen; i++)
+        for (i = 0; i < namelen; i++) {
           workptr[i] = uc(name[i]);
+        }
         workptr[namelen] = 0;
         i = 0;
         getvarname(workptr, &i, varnamebuf, &nlen, varnamelen);
-        if (nlen == 0 || i != namelen)
+        if (nlen == 0 || i != namelen) {
           request->shvret = RXSHV_BADN;
-        else
+        } else {
           name = varnamebuf, namelen = nlen;
+        }
         break;
       case RXSHV_DROPV:        /* check variable and set compound/stem bits */
       case RXSHV_FETCH:
@@ -838,16 +915,18 @@ SHVBLOCK *request;
         }
         if (i < namelen) {
           workptr[0] |= 128;
-          if (i == namelen - 1)
+          if (i == namelen - 1) {
             namelen--;
+          }
         }
         name = workptr;
     }
-    if (request->shvret)
+    if (request->shvret) {
       continue;
+    }
     switch (request->shvcode) {
-        /* FIXME: It is impossible for RXSHV_NEWV or RXSHV_MEMFL to
-           be returned for a set or drop operation. */
+      /* FIXME: It is impossible for RXSHV_NEWV or RXSHV_MEMFL to
+         be returned for a set or drop operation. */
       case RXSHV_DROPV:
       case RXSHV_SYDRO:
         nextvar = 0;
@@ -862,24 +941,27 @@ SHVBLOCK *request;
       case RXSHV_SYFET:
         nextvar = 0;
         valptr = varget(name, namelen, &vallen);
-        if (!valptr)
+        if (!valptr) {
           name[0] &= 127, valptr = name, vallen = namelen, request->shvret = RXSHV_NEWV;
+        }
         if (!request->shvvalue.strptr) {
           request->shvvalue.strptr = malloc(vallen);
           if (!request->shvvalue.strptr) {
             request->shvret |= RXSHV_MEMFL;
             break;
-          } else
+          } else {
             request->shvvalue.strlength = request->shvvaluelen = vallen;
+          }
         } else {
-          if (vallen > request->shvvaluelen)
+          if (vallen > request->shvvaluelen) {
             vallen = request->shvvaluelen, request->shvret |= RXSHV_TRUNC;
+          }
           request->shvvalue.strlength = vallen;
         }
         memcpy(request->shvvalue.strptr, valptr, vallen);
         break;
       case RXSHV_NEXTV:
-      case_RXSHV_NEXTV:
+case_RXSHV_NEXTV:
         if (!nextvar) {
           nexttail = 0;
           nextvar = (varent *) (vartab + varstk[varstkptr]);
@@ -900,17 +982,20 @@ SHVBLOCK *request;
           if (!(workptr[0] & 128)) {
             thisvar = nextvar;
             nextvar = (varent *) ((char *) nextvar + nextvar->next);
-            if ((lev = -(thisvar->valalloc)) > 0)
+            if ((lev = -(thisvar->valalloc)) > 0) {
               thisvar = (varent *) varsearch(nptr, nlen, &lev, &i);
-            if (thisvar->vallen < 0)
+            }
+            if (thisvar->vallen < 0) {
               goto case_RXSHV_NEXTV;
+            }
             vallen = thisvar->vallen;
             valptr = (char *) (thisvar + 1) + align(thisvar->namelen);
             nptr = workptr;
           } else {
             thisvar = nextvar;
-            if ((lev = -(thisvar->valalloc)) > 0)
+            if ((lev = -(thisvar->valalloc)) > 0) {
               thisvar = (varent *) varsearch(nptr, nlen, &lev, &i);
+            }
             valptr = (char *) (thisvar + 1) + align(thisvar->namelen);
             vallen = ((int *) valptr)[1];
             nexttail = (varent *) (valptr + ((int *) valptr)[0] + 2 * four);
@@ -921,11 +1006,13 @@ SHVBLOCK *request;
               workptr[nlen++] = '.';
               workptr[0] &= 127;
               nptr = workptr;
-            } else
+            } else {
               valptr = 0;
+            }
           }
-        } else
+        } else {
           valptr = 0;
+        }
         if (!valptr) {
           workptr[nlen++] = '.';
           nptr = (char *) (nexttail + 1);
@@ -935,13 +1022,15 @@ SHVBLOCK *request;
           nlen += i;
           thisvar = nexttail;
           nexttail = (varent *) ((char *) nexttail + nexttail->next);
-          if ((lev = -(thisvar->valalloc)) > 0)
+          if ((lev = -(thisvar->valalloc)) > 0) {
             thisvar = (varent *) valuesearch(workptr, nlen, &lev, &i, &valptr);
+          }
           workptr[0] &= 127;
           valptr = (char *) (thisvar + 1) + align(thisvar->namelen);
           vallen = thisvar->vallen;
-          if (vallen < 0)
+          if (vallen < 0) {
             goto case_RXSHV_NEXTV;
+          }
           nptr = workptr;
         }
         if (!request->shvname.strptr) {
@@ -992,21 +1081,25 @@ int argc;
 
   for (i = argc; i > 0; i--) {
     argv[i] = delete(&l);
-    if (l < 0)
+    if (l < 0) {
       argv[i] = "";
-    else
+    } else {
       argv[i][l] = 0;
+    }
   }
   argv[0] = callname;
   argv[argc + 1] = 0;
-  if (pipe(fd))
+  if (pipe(fd)) {
     perror("REXX: couldn't make a pipe"), die(Esys);
-  if ((pid = vfork()) < 0)
+  }
+  if ((pid = vfork()) < 0) {
     perror("REXX: couldn't vfork"), die(Esys);
+  }
   if (!pid) {                   /* child: attach pipe to stdout and exec the function */
     close(fd[0]);
-    if (dup2(fd[1], 1) < 0)
+    if (dup2(fd[1], 1) < 0) {
       perror("REXX: couldn't dup2"), _exit(-1);
+    }
     close(fd[1]);
     execv(name, argv);
     perror(name);
@@ -1021,13 +1114,16 @@ int argc;
   }
   close(fd[0]);
   waitpid(pid, &l, 0);          /* delete child from process table */
-  if (i == 0 && l == 0xff00)
-    die(Eincalled);             /* catch one of the above exit(-1)s */
-  if (i == 0)
+  if (i == 0 && l == 0xff00) {
+    die(Eincalled);  /* catch one of the above exit(-1)s */
+  }
+  if (i == 0) {
     return 0;
+  }
   ptr = cstackptr + ecstackptr;
-  if (ptr[i - 1] == '\n')
-    i--;                        /* knock off a trailing newline */
+  if (ptr[i - 1] == '\n') {
+    i--;  /* knock off a trailing newline */
+  }
   l = align(i);
   *(int *) (ptr + l) = i;
   ecstackptr += l + four;
@@ -1049,20 +1145,24 @@ int argc;
 
   for (j = argc - 1; j >= 0; j--) {
     argv[j].strptr = delete(&l);
-    if (l < 0)
+    if (l < 0) {
       argv[j].strptr = 0, argv[j].strlength = 0;
-    else
+    } else {
       argv[j].strptr[argv[j].strlength = l] = 0;
+    }
   }
   MAKERXSTRING(result, data, RXRESULTLEN);
   i = func(name, argc, argv, "SESSION", &result);
-  if (i)
+  if (i) {
     return -Ecall;
-  if (!result.strptr)
+  }
+  if (!result.strptr) {
     return 0;
+  }
   stack(result.strptr, result.strlength);
-  if (result.strptr != data)
+  if (result.strptr != data) {
     free(result.strptr);
+  }
   return 1;
 }
 
@@ -1075,20 +1175,24 @@ RexxFunctionHandler *address;
   void **slot;
 
   if (!hashlen[2]) {
-    for (l = 0; l < 3; l++)
+    for (l = 0; l < 3; l++) {
       hashptr[l] = allocm(hashlen[l] = 256), ehashptr[l] = 0;
-    if (!hashlen[2])
+    }
+    if (!hashlen[2]) {
       return RXFUNC_NOMEM;
+    }
   }
   slot = hashfind(2, name, &exist);
   if (exist && *slot) {
-    if (((funcinfo *) * slot)->dlfunc)
+    if (((funcinfo *) * slot)->dlfunc) {
       return RXFUNC_DEFINED;
+    }
     free((char *) *slot);       /* it was only a hashed file name */
   }
   info = (funcinfo *) malloc(sizeof(funcinfo));
-  if (!info)
+  if (!info) {
     return RXFUNC_NOMEM;
+  }
   *slot = (void *) info;
   info->dlhandle = 0;
   info->dlfunc = (int (*)()) address;
@@ -1102,13 +1206,16 @@ char *name;
   int exist;
   hashent *ptr;
 
-  if (!hashlen[2])
+  if (!hashlen[2]) {
     return RXFUNC_NOTREG;
+  }
   ptr = (hashent *) hashsearch(2, name, &exist);
-  if (!(exist && ptr->value))
+  if (!(exist && ptr->value)) {
     return RXFUNC_NOTREG;
-  if (!(((funcinfo *) ptr->value)->dlfunc))
-    return RXFUNC_NOTREG;       /* it was only a hashed file name */
+  }
+  if (!(((funcinfo *) ptr->value)->dlfunc)) {
+    return RXFUNC_NOTREG;  /* it was only a hashed file name */
+  }
   free(ptr->value);
   ptr->value = 0;
   return RXFUNC_OK;
@@ -1120,13 +1227,16 @@ char *name;
   int exist;
   hashent *ptr;
 
-  if (!hashlen[2])
+  if (!hashlen[2]) {
     return RXFUNC_NOTREG;
+  }
   ptr = (hashent *) hashsearch(2, name, &exist);
-  if (!(exist && ptr->value))
+  if (!(exist && ptr->value)) {
     return RXFUNC_NOTREG;
-  if (!(((funcinfo *) ptr->value)->dlfunc))
-    return RXFUNC_NOTREG;       /* it was only a hashed file name */
+  }
+  if (!(((funcinfo *) ptr->value)->dlfunc)) {
+    return RXFUNC_NOTREG;  /* it was only a hashed file name */
+  }
   return RXFUNC_OK;
 }
 
@@ -1143,8 +1253,9 @@ void hashfree() {               /* minimise memory used by hash table 1. */
       /* for hash table 1 */
       if (ptr->value) {
         if ((fp = ((struct fileinfo *) (ptr->value))->fp))
-          if (fp != stdin && fp != stdout && fp != stderr)
+          if (fp != stdin && fp != stdout && fp != stderr) {
             fclose(fp);
+          }
         free((char *) ptr->value);
       }
     free(hashptr[hash]);
@@ -1168,21 +1279,24 @@ unsigned char *area;
 
   if (!exitlen) {
     exittable = (struct exitentry *)
-        malloc((exitlen = 16) * sizeof(struct exitentry));
+                malloc((exitlen = 16) * sizeof(struct exitentry));
     if (!exittable) {
       exitlen = 0;
       return RXEXIT_NOEMEM;
     }
   }
-  if (strlen(name) > maxenviron)
+  if (strlen(name) > maxenviron) {
     return RXEXIT_BADTYPE;
+  }
   for (i = 0; i < exits && strcmp(exittable[i].name, name); i++);
-  if (i < exits && exittable[i].handler)
+  if (i < exits && exittable[i].handler) {
     return RXEXIT_NOTREG;
+  }
   if (i == exits && exits++ == exitlen) {
     tmp = realloc(exittable, (exitlen + 16) * sizeof(struct exitentry));
-    if (!tmp)
+    if (!tmp) {
       return RXEXIT_NOEMEM;
+    }
     exittable = (struct exitentry *) tmp;
     exitlen += 16;
   }
@@ -1197,15 +1311,18 @@ char *name, *mod;
 {
   int i;
 
-  if (strlen(name) > maxenviron)
+  if (strlen(name) > maxenviron) {
     return RXEXIT_BADTYPE;
-  if (!exitlen)
+  }
+  if (!exitlen) {
     return RXEXIT_NOTREG;
+  }
   for (i = 0; i < exits && strcmp(exittable[i].name, name); i++);
   if (i < exits && exittable[i].handler) {
     exittable[i].handler = 0;
-    while (exits && !exittable[exits - 1].handler)
-      exits--;                  /* reclaim unused entries */
+    while (exits && !exittable[exits - 1].handler) {
+      exits--;  /* reclaim unused entries */
+    }
     return RXEXIT_OK;
   }
   return RXEXIT_NOTREG;
@@ -1218,20 +1335,25 @@ unsigned char *area;
 {
   int i;
 
-  if (flag)
+  if (flag) {
     *flag = RXEXIT_NOTREG;
-  if (strlen(name) > maxenviron)
+  }
+  if (strlen(name) > maxenviron) {
     return RXEXIT_BADTYPE;
-  if (!exitlen)
+  }
+  if (!exitlen) {
     return RXEXIT_NOTREG;
+  }
   for (i = 0; i < exits && strcmp(exittable[i].name, name); i++);
   if (i < exits && exittable[i].handler) {
-    if (area && exittable[i].area)
+    if (area && exittable[i].area) {
       memcpy(area, exittable[i].area, 8);
-    else if (area)
+    } else if (area) {
       memset(area, 0, 8);
-    if (flag)
+    }
+    if (flag) {
       *flag = RXEXIT_OK;
+    }
     return RXEXIT_OK;
   }
   return RXEXIT_NOTREG;

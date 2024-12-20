@@ -18,11 +18,11 @@
 #include"const.h"
 #include"globals.h"
 #include"functions.h"
-#define INCL_REXXSAA
 #include "rexxsaa.h"
 
 char *words[] =                 /* Keywords in order of their values */
-{ "SAY", "SAYN", "DO", "END", "IF", "ELSE", "SELECT", "WHEN",
+{
+  "SAY", "SAYN", "DO", "END", "IF", "ELSE", "SELECT", "WHEN",
   "OPTIONS", "PARSE", "PUSH", "QUEUE", "EXIT", "RETURN", "CALL",
   "SIGNAL", "ITERATE", "LEAVE", "INTERPRET", "TRACE", "OTHERWISE",
   "NOP", "PROCEDURE", "ADDRESS", "NUMERIC", "DROP", "THEN", "PULL",
@@ -36,8 +36,9 @@ int rc;
 {
   char *sys_err;
 
-  if (rc == -3 && fname[0] != 0)
+  if (rc == -3 && fname[0] != 0) {
     perror(fname);
+  }
   switch (rc) {
     case -3:
       return "Error loading program";
@@ -148,8 +149,9 @@ int rc;
     case Eeof + Eerrno:
       return "End of file";
   }
-  if (rc > Eerrno && (sys_err = strerror(rc - Eerrno)))
+  if (rc > Eerrno && (sys_err = strerror(rc - Eerrno))) {
     return sys_err;
+  }
   return "";
 }
 
@@ -175,23 +177,28 @@ char *desc;                     /* Description for condition(d) */
   int catch = rc && (sgstack[interplev].bits & (1 << bit));
   int call = rc && (sgstack[interplev].callon & (1 << bit));
 
-  if (interact >= 0 && interact + 1 == interplev)
-    return;                     /* no action for interactive commands */
+  if (interact >= 0 && interact + 1 == interplev) {
+    return;  /* no action for interactive commands */
+  }
   if (rc && call == 0 && catch == 0 && (type == Efailure || (type == Enotready && setrcflag)))
-    type = Eerror, bit = Ierror, catch = sgstack[interplev].bits & (1 << bit), call = sgstack[interplev].callon & (1 << bit);
-  if (type != Enotready || setrcflag)   /* set rc after a command */
+      type = Eerror, bit = Ierror, catch = sgstack[interplev].bits & (1 << bit), call = sgstack[interplev].callon & (1 << bit);
+  if (type != Enotready || setrcflag) { /* set rc after a command */
     varset("RC", 2, rcval, rclen);
-  if (rc && type == Enotready)
-    lasterror = rc;             /* save an I/O error */
+  }
+  if (rc && type == Enotready) {
+    lasterror = rc;  /* save an I/O error */
+  }
   if (call || catch) {
-    if (sigdata[bit])
+    if (sigdata[bit]) {
       free(sigdata[bit]);
+    }
     strcpy(sigdata[bit] = allocm(1 + strlen(desc)), desc);
   }
-  if (call)
+  if (call) {
     delayed[bit] = 1;
-  else if (catch)
+  } else if (catch) {
     die(type);
+  }
 }
 
 void printrc(i)                 /* Print a trace line showing the return code */
@@ -207,11 +214,13 @@ int exitcall(fn, sub, parm)
 long fn;
 long sub;
 PEXIT parm;
-{                          /* very simple. */
+{
+  /* very simple. */
   long exrc = exitlist[fn] (fn, sub, parm);
 
-  if (exrc == RXEXIT_RAISE_ERROR)
+  if (exrc == RXEXIT_RAISE_ERROR) {
     die(Esys);
+  }
   return exrc;
 }
 
@@ -256,15 +265,18 @@ int n1, n2;
   char x, y;
   int r;
 
-  if (n1 != n2)
-    return n1 - n2;             /* Order on lengths first (it's faster) */
-  if (!n1)
-    return 0;                   /* "" == "" */
+  if (n1 != n2) {
+    return n1 - n2;  /* Order on lengths first (it's faster) */
+  }
+  if (!n1) {
+    return 0;  /* "" == "" */
+  }
   while (n1-- && s1++[0] == s2++[0]);   /* find first non-match character */
   x = s1[-1], y = s2[-1];
   r = (x & 0xf0) - (y & 0xf0);  /* compare last characters */
-  if (r)
+  if (r) {
     return r;
+  }
   return xlate[x & 0xf] - xlate[y & 0xf];       /* use translation for last 4 bits */
 }
 
@@ -288,18 +300,21 @@ int *exist;
   int c;
 
   *exist = 0;
-  if (varstk[*level] == varstk[*level + 1])
+  if (varstk[*level] == varstk[*level + 1]) {
     return cnull;
+  }
   while ((c = less(name, ans + sizeof(varent), len, ((varent *) ans)->namelen))
-         && (*(slot = &(((varent *) ans)->less) + (c > 0))) >= 0)
-    ans = data + *slot;         /* Go down the tree */
+         && (*(slot = &(((varent *) ans)->less) + (c > 0))) >= 0) {
+    ans = data + *slot;  /* Go down the tree */
+  }
   if (!c) {                     /* Equality resulted from the compare */
     *exist = 1;
     if ((c = ((varent *) ans)->valalloc) < 0) { /* An exposed variable */
       *level = -(c + 1);
       return varsearch(name, len, level, exist);
-    } else
+    } else {
       return ans;
+    }
   }
   return (char *) slot;
 }
@@ -315,13 +330,16 @@ int len, *exist;
   int c;
 
   *exist = 0;
-  if (((varent *) stem)->vallen == tails - data)
+  if (((varent *) stem)->vallen == tails - data) {
     return cnull;
+  }
   while ((c = less(name, ans + sizeof(varent), len, ((varent *) ans)->namelen))
-         && (*(slot = &(((varent *) ans)->less) + (c > 0))) >= 0)
+         && (*(slot = &(((varent *) ans)->less) + (c > 0))) >= 0) {
     ans = tails + *slot;
-  if (c)
+  }
+  if (c) {
     return (char *) slot;
+  }
   *exist = 1;
   return ans;
 }
@@ -332,43 +350,52 @@ int namelen;                    /* and stem=0. If a compound symbol, level ends 
 int *level, *exist;             /* with the level containing the whole symbol and  */
 char **stem;                    /* stem points to the stem containing it. exist is */
 
-                         /* non-zero if the whole symbol was found; stem is */
-                         /* non-zero if a stem was found, even if it does   */
-                         /* not contain the required tail. The return value */
-                         /* is the variable entry (if exist), or a slot in  */
-                         /* which to put the new tail (if stem && !exist),  */
-                         /* or a slot in which to put the new stem (if      */
-                         /* !stem). The answer is zero if there are no      */
-                         /* entries in the stem (if stem) or if there are no */
-                         /* entries in the vartable (if !stem).             */
-                         /* If the variable name is an existing stem, 0 is  */
-{                               /* returned with exist=0 and stem pointing to it   */
+/* non-zero if the whole symbol was found; stem is */
+/* non-zero if a stem was found, even if it does   */
+/* not contain the required tail. The return value */
+/* is the variable entry (if exist), or a slot in  */
+/* which to put the new tail (if stem && !exist),  */
+/* or a slot in which to put the new stem (if      */
+/* !stem). The answer is zero if there are no      */
+/* entries in the stem (if stem) or if there are no */
+/* entries in the vartable (if !stem).             */
+/* If the variable name is an existing stem, 0 is  */
+{
+  /* returned with exist=0 and stem pointing to it   */
   char *ans;
   char *tail;
   int stemlen;
   int taillen;
   register int l;
 
-  if (!(name[0] & 128))         /* if a simple symbol, the result is like varsearch */
+  if (!(name[0] & 128)) {       /* if a simple symbol, the result is like varsearch */
     return *stem = 0, varsearch(name, namelen, level, exist);
+  }
   stemlen = (tail = memchr(name, '.', namelen)) - name;
-  if (!tail)
+  if (!tail) {
     stemlen = namelen, taillen = 0;
-  else
+  } else {
     tail++, taillen = namelen - stemlen - 1;
+  }
   while (1) {
-    if (!(*stem = varsearch(name, stemlen, level, exist)))
-      return 0;                 /* no vars */
-    if (!*exist)
-      return ans = *stem, *stem = 0, ans;       /* no stem */
-    if (!tail)
-      return (*exist = 0), cnull;       /* name is a stem */
-    if (!(ans = tailsearch(*stem, tail, taillen, exist)))
-      return 0;                 /* no tails */
-    if (!*exist)
-      return ans;               /* no tail  */
-    if ((l = ((varent *) ans)->valalloc) >= 0)
-      return ans;               /* it's here */
+    if (!(*stem = varsearch(name, stemlen, level, exist))) {
+      return 0;  /* no vars */
+    }
+    if (!*exist) {
+      return ans = *stem, *stem = 0, ans;  /* no stem */
+    }
+    if (!tail) {
+      return (*exist = 0), cnull;  /* name is a stem */
+    }
+    if (!(ans = tailsearch(*stem, tail, taillen, exist))) {
+      return 0;  /* no tails */
+    }
+    if (!*exist) {
+      return ans;  /* no tail  */
+    }
+    if ((l = ((varent *) ans)->valalloc) >= 0) {
+      return ans;  /* it's here */
+    }
     *level = -(l + 1);          /* it's elsewhere */
   }
 }
@@ -381,15 +408,18 @@ int lev;
   int level = lev;
   int i;
 
-  if (level < 0 || level > varstkptr)
-    level = varstkptr;          /* guard against parameterless
+  if (level < 0 || level > varstkptr) {
+    level = varstkptr;
+  }          /* guard against parameterless
                                    call */
   v = (varent *) (vartab + varstk[level]), c = vartab + varstk[level + 1];
   while ((char *) v < c) {
-    printf("Offset:%d\n", ((char *) v) - vartab - varstk[level]), printf("   next=%d\n", v->next), printf("   less=%d\n", v->less), printf("   grtr=%d\n", v->grtr), printf("   namelen=%d\n", v->namelen), printf("   valalloc=%d\n", v->valalloc),
-        printf("   vallen=%d\n", v->vallen), printf("   name="), i = v->namelen, d = sizeof(varent) + (char *) v;
-    while (i-- > 0)
+    printf("Offset:%ld\n", ((char *) v) - vartab - varstk[level]), printf("   next=%d\n", v->next), printf("   less=%d\n", v->less), printf("   grtr=%d\n", v->grtr), printf("   namelen=%d\n", v->namelen),
+           printf("   valalloc=%d\n", v->valalloc),
+           printf("   vallen=%d\n", v->vallen), printf("   name="), i = v->namelen, d = sizeof(varent) + (char *) v;
+    while (i-- > 0) {
       putchar(d++[0] & 127);
+    }
     putchar('\n');
     v = (varent *) (v->next + (char *) v);
   }
@@ -406,11 +436,13 @@ varent *stem;
   printf("Default value alloc %d len %d value %s\n", *(int *) c, *((int *) c + 1), *((int *) c + 1) < 0 ? "" : c + 2 * four);
   d = c + *(int *) c + 2 * four, v = (varent *) d, c += stem->vallen;
   while ((char *) v < c) {
-    printf("Offset:%d\n", ((char *) v) - d), printf("   next=%d\n", v->next), printf("   less=%d\n", v->less), printf("   grtr=%d\n", v->grtr), printf("   namelen=%d\n", v->namelen), printf("   valalloc=%d\n", v->valalloc), printf("   vallen=%d\n",
-                                                                                                                                                                                                                                       v->vallen),
-        printf("   name="), i = v->namelen, e = sizeof(varent) + (char *) v;
-    while (i-- > 0)
+    printf("Offset:%ld\n", ((char *) v) - d), printf("   next=%d\n", v->next), printf("   less=%d\n", v->less), printf("   grtr=%d\n", v->grtr), printf("   namelen=%d\n", v->namelen),
+           printf("   valalloc=%d\n", v->valalloc), printf("   vallen=%d\n",
+               v->vallen),
+           printf("   name="), i = v->namelen, e = sizeof(varent) + (char *) v;
+    while (i-- > 0) {
       putchar(e++[0] & 127);
+    }
     putchar('\n');
     v = (varent *) (v->next + (char *) v);
   }
@@ -418,37 +450,44 @@ varent *stem;
 
 void update(value, amount, level)
 int value, amount, level;
-{                               /* update all the less/grtr fields of level `level' by `amount' if greater
-                                   than `value'; adjust the level pointers also. This routine is called
-                                   *after* the space has been created or reclaimed. */
+{
+  /* update all the less/grtr fields of level `level' by `amount' if greater
+     than `value'; adjust the level pointers also. This routine is called
+     *after* the space has been created or reclaimed. */
   register varent *ptr;
   int l = level;
 
-  while (l++ <= varstkptr)
+  while (l++ <= varstkptr) {
     varstk[l] += amount;
+  }
   for (ptr = (varent *) (vartab + varstk[level]); (char *) ptr < vartab + varstk[level + 1]; ptr = (varent *) ((char *) ptr + ptr->next)) {
-    if (ptr->less > value)
+    if (ptr->less > value) {
       ptr->less += amount;
-    if (ptr->grtr > value)
+    }
+    if (ptr->grtr > value) {
       ptr->grtr += amount;
+    }
   }
 }
 
 long makeroom(var, amount, level)       /* var points to a (complete) variable entry */
 int var, amount, level;         /* which is to be enlarged by amount. var is */
-{                               /* an integer offset from the start of level */
+{
+  /* an integer offset from the start of level */
   register char *i;             /* the return is the difference from dtest   */
   register char *j;
   varent *k;
   char *mtest_old;
   long mtest_diff;
 
-  if (!dtest(vartab, vartablen, varstk[varstkptr + 1] + amount + 2, amount + 512))
+  if (!dtest(vartab, vartablen, varstk[varstkptr + 1] + amount + 2, amount + 512)) {
     mtest_diff = 0;
+  }
   k = ((varent *) (j = vartab + varstk[level] + var));  /* the variable's address */
   j += (k->next);               /* the end of the variable */
-  for (i = vartab + varstk[varstkptr + 1] - 1; i >= j; i--)
-    i[amount] = i[0];           /* make room */
+  for (i = vartab + varstk[varstkptr + 1] - 1; i >= j; i--) {
+    i[amount] = i[0];  /* make room */
+  }
   k->next += amount;
   update(var, amount, level);
   return mtest_diff;
@@ -456,13 +495,15 @@ int var, amount, level;         /* which is to be enlarged by amount. var is */
 
 void reclaim(var, amount, level)        /* var points to a (complete) variable entry */
 int var, amount, level;         /* which is to be reduced by amount. var is  */
-{                               /* an integer offset from the start of level */
+{
+  /* an integer offset from the start of level */
   register char *i;
   register char *j = vartab + varstk[varstkptr + 1] - amount;
   varent *k = (varent *) (vartab + varstk[level] + var);
 
-  for (i = (char *) k + (k->next) - amount; i < j; i++)
+  for (i = (char *) k + (k->next) - amount; i < j; i++) {
     i[0] = i[amount];
+  }
   k->next -= amount;
   update(var, -amount, level);
 }
@@ -470,17 +511,20 @@ int var, amount, level;         /* which is to be reduced by amount. var is  */
 void tailupdate(stem, value, amount)
 varent *stem;                   /* update all the grtr/less fields of the variable pointed */
 int value, amount;              /* to by stem by amount if greater than value. Updates the */
-{                               /* vallen field of the stem also.                          */
+{
+  /* vallen field of the stem also.                          */
   register varent *ptr;
   int len;
   char *data = (char *) stem + sizeof(varent) + align(stem->namelen);
 
   len = (stem->vallen += amount);
   for (ptr = (varent *) (data + *(int *) data + 2 * four); (char *) ptr < data + len; ptr = (varent *) ((char *) ptr + ptr->next)) {
-    if (ptr->less > value)
+    if (ptr->less > value) {
       ptr->less += amount;
-    if (ptr->grtr > value)
+    }
+    if (ptr->grtr > value) {
       ptr->grtr += amount;
+    }
   }
 }
 
@@ -496,21 +540,26 @@ int var, amount, level;
   long diff = 0;
   int ext;
 
-  if (stem->vallen + amount > stem->valalloc)   /* Not enough space allocated */
-    ext = align(stem->vallen / 3 + amount * 4 / 3), diff = makeroom((char *) stem - vartab - varstk[level], ext, level), stem = (varent *) ((char *) stem + diff), stem->valalloc += ext;       /* It is now!                 */
+  if (stem->vallen + amount > stem->valalloc) { /* Not enough space allocated */
+    ext = align(stem->vallen / 3 + amount * 4 / 3), diff = makeroom((char *) stem - vartab - varstk[level], ext, level), stem = (varent *) ((char *) stem + diff),
+                                                                                                                         stem->valalloc += ext;  /* It is now!                 */
+  }
   def = data = (char *) stem + sizeof(varent) + align(stem->namelen);
   data += *(int *) data + 2 * four;
   if (var >= 0)
     k = (varent *) (j = data + var),    /* find the tail, and its end */
         j += (k->next);
-  else
+  else {
     k = (varent *) (j = data);  /* or use the default value */
-  for (i = def + stem->vallen - 1; i >= j; i--)
+  }
+  for (i = def + stem->vallen - 1; i >= j; i--) {
     i[amount] = i[0];
-  if (var >= 0)
+  }
+  if (var >= 0) {
     k->next += amount, tailupdate(stem, var, amount);
-  else
+  } else {
     *(int *) def += amount;
+  }
   return diff;
 }
 
@@ -527,15 +576,17 @@ varent *stem;
   j = data + stem->vallen - amount;
   data += *(int *) data + 2 * four;
   k = (varent *) (data + var);
-  for (i = (char *) k + (k->next) - amount; i < j; i++)
+  for (i = (char *) k + (k->next) - amount; i < j; i++) {
     i[0] = i[amount];
+  }
   k->next -= amount;
   tailupdate(stem, var, -amount);
 }
 
 void tailhookup(stem)           /* hook up the tree structure within a stem */
 varent *stem;                   /* i.e. fill in the grtr & less fields in a list */
-{                               /* of tail elements */
+{
+  /* of tail elements */
   int *slot;
   int exist;
   register char *k;
@@ -544,12 +595,14 @@ varent *stem;                   /* i.e. fill in the grtr & less fields in a list
   char *end = data + stem->vallen;      /* end of last tail */
 
   for (k = tails; k < end; k += ((varent *) k)->next) {
-    if (k == tails)
+    if (k == tails) {
       continue;
+    }
     slot = (int *) tailsearch   /* should always tell where to hook the new tail */
-        ((char *) stem, k + sizeof(varent), ((varent *) k)->namelen, &exist);
-    if (!exist)                 /* should always be true! */
+           ((char *) stem, k + sizeof(varent), ((varent *) k)->namelen, &exist);
+    if (!exist) {               /* should always be true! */
       slot[0] = k - tails;
+    }
   }
 }
 
@@ -557,11 +610,11 @@ void varcreate(varptr, name, value, namelen, len, lev)
 char *varptr, *name, *value;    /* create a new variable (used in varset */
 int namelen, len, lev;          /* and varcopy) with given value.        */
 
-                                   /* varptr is the result of a failed      */
-                                   /* search, i.e. if non-null points to an */
-                                   /* integer slot to store the address.    */
-                                   /* if lev=0, place in the top level. If  */
-                                   /* lev=1, place one level down.          */
+/* varptr is the result of a failed      */
+/* search, i.e. if non-null points to an */
+/* integer slot to store the address.    */
+/* if lev=0, place in the top level. If  */
+/* lev=1, place one level down.          */
 {
   int alloc = len / 4;
   int ext;
@@ -570,34 +623,40 @@ int namelen, len, lev;          /* and varcopy) with given value.        */
   long mtest_diff;
   char *mtest_old;
 
-  if (alloc < 20)
-    alloc = 20;                 /* The extra amount of space to allocate */
+  if (alloc < 20) {
+    alloc = 20;  /* The extra amount of space to allocate */
+  }
   alloc += len, alloc = align(alloc);   /* The total amount of space to allocate */
   if dtest
-    (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = align(alloc + namelen + sizeof(varent))), namelen + alloc + 256)
-        if (varptr)
+  (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = align(alloc + namelen + sizeof(varent))), namelen + alloc + 256)
+    if (varptr) {
       varptr += mtest_diff;
+    }
   v = vartab + varstk[varstkptr + !lev];        /* where to put the new variable */
   if (lev)                      /* move up the entire top level to make room */
-    for (i = vartab + varstk[varstkptr + 1]; i >= v; i--)
+    for (i = vartab + varstk[varstkptr + 1]; i >= v; i--) {
       i[ext] = i[0];
+    }
   memcpy(v + sizeof(varent), name, namelen),    /* copy the variable's name  */
-      ((varent *) v)->next = ext,       /* now fill in the fields... */
-      ((varent *) v)->less = -1, ((varent *) v)->grtr = -1, ((varent *) v)->namelen = namelen, ((varent *) v)->valalloc = alloc, ((varent *) v)->vallen = len;
-  if (varptr)                   /* make the new variable a part of the tree */
+         ((varent *) v)->next = ext,       /* now fill in the fields... */
+                                ((varent *) v)->less = -1, ((varent *) v)->grtr = -1, ((varent *) v)->namelen = namelen, ((varent *) v)->valalloc = alloc, ((varent *) v)->vallen = len;
+  if (varptr) {                 /* make the new variable a part of the tree */
     *(int *) varptr = varstk[varstkptr + !lev] - varstk[varstkptr - lev];
-  if (len > 0)                  /* copy the new variable's value */
+  }
+  if (len > 0) {                /* copy the new variable's value */
     memcpy(v + sizeof(varent) + align(namelen), value, len);
+  }
   varstk[varstkptr + 1] += ext; /* and finally update the level pointers */
-  if (lev)
+  if (lev) {
     varstk[varstkptr] += ext;
+  }
 }
 
 void stemcreate(varptr, name, value, namelen, len, lev)
 char *varptr, *name, *value;    /* similar to varcreate(), but a whole   */
 int namelen, len, lev;          /* stem is created with the given default */
 
-                                   /* name does not include the dot */
+/* name does not include the dot */
 {
   int alloc = align(len * 5 / 4 + 256);
   int ext;
@@ -606,33 +665,39 @@ int namelen, len, lev;          /* stem is created with the given default */
   char *mtest_old;
 
   if dtest
-    (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = align(alloc + namelen + sizeof(varent) + 2 * four)), namelen + alloc + 256)
-        if (varptr)
+  (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = align(alloc + namelen + sizeof(varent) + 2 * four)), namelen + alloc + 256)
+    if (varptr) {
       varptr += mtest_diff;
+    }
   v = vartab + varstk[varstkptr + !lev];
   if (lev)
-    for (i = vartab + varstk[varstkptr + 1]; i >= v; i--)
+    for (i = vartab + varstk[varstkptr + 1]; i >= v; i--) {
       i[ext] = i[0];
+    }
   memcpy(v + sizeof(varent), name, namelen);
-  if (varptr)
+  if (varptr) {
     *(int *) varptr = varstk[varstkptr + !lev] - varstk[varstkptr - lev];
-  ((varent *) v)->next = ext, ((varent *) v)->less = -1, ((varent *) v)->grtr = -1, ((varent *) v)->namelen = namelen, ((varent *) v)->valalloc = alloc, ((varent *) v)->vallen = (alloc = align(len)) + 2 * four;
+  }
+  ((varent *) v)->next = ext, ((varent *) v)->less = -1, ((varent *) v)->grtr = -1, ((varent *) v)->namelen = namelen, ((varent *) v)->valalloc = alloc,
+                                                                                                                                       ((varent *) v)->vallen = (alloc = align(len)) + 2 * four;
   v += sizeof(varent) + align(namelen), ((int *) v)[0] = alloc, ((int *) v)[1] = len;
-  if (len > 0)
+  if (len > 0) {
     memcpy(v + 2 * four, value, len);
+  }
   varstk[varstkptr + 1] += ext;
-  if (lev)
+  if (lev) {
     varstk[varstkptr] += ext;
+  }
 }
 
 void tailcreate(stem, tailptr, name, value, namelen, len, level)
 char *stem, *tailptr, *name, *value;    /* create new tail within a stem with */
 int namelen, len, level;        /* a given value. Stem is the address */
 
-                                   /* of the stem structure, tailptr is  */
-                                   /* the equivalent of varptr in earlier */
-                                   /* functions. Level is the actual     */
-                                   /* level number. */
+/* of the stem structure, tailptr is  */
+/* the equivalent of varptr in earlier */
+/* functions. Level is the actual     */
+/* level number. */
 {
   long diff;
   int alloc = len / 4;
@@ -641,28 +706,32 @@ int namelen, len, level;        /* a given value. Stem is the address */
   char *e = v + ((varent *) stem)->vallen;      /* end of last tail */
 
   v += *(int *) v + 2 * four;   /* start of first tail */
-  if (len < 0)
+  if (len < 0) {
     alloc = 0;
-  else {
-    if (alloc < 20)
+  } else {
+    if (alloc < 20) {
       alloc = 20;
+    }
     alloc = align(alloc + len);
   }
   if ((ext = alloc + align(namelen) + sizeof(varent))
       + ((varent *) stem)->vallen > ((varent *) stem)->valalloc) {
     if ((diff = makeroom(stem - vartab - varstk[level], ext + 256, level))) {
-      if (tailptr)
+      if (tailptr) {
         tailptr += diff;
+      }
       stem += diff, e += diff, v += diff;
     }
     ((varent *) stem)->valalloc += ext + 256;
   }
-  if (tailptr)
-    *(int *) (tailptr) = e - v; /* Save the offset in the parent's slot */
+  if (tailptr) {
+    *(int *) (tailptr) = e - v;  /* Save the offset in the parent's slot */
+  }
   memcpy(e + sizeof(varent), name, namelen),    /* Make the new tail at e */
-      ((varent *) e)->next = ext, ((varent *) e)->less = -1, ((varent *) e)->grtr = -1, ((varent *) e)->namelen = namelen, ((varent *) e)->valalloc = alloc, ((varent *) e)->vallen = len;
-  if (len > 0)
+         ((varent *) e)->next = ext, ((varent *) e)->less = -1, ((varent *) e)->grtr = -1, ((varent *) e)->namelen = namelen, ((varent *) e)->valalloc = alloc, ((varent *) e)->vallen = len;
+  if (len > 0) {
     memcpy(e + sizeof(varent) + align(namelen), value, len);
+  }
   ((varent *) stem)->vallen += ext;
 }
 
@@ -689,11 +758,13 @@ int len, varlen;                /* which has length `len'              */
       valptr = varptr + sizeof(varent) + align(((varent *) varptr)->namelen);
       /* valptr points to the default value */
       if ((ext = align(len - *(int *) valptr)) > 0)     /* extra mem needed for default */
-        if ((diff = tailroom((varent *) varptr, -1, ext, level)))
+        if ((diff = tailroom((varent *) varptr, -1, ext, level))) {
           varptr += diff, valptr += diff;
+        }
       ((int *) valptr)[1] = len;        /* now copy the default value */
-      if (len > 0)
+      if (len > 0) {
         memcpy(valptr + 2 * four, value, len);
+      }
       ext = *(int *) valptr;
       i = ((varent *) varptr)->vallen + valptr; /* the end of the last tail */
       v2 = (varent *) (valptr + 2 * four + ext);        /* the start of the first tail */
@@ -702,28 +773,33 @@ int len, varlen;                /* which has length `len'              */
       v1 = (varent *) valptr;   /* pointer to "current" new tail */
       /* now copy all exposed tails from v2 to v1. upper bound of v2 = i */
       while ((char *) v2 < i) {
-        if (v2->valalloc < 0)   /* It is exposed */
+        if (v2->valalloc < 0) { /* It is exposed */
           memcpy((char *) v1, (char *) v2, v2->next), v1->grtr = -1, v1->less = -1, v1 = (varent *) ((char *) v1 + v1->next);
+        }
         v2 = (varent *) ((char *) v2 + v2->next);
       }
       ((varent *) varptr)->vallen = ext = ((char *) v1) - oldptr;       /* new length */
       ext = align(ext);         /* The amount of space to leave in this stem */
-      if (len >= 0)
-        ext += 256;             /* Leave some extra space for future tails   */
-      if ((ext -= ((varent *) varptr)->valalloc) < 0)   /* Shrink the stem */
+      if (len >= 0) {
+        ext += 256;  /* Leave some extra space for future tails   */
+      }
+      if ((ext -= ((varent *) varptr)->valalloc) < 0) { /* Shrink the stem */
         reclaim(varptr - varstk[level] - vartab, -ext, level), ((varent *) varptr)->valalloc += ext;
+      }
       /* hook up the tree of tails */
       tailhookup((varent *) varptr);
       /* assign the given string to each remaining tail */
       memcpy(varname, name, varlen);    /* varname holds each compund symbol */
       varname[varlen] = '.';
-      for (v2 = (varent *) valptr; v2 < v1; v2 = (varent *) ((char *) v2 + v2->next))
+      for (v2 = (varent *) valptr; v2 < v1; v2 = (varent *) ((char *) v2 + v2->next)) {
         memcpy(varname + varlen + 1, (char *) (v2 + 1), v2->namelen), varset(varname, 1 + varlen + v2->namelen, value, len);
+      }
       return;
     }
     /* a stem which does not exist is being initialised */
-    if (len >= 0)
+    if (len >= 0) {
       stemcreate(varptr, name, value, varlen, len, 0);
+    }
     return;
   }
   if (compound) {               /* A compound symbol is being assigned to */
@@ -731,28 +807,32 @@ int len, varlen;                /* which has length `len'              */
     if (exist) {                /* change an existing compound variable */
       valptr = stemptr + sizeof(varent) + align(((varent *) stemptr)->namelen), valptr += *(int *) valptr + 2 * four;
       varoff = varptr - valptr, /* now varoff contains the offset within stem */
-          varalloc = ((varent *) varptr)->valalloc;
+               varalloc = ((varent *) varptr)->valalloc;
       if (len > varalloc) {     /* need some more memory */
         ext = len / 4;
-        if (ext < 20)
+        if (ext < 20) {
           ext = 20;
+        }
         newlen = align(len + ext),      /* the total amount of memory */
-            ext = newlen - varalloc;    /* the extra amount */
+                 ext = newlen - varalloc;    /* the extra amount */
         varptr += tailroom((varent *) stemptr, varoff, ext, level);
         ((varent *) varptr)->valalloc = newlen;
-      } else if (len < 0 && varalloc > 10)      /* variable is being dropped - reclaim */
+      } else if (len < 0 && varalloc > 10) {    /* variable is being dropped - reclaim */
         tailreclaim((varent *) stemptr, varoff, varalloc), ((varent *) varptr)->valalloc = 0;
-      if (len > 0)              /* Copy the value */
+      }
+      if (len > 0) {            /* Copy the value */
         memcpy(varptr + sizeof(varent) + align(((varent *) varptr)->namelen), value, len);
+      }
       ((varent *) varptr)->vallen = len;        /* and copy the length */
       return;
     }
     if (!stemptr) {             /* the stem does not exist. Create then continue */
-      if (len < 0)
-        return;                 /* Do not bother to DROP from a nonexistent stem */
+      if (len < 0) {
+        return;  /* Do not bother to DROP from a nonexistent stem */
+      }
       stemcreate(varptr, name, cnull, strchr(name, '.') - name, -1, 0),
-          /* create stem with no default (the above line) */
-          level = varstkptr, varptr = valuesearch(name, varlen, &level, &exist, &stemptr);
+                 /* create stem with no default (the above line) */
+                 level = varstkptr, varptr = valuesearch(name, varlen, &level, &exist, &stemptr);
       /* the search is guaranteed to find a stem with no tail */
     }
     /* the stem exists but the tail does not */
@@ -767,18 +847,22 @@ int len, varlen;                /* which has length `len'              */
     varoff = varptr - vartab - varstk[level], varalloc = ((varent *) varptr)->valalloc;
     if (len > varalloc) {
       ext = len / 4;
-      if (ext < 20)
+      if (ext < 20) {
         ext = 20;
+      }
       newlen = align(len + ext), ext = newlen - varalloc;
       varptr += makeroom(varoff, ext, level);
       ((varent *) varptr)->valalloc = newlen;
-    } else if (len < 0 && varalloc > 10)        /* variable is being dropped - reclaim */
+    } else if (len < 0 && varalloc > 10) {      /* variable is being dropped - reclaim */
       reclaim(varoff, varalloc, level), ((varent *) varptr)->valalloc = 0;
-    if (len > 0)
+    }
+    if (len > 0) {
       memcpy(varptr + sizeof(varent) + align(((varent *) varptr)->namelen), value, len);
+    }
     ((varent *) varptr)->vallen = len;
-  } else if (len >= 0)          /* variable does not exist, so create */
+  } else if (len >= 0) {        /* variable does not exist, so create */
     varcreate(varptr, name, value, varlen, len, 0);
+  }
 }
 
 char *varget(name, varlen, len) /* get value and length of variable `name'.     */
@@ -790,22 +874,26 @@ int *len;
   char *stem;
   char *varptr = valuesearch(name, varlen, &level, len, &stem);
 
-  if (!(*len || stem))
-    return 0;                   /* does not exist at all */
-  if (*len && stem && ((varent *) varptr)->vallen < 0)
-    return (*len = 0), cnull;   /* compound symbol has "null" value */
+  if (!(*len || stem)) {
+    return 0;  /* does not exist at all */
+  }
+  if (*len && stem && ((varent *) varptr)->vallen < 0) {
+    return (*len = 0), cnull;  /* compound symbol has "null" value */
+  }
   if (!*len) {
     /* compound variable doesn't exist; try default value */
     stem += sizeof(varent) + align(((varent *) stem)->namelen);
-    if ((*len = *((int *) stem + 1)) >= 0)
+    if ((*len = *((int *) stem + 1)) >= 0) {
       return stem + 2 * four;
-    else
+    } else {
       return (*len = 0), cnull;
+    }
   }
-  if ((*len = ((varent *) varptr)->vallen) >= 0)        /* exists */
+  if ((*len = ((varent *) varptr)->vallen) >= 0) {      /* exists */
     return varptr + align(((varent *) varptr)->namelen) + sizeof(varent);
-  else
+  } else {
     return (*len = 0), cnull;
+  }
 }
 
 void newlevel() {               /* increment variable level, making a clean environment  */
@@ -819,9 +907,10 @@ void newlevel() {               /* increment variable level, making a clean envi
 void varcopy(name, varlen)      /* copy a variable (as in procedure expose)       */
 int varlen;
 char *name;                     /* when this procedure is called, varstkptr has already  */
-{                               /* been incremented to point to the level in which the new
-                                   copy of the variable is required. The old copy of the
-                                   variable will be in level varstkptr-1.                */
+{
+  /* been incremented to point to the level in which the new
+     copy of the variable is required. The old copy of the
+     variable will be in level varstkptr-1.                */
   int ext, l;
   register char *i;
   char *oldptr;
@@ -837,8 +926,9 @@ char *name;                     /* when this procedure is called, varstkptr has 
   if (compound && !isstem) {    /* An individual compound symbol */
     varptr = valuesearch(name, varlen, &level, &l, &stemptr);
     if (!l) {                   /* compound variable does not exist, so create before exposing */
-      if (!stemptr)             /* stem does not exist, so create with no default */
+      if (!stemptr) {           /* stem does not exist, so create with no default */
         stemcreate(varptr, name, cnull, strchr(name, '.') - name, -1, 1), level = varstkptr - 1, varptr = valuesearch(name, varlen, &level, &l, &stemptr);
+      }
       oldptr = 1 + strchr(name, '.'), tailcreate(stemptr, varptr, oldptr, cnull, varlen - (oldptr - name), -1, level);
     }
     /* now copy the variable, which is in level `level' */
@@ -848,25 +938,28 @@ char *name;                     /* when this procedure is called, varstkptr has 
       /* make sure there is a stem to hold the new variable */
       if (!stemptr)
         stemcreate(varptr, name, cnull, strchr(name, '.') - name, -1, 0),
-            /* create stem with no default */
-            ext = varstkptr, varptr = valuesearch(name, varlen, &ext, &l, &stemptr);
+                   /* create stem with no default */
+                   ext = varstkptr, varptr = valuesearch(name, varlen, &ext, &l, &stemptr);
       if (ext == varstkptr && ((varent *) stemptr)->valalloc >= 0) {
         /* stem is not already exposed, so go ahead */
         oldptr = name, name = 1 + strchr(name, '.'), varlen -= name - oldptr, ext = sizeof(varent) + align(varlen), oldptr = vartab;
         if (((varent *) stemptr)->valalloc < ((varent *) stemptr)->vallen + ext) {
           if ((mtest_diff = makeroom(stemptr - vartab - varstk[varstkptr], ext + 256, varstkptr))) {
-            if (varptr)
+            if (varptr) {
               varptr += mtest_diff;
+            }
             stemptr += mtest_diff;
           }
           ((varent *) stemptr)->valalloc += ext + 256;
         }                       /* There is now enough room to place the new tail at the end
                                    of the stem. */
         i = stemptr + sizeof(varent) + align(((varent *) stemptr)->namelen), endvar = i + ((varent *) stemptr)->vallen, i += *(int *) i + 2 * four, ((varent *) stemptr)->vallen += ext;
-        if (varptr)
+        if (varptr) {
           *(int *) varptr = endvar - i;
-        memcpy(endvar + sizeof(varent), name, varlen), ((varent *) endvar)->next = ext, ((varent *) endvar)->less = -1, ((varent *) endvar)->grtr = -1, ((varent *) endvar)->namelen = varlen, ((varent *) endvar)->valalloc =
-            -(level + 1), ((varent *) endvar)->vallen = 0;
+        }
+        memcpy(endvar + sizeof(varent), name, varlen), ((varent *) endvar)->next = ext, ((varent *) endvar)->less = -1, ((varent *) endvar)->grtr = -1, ((varent *) endvar)->namelen = varlen,
+                                                                                                                                                                             ((varent *) endvar)->valalloc =
+                                                                                                                                                                                 -(level + 1), ((varent *) endvar)->vallen = 0;
       }
     }
     return;
@@ -874,28 +967,33 @@ char *name;                     /* when this procedure is called, varstkptr has 
   /* stems are like ordinary symbols; both are treated here. */
   varptr = varsearch(name, varlen, &level, &l);
   if (!l) {                     /* create in old level before exposing to new level */
-    if (isstem)
+    if (isstem) {
       stemcreate(varptr, name, cnull, varlen, -1, 1);
-    else
+    } else {
       varcreate(varptr, name, cnull, varlen, -1, 1);
+    }
   }
   ext = varstkptr;
   varptr = varsearch(name, varlen, &ext, &l);
   if (!l) {                     /* not already exposed, so go ahead */
     if dtest
-      (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = sizeof(varent) + align(varlen)), varlen + 256)
-          if (varptr)
+    (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = sizeof(varent) + align(varlen)), varlen + 256)
+      if (varptr) {
         varptr += mtest_diff;
-    ((varent *) (i = vartab + varstk[varstkptr + 1]))->less = -1, ((varent *) i)->grtr = -1, ((varent *) i)->next = ext, ((varent *) i)->namelen = varlen, ((varent *) i)->valalloc = -(level + 1), ((varent *) i)->vallen = 0;
-    if (varptr)
+      }
+    ((varent *) (i = vartab + varstk[varstkptr + 1]))->less = -1, ((varent *) i)->grtr = -1, ((varent *) i)->next = ext, ((varent *) i)->namelen = varlen, ((varent *) i)->valalloc = -(level + 1),
+                                                                                                                                                                           ((varent *) i)->vallen = 0;
+    if (varptr) {
       *(int *) varptr = varstk[varstkptr + 1] - varstk[varstkptr];
+    }
     varstk[varstkptr + 1] += ext;
     memcpy(i + sizeof(varent), name, varlen);
   }
 }
 
-void vardup() {                 /* make an exact copy of the variables to pass into the
-                                   next procedure */
+void vardup() {
+  /* make an exact copy of the variables to pass into the
+                                     next procedure */
   int ext = varstk[varstkptr] - varstk[varstkptr - 1];
   int exist;
   int *slot;
@@ -908,64 +1006,73 @@ void vardup() {                 /* make an exact copy of the variables to pass i
   i = vartab + varstk[varstkptr - 1], j = k = vartab + varstk[varstkptr];
   while (i < j) {
     memcpy(k, i, ext = sizeof(varent) + align(((varent *) i)->namelen));
-    if (((varent *) k)->valalloc >= 0)
+    if (((varent *) k)->valalloc >= 0) {
       ((varent *) k)->valalloc = -varstkptr;
+    }
     ((varent *) k)->next = ext, ((varent *) k)->less = -1, ((varent *) k)->grtr = -1, ((varent *) k)->vallen = 0, k += ext;
     i += ((varent *) i)->next;
   }
   varstk[varstkptr + 1] = k - vartab;
   /* hook up the tree structure */
   for (i = k, k = j; k < i; k += ((varent *) k)->next) {
-    if (k == j)
+    if (k == j) {
       continue;
+    }
     ext = varstkptr;
     slot = (int *) varsearch(k + sizeof(varent), ((varent *) k)->namelen, &ext, &exist);
-    if (!exist)                 /* should always be true! */
+    if (!exist) {               /* should always be true! */
       slot[0] = k - j;
+    }
   }
 }
 
 void vardel(name, len)          /* delete name (as in procedure hide) */
 int len;
 char *name;                     /* the name is not deleted, rather given a new */
-{                               /* undefined value (to avoid massive restructuring) */
+{
+  /* undefined value (to avoid massive restructuring) */
   int compound = name[0] & 128;
   int isstem = compound && !memchr(name, '.', len);
   int *slot;
   int c;
   char *ans = vartab + varstk[varstkptr];
 
-  if (compound && !isstem)
+  if (compound && !isstem) {
     die(Ebadexpr);
-  while ((c = less(name, ans + sizeof(varent), len, ((varent *) ans)->namelen)) && (*(slot = (int *) ans + 1 + (c > 0))) >= 0)
+  }
+  while ((c = less(name, ans + sizeof(varent), len, ((varent *) ans)->namelen)) && (*(slot = (int *) ans + 1 + (c > 0))) >= 0) {
     ans = vartab + varstk[varstkptr] + *slot;
+  }
   if (!c) {
     ((varent *) ans)->valalloc = 0;
-    if (isstem)
+    if (isstem) {
       ans += tailroom((varent *) ans, -1, 2 * four, varstkptr), slot = (int *) (ans + sizeof(varent) + align(((varent *) ans)->namelen)), slot++[0] = 0, slot[0] = -1, ((varent *) ans)->vallen = 2 * four;
-    else
+    } else {
       ((varent *) ans)->vallen = -1;
+    }
   }
 }
 
 char uc(c)                      /* return the upper case of c */
 char c;
 {
-  if (c < 'a' || c > 'z')
+  if (c < 'a' || c > 'z') {
     return c;
+  }
   return c & 0xdf;
 }
 
 void *pstack(type, len)         /* stack current position on the program stack, */
 int type, len;                  /* returning the address of a stack item to be */
-{                               /* filled in */
+{
+  /* filled in */
   register int *answer, *ptr;
 
   mtest(pstackptr, pstacklen, epstackptr + len + 16, 256 + len);
   *(ptr = answer = (int *) (pstackptr + epstackptr)) = ppc,     /* Store the first elmnt */
-      *(ptr = (int *) (pstackptr + (epstackptr += len)) - 1) = type,    /* Store the type, and */
+    *(ptr = (int *) (pstackptr + (epstackptr += len)) - 1) = type,    /* Store the type, and */
       *--ptr = len,             /* the length before it  */
-      pstacklev++;              /* Record the extra entry */
+               pstacklev++;              /* Record the extra entry */
   return (void *) answer;
 }
 
@@ -981,8 +1088,9 @@ int unpstack() {                /* examine an entry from the program stack */
 }
 
 void *delpstack() {             /* Delete the top program stack entry; return its address */
-  if (!pstacklev)
+  if (!pstacklev) {
     return (void *) (pstackptr + (epstackptr = 0));
+  }
   pstacklev--;
   return (void *) (pstackptr + (epstackptr -= *((int *) (pstackptr + epstackptr) - 2)));
 }
@@ -1004,21 +1112,25 @@ int i;
   register struct procstack2 *sptr = (struct procstack2 *) ptr;
 
   if (i == 11 || i == 12)       /* internal call */
-    interplev--, free(cstackptr), cstackptr = sptr->csp, cstacklen = sptr->csl, ecstackptr = sptr->ecsp, prog = sptr->prg, stmts = sptr->stmts, timeflag = (timeflag & 4) | (sptr->tim & 1), trcflag = sptr->trc, microsecs = sptr->mic, secs =
-        sptr->sec, address1 = sptr->address1, address2 = sptr->address2, numform = sptr->form, precision = sptr->digits, fuzz = sptr->fuzz;
+    interplev--, free(cstackptr), cstackptr = sptr->csp, cstacklen = sptr->csl, ecstackptr = sptr->ecsp, prog = sptr->prg, stmts = sptr->stmts, timeflag = (timeflag & 4) | (sptr->tim & 1),
+                                                                                                                                                trcflag = sptr->trc, microsecs = sptr->mic, secs =
+                                                                                                                                                    sptr->sec, address1 = sptr->address1, address2 = sptr->address2, numform = sptr->form, precision = sptr->digits, fuzz = sptr->fuzz;
   else if (i == 14)             /* interpret */
     interplev--, free(prog[0].source),  /* the interpreted string */
-        free(prog[0].line),     /* the tokenised string */
-        free((char *) prog),    /* the statement table */
-        stmts = ((struct interpstack *) sptr)->stmts, prog = ((struct interpstack *) sptr)->prg;
-  else if (i == 16)             /* interactive() stored calculator stack */
+              free(prog[0].line),     /* the tokenised string */
+              free((char *) prog),    /* the statement table */
+              stmts = ((struct interpstack *) sptr)->stmts, prog = ((struct interpstack *) sptr)->prg;
+  else if (i == 16) {           /* interactive() stored calculator stack */
     free(cstackptr), cstackptr = sptr->csp, cstacklen = sptr->csl, ecstackptr = sptr->ecsp, interact = -1;
-  else if (i == 20)             /* saved traceback line */
+  } else if (i == 20) {         /* saved traceback line */
     prog = ((struct errorstack *) sptr)->prg, stmts = ((struct errorstack *) sptr)->stmts;
-  if (i == 12)                  /* reclaim procedural variables */
+  }
+  if (i == 12) {                /* reclaim procedural variables */
     varstkptr--;
-  if (i >= 11 && i <= 14 && sgstack[interplev + 1].data)        /* reclaim condition data */
+  }
+  if (i >= 11 && i <= 14 && sgstack[interplev + 1].data) {      /* reclaim condition data */
     free(sgstack[interplev + 1].data);
+  }
 }
 
 static char tracebuff[maxtracelen + 1];
@@ -1038,23 +1150,29 @@ int len;
   static RXSIOTRC_PARM sio;
   int cr;
 
-  if (!len)
+  if (!len) {
     return;
-  if ((cr = str[len - 1] == '\n'))
+  }
+  if ((cr = str[len - 1] == '\n')) {
     len--;
+  }
   while (len--)
-    if (tracepos < maxtracelen)
+    if (tracepos < maxtracelen) {
       tracebuff[tracepos++] = (((c = str++[0]) & 127) < ' ' || c == 127) ? '?' : c;
-  if (!cr)
+    }
+  if (!cr) {
     return;
-  if (tracepos == maxtracelen)
+  }
+  if (tracepos == maxtracelen) {
     tracebuff[maxtracelen - 1] = '.', tracebuff[maxtracelen - 2] = '.', tracebuff[maxtracelen - 3] = '.';
+  }
   tracebuff[tracepos] = 0;
   sio.rxsio_string.strptr = tracebuff;
   sio.rxsio_string.strlength = tracepos;
   tracepos = 0;
-  if (exitlist[RXSIO] && exitcall(RXSIO, RXSIOTRC, &sio) == RXEXIT_HANDLED)
+  if (exitlist[RXSIO] && exitcall(RXSIO, RXSIOTRC, &sio) == RXEXIT_HANDLED) {
     return;
+  }
   fputs(tracebuff, traceout);
   putc('\n', traceout);
 }
@@ -1062,10 +1180,11 @@ int len;
 void tracechar(ch)
 char ch;
 {
-  if (ch == '\n')
+  if (ch == '\n') {
     traceput("\n", 1);
-  else if (tracepos < maxtracelen)
+  } else if (tracepos < maxtracelen) {
     tracebuff[tracepos++] = (ch &= 127) < ' ' || ch == 127 ? '?' : ch;
+  }
 }
 
 void tracenum(num, len)         /* print a number to the trace output stream. */
@@ -1083,10 +1202,11 @@ char *prefix;
 {
   static char buff[20];
 
-  if (num)
+  if (num) {
     sprintf(buff, "%5d %s ", num, prefix);
-  else
+  } else {
     sprintf(buff, "      %s ", prefix);
+  }
   traceput(buff, strlen(buff));
 }
 
@@ -1100,18 +1220,20 @@ int *len;                       /* space must be freed by caller */
   if (exitlist[RXSIO]) {
     MAKERXSTRING(rxio.rxsiodtr_retc, inbuf, RXRESULTLEN);
     if (exitcall(RXSIO, RXSIODTR, &rxio) == RXEXIT_HANDLED) {
-      if (rxio.rxsiodtr_retc.strptr != inbuf)
+      if (rxio.rxsiodtr_retc.strptr != inbuf) {
         free(inbuf);
+      }
       *len = rxio.rxsiodtr_retc.strlength;
       return rxio.rxsiodtr_retc.strptr;
     }
   }
   fputs(">trace>", ttyout), fflush(ttyout);
   clearerr(ttyin);
-  if (!(fgets(inbuf, RXRESULTLEN, ttyin)))
+  if (!(fgets(inbuf, RXRESULTLEN, ttyin))) {
     inlen = 0;
-  else
+  } else {
     inlen = strlen(inbuf) - 1;
+  }
   *len = inlen;
   return inbuf;
 }
@@ -1126,14 +1248,16 @@ void interactive() {            /* interactive tracing - called whenever the tra
   int i;
   struct interactstack *entry;
 
-  if ((!(trcflag & 0x80)) || interact >= 0)
-    return;                     /* Continue only in interactive mode */
-  if (interactmsg)
+  if ((!(trcflag & 0x80)) || interact >= 0) {
+    return;  /* Continue only in interactive mode */
+  }
+  if (interactmsg) {
     interactmsg = 0, fputs("      +++ Interactive trace.  TRACE OFF to end debug, ENTER to continue. +++", ttyout), putc('\n', ttyout);
+  }
   entry = (struct interactstack *) pstack(16, sizeof(struct interactstack));
   entry->csp = cstackptr,       /* Now fill in a program stack entry for the */
-      entry->csl = cstacklen,   /* commands typed in */
-      entry->ecs = ecstackptr;
+               entry->csl = cstacklen,   /* commands typed in */
+                            entry->ecs = ecstackptr;
   otrcflag = trcflag;
   cstackptr = allocm(cstacklen = 200);  /* Make a new calculator stack. */
   ecstackptr = 0;
@@ -1142,35 +1266,41 @@ void interactive() {            /* interactive tracing - called whenever the tra
     returnlen = -1;             /* signal that a RETURN was not executed */
     inbuf = traceget(&inlen);   /* input a line */
     returnval = 0;
-    if (!inlen)
-      break;                    /* No input -> continue with program */
+    if (!inlen) {
+      break;  /* No input -> continue with program */
+    }
     interact = interplev;       /* signal "interactive mode" */
     trcflag = Terrors;          /* turn tracing "off" while interpreting input */
     if (setjmp(interactbuf))    /* Save the context in case of an error */
       curargs = ocurargs,       /* error! restore the correct context */
-          curarglen = ocurarglen, ppc = oppc, returnlen = -1;
+                curarglen = ocurarglen, ppc = oppc, returnlen = -1;
     else
       returnval = rxinterp(inbuf, inlen, &returnlen,    /* Interpret */
                            "TRACE", RXSUBROUTINE, curargs, curarglen);
     free(inbuf);
-    if (trclp == 1)
-      trcflag = otrcflag;       /* Unless the input contained a trace
+    if (trclp == 1) {
+      trcflag = otrcflag;
+    }       /* Unless the input contained a trace
                                    command, restore the old trace flag. */
-    if (returnlen >= 0)
-      break;                    /* Continue with program if a RETURN occurred */
+    if (returnlen >= 0) {
+      break;  /* Continue with program if a RETURN occurred */
+    }
   }
   interact = -1;                /* signal "not interactive mode" */
-  if (returnval)
-    returnfree = cstackptr;     /* The result's user will free it */
-  else
-    free(cstackptr);            /* Nothing of value was on the stack */
-  while ((i = *((int *) (pstackptr + epstackptr) - 1) != 16))     /* Clear the program stack */
+  if (returnval) {
+    returnfree = cstackptr;  /* The result's user will free it */
+  } else {
+    free(cstackptr);  /* Nothing of value was on the stack */
+  }
+  while ((i = *((int *) (pstackptr + epstackptr) - 1) != 16)) { /* Clear the program stack */
     freestack(delpstack(), i);
+  }
   entry = (struct interactstack *) delpstack(); /* delete interactive()'s entry */
   cstackptr = entry->csp,       /* and restore the old stack */
-      ecstackptr = entry->ecs, cstacklen = entry->csl;
-  if (returnlen >= 0)           /* if a RETURN occurred, jump back to do the return */
+              ecstackptr = entry->ecs, cstacklen = entry->csl;
+  if (returnlen >= 0) {         /* if a RETURN occurred, jump back to do the return */
     longjmp(sgstack[interplev].jmp, -1);
+  }
 }
 
 /* The following function loads a source file from disk and returns the
@@ -1185,13 +1315,14 @@ int *sourcelen;                 /* The length of the source (to be returned) */
   unsigned size;                /* The size of the program */
   char *store;                  /* The memory allocated to hold the source */
 
-/* find size of file */
-  if (stat(name, &buf) == -1)
+  /* find size of file */
+  if (stat(name, &buf) == -1) {
     return 0;
+  }
   size = buf.st_size,
-/* get mem for the file */
-      store = allocm(size + 2);
-/* read file */
+  /* get mem for the file */
+  store = allocm(size + 2);
+  /* read file */
   if ((f = open(name, O_RDONLY)) == -1) {
     free(store);
     return 0;
@@ -1201,8 +1332,9 @@ int *sourcelen;                 /* The length of the source (to be returned) */
     return 0;
   }
   close(f);
-  if (store[size - 1] != '\n')
-    store[size++] = '\n';       /* terminate last line */
+  if (store[size - 1] != '\n') {
+    store[size++] = '\n';  /* terminate last line */
+  }
   store[size] = 0;
   *sourcelen = size;            /* Ahem! */
   return store;
@@ -1223,7 +1355,7 @@ int line1;                      /* if nonzero, the first line is a comment */
   static char msg[20];          /* For reporting invalid chars */
   int type;                     /* Type of a character */
   int comment = 0;              /* Comment nesting level */
-  int commentstart;             /* Start stmt number of a comment */
+  int commentstart = 0;         /* Start stmt number of a comment */
   int comma = 0;                /* Continuation character is in force */
   int start = 1;                /* the start of a statement */
   char first = 0;               /* the first word in this statement */
@@ -1248,30 +1380,35 @@ int line1;                      /* if nonzero, the first line is a comment */
   int i;
   int ch;
 
-  if (!interpret)
+  if (!interpret) {
     source = (char **) allocm(sourcelen * sizeof(char *));
+  }
   prog = (program *) allocm(proglen * sizeof(program));
   prgptr = prog[0].line = allocm(plen); /* plen=ilen+2 is a guaranteed upper
                                            bound (the 2 extra are a line terminator and program terminator) */
   prog[0].source = input;
   prog[0].num = !interpret;
-  if (!interpret)
+  if (!interpret) {
     source[0] = cnull, labelptr = allocm(lablen = 200), elabptr = 0;
+  }
   stmts = 0;
-  if (!interpret)
+  if (!interpret) {
     lines = 0;
+  }
   if (!interpret && (line1 || (ilen > 2 && srcptr[0] == '#' && srcptr[1] == '!'))) {
     source[++lines] = srcptr;
     while (ilen-- && srcptr++[0] != '\n');
-    if (ilen < 0)
+    if (ilen < 0) {
       ilen++;
-    else
+    } else {
       srcptr[-1] = 0;
+    }
   }
   prog[0].sourcend = srcptr;
   if (ilen) {
-    if (!interpret)
+    if (!interpret) {
       source[++lines] = srcptr;
+    }
     prog[++stmts].line = prgptr, prog[stmts].num = (interpret ? 0 : lines), prog[stmts].source = srcptr, prog[stmts].sourcend = 0, prog[stmts].related = 0;
   }
   ppc = 0;                      /* this must be a signal that no ppc is available */
@@ -1281,57 +1418,67 @@ int line1;                      /* if nonzero, the first line is a comment */
       /* The last byte of source will be overwritten with
          \0.  This only fails if input was an empty string. */
       c = '\n';
-      if (comment)
+      if (comment) {
         die(Elcomm);
-    } else
+      }
+    } else {
       c = srcptr++[0];
+    }
     if (c == '\n') {
       srcptr[-1] = 0;
       if (!interpret) {
         if (sourcelen - 1 <= ++lines) {
-          if ((ptr = (char *) realloc((char *) source, (sourcelen += 50) * sizeof(char *))))
+          if ((ptr = (char *) realloc((char *) source, (sourcelen += 50) * sizeof(char *)))) {
             source = (char **) ptr;
-          else
+          } else {
             die(Emem);
+          }
         }
         source[lines] = srcptr;
         if (comma) {
-          if (!ilen)
-            die(Ecomma);        /* Last line ended with comma */
+          if (!ilen) {
+            die(Ecomma);  /* Last line ended with comma */
+          }
           prgptr--, gobble--,   /* restore gobble to previous val */
-              comma = 0, c = ' ';
-        } else
-          c = ';';              /* line ends terminate statements.  Note:
+                 comma = 0, c = ' ';
+        } else {
+          c = ';';
+        }              /* line ends terminate statements.  Note:
                                    this is ineffective within comments */
       } else if (!ilen)
-        if (comma)
-          die(Ecomma);          /* interpreted line ends with comma */
-        else
-          c = ';';              /* terminate the interpreted line */
-      else                      /* do nothing.  \n will be rejected later. */
+        if (comma) {
+          die(Ecomma);  /* interpreted line ends with comma */
+        } else {
+          c = ';';  /* terminate the interpreted line */
+        } else                    /* do nothing.  \n will be rejected later. */
         ;
     }
-    if (c == '^')
-      c = '\\';                 /* Translate "^" into the real "not" character */
+    if (c == '^') {
+      c = '\\';  /* Translate "^" into the real "not" character */
+    }
     if (c == '*' && ilen && srcptr[0] == '/') {
       /* if(--comment<0)die(Ercomm);  Not an error really. */
-      if (--comment < 0)
+      if (--comment < 0) {
         comment = 0;
-      else
-        srcptr++, ilen--, c = ' ';      /* Comment equals space.  This should be changed. */
+      } else {
+        srcptr++, ilen--, c = ' ';  /* Comment equals space.  This should be changed. */
+      }
     }
     if (c == '/' && ilen && srcptr[0] == '*') {
-      if (comment++ == 0)
+      if (comment++ == 0) {
         commentstart = stmts;
+      }
       srcptr++, ilen--;
     }
-    if (comment)
-      continue;                 /* all characters within comments are ignored. */
+    if (comment) {
+      continue;  /* all characters within comments are ignored. */
+    }
     if ((type = whattype(c)) == -2) {   /* Invalid character */
-      if (c < 127 && c > ' ')
+      if (c < 127 && c > ' ') {
         sprintf(errordata = msg, ": \'%c\'", c);
-      else
+      } else {
         sprintf(errordata = msg, ": \'%02x\'x", (int) (unsigned char) c);
+      }
       die(Echar);
     }
     if (c == ' ' || c == '\t' || c == '\r') {
@@ -1342,19 +1489,23 @@ int line1;                      /* if nonzero, the first line is a comment */
     /* Time to emit the stored word (if any) */
     comma = 0;
     if (c == ':' && start && wordlen) { /* the stored word is a label */
-      if (word[wordlen - 1] == '.')
-        die(Elabeldot);         /* Ends with dot */
-      if (interpret)
+      if (word[wordlen - 1] == '.') {
+        die(Elabeldot);  /* Ends with dot */
+      }
+      if (interpret) {
         die(Exlabel);
+      }
       /* Add the label to the label table */
       mtest(labelptr, lablen, elabptr + wordlen + 4 * four, 256 + wordlen);
-      *((int *) (labelptr + elabptr)) = wordlen, *((int *) (labelptr + elabptr) + 1) = stmts, memcpy(labelptr + (elabptr += 2 * four), word, wordlen), *(labelptr + elabptr + wordlen) = 0, elabptr += align(wordlen + 1);
+      *((int *) (labelptr + elabptr)) = wordlen, *((int *) (labelptr + elabptr) + 1) = stmts, memcpy(labelptr + (elabptr += 2 * four), word, wordlen), *(labelptr + elabptr + wordlen) = 0,
+      elabptr += align(wordlen + 1);
       /* Add a LABEL clause to the program */
       if (stmts + 2 > proglen) {
-        if ((ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program))))
+        if ((ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program)))) {
           prog = (program *) ptr;
-        else
+        } else {
           die(Emem);
+        }
       }
       prgptr++[0] = LABEL;
       prgptr++[0] = 0;
@@ -1371,11 +1522,13 @@ int line1;                      /* if nonzero, the first line is a comment */
       continue;
     }
     /* as it is not a label, the word is uppercased */
-    for (i = wordlen, ptr = word; i--; ptr++)
+    for (i = wordlen, ptr = word; i--; ptr++) {
       ptr[0] = uc(ptr[0]);
+    }
     if (c == '=' && wordlen && (start || last == DO)) { /* the stored word is a symbol */
-      if (rexxsymbol(word[0]) < 1)
-        die(Ename);             /* Starts with number or dot */
+      if (rexxsymbol(word[0]) < 1) {
+        die(Ename);  /* Starts with number or dot */
+      }
       memcpy(prgptr, word, wordlen), prgptr += wordlen, prgptr++[0] = c, wordlen = spcbefore = spc = 0;
       gobble = 1;
       start = 0;
@@ -1385,99 +1538,111 @@ int line1;                      /* if nonzero, the first line is a comment */
     /* the word may now be a token. */
     if (wordlen) {
       for (i = 0; i < numwords && strcmp(word, words[i]); i++);
-      if (i < numwords)
+      if (i < numwords) {
         token = (i - 128);
-      else
+      } else {
         token = 0;
+      }
       if (token < Command && !start) {  /* "Commands" must be at the start, */
         if (token == NUMERIC && last == PARSE); /* except NUMERIC & SELECT */
         else if (token == SELECT && first == last && last == END);
-        else
+        else {
           token = 0;
+        }
       } else if (token >= Command && start) {   /* at the start must be a "command" */
         if (token == THEN);     /* except THEN, PULL and ARG */
-        else if (token == ARG || token == PULL)
+        else if (token == ARG || token == PULL) {
           prgptr++[0] = PARSE, prgptr++[0] = UPPER, first = last = PARSE, start = 0;
-        else
+        } else {
           token = 0;
+        }
       }                         /* Now some special case checking... */
       if (!token);              /* no need to check if there is no token */
       else if (token == VALUE)
         if (last == ADDRESS || last == FORM || last == TRACE || last == PARSE || last == SIGNAL);
-        else
+        else {
           token = 0;
-      else if (token == UPPER)
+        } else if (token == UPPER)
         if (last == PARSE);
-        else
+        else {
           token = 0;
-      else if (token >= PULL && token <= LINEIN)
+        } else if (token >= PULL && token <= LINEIN)
         if (last == PARSE);
-        else
+        else {
           token = 0;
-      else if (token == WITH)
+        } else if (token == WITH)
         if (first == VALUE);
-        else
+        else {
           token = 0;
-      else if (token == ON || token == OFF)
-        if (last == SIGNAL || last == CALL)
-          first = token;        /* allow NAME */
-        else
+        } else if (token == ON || token == OFF)
+        if (last == SIGNAL || last == CALL) {
+          first = token;  /* allow NAME */
+        } else {
           token = 0;
-      else if (token == NAME)
-        if (first == ON)
+        } else if (token == NAME)
+        if (first == ON) {
           first = token;
-        else
+        } else {
           token = 0;
-      else if (token >= TO && token <= FOR)
+        } else if (token >= TO && token <= FOR)
         if (first == DO);
-        else
+        else {
           token = 0;
-      else if (token == FOREVER)
+        } else if (token == FOREVER)
         if (last == DO);
-        else
+        else {
           token = 0;
-      else if (token == WHILE || token == UNTIL)
-        if (first == DO || first == WHILE)
-          first = WHILE;        /* disable TO, BY, FOR */
-        else
+        } else if (token == WHILE || token == UNTIL)
+        if (first == DO || first == WHILE) {
+          first = WHILE;  /* disable TO, BY, FOR */
+        } else {
           token = 0;
-      else if (token == EXPOSE || token == HIDE)
+        } else if (token == EXPOSE || token == HIDE)
         if (last == PROCEDURE);
-        else
+        else {
           token = 0;
-      else if (token >= DIGITS && token <= FORM)
+        } else if (token >= DIGITS && token <= FORM)
         if (first == last && last == NUMERIC);
-        else
+        else {
           token = 0;
-      else if (token == THEN) {
+        } else if (token == THEN) {
         if (start || first == IF || first == WHEN);
-        else
+        else {
           token = 0;
+        }
       }
-      if (start)
-        first = token;          /* Save first token in each line */
-      if (token != UPPER)
-        last = token;           /* Save the previous token */
-      if (token == VALUE && first == PARSE)
-        first = token;          /* allow WITH */
-      if (token == WITH)
-        first = token;          /* disallow WITH */
-      if (token)
+      if (start) {
+        first = token;  /* Save first token in each line */
+      }
+      if (token != UPPER) {
+        last = token;  /* Save the previous token */
+      }
+      if (token == VALUE && first == PARSE) {
+        first = token;  /* allow WITH */
+      }
+      if (token == WITH) {
+        first = token;  /* disallow WITH */
+      }
+      if (token) {
         wordlen = 0;
-    } else
+      }
+    } else {
       token = 0;
+    }
     if (wordlen) {              /* If there is still a word, it is a symbol */
-      if (spcbefore)
+      if (spcbefore) {
         prgptr++[0] = ' ';
+      }
       memcpy(prgptr, word, wordlen), prgptr += wordlen, wordlen = 0, start = 0, gobble = 0;
     }
     /* Check for space in case we add a new statement or two */
     if (token == THEN || token == ELSE || token == OTHERWISE || c == ';')
       if (stmts + 3 >= proglen) {
-        if ((ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program))))
+        if ((ptr = (char *) realloc((char *) prog, (proglen += 50) * sizeof(program)))) {
           prog = (program *) ptr;
-        else
+        } else {
           die(Emem);
+        }
       }
     if (token == THEN || token == ELSE || token == OTHERWISE) {
       /* these tokens start new statements */
@@ -1499,7 +1664,7 @@ int line1;                      /* if nonzero, the first line is a comment */
     if (c == ';') {
       if (start) {
         prog[stmts].source = srcptr,    /* delete the source of the */
-            prog[stmts].num = (interpret ? 0 : lines);  /* null statement, but */
+                             prog[stmts].num = (interpret ? 0 : lines);  /* null statement, but */
         continue;               /* don't make an extra line */
       }
       prgptr++[0] = 0;
@@ -1510,32 +1675,39 @@ int line1;                      /* if nonzero, the first line is a comment */
     }
     if (c == ',') {
       comma = 1, gobble++,      /* this saves the previous value of gobble */
-          spc = 0,              /* and also makes gobble true */
-          prgptr++[0] = c;
+              spc = 0,              /* and also makes gobble true */
+                    prgptr++[0] = c;
       continue;
     }
     /* Proceed to insert some non-blank characters.  Gobble any previous
        spaces if necessary. */
-    if (gobble)
+    if (gobble) {
       gobble = spc = 0;
+    }
     if (type <= 0 && c != '\'' && c != '\"') {  /* non-alpha and non-quote char */
-      if (c != '(')
-        spc = 0;                /* all except "(" gobble on left */
-      if (c != ')')
-        gobble = 1;             /* all except ")" gobble on right */
+      if (c != '(') {
+        spc = 0;  /* all except "(" gobble on left */
+      }
+      if (c != ')') {
+        gobble = 1;  /* all except ")" gobble on right */
+      }
     }
     if (c == '\"' || c == '\'') {
-      if (spc)
+      if (spc) {
         prgptr++[0] = ' ', spc = 0;
+      }
       prgptr++[0] = c;
-      while (ilen-- && srcptr[0] != c && srcptr[0] != '\n')
+      while (ilen-- && srcptr[0] != c && srcptr[0] != '\n') {
         prgptr++[0] = srcptr++[0];
-      if (srcptr++[0] != c)
+      }
+      if (srcptr++[0] != c) {
         die(Equote);
+      }
     }
     if (!type) {                /* Can't be a token. Just insert it */
-      if (spc)
+      if (spc) {
         prgptr++[0] = ' ', spc = 0;
+      }
       prgptr++[0] = c;
       start = last = 0;
       continue;
@@ -1546,10 +1718,12 @@ int line1;                      /* if nonzero, the first line is a comment */
       wordlen = 0;
       ch = c;
       while (wordlen < 3) {
-        while (i && (ptr[0] == ' ' || ptr[0] == '\t'))
+        while (i && (ptr[0] == ' ' || ptr[0] == '\t')) {
           i--, ptr++;
-        if (whattype(ptr[0]) != -1)
+        }
+        if (whattype(ptr[0]) != -1) {
           break;
+        }
         ch = (ch << 8) + ptr[0];
         ptr++, i--, wordlen++;
       }
@@ -1604,12 +1778,14 @@ int line1;                      /* if nonzero, the first line is a comment */
           default:
             ch >>= 8, wordlen--;
         }
-      if (token)
+      if (token) {
         ch = token;
+      }
       prgptr++[0] = ch;
       while (wordlen) {
-        while (ptr[0] == ' ' || ptr[0] == '\t')
+        while (ptr[0] == ' ' || ptr[0] == '\t') {
           ilen--, srcptr++;
+        }
         ilen--, srcptr++, wordlen--;
       }
       gobble = 1;
@@ -1622,8 +1798,9 @@ int line1;                      /* if nonzero, the first line is a comment */
     spc = gobble = 0;
     ptr = srcptr - 1;
     while (ilen-- && rexxsymboldot(srcptr++[0]));
-    if (++ilen > 0)
+    if (++ilen > 0) {
       srcptr--;
+    }
     wordlen = srcptr - ptr;
     mtest(word, varnamelen, wordlen + 1, wordlen + 1 - varnamelen);
     memcpy(word, ptr, wordlen), word[wordlen] = 0;
@@ -1631,25 +1808,30 @@ int line1;                      /* if nonzero, the first line is a comment */
   /* All characters considered; ilen was zero and the source was terminated */
   prgptr++[0] = 0;
   prog[stmts].sourcend = srcptr - 1;
-  if (!interpret)
-    lines--;                    /* Discount the new line started at the last '\n' */
+  if (!interpret) {
+    lines--;  /* Discount the new line started at the last '\n' */
+  }
   /* It will remain in the line table, however. */
   /* Now shrink all areas to their correct sizes */
-  if ((ptr = realloc((char *) prog, (1 + stmts) * sizeof(program))))
+  if ((ptr = realloc((char *) prog, (1 + stmts) * sizeof(program)))) {
     prog = (program *) ptr;
-  if (!interpret && (ptr = realloc((char *) source, (2 + lines) * sizeof(char *))))
+  }
+  if (!interpret && (ptr = realloc((char *) source, (2 + lines) * sizeof(char *)))) {
     source = (char **) ptr;
+  }
   if ((ptr = realloc(prog[0].line, prgptr - prog[0].line)))
     if (ptr != prog[0].line)
       /* Oops, the program moved! */
       for (i = stmts; i--; prog[i].line += ptr - prog[0].line);
   if (!interpret) {
-    if ((ptr = realloc(labelptr, elabptr + four)))
+    if ((ptr = realloc(labelptr, elabptr + four))) {
       labelptr = ptr;
+    }
     (*(int *) (labelptr + elabptr)) = 0;
   }
-  if (comment)
+  if (comment) {
     stmts = commentstart, die(Elcomm);
+  }
 }
 
 #undef word
@@ -1674,54 +1856,66 @@ int stmt, after, error;
     return;
   } else if (after) {
     for (start = prog[stmt].source; start < prog[stmt].sourcend; start++)
-      if (line && start + 1 == source[line + 1])
-        ++line;                 /* find the line number of the source end */
+      if (line && start + 1 == source[line + 1]) {
+        ++line;  /* find the line number of the source end */
+      }
     end = prog[stmt + 1].source;
-  } else
+  } else {
     start = prog[stmt].source, end = prog[stmt].sourcend;
+  }
   if (!end) {                   /* This never happens, I hope... */
     traceprefix(line, what);
     tracestr("<EOL>\n");
     return;
   }
   while (start < end && (start[0] == 0 || start[0] == ';' || (start[0] == ' ') | (start[0] == '\t'))) {
-    if (line && start + 1 == source[line + 1])
+    if (line && start + 1 == source[line + 1]) {
       ++line;
+    }
     start++;                    /* step past uninteresting chars */
   }
-  while (start < end && (end[-1] == 0 || end[-1] == ';' || (end[-1] == ' ') | (end[-1] == '\t')))
-    end--;                      /* delete uninteresting trailing chars */
-  if (start >= end)
-    return;                     /* Nothing to print. */
+  while (start < end && (end[-1] == 0 || end[-1] == ';' || (end[-1] == ' ') | (end[-1] == '\t'))) {
+    end--;  /* delete uninteresting trailing chars */
+  }
+  if (start >= end) {
+    return;  /* Nothing to print. */
+  }
   if (line)
     for (spc = 0, ptr = source[line]; ptr < start; ptr++)
-      if (ptr[0] == '\t')
-        spc = 8 + (spc & ~7);   /* This calculates the column within */
-      else
-        spc++;                  /* the line in which the statement starts   */
-  else
+      if (ptr[0] == '\t') {
+        spc = 8 + (spc & ~7);  /* This calculates the column within */
+      } else {
+        spc++;  /* the line in which the statement starts   */
+      } else {
     spc = 0;
+  }
   do {
     traceprefix(line, what);
-    for (i = 0; i < traceindent * pstacklev; i++)
-      tracechar(' ');           /* indent */
+    for (i = 0; i < traceindent * pstacklev; i++) {
+      tracechar(' ');  /* indent */
+    }
     for (i = 0; i < spc && start < end && (start[0] == ' ' || start[0] == '\t'); start++)
-      if (start[0] == '\t')
-        i = 8 + (i & ~7);       /* Remove leading spaces */
-      else
+      if (start[0] == '\t') {
+        i = 8 + (i & ~7);  /* Remove leading spaces */
+      } else {
         i++;
-    while (i > spc)
-      tracechar(' '), i--;      /* Print part of a tab if necessary */
+      }
+    while (i > spc) {
+      tracechar(' '), i--;  /* Print part of a tab if necessary */
+    }
     for (; start < end && (!line || start < source[line + 1] - 1); start++)
-      if ((i = start[0] & 127) < ' ' || i == 127)
+      if ((i = start[0] & 127) < ' ' || i == 127) {
         tracechar('?');
-      else
-        tracechar(i);           /* Print statement */
-    if (start < end && line < lines)
-      start = source[++line];   /* Go to next line */
+      } else {
+        tracechar(i);  /* Print statement */
+      }
+    if (start < end && line < lines) {
+      start = source[++line];  /* Go to next line */
+    }
     tracechar('\n');
-    if (!error)
-      what = "*,*";             /* new ANSI prefix for continuations */
+    if (!error) {
+      what = "*,*";  /* new ANSI prefix for continuations */
+    }
   } while (start < end && line <= lines);
 }
 
@@ -1733,15 +1927,18 @@ char *rexxext() {
   char *env = getenv("REXXEXT");
 
   if (env) {
-    if (env[0] == '.' && env[1])
+    if (env[0] == '.' && env[1]) {
       return env;
-    if (!env[0] || strlen(env) > sizeof answer - 2)
+    }
+    if (!env[0] || strlen(env) > sizeof answer - 2) {
       return filetype;
+    }
     answer[0] = '.';
     strcpy(answer + 1, env);
     return answer;
-  } else
+  } else {
     return filetype;
+  }
 }
 
 int which(gn, opt, fn)          /* finds a file given name `gn'; puts path name in `fn'.
@@ -1755,7 +1952,8 @@ int which(gn, opt, fn)          /* finds a file given name `gn'; puts path name 
                                    opt=3 means search for a dll (.rxfn or exact name). */
 char *fn, *gn;
 int opt;                        /* returns 0 if not found, 1 if rexx found, */
-{                               /*         2 if .rxfn found, 3 if Unix program found.  */
+{
+  /*         2 if .rxfn found, 3 if Unix program found.  */
   char *getenv();
   char *path;                   /* an element of the path */
   char *pathend;                /* end of this element */
@@ -1783,22 +1981,25 @@ int opt;                        /* returns 0 if not found, 1 if rexx found, */
   }
 
   /* split name into pathname and basename */
-  if ((basename = strrchr(gn, '/')))
+  if ((basename = strrchr(gn, '/'))) {
     gpathlen = basename++ - gn;
-  else
+  } else {
     gpathlen = 0, basename = gn;
+  }
   baselen = strlen(basename);
-  if (opt == 0 && baselen > extlen && !strcmp(basename + baselen - extlen, extension))
+  if (opt == 0 && baselen > extlen && !strcmp(basename + baselen - extlen, extension)) {
     opt = 1;
-/* find out where to look. */
+  }
+  /* find out where to look. */
   if (gn[0] == '.' && gn[1] == '/') {   /* special case for files in ./ */
     path = ".";                 /* make path="." and remove the */
     gn += 2;                    /* "." from the name.  This     */
-    if ((gpathlen -= 2) < 0)
-      gpathlen = 0;             /* causes "." to be expanded.   */
-  } else if (gn[0] == '.' && gn[1] == '.' && gn[2] == '/')      /* for files in ../ */
-    path = ".";                 /* prepend current dir name */
-  else if (gn[0] == '/') {
+    if ((gpathlen -= 2) < 0) {
+      gpathlen = 0;  /* causes "." to be expanded.   */
+    }
+  } else if (gn[0] == '.' && gn[1] == '.' && gn[2] == '/') {    /* for files in ../ */
+    path = ".";  /* prepend current dir name */
+  } else if (gn[0] == '/') {
     path = "";                  /* path given; prepend nothing */
     dot = 1;                    /* don't search "." either */
     if (opt == 1) {             /* whole name given - no search */
@@ -1807,74 +2008,91 @@ int opt;                        /* returns 0 if not found, 1 if rexx found, */
     }
   } else {
     path = 0;
-    if (opt == 3)
-      path = getenv("REXXLIB"); /* DLLs in REXXLIB */
-    if (opt >= 2 && !(path && path[0]))
-      path = getenv("REXXFUNC");        /* functions in REXXFUNC */
-    if (opt == 3 && !(path && path[0]))
-      path = rxpath;            /* default for DLLs is my libpath */
-    if (opt >= 0 && !(path && path[0]))
-      path = getenv("REXXPATH");        /* REXX programs in REXXPATH */
-    if (!(path && path[0]))
-      path = getenv("PATH");    /* or in PATH */
-    if (!(path && path[0]))
-      path = ".";               /* or in "." */
+    if (opt == 3) {
+      path = getenv("REXXLIB");  /* DLLs in REXXLIB */
+    }
+    if (opt >= 2 && !(path && path[0])) {
+      path = getenv("REXXFUNC");  /* functions in REXXFUNC */
+    }
+    if (opt == 3 && !(path && path[0])) {
+      path = rxpath;  /* default for DLLs is my libpath */
+    }
+    if (opt >= 0 && !(path && path[0])) {
+      path = getenv("REXXPATH");  /* REXX programs in REXXPATH */
+    }
+    if (!(path && path[0])) {
+      path = getenv("PATH");  /* or in PATH */
+    }
+    if (!(path && path[0])) {
+      path = ".";  /* or in "." */
+    }
   }
-  if (opt < 0)
+  if (opt < 0) {
     opt = 1;
-/* scan each directory in the path */
+  }
+  /* scan each directory in the path */
   while (go && path) {
-    if ((pathend = strchr(path, ':')))
+    if ((pathend = strchr(path, ':'))) {
       pathlen = pathend++ - path;
-    else
+    } else {
       pathlen = strlen(path);
+    }
     if (pathlen == 1 && path[0] == '.') {
       dot = 1;
-      if (!getcwd(tmp, sizeof tmp) || tmp[0] != '/')
+      if (!getcwd(tmp, sizeof tmp) || tmp[0] != '/') {
         strcpy(tmp, ".");
+      }
       tmplen = strlen(tmp);
-    } else
+    } else {
       memcpy(tmp, path, tmplen = pathlen);
-    if (gpathlen && gn[0] != '/' && pathlen)
+    }
+    if (gpathlen && gn[0] != '/' && pathlen) {
       tmp[tmplen++] = '/';
+    }
     memcpy(tmp + tmplen, gn, gpathlen);
     tmp[tmplen += gpathlen] = 0;
     if ((dp = opendir(tmp))) {
       while (go && (dir = readdir(dp))) {       /* for each file in the directory */
-        if (memcmp(dir->d_name, basename, baselen))
-          continue;             /* check that it starts with basename */
+        if (memcmp(dir->d_name, basename, baselen)) {
+          continue;  /* check that it starts with basename */
+        }
         copy = 0;               /* if "copy" gets set then the current */
         /* name will be saved. */
         switch (opt) {          /* validate the name according to opt */
           case 0:
-            if (!strcmp(dir->d_name + baselen, extension))
+            if (!strcmp(dir->d_name + baselen, extension)) {
               copy = found = 1, go = 0;
-            else if (!found && !dir->d_name[baselen])
+            } else if (!found && !dir->d_name[baselen]) {
               copy = found = 1;
+            }
             break;
           case 1:
             go = dir->d_name[baselen];
-            if (!go)
+            if (!go) {
               copy = found = 1;
+            }
             break;
           case 2:
-            if (!strcmp(dir->d_name + baselen, ".rxfn"))
+            if (!strcmp(dir->d_name + baselen, ".rxfn")) {
               copy = found = 4, go = 0;
-            else if (found < 3 && !strcmp(dir->d_name + baselen, extension))
+            } else if (found < 3 && !strcmp(dir->d_name + baselen, extension)) {
               copy = found = 3;
-            else if (doexec && found < 2 && !strcmp(dir->d_name + baselen, defaultext))
+            } else if (doexec && found < 2 && !strcmp(dir->d_name + baselen, defaultext)) {
               copy = found = 2;
-            else if (found < 1 && !dir->d_name[baselen])
+            } else if (found < 1 && !dir->d_name[baselen]) {
               copy = found = 1;
+            }
             break;
           case 3:
-            if (!dir->d_name[baselen])
+            if (!dir->d_name[baselen]) {
               copy = found = 1, go = 0;
-            else if (!strcmp(dir->d_name + baselen, ".rxfn"))
+            } else if (!strcmp(dir->d_name + baselen, ".rxfn")) {
               copy = found = 4;
+            }
         }
-        if (copy)
+        if (copy) {
           strcpy(fn, tmp), fn[tmplen] = '/', strcpy(fn + tmplen + 1, dir->d_name);
+        }
       }
       closedir(dp);
     } else if (!access(tmp, X_OK)) {
@@ -1892,8 +2110,9 @@ int opt;                        /* returns 0 if not found, 1 if rexx found, */
             break;
           }
           tmp[tmplen] = 0;
-          if (!found && !access(tmp, 0))
+          if (!found && !access(tmp, 0)) {
             copy = found = 1;
+          }
           break;
         case 1:
           if (!access(tmp, 0)) {
@@ -1908,8 +2127,9 @@ int opt;                        /* returns 0 if not found, 1 if rexx found, */
             go = 0;
             break;
           }
-          if (found == 3)
+          if (found == 3) {
             break;
+          }
           strcpy(tmp + tmplen, extension);
           if (!access(tmp, 0)) {
             copy = found = 3;
@@ -1922,11 +2142,13 @@ int opt;                        /* returns 0 if not found, 1 if rexx found, */
               break;
             }
           }
-          if (found > 0)
+          if (found > 0) {
             break;
+          }
           tmp[tmplen] = 0;
-          if (!access(tmp, 0))
+          if (!access(tmp, 0)) {
             copy = found = 1;
+          }
           break;
         case 3:
           if (!access(tmp, 0)) {
@@ -1934,32 +2156,40 @@ int opt;                        /* returns 0 if not found, 1 if rexx found, */
             go = 0;
             break;
           }
-          if (found)
+          if (found) {
             break;
+          }
           strcpy(tmp + tmplen, ".rxfn");
-          if (!access(tmp, 0))
+          if (!access(tmp, 0)) {
             copy = found = 1;
+          }
       }
-      if (copy)
+      if (copy) {
         strcpy(fn, tmp);
+      }
     }
     path = pathend;
-    if (!path && !dot)
+    if (!path && !dot) {
       path = ".";
+    }
   }
   if (!found) {
     strcpy(fn, gn);
-    if (opt != 1)
+    if (opt != 1) {
       strcat(fn, extension);
+    }
     errno = ENOENT;
     return 0;
   }
-  if (opt < 2)
+  if (opt < 2) {
     return 1;
-  if (found == 1)
+  }
+  if (found == 1) {
     return 3;
-  if (found == 4)
+  }
+  if (found == 4) {
     return 2;
+  }
   return 1;
 }
 
@@ -1999,13 +2229,16 @@ int *exist;
   int c;
 
   *exist = 0;
-  if (!ehashptr[hash])
+  if (!ehashptr[hash]) {
     return cnull;
+  }
   while ((c = strcmp(name, ans + sizeof(hashent)))
-         && (*(slot = &(((hashent *) ans)->less) + (c > 0))) >= 0)
+         && (*(slot = &(((hashent *) ans)->less) + (c > 0))) >= 0) {
     ans = data + *slot;
-  if (!c)
+  }
+  if (!c) {
     return *exist = 1, ans;
+  }
   return (char *) slot;
 }
 
@@ -2016,25 +2249,29 @@ int *exist;
 {
   char *ptr = hashsearch(hash, name, exist);
 
-  if (*exist)
+  if (*exist) {
     return ((hashent *) ptr)->value;
-  else
+  } else {
     return 0;
+  }
 }
 
 void **hashfind(hash, name, exist)
 int hash;
 char *name;
 int *exist;
-{                               /* like hashsearch, but the address of the value is returned. If no
-                                   value is present, one is created. */
+{
+  /* like hashsearch, but the address of the value is returned. If no
+     value is present, one is created. */
   char *ptr = hashsearch(hash, name, exist);
   int len;
 
-  if (*exist)
+  if (*exist) {
     return &(((hashent *) ptr)->value);
-  if (ptr)
+  }
+  if (ptr) {
     *(int *) ptr = ehashptr[hash];
+  }
   len = align(strlen(name) + 1) + sizeof(hashent);
   mtest(hashptr[hash], hashlen[hash], ehashptr[hash] + len, len + 256);
   ptr = hashptr[hash] + ehashptr[hash], ehashptr[hash] += len, ((hashent *) ptr)->next = len, ((hashent *) ptr)->less = -1, ((hashent *) ptr)->grtr = -1, strcpy(ptr + sizeof(hashent), name);
@@ -2044,32 +2281,37 @@ int *exist;
 struct fileinfo *fileinit(name, filename, fp)
 char *name, *filename;          /* associate "name" with the file "filename" */
 FILE *fp;                       /* which has just been opened on fp          */
-{                               /* return the fileinfo structure created     */
+{
+  /* return the fileinfo structure created     */
   int exist;
   struct stat buf;              /* For finding the file's details */
   void **entry = hashfind(1, name, &exist);
   unsigned len = align(filename ? strlen(filename) + 1 : 1);
   struct fileinfo *info = (struct fileinfo *) allocm(sizeof(struct fileinfo) + len);
 
-  if (exist && *entry)          /* What if the name is already used? */
+  if (exist && *entry) {        /* What if the name is already used? */
     fclose(((struct fileinfo *) (*entry))->fp), free((char *) (*entry));
+  }
   *entry = (void *) info;
-  if (filename)
+  if (filename) {
     strcpy((char *) (info + 1), filename);
-  else
+  } else {
     *(char *) (info + 1) = 0;
-  if (fp && fstat(fileno(fp), &buf) == 0)       /* Make the file persistent if and */
-    info->persist = S_ISREG(buf.st_mode);       /* only if it can be determined    */
-  else
-    info->persist = 0;          /* that it is a regular file       */
+  }
+  if (fp && fstat(fileno(fp), &buf) == 0) {     /* Make the file persistent if and */
+    info->persist = S_ISREG(buf.st_mode);  /* only if it can be determined    */
+  } else {
+    info->persist = 0;  /* that it is a regular file       */
+  }
   info->fp = fp,                /* fill in the structure with suitable */
-      info->wr = 0,             /* defaults */
-      info->lastwr = 1,         /* lastwr=1 so that the first read does seek */
-      info->rdpos = 0,          /* usually read from beginning of file */
-      info->rdline = 1, info->rdchars = 0, info->wrpos = fp ? ftell(fp) : 0,    /* Usually write to end of file */
-      info->wrline = !info->wrpos, info->wrchars = 0, info->errnum = 0;
-  if (info->wrpos < 0)
-    info->wrpos = 0;            /* In case ftell failed */
+             info->wr = 0,             /* defaults */
+                        info->lastwr = 1,         /* lastwr=1 so that the first read does seek */
+                                       info->rdpos = 0,          /* usually read from beginning of file */
+                                         info->rdline = 1, info->rdchars = 0, info->wrpos = fp ? ftell(fp) : 0,    /* Usually write to end of file */
+                                           info->wrline = !info->wrpos, info->wrchars = 0, info->errnum = 0;
+  if (info->wrpos < 0) {
+    info->wrpos = 0;  /* In case ftell failed */
+  }
   return info;
 }
 
@@ -2083,10 +2325,11 @@ int saa;                        /* calling sequence of the function */
   int exist;
   void **slot = hashfind(2, name, &exist);
 
-  if (!(exist && *slot))        /* if it exists, a dl handle might be lost. */
+  if (!(exist && *slot)) {      /* if it exists, a dl handle might be lost. */
     info = (funcinfo *) allocm(sizeof(funcinfo)), *slot = (void *) info;
-  else
+  } else {
     info = (funcinfo *) * slot;
+  }
   info->dlhandle = handle;
   info->dlfunc = address;
   info->saa = saa;
@@ -2105,12 +2348,14 @@ char *name;                     /* return the code from close */
   char *ptr = hashsearch(1, name, &exist);
   struct fileinfo *info;
 
-  if (!exist)
+  if (!exist) {
     return 0;
+  }
   info = (struct fileinfo *) (((hashent *) ptr)->value);
   if (info) {
-    if (info->fp)
+    if (info->fp) {
       ans = fclose(info->fp), free((char *) info);
+    }
   }
   ((hashent *) ptr)->value = 0;
   return ans;
@@ -2118,7 +2363,10 @@ char *name;                     /* return the code from close */
 
 int on_interrupt(int sig, int flag) {
   struct sigaction act;
-  sigaction(sig, NULL, &act);
+
+  if (sigaction(sig, NULL, &act) == -1) {
+    return -1;
+  }
   if (flag) {
     act.sa_flags &= ~SA_RESTART;
   } else {
@@ -2126,4 +2374,3 @@ int on_interrupt(int sig, int flag) {
   }
   return sigaction(sig, &act, NULL);
 }
-

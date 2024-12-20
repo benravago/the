@@ -2,13 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* This file contains all commands that can be assigned to function    */
-/* keys or typed on the command line.                                  */
-
 #include "the.h"
 #include "proto.h"
 
-short scroll_page(short direction, line_t num_pages, bool scrollbar) {
+short scroll_page(short direction, long num_pages, bool scrollbar) {
   short y = 0, x = 0, save_y = 0, rc;
   bool save_scroll_cursor_stay = scroll_cursor_stay;
 
@@ -20,8 +17,7 @@ short scroll_page(short direction, line_t num_pages, bool scrollbar) {
     return (RC_TOF_EOF_REACHED);
   }
   /*
-   * If scrolling via the scroll bars, ALWAYS leave the cursor on the
-   * screen line.
+   * If scrolling via the scroll bars, ALWAYS leave the cursor on the screen line.
    */
   if (scrollbar) {
     save_scroll_cursor_stay = TRUE;
@@ -31,7 +27,7 @@ short scroll_page(short direction, line_t num_pages, bool scrollbar) {
    */
   if (save_scroll_cursor_stay) {
     save_y = get_row_for_focus_line(current_screen, CURRENT_VIEW->focus_line, CURRENT_VIEW->current_row);
-    }
+  }
   /*
    * Find the new current line, num_pages away...
    */
@@ -69,15 +65,15 @@ short scroll_page(short direction, line_t num_pages, bool scrollbar) {
   return rc;
 }
 
-short scroll_line(char_t curr_screen, VIEW_DETAILS *curr_view, short direction, line_t num_lines, bool scrollbar, short escreen) {
+short scroll_line(uchar curr_screen, VIEW_DETAILS *curr_view, short direction, long num_lines, bool scrollbar, short escreen) {
   short rc = RC_OK;
   unsigned short x = 0, y = 0, iscrollbar = scrollbar;
   bool on_file_edge = FALSE, on_screen_edge = FALSE;
   short number_focus_rows = 0;
   bool leave_cursor = FALSE;
-  line_t new_focus_line = 0L, new_current_line = 0L, edge_line = 0L;
-  line_t longy = 0L, longx = 0L;
-  row_t yoff1 = 0, yoff2 = 0;
+  long new_focus_line = 0L, new_current_line = 0L, edge_line = 0L;
+  long longy = 0L, longx = 0L;
+  ushort yoff1 = 0, yoff2 = 0;
   chtype color_filearea = set_colour(curr_view->file_for_view->attr + ATTR_FILEAREA);
   chtype color_cursorline = set_colour(curr_view->file_for_view->attr + ATTR_CURSORLINE);
 
@@ -93,7 +89,6 @@ short scroll_line(char_t curr_screen, VIEW_DETAILS *curr_view, short direction, 
   }
   calculate_scroll_values(curr_screen, curr_view, &number_focus_rows, &new_focus_line, &new_current_line, &on_screen_edge, &on_file_edge, &leave_cursor, direction);
   switch (iscrollbar) {
-
     case FALSE:
       getyx(SCREEN_WINDOW(curr_screen), y, x);
       if (direction == DIRECTION_FORWARD) {
@@ -106,9 +101,9 @@ short scroll_line(char_t curr_screen, VIEW_DETAILS *curr_view, short direction, 
         yoff2 = y - number_focus_rows;
       }
       /*
-       * If the cursor is on the edge of the window or on the edge of the
-       * file and tabbing to the command line is set, tab to the command line
-       * provided the command line is ON.
+       * If the cursor is on the edge of the window or
+       * on the edge of the file and tabbing to the command line is set,
+       * tab to the command line provided the command line is ON.
        */
       if (escreen == CURSOR_SCREEN && (on_screen_edge || on_file_edge)) {
         if (SCREEN_WINDOW_COMMAND(curr_screen) == NULL) {
@@ -139,8 +134,7 @@ short scroll_line(char_t curr_screen, VIEW_DETAILS *curr_view, short direction, 
           break;
         }
         /*
-         * ... and the edge of the file is above or below the current row,
-         * scroll the window.
+         * ... and the edge of the file is above or below the current row, scroll the window.
          */
         curr_view->current_line = new_current_line;
         build_screen(curr_screen);
@@ -163,8 +157,7 @@ short scroll_line(char_t curr_screen, VIEW_DETAILS *curr_view, short direction, 
         break;
       }
       /*
-       * We are in the middle of the window, so just move the cursor up or
-       * down 1 line.
+       * We are in the middle of the window, so just move the cursor up or down 1 line.
        */
       wmove(SCREEN_WINDOW(curr_screen), yoff2, x);
       rc = post_process_line(curr_view, curr_view->focus_line, (LINE *) NULL, TRUE);
@@ -175,7 +168,6 @@ short scroll_line(char_t curr_screen, VIEW_DETAILS *curr_view, short direction, 
         display_screen(curr_screen);
       }
       break;
-
     case TRUE:
       if (curr_view->current_window != WINDOW_COMMAND) {
         get_cursor_position(&longy, &longx, &new_focus_line, &new_current_line);

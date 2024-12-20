@@ -65,8 +65,8 @@ extern char otrcflag;           /* temporary store for trace flag */
 extern char trclp;              /* whether to input in interactive mode */
 extern char timeflag;           /* bit 0: used elapsed time counter */
 
-                                   /* bit 1: timestamp in operation */
-                                   /* bit 2: used random number generator */
+/* bit 1: timestamp in operation */
+/* bit 2: used random number generator */
 extern long secs;
 extern long microsecs;          /* time when TIME(r) last called */
 extern struct timeval timestamp;        /* the timestamp, if in operation */

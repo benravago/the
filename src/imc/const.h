@@ -299,8 +299,8 @@ struct minstack {               /* A minimum program stack entry */
   int type;                     /* Type =  0 for DO;  */
 };                              /*         8 for DO WHILE/FOREVER */
 
-                    /*        10 for DO with control variable */
-                    /*         2 for SELECT */
+/*        10 for DO with control variable */
+/*         2 for SELECT */
 
 struct forstack {               /* A program stack entry for the "DO count" instruction */
   int stmt;                     /* Statement number of DO instruction */

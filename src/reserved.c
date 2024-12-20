@@ -2,15 +2,12 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* This file contains funtions related to reserved lines.              */
-
-
 #include "the.h"
 #include "proto.h"
 
-RESERVED *add_reserved_line(char_t *spec, char_t *line, short base, short off, COLOUR_ATTR *attr, bool autoscroll) {
+RESERVED *add_reserved_line(uchar *spec, uchar *line, short base, short off, COLOUR_ATTR *attr, bool autoscroll) {
   RESERVED *curr = NULL;
-  char_t *templine = line;
+  uchar *templine = line;
 
   /*
    * First check if the row already has a reserved line on it...
@@ -23,26 +20,26 @@ RESERVED *add_reserved_line(char_t *spec, char_t *line, short base, short off, C
     CURRENT_FILE->first_reserved = curr;
   }
   if (templine == NULL) {
-    templine = (char_t *) "";
+    templine = (uchar *) "";
   }
-  if ((curr->line = (char_t *) malloc ((strlen((char *) templine) + 1) * sizeof(char_t))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((curr->line = (uchar *) malloc((strlen((char *) templine) + 1) * sizeof(uchar))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (NULL);
   }
-  if ((curr->disp = (char_t *) malloc ((strlen((char *) templine) + 1) * sizeof(char_t))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((curr->disp = (uchar *) malloc((strlen((char *) templine) + 1) * sizeof(uchar))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (NULL);
   }
-  if ((curr->highlighting = (chtype *) malloc ((strlen((char *) templine) + 1) * sizeof(chtype))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((curr->highlighting = (chtype *) malloc((strlen((char *) templine) + 1) * sizeof(chtype))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (NULL);
   }
-  if ((curr->spec = (char_t *) malloc ((strlen((char *) spec) + 1) * sizeof(char_t))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((curr->spec = (uchar *) malloc((strlen((char *) spec) + 1) * sizeof(uchar))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (NULL);
   }
-  if ((curr->attr = (COLOUR_ATTR *) malloc (sizeof(COLOUR_ATTR))) == NULL) {
-    display_error(30, (char_t *) "", FALSE);
+  if ((curr->attr = (COLOUR_ATTR *) malloc(sizeof(COLOUR_ATTR))) == NULL) {
+    display_error(30, (uchar *) "", FALSE);
     return (NULL);
   }
   strcpy((char *) curr->line, (char *) templine);
@@ -56,7 +53,7 @@ RESERVED *add_reserved_line(char_t *spec, char_t *line, short base, short off, C
   return (curr);
 }
 
-RESERVED *find_reserved_line(char_t scrno, bool find_by_row, row_t row, short base, short off) {
+RESERVED *find_reserved_line(uchar scrno, bool find_by_row, ushort row, short base, short off) {
   RESERVED *curr = SCREEN_FILE(scrno)->first_reserved;
 
   while (curr != NULL) {
@@ -84,23 +81,23 @@ short delete_reserved_line(short base, short off) {
   RESERVED *curr = NULL;
 
   if ((curr = find_reserved_line(current_screen, FALSE, 0, base, off)) == NULL) {
-    display_error(64, (char_t *) "", FALSE);
+    display_error(64, (uchar *) "", FALSE);
     return (RC_NO_LINES_CHANGED);
   }
   if (curr->line != NULL) {
-    free (curr->line);
+    free(curr->line);
   }
   if (curr->disp != NULL) {
-    free (curr->disp);
+    free(curr->disp);
   }
   if (curr->highlighting != NULL) {
-    free (curr->highlighting);
+    free(curr->highlighting);
   }
   if (curr->spec != NULL) {
-    free (curr->spec);
+    free(curr->spec);
   }
   if (curr->attr != NULL) {
-    free (curr->attr);
+    free(curr->attr);
   }
   rll_del(&CURRENT_FILE->first_reserved, NULL, curr, DIRECTION_FORWARD);
   return (RC_OK);

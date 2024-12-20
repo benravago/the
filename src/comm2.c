@@ -2,21 +2,16 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* Commands D-J                                              */
-
-/* This file contains all commands that can be assigned to function    */
-/* keys or typed on the command line.                                  */
-
 #include "the.h"
 #include "proto.h"
 
 #define DEF_PARAMS  2
 #define DEF_MOUSE_PARAMS  4
 
-short Define(char_t *params) {
-  char_t *word[DEF_MOUSE_PARAMS + 1];
-  char_t strip[DEF_MOUSE_PARAMS];
-  char_t *ptr = NULL;
+short Define(uchar *params) {
+  uchar *word[DEF_MOUSE_PARAMS + 1];
+  uchar strip[DEF_MOUSE_PARAMS];
+  uchar *ptr = NULL;
   unsigned short num_params = 0;
   int key_value = 0;
   short rc = RC_OK;
@@ -25,12 +20,11 @@ short Define(char_t *params) {
   strip[1] = STRIP_LEADING;
   num_params = param_split(params, word, DEF_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params == 0) {
-    display_error(3, (char_t *) "", FALSE);
+    display_error(3, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
-   * The first parameter is the key name mnemonic , the next is one or
-   * more commands and/or parameters.
+   * The first parameter is the key name mnemonic , the next is one or more commands and/or parameters.
    * First check the mnemonic for decimal string value. ie begins with \
    */
   if (word[0][0] == '\\') {
@@ -51,10 +45,9 @@ short Define(char_t *params) {
   }
   if (rc == RC_OK) {
     /*
-     * Determine if the first word of the supplied command is REXX (either
-     * case)...
+     * Determine if the first word of the supplied command is REXX (either case)...
      */
-    if (strlen((char *) word[1]) > 5 && memcmpi(word[1], (char_t *) "REXX ", 5) == 0) {
+    if (strlen((char *) word[1]) > 5 && memcmpi(word[1], (uchar *) "REXX ", 5) == 0) {
       ptr = word[1];
       rc = add_define(&first_define, &last_define, key_value, ptr + 5, TRUE, FALSE, 0);
     } else {
@@ -74,10 +67,10 @@ short Define(char_t *params) {
   strip[3] = STRIP_NONE;
   num_params = param_split(params, word, DEF_MOUSE_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params < 3) {
-    display_error(3, (char_t *) "", FALSE);
+    display_error(3, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
-  if (!equal((char_t *) "in", word[1], 2)) {
+  if (!equal((uchar *) "in", word[1], 2)) {
     display_error(1, word[1], FALSE);
     return (RC_INVALID_OPERAND);
   }
@@ -85,10 +78,9 @@ short Define(char_t *params) {
     return (RC_INVALID_OPERAND);
   }
   /*
-   * Determine if the first word of the supplied command is REXX (either
-   * case)...
+   * Determine if the first word of the supplied command is REXX (either case)...
    */
-  if (strlen((char *) word[1]) > 5 && memcmpi(word[3], (char_t *) "REXX ", 5) == 0) {
+  if (strlen((char *) word[1]) > 5 && memcmpi(word[3], (uchar *) "REXX ", 5) == 0) {
     ptr = word[3];
     rc = add_define(&first_mouse_define, &last_mouse_define, key_value, ptr + 5, TRUE, FALSE, 0);
   } else {
@@ -97,10 +89,10 @@ short Define(char_t *params) {
   return (rc);
 }
 
-short DeleteLine(char_t *params) {
-  line_t start_line = 0L, end_line = 0L, dest_line = 0L, lines_affected = 0L;
+short DeleteLine(uchar *params) {
+  long start_line = 0L, end_line = 0L, dest_line = 0L, lines_affected = 0L;
   short rc = RC_OK;
-  char_t *args = NULL;
+  uchar *args = NULL;
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_ALL | TARGET_BLOCK_CURRENT;
   bool lines_based_on_scope = FALSE;
@@ -109,7 +101,7 @@ short DeleteLine(char_t *params) {
    * If no parameter is supplied, 1 is assumed.
    */
   if (blank_field(params)) {
-    args = (char_t *) "+1";
+    args = (uchar *) "+1";
   } else {
     args = params;
   }
@@ -165,19 +157,19 @@ short DeleteLine(char_t *params) {
   return (rc);
 }
 
-short Dialog(char_t *params) {
+short Dialog(uchar *params) {
   short rc = RC_OK;
 
-  rc = prepare_dialog(params, FALSE, (char_t *) "DIALOG");
+  rc = prepare_dialog(params, FALSE, (uchar *) "DIALOG");
   return (rc);
 }
 
 #define DIR_PARAMS  1
 
-short Directory(char_t *params) {
-  char_t *word[DIR_PARAMS + 1];
-  char_t strip[DIR_PARAMS];
-  char_t quoted[DIR_PARAMS];
+short Directory(uchar *params) {
+  uchar *word[DIR_PARAMS + 1];
+  uchar strip[DIR_PARAMS];
+  uchar quoted[DIR_PARAMS];
   VIEW_DETAILS *dir = NULL;
   PRESERVED_VIEW_DETAILS *preserved_view_details = NULL;
   PRESERVED_FILE_DETAILS *preserved_file_details = NULL;
@@ -192,26 +184,28 @@ short Directory(char_t *params) {
   quoted[0] = '"';
   num_params = quoted_param_split(params, word, DIR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE, quoted);
   if (num_params > 1) {
-    display_error(1, (char_t *) word[1], FALSE);
+    display_error(1, (uchar *) word[1], FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * Validate that the supplied directory is valid.
    */
   if ((rc = splitpath(strrmdup(strtrans(word[0], OSLASH, ISLASH), ISLASH, TRUE))) != RC_OK) {
-    display_error(10, (char_t *) word[0], FALSE);
+    display_error(10, (uchar *) word[0], FALSE);
     return (rc);
   }
   if ((rc = read_directory()) != RC_OK) {
     if (strcmp((char *) sp_fname, "") == 0) {
-      display_error(10, (char_t *) word[0], FALSE);
+      display_error(10, (uchar *) word[0], FALSE);
     } else {
-      display_error(9, (char_t *) word[0], FALSE);
+      display_error(9, (uchar *) word[0], FALSE);
     }
     return (rc);
   }
+
   strcpy((char *) temp_cmd, (char *) dir_pathname);
   strcat((char *) temp_cmd, (char *) dir_filename);
+  chdir((char*) dir_path);
   /*
    * If we have a DIR.DIR file in the ring, find it...
    */
@@ -232,23 +226,25 @@ short Directory(char_t *params) {
     CURRENT_VIEW->display_low = 0;
     CURRENT_VIEW->display_high = 0;
     CURRENT_VIEW->scope_all = TRUE;
+
     build_screen(current_screen);
     display_screen(current_screen);
     display_cmdline(current_screen, CURRENT_VIEW);
   }
+
   return (RC_OK);
 }
 
 #define DUP_PARAMS  2
 
-short Duplicate(char_t *params) {
-  char_t *word[DUP_PARAMS + 1];
-  char_t strip[DUP_PARAMS];
+short Duplicate(uchar *params) {
+  uchar *word[DUP_PARAMS + 1];
+  uchar strip[DUP_PARAMS];
   unsigned short num_params = 0;
   short rc = RC_OK;
-  line_t num_occ = 0L;
-  line_t start_line = 0L, end_line = 0L, dest_line = 0L, lines_affected = 0L;
-  char_t command_source = 0;
+  long num_occ = 0L;
+  long start_line = 0L, end_line = 0L, dest_line = 0L, lines_affected = 0L;
+  uchar command_source = 0;
   TARGET target;
   long target_type = TARGET_NORMAL | TARGET_BLOCK_CURRENT | TARGET_ALL;
   bool lines_based_on_scope = FALSE;
@@ -260,14 +256,14 @@ short Duplicate(char_t *params) {
    * If no parameters, default to 1 1
    */
   if (num_params == 0) {
-    word[0] = (char_t *) "1";
-    word[1] = (char_t *) "1";
+    word[0] = (uchar *) "1";
+    word[1] = (uchar *) "1";
   }
   /*
    * If 1 parameter, default 2nd parameter to 1
    */
   if (num_params == 1) {
-    word[1] = (char_t *) "1";
+    word[1] = (uchar *) "1";
   }
   /*
    * If first parameter is not an integer, error.
@@ -278,7 +274,7 @@ short Duplicate(char_t *params) {
   }
   num_occ = atol((char *) word[0]);
   if (num_occ == 0L) {
-    display_error(6, (char_t *) "", FALSE);
+    display_error(6, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -293,13 +289,12 @@ short Duplicate(char_t *params) {
    * Duplicate lines depending on target type...
    */
   switch (target.rt[0].target_type) {
-
     case TARGET_BLOCK_CURRENT:
       /*
        * This function not valid for box  blocks.
        */
       if (MARK_VIEW->mark_type == M_BOX) {
-        display_error(48, (char_t *) "", FALSE);
+        display_error(48, (uchar *) "", FALSE);
         return (RC_INVALID_ENVIRON);
       }
       command_source = SOURCE_BLOCK;
@@ -307,7 +302,6 @@ short Duplicate(char_t *params) {
       end_line = dest_line = MARK_VIEW->mark_end_line;
       lines_based_on_scope = FALSE;
       break;
-
     default:
       command_source = SOURCE_COMMAND;
       if (target.num_lines < 0L) {
@@ -321,7 +315,7 @@ short Duplicate(char_t *params) {
       break;
   }
   if ((start_line == 0 && end_line == 0) || target.num_lines == 0) {
-    ; // no-op
+    // no-op
   } else {
     post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
     rc = rearrange_line_blocks(COMMAND_DUPLICATE, command_source, start_line, end_line, dest_line, num_occ, CURRENT_VIEW, CURRENT_VIEW, lines_based_on_scope, &lines_affected);
@@ -332,9 +326,9 @@ short Duplicate(char_t *params) {
 
 #define EDITV_PARAMS  2
 
-short THEEditv(char_t *params) {
-  char_t *word[EDITV_PARAMS + 1];
-  char_t strip[EDITV_PARAMS];
+short THEEditv(uchar *params) {
+  uchar *word[EDITV_PARAMS + 1];
+  uchar strip[EDITV_PARAMS];
   unsigned short num_params = 0;
   short editv_type = 0;
   short rc = RC_OK;
@@ -344,43 +338,43 @@ short THEEditv(char_t *params) {
   strip[1] = STRIP_LEADING;
   num_params = param_split(params, word, EDITV_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   if (num_params == 0) {
-    display_error(3, (char_t *) "", FALSE);
+    display_error(3, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
    * Determine the subcommand...
    */
-  if (equal((char_t *) "get", word[0], 3)) {
+  if (equal((uchar *) "get", word[0], 3)) {
     editv_type = EDITV_GET;
-  } else if (equal((char_t *) "put", word[0], 3)) {
+  } else if (equal((uchar *) "put", word[0], 3)) {
     editv_type = EDITV_PUT;
-  } else if (equal((char_t *) "set", word[0], 3)) {
+  } else if (equal((uchar *) "set", word[0], 3)) {
     editv_type = EDITV_SET;
-  } else if (equal((char_t *) "setl", word[0], 4)) {
+  } else if (equal((uchar *) "setl", word[0], 4)) {
     editv_type = EDITV_SETL;
-  } else if (equal((char_t *) "list", word[0], 4)) {
+  } else if (equal((uchar *) "list", word[0], 4)) {
     editv_type = EDITV_LIST;
-  } else if (equal((char_t *) "getf", word[0], 4)) {
+  } else if (equal((uchar *) "getf", word[0], 4)) {
     editv_type = EDITV_GET;
     editv_file = TRUE;
-  } else if (equal((char_t *) "putf", word[0], 4)) {
+  } else if (equal((uchar *) "putf", word[0], 4)) {
     editv_type = EDITV_PUT;
     editv_file = TRUE;
-  } else if (equal((char_t *) "setf", word[0], 4)) {
+  } else if (equal((uchar *) "setf", word[0], 4)) {
     editv_type = EDITV_SET;
     editv_file = TRUE;
-  } else if (equal((char_t *) "setlf", word[0], 5)) {
+  } else if (equal((uchar *) "setlf", word[0], 5)) {
     editv_type = EDITV_SETL;
     editv_file = TRUE;
-  } else if (equal((char_t *) "setfl", word[0], 5)) {
+  } else if (equal((uchar *) "setfl", word[0], 5)) {
     editv_type = EDITV_SETL;
     editv_file = TRUE;
-  } else if (equal((char_t *) "listf", word[0], 5)) {
+  } else if (equal((uchar *) "listf", word[0], 5)) {
     editv_type = EDITV_LIST;
     editv_file = TRUE;
-  } else if (equal((char_t *) "getstem", word[0], 7)) {
+  } else if (equal((uchar *) "getstem", word[0], 7)) {
     editv_type = EDITV_GETSTEM;
-  } else if (equal((char_t *) "getstemf", word[0], 8)) {
+  } else if (equal((uchar *) "getstemf", word[0], 8)) {
     editv_type = EDITV_GETSTEM;
     editv_file = TRUE;
   } else {
@@ -391,7 +385,7 @@ short THEEditv(char_t *params) {
    * Only LIST and LISTF are allowed no parameters...
    */
   if (editv_type != EDITV_LIST && num_params == 1) {
-    display_error(3, (char_t *) "", FALSE);
+    display_error(3, (uchar *) "", FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -399,7 +393,7 @@ short THEEditv(char_t *params) {
    */
   if (editv_type == EDITV_GET || editv_type == EDITV_PUT) {
     if (!in_macro) {
-      display_error(53, (char_t *) "", FALSE);
+      display_error(53, (uchar *) "", FALSE);
       return (RC_INVALID_ENVIRON);
     }
   }
@@ -407,54 +401,50 @@ short THEEditv(char_t *params) {
   return (rc);
 }
 
-short Emsg(char_t *params) {
+short Emsg(uchar *params) {
   display_error(0, params, FALSE);
   return (RC_OK);
 }
 
-short Enter(char_t *params) {
-  unsigned y = 0;
+short Enter(uchar *params) {
+  unsigned short y = 0;
   short rc = RC_OK;
 
   switch (CURRENT_VIEW->current_window) {
-
     case WINDOW_COMMAND:
-      rc = Sos_execute((char_t *) "");
+      rc = Sos_execute((uchar *) "");
       break;
-
     case WINDOW_PREFIX:
       post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
       if (CURRENT_FILE->first_ppc == NULL) {    /* no pending prefix cmds */
         THEcursor_down(current_screen, CURRENT_VIEW, TRUE);
-        rc = Sos_firstcol((char_t *) "");
+        rc = Sos_firstcol((uchar *) "");
       } else {
-        Sos_doprefix((char_t *) "");
+        Sos_doprefix((uchar *) "");
       }
       break;
-
     case WINDOW_FILEAREA:
       /*
        * If in readonly mode, ignore new line addition...
        */
       if (!ISREADONLY(CURRENT_FILE)) {
-        if (equal((char_t *) "cua", params, 3)) {
+        if (equal((uchar *) "cua", params, 3)) {
           /*
-           * Split the line at the cursor position
-           * move the cursor to the first character of the FILEAREA
+           * Split the line at the cursor position move the cursor to the first character of the FILEAREA
            */
           if (CURRENT_VIEW->newline_aligned) {
             rc = execute_split_join(SPLTJOIN_SPLIT, TRUE, TRUE);
-            rc = Sos_firstchar((char_t *) "");
+            rc = Sos_firstchar((uchar *) "");
           } else {
             rc = execute_split_join(SPLTJOIN_SPLIT, FALSE, TRUE);
-            rc = Sos_firstcol((char_t *) "");
+            rc = Sos_firstcol((uchar *) "");
           }
           THEcursor_down(current_screen, CURRENT_VIEW, TRUE);
           return (rc);
         } else {
           if (CURRENT_VIEW->inputmode == INPUTMODE_LINE) {
             post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
-            insert_new_line(current_screen, CURRENT_VIEW, (char_t *) "", 0, 1, get_true_line(FALSE), FALSE, FALSE, TRUE, CURRENT_VIEW->display_low, TRUE, TRUE);
+            insert_new_line(current_screen, CURRENT_VIEW, (uchar *) "", 0, 1, get_true_line(FALSE), FALSE, FALSE, TRUE, CURRENT_VIEW->display_low, TRUE, TRUE);
             break;
           }
         }
@@ -467,24 +457,24 @@ short Enter(char_t *params) {
   return (rc);
 }
 
-short Expand(char_t *params) {
+short Expand(uchar *params) {
   short rc = RC_OK;
 
   rc = execute_expand_compress(params, TRUE, TRUE, TRUE, TRUE);
   return (rc);
 }
 
-short Extract(char_t *params) {
+short Extract(uchar *params) {
   register short i = 0;
   short rc = RC_OK, itemno = 0, num_items = 0, len = 0, num_values = 0;
   short pos = 0, arglen = 0;
-  char_t *args = NULL;
-  char_t delim;
+  uchar *args = NULL;
+  uchar delim;
   bool invalid_item = FALSE;
-  char_t item_type = 0;
+  uchar item_type = 0;
 
   if (!in_macro || !rexx_support) {
-    display_error(53, (char_t *) "", FALSE);
+    display_error(53, (uchar *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   /*
@@ -535,7 +525,7 @@ short Extract(char_t *params) {
     arglen = strlen((char *) params);
     pos = strzeq(params, ' ');
     if (pos == (-1)) {
-      args = (char_t *) "";
+      args = (uchar *) "";
     } else {
       *(params + pos) = '\0';
       args = strtrunc(params + pos + 1);
@@ -571,14 +561,13 @@ short Extract(char_t *params) {
   return (rc);
 }
 
-short Ffile(char_t *params) {
+short Ffile(uchar *params) {
   short rc = RC_OK;
 
   /*
-   * The filename can be quoted; so strip leading and trailing
-   * double quotes
+   * The filename can be quoted; so strip leading and trailing double quotes
    */
-  params = MyStrip(params, STRIP_BOTH, '"');
+  params = strstrip(params, STRIP_BOTH, '"');
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   if ((rc = save_file(CURRENT_FILE, params, TRUE, CURRENT_FILE->number_lines, 1L, NULL, FALSE, 0, max_line_length, TRUE, FALSE, FALSE)) != RC_OK) {
     return (rc);
@@ -593,15 +582,14 @@ short Ffile(char_t *params) {
   return (rc);
 }
 
-short File(char_t *params) {
+short File(uchar *params) {
   short rc = RC_OK;
 
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   /*
-   * The filename can be quoted; so strip leading and trailing
-   * double quotes
+   * The filename can be quoted; so strip leading and trailing double quotes
    */
-  params = MyStrip(params, STRIP_BOTH, '"');
+  params = strstrip(params, STRIP_BOTH, '"');
   if ((rc = save_file(CURRENT_FILE, params, FALSE, CURRENT_FILE->number_lines, 1L, NULL, FALSE, 0, max_line_length, TRUE, FALSE, FALSE)) != RC_OK) {
     return (rc);
   }
@@ -615,7 +603,7 @@ short File(char_t *params) {
   return (rc);
 }
 
-short Fillbox(char_t *params) {
+short Fillbox(uchar *params) {
   int key = 0;
   short len_params = 0;
   short y = 0, x = 0;
@@ -633,17 +621,14 @@ short Fillbox(char_t *params) {
   if (CURRENT_VIEW->hex) {
     len_params = convert_hex_strings(params);
     switch (len_params) {
-
       case -1:                 /* invalid hex value */
         display_error(32, params, FALSE);
         return (RC_INVALID_OPERAND);
         break;
-
       case -2:                 /* memory exhausted */
-        display_error(30, (char_t *) "", FALSE);
+        display_error(30, (uchar *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
         break;
-
       default:
         break;
     }
@@ -664,29 +649,29 @@ short Fillbox(char_t *params) {
   }
   if (CURRENT_VIEW->current_window != WINDOW_COMMAND && len_params != 1) {
     getyx(CURRENT_WINDOW, y, x);
-    display_prompt((char_t *) "Enter fill character...");
+    display_prompt((uchar *) "Enter fill character...");
     wmove(CURRENT_WINDOW_FILEAREA, y, x);
     wrefresh(CURRENT_WINDOW_FILEAREA);
     for (;;) {
-      key = wgetch(CURRENT_WINDOW);
+      key = my_getch(CURRENT_WINDOW);
       if (!is_modifier_key(key)) {
         break;
       }
     }
     clear_msgline(-1);
   }
-  box_operations(BOX_F, SOURCE_BLOCK, TRUE, (char_t) key);
+  box_operations(BOX_F, SOURCE_BLOCK, TRUE, (uchar) key);
   return (RC_OK);
 }
 
-short Find(char_t *params) {
+short Find(uchar *params) {
   short rc = RC_OK;
 
   rc = execute_find_command(params, TARGET_FIND);
   return (rc);
 }
 
-short Findup(char_t *params) {
+short Findup(uchar *params) {
   short rc = RC_OK;
 
   rc = execute_find_command(params, TARGET_FINDUP);
@@ -695,12 +680,12 @@ short Findup(char_t *params) {
 
 #define FOR_PARAMS  2
 
-short Forward(char_t *params) {
-  char_t *word[FOR_PARAMS + 1];
-  char_t strip[FOR_PARAMS];
+short Forward(uchar *params) {
+  uchar *word[FOR_PARAMS + 1];
+  uchar strip[FOR_PARAMS];
   unsigned short num_params = 0;
   short scroll_by_page = 1;     /* by default we scroll pages */
-  line_t num_pages = 0L;
+  long num_pages = 0L;
   short rc = RC_OK;
 
   /*
@@ -710,30 +695,29 @@ short Forward(char_t *params) {
   strip[1] = STRIP_BOTH;
   num_params = param_split(params, word, FOR_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   switch (num_params) {
-
     case 0:
       num_pages = 1;
       break;
-
     case 1:
+      /*
+       * If parameter is '*', set current line equal to last line in file...
+       */
       if (strcmp((char *) word[0], "*") == 0) {
-        /*
-         * If parameter is '*', set current line equal to last line in file...
-         */
-        rc = Bottom((char_t *) "");
+        rc = Bottom((uchar *) "");
         return (rc);
-      } else if (equal((char_t *) "HALF", word[0], 4)) {
-        /*
-         * If parameter is 'HALF', advance half a page
-         */
+      }
+      /*
+       * If parameter is 'HALF', advance half a page
+       */
+      else if (equal((uchar *) "HALF", word[0], 4)) {
         scroll_by_page = 0;
         num_pages = CURRENT_SCREEN.rows[WINDOW_FILEAREA] / 2;
       }
+      /*
+       * If the parameter is not a valid positive integer, error.
+       */
       else if (!valid_positive_integer(word[0])) {
-        /*
-         * If the parameter is not a valid positive integer, error.
-         */
-        display_error(1, (char_t *) word[0], FALSE);
+        display_error(1, (uchar *) word[0], FALSE);
         return (RC_INVALID_OPERAND);
       } else {
         /*
@@ -742,32 +726,29 @@ short Forward(char_t *params) {
         num_pages = atol((char *) word[0]);
       }
       break;
-
     case 2:
-      if (equal((char_t *) "Lines", word[1], 1)) {
+      if (equal((uchar *) "Lines", word[1], 1)) {
         scroll_by_page = 0;
         if (!valid_positive_integer(word[0])) {
-          display_error(1, (char_t *) word[0], FALSE);
+          display_error(1, (uchar *) word[0], FALSE);
           return (RC_INVALID_OPERAND);
         }
       } else {
-        display_error(1, (char_t *) word[1], FALSE);
+        display_error(1, (uchar *) word[1], FALSE);
         return (RC_INVALID_OPERAND);
       }
       num_pages = atol((char *) word[0]);
       break;
-
     default:
-      display_error(2, (char_t *) "", FALSE);
+      display_error(2, (uchar *) "", FALSE);
       return (RC_INVALID_OPERAND);
       break;
   }
   /*
-   * If the current line is already on "Bottom of File" or the parameter
-   * is 0, go to the top of the file.
+   * If the current line is already on "Bottom of File" or the parameter is 0, go to the top of the file.
    */
   if (num_pages == 0 || (CURRENT_BOF && PAGEWRAPx)) {
-    rc = Top((char_t *) "");
+    rc = Top((uchar *) "");
     return (rc);
   }
   /*
@@ -783,22 +764,20 @@ short Forward(char_t *params) {
 
 #define GET_PARAMS  3
 
-short Get(char_t *params) {
-  char_t *word[GET_PARAMS + 1];
-  char_t strip[GET_PARAMS];
-  char_t quoted[GET_PARAMS];
+short Get(uchar *params) {
+  uchar *word[GET_PARAMS + 1];
+  uchar strip[GET_PARAMS];
+  uchar quoted[GET_PARAMS];
   unsigned short num_params = 0;
-  char_t *filename = NULL;
+  uchar *filename = NULL;
   FILE *fp = NULL;
   LINE *curr = NULL;
   LINE *save_curr = NULL;
   LINE *save_next = NULL;
-  line_t old_number_lines = 0L, true_line = 0L;
+  long old_number_lines = 0L, true_line = 0L;
   short rc = RC_OK;
-  line_t fromline = 1L, numlines = 0L;
-  bool clip = FALSE;
-  // int clip_type;
-  char_t  buffer[100];
+  long fromline = 1L, numlines = 0L;
+  uchar buffer[100];
 
   /*
    * Validate the parameters that have been supplied.
@@ -811,83 +790,61 @@ short Get(char_t *params) {
   quoted[2] = '\0';
   num_params = quoted_param_split(params, word, GET_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE, quoted);
   if (num_params > 3) {
-    display_error(2, (char_t *) "", FALSE);
+    display_error(2, (uchar *) "", FALSE);
     return (RC_INVALID_ENVIRON);
   }
   if (num_params == 0) {
     filename = tempfilename;
   } else {
-    if (equal((char_t *) "clip:", word[0], 5)) {
-      clip = TRUE;
-      if (num_params > 2) {
-        display_error(2, (char_t *) "", FALSE);
-        return (RC_INVALID_ENVIRON);
-      } else if (num_params == 1) {
-        // clip_type = M_LINE;
-      } else {
-        if (equal((char_t *) "line", word[1], 4)) {
-          // clip_type = M_LINE;
-        } else if (equal((char_t *) "stream", word[1], 6)) {
-          // clip_type = M_STREAM;
-        } else if (equal((char_t *) "box", word[1], 3)) {
-          // clip_type = M_BOX;
+    if ((rc = splitpath(strrmdup(strtrans(word[0], OSLASH, ISLASH), ISLASH, TRUE))) != RC_OK) {
+      display_error(10, word[0], FALSE);
+      return (rc);
+    }
+    strcpy((char *) temp_cmd, (char *) sp_path);
+    strcat((char *) temp_cmd, (char *) sp_fname);
+    filename = temp_cmd;
+    if (num_params == 2 || num_params == 3) {
+      if ((rc = valid_positive_integer_against_maximum(word[1], MAX_WIDTH_NUM)) != 0) {
+        if (rc == 4) {
+          sprintf((char *) buffer, "%s", word[1]);
         } else {
-          display_error(1, word[1], FALSE);
-          return (RC_INVALID_ENVIRON);
+          sprintf((char *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
         }
+        display_error(rc, buffer, FALSE);
+        return (RC_INVALID_OPERAND);
       }
-    } else {
-      if ((rc = splitpath(strrmdup(strtrans(word[0], OSLASH, ISLASH), ISLASH, TRUE))) != RC_OK) {
-        display_error(10, word[0], FALSE);
-        return (rc);
+      fromline = atol((char *) word[1]);
+      if (fromline == 0L) {
+        display_error(4, word[1], FALSE);
+        return (RC_INVALID_OPERAND);
       }
-      strcpy((char *) temp_cmd, (char *) sp_path);
-      strcat((char *) temp_cmd, (char *) sp_fname);
-      filename = temp_cmd;
-      if (num_params == 2 || num_params == 3) {
-        if ((rc = valid_positive_integer_against_maximum(word[1], MAX_WIDTH_NUM)) != 0) {
+    }
+    if (num_params == 3) {
+      if (strcmp((char *) word[2], "*") == 0) {
+        numlines = 0L;
+      } else {
+        if ((rc = valid_positive_integer_against_maximum(word[2], MAX_WIDTH_NUM)) != 0) {
           if (rc == 4) {
-            sprintf((char *) buffer, "%s", word[1]);
+            sprintf((char *) buffer, "%s", word[2]);
           } else {
             sprintf((char *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
           }
           display_error(rc, buffer, FALSE);
           return (RC_INVALID_OPERAND);
-        }
-        fromline = atol((char *) word[1]);
-        if (fromline == 0L) {
-          display_error(4, word[1], FALSE);
-          return (RC_INVALID_OPERAND);
-        }
-      }
-      if (num_params == 3) {
-        if (strcmp((char *) word[2], "*") == 0) {
-          numlines = 0L;
         } else {
-          if ((rc = valid_positive_integer_against_maximum(word[2], MAX_WIDTH_NUM)) != 0) {
-            if (rc == 4) {
-              sprintf((char *) buffer, "%s", word[2]);
-            } else {
-              sprintf((char *) buffer, "- MUST be <= %ld", MAX_WIDTH_NUM);
-            }
-            display_error(rc, buffer, FALSE);
-            return (RC_INVALID_OPERAND);
-          } else
-            numlines = atol((char *) word[2]);
+          numlines = atol((char *) word[2]);
         }
       }
     }
   }
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
-  if (!clip) {
-    if (!file_readable(filename)) {
-      display_error(8, filename, FALSE);
-      return (RC_ACCESS_DENIED);
-    }
-    if ((fp = fopen((char *) filename, "r")) == NULL) {
-      display_error(9, params, FALSE);
-      return (RC_ACCESS_DENIED);
-    }
+  if (!file_readable(filename)) {
+    display_error(8, filename, FALSE);
+    return (RC_ACCESS_DENIED);
+  }
+  if ((fp = fopen((char *) filename, "r")) == NULL) {
+    display_error(9, params, FALSE);
+    return (RC_ACCESS_DENIED);
   }
   true_line = get_true_line(TRUE);
   curr = lll_find(CURRENT_FILE->first_line, CURRENT_FILE->last_line, true_line, CURRENT_FILE->number_lines);
@@ -897,11 +854,7 @@ short Get(char_t *params) {
   old_number_lines = CURRENT_FILE->number_lines;
   save_curr = curr;
   save_next = curr->next;
-  if (clip) {
-    curr = getclipboard(curr, 1);
-  } else {
-    curr = read_file(fp, curr, filename, fromline, numlines, TRUE);
-  }
+  curr = read_file(fp, curr, filename, fromline, numlines, TRUE);
   if (curr == NULL) {
     for (curr = save_curr; curr != save_next;) {
       if (curr != save_curr) {
@@ -911,24 +864,18 @@ short Get(char_t *params) {
       }
     }
     pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
-    if (!clip) {
-      fclose(fp);
-    }
+    fclose(fp);
     return (RC_ACCESS_DENIED);
   }
-  if (!clip) {
-    fclose(fp);
-  }
+  fclose(fp);
   pre_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL);
   /*
-   * Fix the positioning of the marked block (if there is one and it is
-   * in the current view).
+   * Fix the positioning of the marked block (if there is one and it is in the current view).
    */
   adjust_marked_lines(TRUE, true_line, CURRENT_FILE->number_lines - old_number_lines);
   adjust_pending_prefix(CURRENT_VIEW, TRUE, true_line, CURRENT_FILE->number_lines - old_number_lines);
   /*
-   * Increment the number of lines counter for the current file and the
-   * number of alterations.
+   * Increment the number of lines counter for the current file and the number of alterations.
    */
   increment_alt(CURRENT_FILE);
   build_screen(current_screen);
@@ -936,7 +883,7 @@ short Get(char_t *params) {
   return (RC_OK);
 }
 
-short Help(char_t *params) {
+short Help(uchar *params) {
   static bool first = TRUE;
   char *envptr = NULL;
 
@@ -944,7 +891,7 @@ short Help(char_t *params) {
    * No arguments are allowed; error if any are present.
    */
   if (strcmp((char *) params, "") != 0) {
-    display_error(1, (char_t *) params, FALSE);
+    display_error(1, (uchar *) params, FALSE);
     return (RC_INVALID_OPERAND);
   }
   /*
@@ -961,7 +908,7 @@ short Help(char_t *params) {
     first = FALSE;
   }
   if (file_exists(the_help_file) != THE_FILE_EXISTS) {
-    display_error(23, (char_t *) the_help_file, FALSE);
+    display_error(23, (uchar *) the_help_file, FALSE);
     return (RC_FILE_NOT_FOUND);
   }
   Xedit(the_help_file);
@@ -970,9 +917,9 @@ short Help(char_t *params) {
 
 #define HIT_MOUSE_PARAMS  4
 
-short Hit(char_t *params) {
-  char_t *word[HIT_MOUSE_PARAMS + 1];
-  char_t strip[HIT_MOUSE_PARAMS];
+short Hit(uchar *params) {
+  uchar *word[HIT_MOUSE_PARAMS + 1];
+  uchar strip[HIT_MOUSE_PARAMS];
   unsigned short num_params = 0;
   int key = 0;
   short rc = RC_OK;
@@ -980,8 +927,9 @@ short Hit(char_t *params) {
   bool mouse_details_present = FALSE;
 
   /*
-   * Parse the parameters into multiple words. If only one word then it
-   * must be a key.  If 3 words its a mouse key, otherwise asn error.
+   * Parse the parameters into multiple words.
+   * If only one word then it must be a key.
+   * If 3 words its a mouse key, otherwise asn error.
    */
   strip[0] = STRIP_BOTH;
   strip[1] = STRIP_BOTH;
@@ -989,7 +937,6 @@ short Hit(char_t *params) {
   strip[3] = STRIP_NONE;
   num_params = param_split(params, word, HIT_MOUSE_PARAMS, WORD_DELIMS, TEMP_PARAM, strip, FALSE);
   switch (num_params) {
-
     case 1:                    /* key definition */
       key = find_key_name(params);
       if (key == (-1)) {
@@ -997,9 +944,8 @@ short Hit(char_t *params) {
         return (RC_INVALID_OPERAND);
       }
       break;
-
     case 3:                    /* mouse definition */
-      if (!equal((char_t *) "in", word[1], 2)) {
+      if (!equal((uchar *) "in", word[1], 2)) {
         display_error(1, word[1], FALSE);
         return (RC_INVALID_OPERAND);
       }
@@ -1008,7 +954,6 @@ short Hit(char_t *params) {
       }
       mouse_details_present = TRUE;
       break;
-
     default:                   /* error */
       break;
   }
@@ -1025,25 +970,22 @@ short Hit(char_t *params) {
   return (rc);
 }
 
-short Input(char_t *params) {
-  length_t len_params = 0;
+short Input(uchar *params) {
+  long len_params = 0;
   short rc = RC_OK;
 
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   if (CURRENT_VIEW->hex) {
     len_params = convert_hex_strings(params);
     switch (len_params) {
-
       case -1:                 /* invalid hex value */
         display_error(32, params, FALSE);
         return (RC_INVALID_OPERAND);
         break;
-
       case -2:                 /* memory exhausted */
-        display_error(30, (char_t *) "", FALSE);
+        display_error(30, (uchar *) "", FALSE);
         return (RC_OUT_OF_MEMORY);
         break;
-
       default:
         break;
     }
@@ -1051,16 +993,15 @@ short Input(char_t *params) {
     len_params = strlen((char *) params);
   }
   if (len_params > max_line_length) {
-    display_error(0, (char_t *) "Truncated", FALSE);
+    display_error(0, (uchar *) "Truncated", FALSE);
     len_params = max_line_length;
   }
   /*
-   * If we in XEDIT compatability, and no text is supplied, insert a blank line at
-   * focus line and move the cursor to the first viewable column of the file area
+   * If we in XEDIT compatibility, and no text is supplied, insert a blank line at focus line and move the cursor to the first viewable column of the file area
    * This is what sos_lineadd() does so call that!
    */
   if (compatible_feel == COMPAT_XEDIT && len_params == 0) {
-    rc = Sos_addline((char_t *) "");
+    rc = Sos_addline((uchar *) "");
   } else {
     insert_new_line(current_screen, CURRENT_VIEW, params, len_params, 1L, get_true_line(TRUE), TRUE, TRUE, TRUE, CURRENT_VIEW->display_low, TRUE, FALSE);
   }
@@ -1069,9 +1010,9 @@ short Input(char_t *params) {
 
 #define JOI_PARAMS  2
 
-short Join(char_t *params) {
-  char_t *word[JOI_PARAMS + 1];
-  char_t strip[JOI_PARAMS];
+short Join(uchar *params) {
+  uchar *word[JOI_PARAMS + 1];
+  uchar strip[JOI_PARAMS];
   unsigned short num_params = 0;
   short rc = RC_OK;
   bool aligned = FALSE;
@@ -1087,28 +1028,28 @@ short Join(char_t *params) {
     aligned = FALSE;
     cursorarg = FALSE;
   } else {
-    if (equal((char_t *) "aligned", word[0], 2)) {
+    if (equal((uchar *) "aligned", word[0], 2)) {
       aligned = TRUE;
-      if (equal((char_t *) "cursor", word[1], 6)) {
+      if (equal((uchar *) "cursor", word[1], 6)) {
         cursorarg = TRUE;
       } else {
-        if (equal((char_t *) "column", word[1], 1)) {
+        if (equal((uchar *) "column", word[1], 1)) {
           cursorarg = FALSE;
         } else {
-          display_error(1, (char_t *) word[1], FALSE);
+          display_error(1, (uchar *) word[1], FALSE);
           return (RC_INVALID_ENVIRON);
         }
       }
     } else {
-      if (equal((char_t *) "cursor", word[0], 6)) {
+      if (equal((uchar *) "cursor", word[0], 6)) {
         aligned = FALSE;
         cursorarg = TRUE;
       } else {
-        if (equal((char_t *) "column", word[0], 1)) {
+        if (equal((uchar *) "column", word[0], 1)) {
           aligned = FALSE;
           cursorarg = FALSE;
         } else {
-          display_error(1, (char_t *) word[0], FALSE);
+          display_error(1, (uchar *) word[0], FALSE);
           return (RC_INVALID_ENVIRON);
         }
       }

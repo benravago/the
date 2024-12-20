@@ -2,15 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* CURSOR commands                                          */
-
-/* This file contains all commands that can be assigned to function    */
-/* keys or typed on the command line.                                  */
-
 #include "the.h"
 #include "proto.h"
 
-short THEcursor_cmdline(char_t curr_screen, VIEW_DETAILS *curr_view, short col) {
+short THEcursor_cmdline(uchar curr_screen, VIEW_DETAILS *curr_view, short col) {
   short rc = RC_OK;
 
   /*
@@ -47,11 +42,9 @@ short THEcursor_column(void) {
     return (RC_OK);
   }
   switch (CURRENT_VIEW->current_window) {
-
     case WINDOW_COMMAND:
       rc = THEcursor_home(current_screen, CURRENT_VIEW, FALSE);
       break;
-
     case WINDOW_PREFIX:
       y = getcury(CURRENT_WINDOW);
       CURRENT_VIEW->current_window = WINDOW_FILEAREA;
@@ -62,7 +55,7 @@ short THEcursor_column(void) {
   return (rc);
 }
 
-short THEcursor_down(char_t curr_screen, VIEW_DETAILS *curr_view, short escreen) {
+short THEcursor_down(uchar curr_screen, VIEW_DETAILS *curr_view, short escreen) {
   short rc = RC_OK;
   short x;
 
@@ -73,7 +66,6 @@ short THEcursor_down(char_t curr_screen, VIEW_DETAILS *curr_view, short escreen)
     return (RC_OK);
   }
   switch (curr_view->current_window) {
-
     case WINDOW_PREFIX:
     case WINDOW_FILEAREA:
       rc = scroll_line(curr_screen, curr_view, DIRECTION_FORWARD, 1L, FALSE, escreen);
@@ -84,26 +76,24 @@ short THEcursor_down(char_t curr_screen, VIEW_DETAILS *curr_view, short escreen)
         }
       }
       break;
-
     case WINDOW_COMMAND:
       /*
        * Cycle forward  through the command list or tab to first line.
        */
       if (CMDARROWSTABCMDx) {
-        rc = Sos_topedge((char_t *) "");
+        rc = Sos_topedge((uchar *) "");
       } else {
-        rc = Retrieve((char_t *) "+");
+        rc = Retrieve((uchar *) "+");
       }
       break;
-
     default:
-      display_error(2, (char_t *) "", FALSE);
+      display_error(2, (uchar *) "", FALSE);
       break;
   }
   return (rc);
 }
 
-short THEcursor_file(bool show_errors, line_t line, length_t col) {
+short THEcursor_file(bool show_errors, long line, long col) {
   short rc = RC_OK;
   short y = 0, x = 0;
 
@@ -118,7 +108,7 @@ short THEcursor_file(bool show_errors, line_t line, length_t col) {
    */
   if (!line_in_view(current_screen, line)) {
     if (show_errors) {
-      display_error(63, (char_t *) "", FALSE);
+      display_error(63, (uchar *) "", FALSE);
     }
     return (RC_INVALID_OPERAND);
   }
@@ -130,19 +120,19 @@ short THEcursor_file(bool show_errors, line_t line, length_t col) {
   } else {
     if (!column_in_view(current_screen, col - 1)) {
       if (show_errors) {
-        display_error(63, (char_t *) "", FALSE);
+        display_error(63, (uchar *) "", FALSE);
       }
       return (RC_INVALID_OPERAND);
     }
-    x = (length_t) ((line_t) col - (line_t) CURRENT_VIEW->verify_col + 1);
+    x = (long) ((long) col - (long) CURRENT_VIEW->verify_col + 1);
   }
   y = get_row_for_focus_line(current_screen, line, CURRENT_VIEW->current_row);
   rc = THEcursor_move(current_screen, CURRENT_VIEW, show_errors, TRUE, (short) (y + 1), x);
   return (rc);
 }
 
-short THEcursor_home(char_t curr_screen, VIEW_DETAILS *curr_view, bool save) {
-  char_t last_win = 0;
+short THEcursor_home(uchar curr_screen, VIEW_DETAILS *curr_view, bool save) {
+  uchar last_win = 0;
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
 
@@ -180,15 +170,13 @@ short THEcursor_left(short escreen, bool kedit_defaults) {
   unsigned short x = 0, y = 0;
   short rc = RC_OK;
 
-  // If escreen is CURSOR_ESCREEN or CURSOR_CUA, then scrolling of the
-  // window will be done if possible.
-
   /*
-   * The following should be a temporary fix for KEDIT compatibility...
+   * If escreen is CURSOR_ESCREEN or CURSOR_CUA, then scrolling of the window will be done if possible.
    */
   if (CURRENT_VIEW->prefix && kedit_defaults) {
     escreen = CURSOR_SCREEN;
   }
+
   getyx(CURRENT_WINDOW, y, x);
   /*
    * For all windows, if we are not at left column, move 1 pos to left.
@@ -203,7 +191,6 @@ short THEcursor_left(short escreen, bool kedit_defaults) {
    * scrolling and act accordingly.
    */
   switch (CURRENT_VIEW->current_window) {
-
     case WINDOW_FILEAREA:
       /*
        * For CUA interface, at the left column of the file, move the cursor
@@ -212,7 +199,7 @@ short THEcursor_left(short escreen, bool kedit_defaults) {
        */
       if (escreen == CURSOR_CUA && CURRENT_VIEW->verify_col == 1) {
         rc = scroll_line(current_screen, CURRENT_VIEW, DIRECTION_BACKWARD, 1L, FALSE, escreen);
-        rc = Sos_endchar((char_t *) "");
+        rc = Sos_endchar((uchar *) "");
         break;
       }
       if (escreen == CURSOR_SCREEN) {
@@ -222,13 +209,14 @@ short THEcursor_left(short escreen, bool kedit_defaults) {
          * window, either PREFIX (if ON) or FILEAREA
          */
         if (CURRENT_VIEW->prefix) {
-          rc = Sos_prefix((char_t *) "");
+          rc = Sos_prefix((uchar *) "");
         }
-        rc = Sos_lastcol((char_t *) "");
+        rc = Sos_lastcol((uchar *) "");
       } else {
         if (CURRENT_VIEW->verify_col != 1 && CURRENT_VIEW->autoscroll != 0) {
-          length_t curr_col = x + CURRENT_VIEW->verify_col - 1;
-          length_t num_cols = (CURRENT_VIEW->autoscroll == (-1)) ? CURRENT_SCREEN.cols[WINDOW_FILEAREA] / 2 : CURRENT_VIEW->autoscroll;
+          long curr_col = x + CURRENT_VIEW->verify_col - 1;
+          long num_cols = (CURRENT_VIEW->autoscroll == (-1)) ? CURRENT_SCREEN.cols[WINDOW_FILEAREA] / 2 : CURRENT_VIEW->autoscroll;
+
           num_cols = min(num_cols, CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
           if (num_cols >= CURRENT_VIEW->verify_col) {
             CURRENT_VIEW->verify_col = 1;
@@ -241,18 +229,18 @@ short THEcursor_left(short escreen, bool kedit_defaults) {
         } else {
           if (compatible_feel == COMPAT_KEDIT || compatible_feel == COMPAT_KEDITW) {
             if ((CURRENT_VIEW->prefix & PREFIX_LOCATION_MASK) == PREFIX_LEFT) {
-              rc = Sos_prefix((char_t *) "");
+              rc = Sos_prefix((uchar *) "");
             }
-            rc = Sos_lastcol((char_t *) "");
+            rc = Sos_lastcol((uchar *) "");
           }
         }
       }
       break;
-
     case WINDOW_COMMAND:
       if (cmd_verify_col != 1 && CURRENT_VIEW->autoscroll != 0) {
-        length_t curr_col = x + cmd_verify_col - 1;
-        length_t num_cols = (CURRENT_VIEW->autoscroll == (-1)) ? CURRENT_SCREEN.cols[WINDOW_COMMAND] / 2 : CURRENT_VIEW->autoscroll;
+        long curr_col = x + cmd_verify_col - 1;
+        long num_cols = (CURRENT_VIEW->autoscroll == (-1)) ? CURRENT_SCREEN.cols[WINDOW_COMMAND] / 2 : CURRENT_VIEW->autoscroll;
+
         num_cols = min(num_cols, CURRENT_SCREEN.cols[WINDOW_COMMAND]);
         if (num_cols >= cmd_verify_col) {
           cmd_verify_col = 1;
@@ -263,17 +251,15 @@ short THEcursor_left(short escreen, bool kedit_defaults) {
         wmove(CURRENT_WINDOW, y, curr_col - cmd_verify_col);
       } else {
         if (escreen == CURSOR_SCREEN) {
-          rc = Sos_rightedge((char_t *) "");
+          rc = Sos_rightedge((uchar *) "");
         }
       }
       break;
-
     case WINDOW_PREFIX:
       if ((escreen == CURSOR_ESCREEN && (CURRENT_VIEW->prefix & PREFIX_LOCATION_MASK) == PREFIX_RIGHT) || escreen == CURSOR_SCREEN) {
-        rc = Sos_rightedge((char_t *) "");
+        rc = Sos_rightedge((uchar *) "");
       }
       break;
-
     default:
       break;
   }
@@ -282,7 +268,7 @@ short THEcursor_left(short escreen, bool kedit_defaults) {
 
 short THEcursor_right(short escreen, bool kedit_defaults) {
   unsigned short x = 0, y = 0, tempx = 0;
-  col_t right_column = 0;
+  ushort right_column = 0;
   short rc = RC_OK;
 
   /*
@@ -307,7 +293,7 @@ short THEcursor_right(short escreen, bool kedit_defaults) {
      */
     if (escreen == CURSOR_CUA && x + CURRENT_VIEW->verify_col > min(rec_len, CURRENT_VIEW->verify_end)) {
       rc = scroll_line(current_screen, CURRENT_VIEW, DIRECTION_FORWARD, 1L, FALSE, escreen);
-      rc = Sos_firstcol((char_t *) "");
+      rc = Sos_firstcol((uchar *) "");
       return (rc);
     }
   }
@@ -323,19 +309,19 @@ short THEcursor_right(short escreen, bool kedit_defaults) {
    * scrolling and act accordingly.
    */
   switch (CURRENT_VIEW->current_window) {
-
     case WINDOW_FILEAREA:
       if (escreen == CURSOR_SCREEN) {
         if (CURRENT_VIEW->prefix) {
-          rc = Sos_prefix((char_t *) "");
+          rc = Sos_prefix((uchar *) "");
         } else {
           wmove(CURRENT_WINDOW, y, 0);  /* this should move down a line too */
         }
       } else {
         tempx = getmaxx(CURRENT_WINDOW);
         if (x == tempx - 1 && CURRENT_VIEW->autoscroll != 0) {
-          length_t curr_col = x + CURRENT_VIEW->verify_col - 1;
-          length_t num_cols = (CURRENT_VIEW->autoscroll == (-1)) ? CURRENT_SCREEN.cols[WINDOW_FILEAREA] / 2 : CURRENT_VIEW->autoscroll;
+          long curr_col = x + CURRENT_VIEW->verify_col - 1;
+          long num_cols = (CURRENT_VIEW->autoscroll == (-1)) ? CURRENT_SCREEN.cols[WINDOW_FILEAREA] / 2 : CURRENT_VIEW->autoscroll;
+
           num_cols = min(num_cols, CURRENT_SCREEN.cols[WINDOW_FILEAREA]);
           CURRENT_VIEW->verify_col += num_cols;
           build_screen(current_screen);
@@ -344,23 +330,21 @@ short THEcursor_right(short escreen, bool kedit_defaults) {
         }
       }
       break;
-
     case WINDOW_PREFIX:
-      rc = Sos_leftedge((char_t *) "");
+      rc = Sos_leftedge((uchar *) "");
       break;
-
     case WINDOW_COMMAND:
       tempx = getmaxx(CURRENT_WINDOW);
       if (x == tempx - 1 && CURRENT_VIEW->autoscroll != 0) {
-        length_t curr_col = x + cmd_verify_col - 1;
-        length_t num_cols = (CURRENT_VIEW->autoscroll == (-1)) ? CURRENT_SCREEN.cols[WINDOW_COMMAND] / 2 : CURRENT_VIEW->autoscroll;
+        long curr_col = x + cmd_verify_col - 1;
+        long num_cols = (CURRENT_VIEW->autoscroll == (-1)) ? CURRENT_SCREEN.cols[WINDOW_COMMAND] / 2 : CURRENT_VIEW->autoscroll;
+
         num_cols = min(num_cols, CURRENT_SCREEN.cols[WINDOW_COMMAND]);
         cmd_verify_col += num_cols;
         display_cmdline(current_screen, CURRENT_VIEW);
         wmove(CURRENT_WINDOW, y, curr_col - cmd_verify_col + 2);
       }
       break;
-
     default:
       break;
   }
@@ -370,7 +354,7 @@ short THEcursor_right(short escreen, bool kedit_defaults) {
 short THEcursor_up(short escreen) {
   short rc = RC_OK;
   short x;
-  char_t *current_command = NULL;
+  uchar *current_command = NULL;
 
   /*
    * If in READV CMDLINE, return without doing anything
@@ -379,7 +363,6 @@ short THEcursor_up(short escreen) {
     return (RC_OK);
   }
   switch (CURRENT_VIEW->current_window) {
-
     case WINDOW_FILEAREA:
     case WINDOW_PREFIX:
       rc = scroll_line(current_screen, CURRENT_VIEW, DIRECTION_BACKWARD, 1L, FALSE, escreen);
@@ -390,32 +373,30 @@ short THEcursor_up(short escreen) {
         }
       }
       break;
-
     case WINDOW_COMMAND:
       /*
        * Cycle backward through the command list or tab to last line.
        */
       if (CMDARROWSTABCMDx) {
-        rc = Sos_bottomedge((char_t *) "");
+        rc = Sos_bottomedge((uchar *) "");
       } else {
         current_command = get_next_command(DIRECTION_FORWARD, 1);
         wmove(CURRENT_WINDOW_COMMAND, 0, 0);
         my_wclrtoeol(CURRENT_WINDOW_COMMAND);
-        if (current_command != (char_t *) NULL) {
+        if (current_command != (uchar *) NULL) {
           Cmsg(current_command);
         }
       }
       break;
-
     default:
-      display_error(2, (char_t *) "", FALSE);
+      display_error(2, (uchar *) "", FALSE);
       rc = RC_INVALID_OPERAND;
       break;
   }
   return (rc);
 }
 
-short THEcursor_move(char_t curr_screen, VIEW_DETAILS *curr_view, bool show_errors, bool escreen, short row, short col) {
+short THEcursor_move(uchar curr_screen, VIEW_DETAILS *curr_view, bool show_errors, bool escreen, short row, short col) {
   register int i = 0;
   short rc = RC_OK;
   unsigned short x = 0, y = 0;
@@ -450,7 +431,7 @@ short THEcursor_move(char_t curr_screen, VIEW_DETAILS *curr_view, bool show_erro
             row--;
           } else {
             if (show_errors) {
-              display_error(63, (char_t *) "", FALSE);
+              display_error(63, (uchar *) "", FALSE);
             }
             return (RC_TOF_EOF_REACHED);        /* this is a strange RC :-( */
           }
@@ -468,11 +449,9 @@ short THEcursor_move(char_t curr_screen, VIEW_DETAILS *curr_view, bool show_erro
       }
     }
     switch (curr_view->current_window) {
-
       case WINDOW_COMMAND:
         rc = THEcursor_home(curr_screen, curr_view, FALSE);
         break;
-
       case WINDOW_PREFIX:
         curr_view->current_window = WINDOW_FILEAREA;
         break;
@@ -501,7 +480,7 @@ short THEcursor_move(char_t curr_screen, VIEW_DETAILS *curr_view, bool show_erro
      */
     if (row > max_row || col > max_col) {
       if (show_errors) {
-        display_error(63, (char_t *) "", FALSE);
+        display_error(63, (uchar *) "", FALSE);
       }
       return (RC_TOF_EOF_REACHED);      /* this is a strange RC :-( */
     }
@@ -511,6 +490,7 @@ short THEcursor_move(char_t curr_screen, VIEW_DETAILS *curr_view, bool show_erro
     for (i = 0; i < VIEW_WINDOWS; i++) {
       int top_int_row = screen[curr_screen].start_row[i] - screen[curr_screen].screen_start_row;
       int bot_int_row = screen[curr_screen].start_row[i] - screen[curr_screen].screen_start_row + screen[curr_screen].rows[i] - 1;
+
       if (row >= top_int_row && row <= bot_int_row && col >= (screen[curr_screen].start_col[i] - screen[curr_screen].screen_start_col) && col <= (screen[curr_screen].start_col[i] + screen[curr_screen].cols[i] - 1 - screen[curr_screen].screen_start_col)) {
         idx = i;
         break;
@@ -519,16 +499,15 @@ short THEcursor_move(char_t curr_screen, VIEW_DETAILS *curr_view, bool show_erro
     row = row - (screen[curr_screen].start_row[idx] - screen[curr_screen].screen_start_row);
     col = col - (screen[curr_screen].start_col[idx] - screen[curr_screen].screen_start_col);
     switch (idx) {
-
       case WINDOW_FILEAREA:
         row = get_row_for_tof_eof(row, curr_screen);
         if (!screen[curr_screen].sl[row].main_enterable) {
           if (show_errors) {
-            display_error(63, (char_t *) "", FALSE);
+            display_error(63, (uchar *) "", FALSE);
           }
           return (RC_TOF_EOF_REACHED);  /* this is a strange RC :-( */
         }
-        rc = do_Sos_current((char_t *) "", curr_screen, curr_view);
+        rc = do_Sos_current((uchar *) "", curr_screen, curr_view);
         wmove(SCREEN_WINDOW_FILEAREA(curr_screen), row, col);
         curr_view->focus_line = screen[curr_screen].sl[row].line_number;
         pre_process_line(curr_view, curr_view->focus_line, (LINE *) NULL);
@@ -541,29 +520,26 @@ short THEcursor_move(char_t curr_screen, VIEW_DETAILS *curr_view, bool show_erro
           display_screen(curr_screen);
         }
         break;
-
       case WINDOW_PREFIX:
         row = get_row_for_tof_eof(row, curr_screen);
         if (!screen[curr_screen].sl[row].prefix_enterable) {
           if (show_errors) {
-            display_error(63, (char_t *) "", FALSE);
+            display_error(63, (uchar *) "", FALSE);
           }
           return (RC_TOF_EOF_REACHED);  /* this is a strange RC :-( */
         }
-        rc = do_Sos_current((char_t *) "", curr_screen, curr_view);
-        rc = do_Sos_prefix((char_t *) "", curr_screen, curr_view);
+        rc = do_Sos_current((uchar *) "", curr_screen, curr_view);
+        rc = do_Sos_prefix((uchar *) "", curr_screen, curr_view);
         wmove(SCREEN_WINDOW_PREFIX(curr_screen), row, col);
         curr_view->focus_line = screen[curr_screen].sl[row].line_number;
         pre_process_line(curr_view, curr_view->focus_line, (LINE *) NULL);
         break;
-
       case WINDOW_COMMAND:
         rc = THEcursor_cmdline(curr_screen, curr_view, (short) (col + 1));
         break;
-
       default:
         if (show_errors) {
-          display_error(63, (char_t *) "", FALSE);
+          display_error(63, (uchar *) "", FALSE);
         }
         return (RC_TOF_EOF_REACHED);    /* this is a strange RC :-( */
         break;
@@ -572,11 +548,11 @@ short THEcursor_move(char_t curr_screen, VIEW_DETAILS *curr_view, bool show_erro
   return (rc);
 }
 
-short THEcursor_goto(line_t row, length_t col) {
+short THEcursor_goto(long row, long col) {
   short rc = RC_OK;
 
   if (row > CURRENT_FILE->number_lines || row < 0 || col > max_line_length) {
-    display_error(63, (char_t *) "", FALSE);
+    display_error(63, (uchar *) "", FALSE);
     return (RC_TOF_EOF_REACHED);        /* this is a strange RC :-( */
   }
   if (col == 0) {
@@ -609,7 +585,7 @@ short THEcursor_goto(line_t row, length_t col) {
 
 short THEcursor_mouse(void) {
   int w = 0;
-  char_t scrn = 0;
+  uchar scrn = 0;
   short rc = RC_OK;
 
   /*
@@ -629,12 +605,13 @@ short THEcursor_mouse(void) {
    * If the mouse is in a different screen to the current one, move there
    */
   if (current_screen != scrn) {
-    (void) Nextwindow((char_t *) "");
+    (void) Nextwindow((uchar *) "");
   }
   /*
    * Move the cursor to the correct screen coordinates...
    */
   rc = THEcursor_move(current_screen, CURRENT_VIEW, TRUE, FALSE, (short) MOUSE_Y, (short) MOUSE_X);
+
   return (rc);
 }
 
@@ -644,11 +621,9 @@ long where_now(void) {
 
   y = getcury(CURRENT_WINDOW);
   switch (CURRENT_VIEW->current_window) {
-
     case WINDOW_FILEAREA:
       rc |= WHERE_WINDOW_FILEAREA;
       break;
-
     case WINDOW_PREFIX:
       if ((CURRENT_VIEW->prefix & PREFIX_LOCATION_MASK) == PREFIX_LEFT) {
         rc |= WHERE_WINDOW_PREFIX_LEFT;
@@ -656,7 +631,6 @@ long where_now(void) {
         rc |= WHERE_WINDOW_PREFIX_RIGHT;
       }
       break;
-
     case WINDOW_COMMAND:
       if (CURRENT_VIEW->cmd_line == 'B') {
         rc |= WHERE_WINDOW_CMDLINE_BOTTOM;
@@ -734,7 +708,6 @@ long where_next(long where, long what_current, long what_other) {
   find_first_focus_line(current_screen, &current_top_row);
   find_last_focus_line(current_screen, &current_bottom_row);
   switch (where_window) {
-
     case WHERE_WINDOW_FILEAREA:
       /*
        * In filearea.
@@ -747,10 +720,9 @@ long where_next(long where, long what_current, long what_other) {
         return (where_row | where_screen | WHERE_WINDOW_PREFIX_RIGHT);
       }
       switch (where_screen) {
-
         case WHERE_SCREEN_FIRST:
         case WHERE_SCREEN_LAST:
-          /* the two cases above will be separate in future */
+        /* the two cases above will be separate in future */
         case WHERE_SCREEN_ONLY:
           /*
            * In filearea and only screen.
@@ -773,7 +745,9 @@ long where_next(long where, long what_current, long what_other) {
                */
               return (where_row | where_screen | WHERE_WINDOW_CMDLINE_BOTTOM);
             }
-            /* To get here, there is no cmdline. */
+            /*
+             * To get here, there is no cmdline.
+             */
             if (what_current_window & WHERE_WINDOW_PREFIX_LEFT) {
               /*
                * In filearea,prefix on left or off, on bottom line.
@@ -782,7 +756,9 @@ long where_next(long where, long what_current, long what_other) {
               return ((long) current_top_row | where_screen | WHERE_WINDOW_PREFIX_LEFT);
             }
           }
-          /* To get here, we are not on last row. */
+          /*
+           * To get here, we are not on last row.
+           */
           if (what_current_window & WHERE_WINDOW_PREFIX_LEFT) {
             /*
              * In filearea, prefix on left, not on bottom line.
@@ -798,17 +774,14 @@ long where_next(long where, long what_current, long what_other) {
           break;
       }
       break;
-
     case WHERE_WINDOW_PREFIX_LEFT:
       rc = where_row | where_screen | WHERE_WINDOW_FILEAREA;
       break;
-
     case WHERE_WINDOW_PREFIX_RIGHT:
       switch (where_screen) {
-
         case WHERE_SCREEN_FIRST:
         case WHERE_SCREEN_LAST:
-          /* the two cases above will be separate in future */
+        /* the two cases above will be separate in future */
         case WHERE_SCREEN_ONLY:
           /*
            * In right prefix and only screen.
@@ -842,13 +815,11 @@ long where_next(long where, long what_current, long what_other) {
           break;
       }
       break;
-
     case WHERE_WINDOW_CMDLINE_TOP:
       switch (where_screen) {
-
         case WHERE_SCREEN_FIRST:
         case WHERE_SCREEN_LAST:
-          /* the two cases above will be separate in future */
+        /* the two cases above will be separate in future */
         case WHERE_SCREEN_ONLY:
           /*
            * In cmdline, and only screen.
@@ -868,13 +839,11 @@ long where_next(long where, long what_current, long what_other) {
           break;
       }
       break;
-
     case WHERE_WINDOW_CMDLINE_BOTTOM:
       switch (where_screen) {
-
         case WHERE_SCREEN_FIRST:
         case WHERE_SCREEN_LAST:
-          /* the two cases above will be separate in future */
+        /* the two cases above will be separate in future */
         case WHERE_SCREEN_ONLY:
           /*
            * In cmdline, and only screen.
@@ -911,7 +880,6 @@ long where_before(long where, long what_current, long what_other) {
   find_first_focus_line(current_screen, &current_top_row);
   find_last_focus_line(current_screen, &current_bottom_row);
   switch (where_window) {
-
     case WHERE_WINDOW_FILEAREA:
       /*
        * In filearea.
@@ -924,10 +892,9 @@ long where_before(long where, long what_current, long what_other) {
         return (where_row | where_screen | WHERE_WINDOW_PREFIX_LEFT);
       }
       switch (where_screen) {
-
         case WHERE_SCREEN_FIRST:
         case WHERE_SCREEN_LAST:
-          /* the two cases above will be separate in future */
+        /* the two cases above will be separate in future */
         case WHERE_SCREEN_ONLY:
           /*
            * In filearea and only screen.
@@ -950,7 +917,9 @@ long where_before(long where, long what_current, long what_other) {
                */
               return (where_row | where_screen | WHERE_WINDOW_CMDLINE_TOP);
             }
-            /* To get here, there is no cmdline. */
+            /*
+             * To get here, there is no cmdline.
+             */
             if (what_current_window & WHERE_WINDOW_PREFIX_RIGHT) {
               /*
                * In filearea,prefix on right or off, on top line.
@@ -959,7 +928,9 @@ long where_before(long where, long what_current, long what_other) {
               return ((long) current_bottom_row | where_screen | WHERE_WINDOW_PREFIX_RIGHT);
             }
           }
-          /* To get here, we are not on top row. */
+          /*
+           * To get here, we are not on top row.
+           */
           if (what_current_window & WHERE_WINDOW_PREFIX_RIGHT) {
             /*
              * In filearea, prefix on right, not on top line.
@@ -975,57 +946,52 @@ long where_before(long where, long what_current, long what_other) {
           break;
       }
       break;
-
     case WHERE_WINDOW_PREFIX_RIGHT:
       rc = where_row | where_screen | WHERE_WINDOW_FILEAREA;
       break;
-
     case WHERE_WINDOW_PREFIX_LEFT:
       switch (where_screen) {
-
         case WHERE_SCREEN_FIRST:
         case WHERE_SCREEN_LAST:
-          /* the two cases above will be separate in future */
+        /* the two cases above will be separate in future */
         case WHERE_SCREEN_ONLY:
           /*
-           * In left prefix and only screen.
+           * In left  prefix and only screen.
            */
           if (where_row != (long) current_top_row) {
             /*
-             * In left prefix and not on top line.
+             * In left  prefix and not on top line.
              * Result: prior row,same screen,go to filearea.
              */
             return ((where_row - 1L) | where_screen | WHERE_WINDOW_FILEAREA);
           }
           if (what_current_window & WHERE_WINDOW_CMDLINE_BOTTOM) {
             /*
-             * In left prefix, cmdline on bottom, on top line.
+             * In left  prefix, cmdline on bottom, on top line.
              * Result: row irrelevant,same screen,go to cmdline.
              */
             return (where_row | where_screen | WHERE_WINDOW_CMDLINE_BOTTOM);
           }
           if (what_current_window & WHERE_WINDOW_CMDLINE_TOP) {
             /*
-             * In left prefix, cmdline on top, on top line.
+             * In left  prefix, cmdline on top, on top line.
              * Result: row irrelevant,same screen,go to cmdline.
              */
             return (where_row | where_screen | WHERE_WINDOW_CMDLINE_TOP);
           }
           /*
-           * In left prefix, no cmdline, on top line.
+           * In left  prefix, no cmdline, on top line.
            * Result: last  row,same screen,go to filearea.
            */
           return ((long) current_bottom_row | where_screen | WHERE_WINDOW_FILEAREA);
           break;
       }
       break;
-
     case WHERE_WINDOW_CMDLINE_TOP:
       switch (where_screen) {
-
         case WHERE_SCREEN_FIRST:
         case WHERE_SCREEN_LAST:
-          /* the two cases above will be separate in future */
+        /* the two cases above will be separate in future */
         case WHERE_SCREEN_ONLY:
           /*
            * In cmdline, and only screen.
@@ -1045,13 +1011,11 @@ long where_before(long where, long what_current, long what_other) {
           break;
       }
       break;
-
     case WHERE_WINDOW_CMDLINE_BOTTOM:
       switch (where_screen) {
-
         case WHERE_SCREEN_FIRST:
         case WHERE_SCREEN_LAST:
-          /* the two cases above will be separate in future */
+        /* the two cases above will be separate in future */
         case WHERE_SCREEN_ONLY:
           /*
            * In cmdline, and only screen.
@@ -1077,28 +1041,25 @@ long where_before(long where, long what_current, long what_other) {
 
 bool enterable_field(long where) {
   bool rc = TRUE;
-  row_t row = 0;
+  ushort row = 0;
   long where_screen = 0L;
-  char_t scrn = 0;
+  uchar scrn = 0;
 
   where_screen = where & WHERE_SCREEN_MASK;
-  row = (row_t) (where & WHERE_ROW_MASK);
+  row = (ushort) (where & WHERE_ROW_MASK);
   scrn = (where_screen == WHERE_SCREEN_LAST) ? 1 : 0;
   switch (where & WHERE_WINDOW_MASK) {
-
     case WHERE_WINDOW_FILEAREA:
       if (!screen[scrn].sl[row].main_enterable) {
         rc = FALSE;
       }
       break;
-
     case WHERE_WINDOW_PREFIX_LEFT:
     case WHERE_WINDOW_PREFIX_RIGHT:
       if (!screen[scrn].sl[row].prefix_enterable) {
         rc = FALSE;
       }
       break;
-
     case WHERE_WINDOW_CMDLINE_TOP:
     case WHERE_WINDOW_CMDLINE_BOTTOM:
       break;
@@ -1109,11 +1070,11 @@ bool enterable_field(long where) {
 short go_to_new_field(long save_where, long where) {
   short rc = RC_OK;
   long save_where_window = 0L, where_window = 0L;
-  row_t where_row = 0;
+  ushort where_row = 0;
 
   save_where_window = save_where & WHERE_WINDOW_MASK;
   where_window = where & WHERE_WINDOW_MASK;
-  where_row = (row_t) (where & WHERE_ROW_MASK);
+  where_row = (ushort) (where & WHERE_ROW_MASK);
   if (save_where_window == where_window) {
     /*
      * No change to screen or window...
@@ -1121,16 +1082,13 @@ short go_to_new_field(long save_where, long where) {
     CURRENT_VIEW->focus_line = CURRENT_SCREEN.sl[where_row].line_number;
   } else {
     switch (save_where_window) {
-
       case WHERE_WINDOW_FILEAREA:
         switch (where_window) {
-
           case WHERE_WINDOW_PREFIX_LEFT:
           case WHERE_WINDOW_PREFIX_RIGHT:
             CURRENT_VIEW->current_window = WINDOW_PREFIX;
             CURRENT_VIEW->focus_line = CURRENT_SCREEN.sl[where_row].line_number;
             break;
-
           case WHERE_WINDOW_CMDLINE_TOP:
           case WHERE_WINDOW_CMDLINE_BOTTOM:
             CURRENT_VIEW->previous_window = CURRENT_VIEW->current_window;
@@ -1139,16 +1097,13 @@ short go_to_new_field(long save_where, long where) {
             break;
         }
         break;
-
       case WHERE_WINDOW_PREFIX_LEFT:
       case WHERE_WINDOW_PREFIX_RIGHT:
         switch (where_window) {
-
           case WHERE_WINDOW_FILEAREA:
             CURRENT_VIEW->current_window = WINDOW_FILEAREA;
             CURRENT_VIEW->focus_line = CURRENT_SCREEN.sl[where_row].line_number;
             break;
-
           case WHERE_WINDOW_CMDLINE_TOP:
           case WHERE_WINDOW_CMDLINE_BOTTOM:
             CURRENT_VIEW->previous_window = CURRENT_VIEW->current_window;
@@ -1157,17 +1112,14 @@ short go_to_new_field(long save_where, long where) {
             break;
         }
         break;
-
       case WHERE_WINDOW_CMDLINE_TOP:
       case WHERE_WINDOW_CMDLINE_BOTTOM:
         switch (where_window) {
-
           case WHERE_WINDOW_PREFIX_LEFT:
           case WHERE_WINDOW_PREFIX_RIGHT:
             CURRENT_VIEW->current_window = WINDOW_PREFIX;
             CURRENT_VIEW->focus_line = CURRENT_SCREEN.sl[where_row].line_number;
             break;
-
           case WHERE_WINDOW_FILEAREA:
             CURRENT_VIEW->current_window = WINDOW_FILEAREA;
             CURRENT_VIEW->focus_line = CURRENT_SCREEN.sl[where_row].line_number;
@@ -1180,30 +1132,27 @@ short go_to_new_field(long save_where, long where) {
   return (rc);
 }
 
-void get_cursor_position(line_t *screen_line, length_t *screen_column, line_t *file_line, length_t *file_column) {
+void get_cursor_position(long *screen_line, long *screen_column, long *file_line, long *file_column) {
   unsigned short y = 0, x = 0;
   unsigned short begy = 0, begx = 0;
 
   if (curses_started) {
     getyx(CURRENT_WINDOW, y, x);
     getbegyx(CURRENT_WINDOW, begy, begx);
-    *screen_line = (line_t) (y + begy + 1L);
-    *screen_column = (length_t) (x + begx + 1L);
+    *screen_line = (long) (y + begy + 1L);
+    *screen_column = (long) (x + begx + 1L);
   } else {
     *screen_line = *screen_column = (-1L);
   }
   switch (CURRENT_VIEW->current_window) {
-
     case WINDOW_FILEAREA:
       *file_line = CURRENT_VIEW->focus_line;
       *file_column = CURRENT_VIEW->verify_col + x;
       break;
-
     case WINDOW_PREFIX:
       *file_line = CURRENT_VIEW->focus_line;
       *file_column = (-1L);
       break;
-
     default:                   /* command line */
       *file_line = *file_column = (-1L);
       break;
@@ -1211,10 +1160,10 @@ void get_cursor_position(line_t *screen_line, length_t *screen_column, line_t *f
   return;
 }
 
-short advance_focus_line(line_t num_lines) {
+short advance_focus_line(long num_lines) {
   unsigned short y = 0, x = 0;
   LINE *curr = NULL;
-  line_t actual_lines = num_lines;
+  long actual_lines = num_lines;
   short direction = DIRECTION_FORWARD, rc = RC_OK;
 
   if (num_lines < 0L) {
@@ -1232,7 +1181,7 @@ short advance_focus_line(line_t num_lines) {
     if (curr == NULL) {
       break;
     }
-    CURRENT_VIEW->focus_line += (line_t) direction;
+    CURRENT_VIEW->focus_line += (long) direction;
     if (CURRENT_VIEW->scope_all || IN_SCOPE(CURRENT_VIEW, curr)) {
       actual_lines--;
     }
@@ -1254,9 +1203,9 @@ short advance_focus_line(line_t num_lines) {
   return rc;
 }
 
-short advance_current_line(line_t num_lines) {
+short advance_current_line(long num_lines) {
   LINE *curr = NULL;
-  line_t actual_lines = num_lines;
+  long actual_lines = num_lines;
   short direction = DIRECTION_FORWARD;
   short y = 0, x = 0, rc = RC_OK;
 
@@ -1275,7 +1224,7 @@ short advance_current_line(line_t num_lines) {
     if (curr == NULL) {
       break;
     }
-    CURRENT_VIEW->current_line += (line_t) direction;
+    CURRENT_VIEW->current_line += (long) direction;
     if (CURRENT_VIEW->scope_all || IN_SCOPE(CURRENT_VIEW, curr)) {
       actual_lines--;
     }
@@ -1305,7 +1254,7 @@ short advance_current_line(line_t num_lines) {
   return rc;
 }
 
-short advance_current_or_focus_line(line_t num_lines) {
+short advance_current_or_focus_line(long num_lines) {
   short rc = RC_OK;
 
   if (CURRENT_VIEW->current_window == WINDOW_COMMAND || compatible_feel == COMPAT_XEDIT) {
@@ -1316,7 +1265,7 @@ short advance_current_or_focus_line(line_t num_lines) {
   return (rc);
 }
 
-void resolve_current_and_focus_lines(char_t curr_screen, VIEW_DETAILS *view, line_t true_line, line_t num_lines, short direction, bool respect_stay, bool sos) {
+void resolve_current_and_focus_lines(uchar curr_screen, VIEW_DETAILS *view, long true_line, long num_lines, short direction, bool respect_stay, bool sos) {
   short y = 0, x = 0;
   short save_compatible_feel = compatible_feel;
 
@@ -1343,25 +1292,22 @@ void resolve_current_and_focus_lines(char_t curr_screen, VIEW_DETAILS *view, lin
     return;
   }
   /*
-   * If we are on the command line, all actions are the same irrespective
-   * of the compatibility mode in place.
+   * If we are on the command line, all actions are the same irrespective of the compatibility mode in place.
    */
   if (view->current_window == WINDOW_COMMAND) {
-    view->current_line = true_line + num_lines - (line_t) direction;
+    view->current_line = true_line + num_lines - (long) direction;
     build_screen(curr_screen);
     display_screen(curr_screen);
     return;
   }
   /*
-   * From here down is applicable to the cursor being in the FILEAREA or
-   * PREFIX...
+   * From here down is applicable to the cursor being in the FILEAREA or PREFIX...
    */
   switch (save_compatible_feel) {
-
     case COMPAT_THE:
     case COMPAT_KEDIT:
     case COMPAT_KEDITW:
-      view->focus_line = true_line + num_lines - (line_t) direction;
+      view->focus_line = true_line + num_lines - (long) direction;
       build_screen(curr_screen);
       if (!line_in_view(curr_screen, view->focus_line)) {
         view->current_line = view->focus_line;
@@ -1375,9 +1321,8 @@ void resolve_current_and_focus_lines(char_t curr_screen, VIEW_DETAILS *view, lin
         wmove(SCREEN_WINDOW(curr_screen), y, x);
       }
       break;
-
     case COMPAT_XEDIT:
-      view->current_line = true_line + num_lines - (line_t) direction;
+      view->current_line = true_line + num_lines - (long) direction;
       pre_process_line(view, view->focus_line, (LINE *) NULL);
       build_screen(curr_screen);
       if (!line_in_view(curr_screen, view->focus_line)) {

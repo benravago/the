@@ -2,28 +2,26 @@
 // SPDX-License-Identifier: GPL-2.0
 // SPDX-FileContributor: 2022 Ben Ravago
 
-/* Printing related functions                                */
-
 #include "the.h"
 #include "proto.h"
 
-static void print_shadow_line(FILE *, char_t *, line_t);
+static void print_shadow_line(FILE *, uchar *, long);
 
-void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pagesize, char_t *text, char_t *line_term, short target_type) {
+void print_line(bool close_spooler, long true_line, long num_lines, short pagesize, uchar *text, uchar *line_term, short target_type) {
   static bool spooler_open = FALSE;
   static FILE *pp;
   short rc = RC_OK;
-  line_t j = 0L;
+  long j = 0L;
   LINE *curr = NULL;
   short line_number = 0;
-  line_t num_excluded = 0L;
-  line_t num_actual_lines = 0L;
-  line_t abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
+  long num_excluded = 0L;
+  long num_actual_lines = 0L;
+  long abs_num_lines = (num_lines < 0L ? -num_lines : num_lines);
   short direction = (num_lines < 0L ? DIRECTION_BACKWARD : DIRECTION_FORWARD);
   unsigned short y = 0, x = 0;
   bool lines_based_on_scope = (target_type == TARGET_BLOCK_CURRENT) ? FALSE : TRUE;
-  line_t start = 0L, end = 0L, len = 0L;
-  char_t *ptr = NULL;
+  long start = 0L, end = 0L, len = 0L;
+  uchar *ptr = NULL;
 
   if (close_spooler) {
     if (spooler_open) {
@@ -32,7 +30,6 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
       return;
     }
   }
-
   if (!spooler_open) {
     pp = popen((char *) spooler_name, "w");
     if (pp == NULL) {
@@ -40,14 +37,13 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
     }
     spooler_open = TRUE;
   }
-
   if (num_lines == 0L) {
     fprintf(pp, "%s%s", text, line_term);
     return;
   }
-
-  /* Once we get here, we are to print lines from the file.              */
-
+  /*
+   * Once we get here, we are to print lines from the file.
+   */
   post_process_line(CURRENT_VIEW, CURRENT_VIEW->focus_line, (LINE *) NULL, TRUE);
   if (curses_started) {
     if (CURRENT_VIEW->current_window == WINDOW_COMMAND) {
@@ -67,54 +63,47 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
         break;
       }
     }
-    rc = processable_line(CURRENT_VIEW, true_line + (line_t) (j * direction), curr);
+    rc = processable_line(CURRENT_VIEW, true_line + (long) (j * direction), curr);
     switch (rc) {
-
       case LINE_SHADOW:
         num_excluded++;
         break;
-
       case LINE_TOF:
       case LINE_EOF:
         num_actual_lines++;
         break;
-
       default:
         if (num_excluded != 0) {
           print_shadow_line(pp, line_term, num_excluded);
           num_excluded = 0L;
         }
         switch (target_type) {
-
           case TARGET_BLOCK_CURRENT:
             switch (MARK_VIEW->mark_type) {
-
               case M_LINE:
                 start = 0;
                 end = (curr->length) - 1;
                 len = end - start + 1L;
                 ptr = curr->line;
                 break;
-
               case M_BOX:
               case M_WORD:
               case M_COLUMN:
-                pre_process_line(CURRENT_VIEW, true_line + (line_t) (j * direction), curr);
+                pre_process_line(CURRENT_VIEW, true_line + (long) (j * direction), curr);
                 start = MARK_VIEW->mark_start_col - 1;
                 end = MARK_VIEW->mark_end_col - 1;
                 len = end - start + 1L;
                 ptr = rec + start;
                 break;
-
               case M_STREAM:
               case M_CUA:
-                pre_process_line(CURRENT_VIEW, true_line + (line_t) (j * direction), curr);
+                pre_process_line(CURRENT_VIEW, true_line + (long) (j * direction), curr);
                 start = 0;
                 end = (curr->length) - 1;
-                if (true_line + (line_t) (j * direction) == MARK_VIEW->mark_start_line) {
+                if (true_line + (long) (j * direction) == MARK_VIEW->mark_start_line) {
                   start = MARK_VIEW->mark_start_col - 1;
                 }
-                if (true_line + (line_t) (j * direction) == MARK_VIEW->mark_end_line) {
+                if (true_line + (long) (j * direction) == MARK_VIEW->mark_end_line) {
                   end = MARK_VIEW->mark_end_col - 1;
                 }
                 len = end - start + 1L;
@@ -122,13 +111,12 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
                 break;
             }
             break;
-
           default:
             if (curr->length == 0) {
               len = 0L;
             } else {
-              start = (line_t) CURRENT_VIEW->zone_start - 1;
-              end = (line_t) min((curr->length) - 1, CURRENT_VIEW->zone_end - 1);
+              start = (long) CURRENT_VIEW->zone_start - 1;
+              end = (long) min((curr->length) - 1, CURRENT_VIEW->zone_end - 1);
               ptr = curr->line + start;
               if (start > end) {
                 len = 0L;
@@ -138,7 +126,7 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
             }
             break;
         }
-        fwrite((char *) ptr, sizeof(char_t), len, pp);
+        fwrite((char *) ptr, sizeof(uchar), len, pp);
         fprintf(pp, "%s", line_term);
         line_number++;
         if (line_number == pagesize && pagesize != 0) {
@@ -148,9 +136,9 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
         num_actual_lines++;
         break;
     }
-
-    /* Proceed to the next record, even if the current record not in scope.*/
-
+    /*
+     * Proceed to the next record, even if the current record not in scope.
+     */
     if (direction == DIRECTION_BACKWARD) {
       curr = curr->prev;
     } else {
@@ -160,17 +148,16 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
       break;
     }
   }
-
-  /* If we have a shadow line remaining, print it...                     */
-
+  /*
+   * If we have a shadow line remaining, print it...
+   */
   if (num_excluded != 0) {
     print_shadow_line(pp, line_term, num_excluded);
     num_excluded = 0L;
   }
-
-  /* If STAY is OFF, change the current and focus lines by the number    */
-  /* of lines calculated from the target.                                */
-
+  /*
+   * If STAY is OFF, change the current and focus lines by the number of lines calculated from the target.
+   */
   if (!CURRENT_VIEW->stay) {    /* stay is off */
     CURRENT_VIEW->focus_line = min(CURRENT_VIEW->focus_line + num_lines - 1L, CURRENT_FILE->number_lines + 1L);
     CURRENT_VIEW->current_line = min(CURRENT_VIEW->current_line + num_lines - 1L, CURRENT_FILE->number_lines + 1L);
@@ -191,9 +178,9 @@ void print_line(bool close_spooler, line_t true_line, line_t num_lines, short pa
 
 #define LINES_NOT_DISPLAYED " line(s) not displayed "
 
-static void make_shadow_line(char *buf, line_t num_excluded, int width) {
+static void make_shadow_line(char *buf, long num_excluded, int width) {
   int numlen = 0, first = 0;
-  char numbuf[33];              /* 10 + length of LINES_NOT_DISPLAYED */
+  char numbuf[33+12];           /* 10 + length of LINES_NOT_DISPLAYED */
 
   numlen = sprintf(numbuf, " %ld%s", num_excluded, LINES_NOT_DISPLAYED);
   if (numlen > width) {
@@ -212,7 +199,7 @@ static void make_shadow_line(char *buf, line_t num_excluded, int width) {
   return;
 }
 
-static void print_shadow_line(FILE *pp, char_t *line_term, line_t num_excluded) {
+static void print_shadow_line(FILE *pp, uchar *line_term, long num_excluded) {
   register int width = 0;
   char buf[512];
 
