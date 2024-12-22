@@ -477,12 +477,9 @@ int var, amount, level;         /* which is to be enlarged by amount. var is */
   register char *i;             /* the return is the difference from dtest   */
   register char *j;
   varent *k;
-  char *mtest_old;
-  long mtest_diff;
+  long mtest_diff = 0;
 
-  if (!dtest(vartab, vartablen, varstk[varstkptr + 1] + amount + 2, amount + 512)) {
-    mtest_diff = 0;
-  }
+  dtest(vartab, vartablen, varstk[varstkptr + 1] + amount + 2, amount + 512, mtest_diff);
   k = ((varent *) (j = vartab + varstk[level] + var));  /* the variable's address */
   j += (k->next);               /* the end of the variable */
   for (i = vartab + varstk[varstkptr + 1] - 1; i >= j; i--) {
@@ -620,18 +617,12 @@ int namelen, len, lev;          /* and varcopy) with given value.        */
   int ext;
   register char *i;
   register char *v;
-  long mtest_diff;
-  char *mtest_old;
 
   if (alloc < 20) {
     alloc = 20;  /* The extra amount of space to allocate */
   }
   alloc += len, alloc = align(alloc);   /* The total amount of space to allocate */
-  if dtest
-  (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = align(alloc + namelen + sizeof(varent))), namelen + alloc + 256)
-    if (varptr) {
-      varptr += mtest_diff;
-    }
+  dtest(vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = align(alloc + namelen + sizeof(varent))), namelen + alloc + 256, varptr);
   v = vartab + varstk[varstkptr + !lev];        /* where to put the new variable */
   if (lev)                      /* move up the entire top level to make room */
     for (i = vartab + varstk[varstkptr + 1]; i >= v; i--) {
@@ -661,14 +652,8 @@ int namelen, len, lev;          /* stem is created with the given default */
   int alloc = align(len * 5 / 4 + 256);
   int ext;
   register char *i, *v;
-  long mtest_diff;
-  char *mtest_old;
 
-  if dtest
-  (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = align(alloc + namelen + sizeof(varent) + 2 * four)), namelen + alloc + 256)
-    if (varptr) {
-      varptr += mtest_diff;
-    }
+  dtest(vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = align(alloc + namelen + sizeof(varent) + 2 * four)), namelen + alloc + 256, varptr);
   v = vartab + varstk[varstkptr + !lev];
   if (lev)
     for (i = vartab + varstk[varstkptr + 1]; i >= v; i--) {
@@ -920,7 +905,6 @@ char *name;                     /* when this procedure is called, varstkptr has 
   char *varptr;
   char *stemptr;
   char *endvar;
-  char *mtest_old;
   long mtest_diff;
 
   if (compound && !isstem) {    /* An individual compound symbol */
@@ -976,11 +960,7 @@ char *name;                     /* when this procedure is called, varstkptr has 
   ext = varstkptr;
   varptr = varsearch(name, varlen, &ext, &l);
   if (!l) {                     /* not already exposed, so go ahead */
-    if dtest
-    (vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = sizeof(varent) + align(varlen)), varlen + 256)
-      if (varptr) {
-        varptr += mtest_diff;
-      }
+    dtest(vartab, vartablen, varstk[varstkptr + 1] + 1 + (ext = sizeof(varent) + align(varlen)), varlen + 256, varptr);
     ((varent *) (i = vartab + varstk[varstkptr + 1]))->less = -1, ((varent *) i)->grtr = -1, ((varent *) i)->next = ext, ((varent *) i)->namelen = varlen, ((varent *) i)->valalloc = -(level + 1),
                                                                                                                                                                            ((varent *) i)->vallen = 0;
     if (varptr) {

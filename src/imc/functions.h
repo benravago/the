@@ -1,26 +1,32 @@
 /* The functions of REXX/imc            This is a 132 column file            (C) Ian Collier 1992 */
 
 
-/* Usually the mem test routines use inline code for greater efficiency.
+/* The mem test routines use inline code for greater efficiency.
    mtest: reallocate an area only if it is too small
-   dtest: the same, but also return 1 if the area moved and set mtest_diff to
-          the difference
-   Recently fixed to save the old value when realloc fails
+   dtest: the same, but also the add memory delta to memdiff
 */
 
-#pragma GCC diagnostic ignored "-Wunused-value"
-#define mtest(memptr,alloc,length,extend) {char *old;         \
-        (alloc<(length))&&(                                   \
-        old=memptr,                                           \
-        (memptr=realloc(memptr,(unsigned)(alloc+=(extend))))||(memptr=old,alloc-=(extend),die(Emem),1)  \
-        );}
+#define mtest(memptr,alloc,length,extend) { \
+  if (alloc < (length)) { \
+    size_t N = alloc + (extend); \
+    void *P = realloc(memptr, N); \
+    if (!P) die(Emem); \
+    memptr = P; \
+    alloc = N; \
+  } \
+}
 
 #pragma GCC diagnostic ignored "-Wuse-after-free"
-#define dtest(memptr,alloc,length,extend) (                   \
-        (alloc<(length))&&(                                   \
-        mtest_old=memptr,                                     \
-        (memptr=realloc(memptr,(unsigned)(alloc+=(extend))))||(memptr=mtest_old,alloc-=(extend),die(Emem),1), \
-        mtest_diff=memptr-mtest_old ))
+#define dtest(memptr,alloc,length,extend,memdiff) { \
+  if (alloc < (length)) { \
+    size_t N = alloc + (extend); \
+    void *P = realloc(memptr, N); \
+    if (!P) die(Emem); \
+    memdiff += ((char*)P) - memptr; \
+    memptr = P; \
+    alloc = N; \
+  } \
+}
 
 #define whattype(c)      (types[(unsigned char)(c)])
 #define alphanum(c)      (alphs[(unsigned char)(c)])

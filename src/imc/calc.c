@@ -897,15 +897,10 @@ char op;
 }
 
 void rxdup() {                  /* Duplicate the top stack entry */
-  char *mtest_old;
-  long mtest_diff;
   char *ptr = cstackptr + ecstackptr;
   int len = align(*((int *) ptr - 1)) + four;
 
-  if dtest
-  (cstackptr, cstacklen, ecstackptr + len, len + 256) {
-    ptr += mtest_diff;
-  }
+  dtest(cstackptr, cstacklen, ecstackptr + len, len + 256, ptr);
   memcpy(ptr, ptr - len, len),  /* Simple, really... */
          ecstackptr += len;
 }

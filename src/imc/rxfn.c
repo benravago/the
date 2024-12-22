@@ -1214,8 +1214,6 @@ int argc;
 {
   int copies;
   char *arg, *p;
-  char *mtest_old;
-  long mtest_diff;
   int len;
   int a;
 
@@ -1233,10 +1231,7 @@ int argc;
     stack(cnull, 0);
     return;
   }
-  if dtest
-  (cstackptr, cstacklen, ecstackptr + len * copies + 16, len * copies + 16) {
-    arg += mtest_diff;  /* Make room for the copies, then stack them directly */
-  }
+  dtest(cstackptr, cstacklen, ecstackptr + len * copies + 16, len * copies + 16, arg); /* Make room for the copies, then stack them directly */
   for (a = len * (copies - 1), p = arg + len; a--; p++[0] = arg++[0]);
   ecstackptr += align(len *= copies), *(int *) (cstackptr + ecstackptr) = len, ecstackptr += four;
 }

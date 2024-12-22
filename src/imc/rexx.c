@@ -378,8 +378,6 @@ int delay;                      /* Whether to delay any signals */
   int ilimit, istep, istart;
   int whilep, untilp;           /* values of WHILE and UNTIL conditions */
   char *entry;                  /* address of a program stack entry */
-  char *mtest_old;
-  long mtest_diff;
   int fr;                       /* number following FOR in a DO instruction */
   int s;
   int *lptr;
@@ -581,10 +579,7 @@ int delay;                      /* Whether to delay any signals */
             }
             stack(varref, reflen + 1),  /* variable name plus the '=' */
                   i = ecstackptr - tmpchr;        /* i is the length of all that data */
-            if dtest
-            (pstackptr, pstacklen, epstackptr + i + 30, i + 300) {
-              entry += mtest_diff;  /* stack the data on the pstack */
-            }
+            dtest(pstackptr, pstacklen, epstackptr + i + 30, i + 300, entry);  /* stack the data on the pstack */
             memcpy((char *) &((struct minstack *) entry)->len, cstackptr + tmpchr, i), epstackptr += i - 2 * four,      /* now add the FOR num, the length, */
               (*(int *) (pstackptr + epstackptr)) = fr,       /* and the type */
                                                     (*(int *) (pstackptr + (epstackptr += four))) = i + four + sizeof(struct minstack), (*(int *) (pstackptr + (epstackptr += four))) = stype = 10, epstackptr += four,
