@@ -94,7 +94,10 @@ ULONG THE_Commands(PRXSTRING Command, PUSHORT Flags, PRXSTRING Retstr) {
   command_calls++;
   if (COMMANDCALLSx != 0 && command_calls >= COMMANDCALLSx) {
     *Flags = RXSUBCOM_OK;       /* macro termination is not an error  */
-    if (halt_signalled == 0);   // RexxSetHalt( getpid(), 0 );          /* raise a halt condition */
+    if (halt_signalled == 0) {
+      // RexxSetHalt( getpid(), 0 );          /* raise a halt condition */
+      halt_signalled = 1;
+    }
     rc = 0;
   }
   /*
@@ -340,6 +343,7 @@ ULONG THE_Function_Handler(PSZ FunctionName, ULONG Argc, PRXSTRING Argv, PSZ Que
   function_calls++;
   if (FUNCTIONCALLSx != 0 && function_calls >= FUNCTIONCALLSx) {
     // RexxSetHalt( getpid(), 0 );          /* raise a halt condition */
+    halt_signalled = 1;
   }
 
   if (item_values[item_index].len > 256) {

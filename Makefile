@@ -1,4 +1,8 @@
 
+C = clang -flto
+T = -Oz
+#   -O3 -ffast-math
+
 the.4l: bin \
   bin/box.o bin/colour.o bin/column.o \
   bin/comm1.o bin/comm2.o bin/comm3.o bin/comm4.o bin/comm5.o \
@@ -16,7 +20,7 @@ the.4l: bin \
   bin/rexx.o bin/imc/rexx.o \
   bin/imc/calc.o bin/imc/globals.o bin/imc/interface.o \
   bin/imc/rxfn.o bin/imc/shell.o bin/imc/util.o
-	gcc -m64 -lncurses -lm $(filter %.o, $^) -o $@
+	$(C) -lncurses -lm $(filter %.o, $^) -o $@
 	strip $@
 
 bin: 
@@ -24,10 +28,10 @@ bin:
 	mkdir -pv bin/imc
 
 bin/%.o: src/%.c
-	cc -g -c -O3 -Wall -fomit-frame-pointer -I./src -I./src/imc -o $@ $<
+	$(C) $(T) -g0 -Wall -I./src -I./src/imc -c $< -o $@ 
 
 bin/imc/%.o: src/imc/%.c
-	cc -c -O3 -Wall -fomit-frame-pointer -I./src/imc -o $@ $<
+	$(C) $(T) -g0 -Wall -I./src/imc -c $< -o $@
 
 clean:
 	rm -fr bin

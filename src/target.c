@@ -1524,9 +1524,7 @@ short find_string_target(LINE *curr, RTARGET *rt, long start_col, int search_sem
      */
     if (real_end >= real_start) {
       if (search_semantics && rt->negative) {
-        long i;
-
-        for (i = 0; loc == (-1) && real_start >= CURRENT_VIEW->zone_start - 1; i++, real_start--) {
+        for (; loc == (-1) && real_start >= CURRENT_VIEW->zone_start - 1; real_start--) {
           loc = memfind(haystack + real_start, needle, (real_end - real_start + 1), needle_length, (bool) ((CURRENT_VIEW->case_locate == CASE_IGNORE) ? TRUE : FALSE), CURRENT_VIEW->arbchar_status, CURRENT_VIEW->arbchar_single, CURRENT_VIEW->arbchar_multiple, &str_length);
           if (loc != (-1) && loc + real_start - 1 == start_col) {
             loc = -1;

@@ -34,11 +34,11 @@ struct dirfile {
   int fname_length;             /* length of filename */
 };
 
-int date_comp();                /* this has been deliberatly left undefined */
-int time_comp();                /* this has been deliberatly left undefined */
-int size_comp();                /* this has been deliberatly left undefined */
-int name_comp();                /* this has been deliberatly left undefined */
-int dir_comp();                 /* this has been deliberatly left undefined */
+int date_comp(const void*, const void*);
+int time_comp(const void*, const void*);
+int size_comp(const void*, const void*);
+int name_comp(const void*, const void*);
+int dir_comp(const void*, const void*);
 
 uchar *make_full(uchar *, uchar *);
 

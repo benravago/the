@@ -28,37 +28,37 @@ typedef RXSTRING *PRXSTRING;
 #define RXZEROLENSTRING(x)    ((x).strptr && !(x).strlength)
 #define RXRESULTLEN           256
 
-#define APIRET ULONG            /* some apps use these to get correct */
-#define APIENTRY                /* function linkage */
+#define APIRET ULONG          // some apps use these to get correct
+#define APIENTRY              // function linkage
 typedef ULONG(*PFN) ();
 
-#define RXCOMMAND         1
-#define RXSUBROUTINE      2
-#define RXFUNCTION        4
+#define RXCOMMAND       1
+#define RXSUBROUTINE    2
+#define RXFUNCTION      4
 
-#define RXCMD        0
+#define RXCMD           0
 #define RXCMDHST        1
 
-#define RXSIO        1
+#define RXSIO           1
 #define RXSIOSAY        1
 #define RXSIOTRC        2
 #define RXSIOTRD        3
 #define RXSIODTR        4
 
-#define RXINI        2
+#define RXINI           2
 #define RXINIEXT        1
 
-#define RXTER        3
+#define RXTER           3
 #define RXTEREXT        1
 
-#define RXEXITNUM    4          /* number of  main exits */
+#define RXEXITNUM       4     // number of  main exits
 
-#define RXENDLST    100
+#define RXENDLST      100
 
-#define RXEXIT_OK         0
-#define RXEXIT_NOTREG    30
-#define RXEXIT_NOEMEM  1002
-#define RXEXIT_BADTYPE 1003
+#define RXEXIT_OK            0
+#define RXEXIT_NOTREG       30
+#define RXEXIT_NOEMEM     1002
+#define RXEXIT_BADTYPE    1003
 
 #define RXEXIT_HANDLED       0
 #define RXEXIT_NOT_HANDLED   1
@@ -116,30 +116,29 @@ ULONG RexxDeregisterExit(PSZ EnvName, PSZ ModuleName);
 
 ULONG RexxQueryExit(PSZ EnvName, PSZ ModuleName, unsigned short *flag, unsigned char *area);
 
-/* Now RXSYSEXIT is defined, we can declare RexxStart... */
 long RexxStart(long argc, PRXSTRING argv, char *name, PRXSTRING instore, PSZ envname, long calltype, PRXSYSEXIT exits, short *rc, PRXSTRING result);
 
 long RexxStartProgram(char *argv0, long argc, PRXSTRING argv, char *name, char *callname, PRXSTRING instore, PSZ envname, long calltype, int flags, PRXSYSEXIT exits, short *rc, PRXSTRING result);
 
-#define RXSHV_OK       0x00     /* OK */
-#define RXSHV_NEWV     0x01     /* New variable */
-#define RXSHV_LVAR     0x02     /* Last variable */
-#define RXSHV_TRUNC    0x04     /* Name or value has been truncated */
-#define RXSHV_BADN     0x08     /* Invalid name */
-#define RXSHV_MEMFL    0x10     /* Out of memory */
-#define RXSHV_BADF     0x20     /* Invalid function code */
+#define RXSHV_OK       0x00     // OK
+#define RXSHV_NEWV     0x01     // New variable
+#define RXSHV_LVAR     0x02     // Last variable
+#define RXSHV_TRUNC    0x04     // Name or value has been truncated
+#define RXSHV_BADN     0x08     // Invalid name
+#define RXSHV_MEMFL    0x10     // Out of memory
+#define RXSHV_BADF     0x20     // Invalid function code
 
-#define RXSHV_NOAVL    0x90     /* Interface not available */
+#define RXSHV_NOAVL    0x90     // Interface not available
 
-#define RXSHV_SET      0x00     /* Set direct variable */
-#define RXSHV_FETCH    0x01     /* Fetch direct variable */
-#define RXSHV_DROPV    0x02     /* Drop direct variable */
-#define RXSHV_SYSET    0x03     /* Set symbolic variable */
-#define RXSHV_SYFET    0x04     /* Fetch symbolic variable */
-#define RXSHV_SYDRO    0x05     /* Drop symbolic variable */
-#define RXSHV_NEXTV    0x06     /* Get next variable */
-#define RXSHV_PRIV     0x07     /* Get private information */
-#define RXSHV_EXIT     0x08     /* Set function exit value */
+#define RXSHV_SET      0x00     // Set direct variable
+#define RXSHV_FETCH    0x01     // Fetch direct variable
+#define RXSHV_DROPV    0x02     // Drop direct variable
+#define RXSHV_SYSET    0x03     // Set symbolic variable
+#define RXSHV_SYFET    0x04     // Fetch symbolic variable
+#define RXSHV_SYDRO    0x05     // Drop symbolic variable
+#define RXSHV_NEXTV    0x06     // Get next variable
+#define RXSHV_PRIV     0x07     // Get private information
+#define RXSHV_EXIT     0x08     // Set function exit value
 
 typedef struct shvnode {
   struct shvnode *shvnext;
@@ -181,3 +180,4 @@ ULONG RexxQueryFunction(PSZ name);
 #define RXFUNC_DEFINED   10
 #define RXFUNC_NOTREG    30
 #define RXFUNC_NOMEM     20
+

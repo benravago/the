@@ -18,241 +18,246 @@
 #include <termios.h>
 
 #include "const.h"
+#include "rexxsaa.h"
 #include "globals.h"
 #include "functions.h"
 
 #define STDIN 0
 
-void rxsource();
-void rxerror();
-void rxlength();
-void rxtime();
-void rxdate();
-void rxleft();
-void rxright();
-void rxstrip();
-void rxvalue();
-void rxdatatype();
-void rxcopies();
-void rxspace();
-void rxrange();
-void c2x(), c2d(), b2x(), b2d(), d2c(), d2b(), d2x(), x2c(), x2d(), x2b();
-void xbyte();
-void rxsystem();
-void rxpos();
-void rxlastpos();
-void rxcentre();
-void rxjustify();
-void rxsubstr();
-void rxarg();
-void rxabbrev();
-void rxabs();
-void rxcompare();
-void rxdelstr();
-void rxdelword();
-void rxinsert();
-void rxmax();
-void rxmin();
-void rxoverlay();
-void rxrandom();
-void rxreverse();
-void rxsign();
-void rxsubword();
-void rxsymbol();
-void rxlate();
-void rxtrunc();
-void rxverify();
-void rxword();
-void rxwordindex();
-void rxwordlength();
-void rxwordpos();
-void rxwords();
-void rxdigits();
-void rxfuzz();
-void rxtrace();
-void rxform();
-void rxformat();
-void rxlinesize();
-void rxbitand();
-void rxbitor();
-void rxbitxor();
-void rxuserid();
-void rxgetcwd();
-void rxchdir();
-void rxgetenv();
-void rxputenv();
-void rxopen();
-void rxlinein();
-void rxlineout();
-void rxcharin();
-void rxcharout();
-void rxchars();
-void rxlines();
-void rxchars2();
-void rxclose();
-void rxfileno();
-void rxfdopen();
-void rxpopen();
-void rxpclose();
-void rxftell();
-void rxstream();
-void rxaddress();
-void rxcondition();
+void rxsource(int);
+void rxerror(int);
+void rxlength(int);
+void rxtime(int);
+void rxdate(int);
+void rxleft(int);
+void rxright(int);
+void rxstrip(int);
+void rxvalue(int);
+void rxdatatype(int);
+void rxcopies(int);
+void rxspace(int);
+void rxrange(int);
+void c2x(int);
+void c2d(int);
+void b2x(int);
+void b2d(int);
+void d2c(int);
+void d2b(int);
+void d2x(int);
+void x2c(int);
+void x2d(int);
+void x2b(int);
+void xbyte(char*,unsigned char);
+void rxsystem(int);
+void rxpos(int);
+void rxlastpos(int);
+void rxcentre(int);
+void rxjustify(int);
+void rxsubstr(int);
+void rxarg(int);
+void rxabbrev(int);
+void rxabs(int);
+void rxcompare(int);
+void rxdelstr(int);
+void rxdelword(int);
+void rxinsert(int);
+void rxmax(int);
+void rxmin(int);
+void rxoverlay(int);
+void rxrandom(int);
+void rxreverse(int);
+void rxsign(int);
+void rxsubword(int);
+void rxsymbol(int);
+void rxlate(int);
+void rxtrunc(int);
+void rxverify(int);
+void rxword(int);
+void rxwordindex(int);
+void rxwordlength(int);
+void rxwordpos(int);
+void rxwords(int);
+void rxdigits(int);
+void rxfuzz(int);
+void rxtrace(int);
+void rxform(int);
+void rxformat(int);
+void rxlinesize(int);
+void rxbitand(int);
+void rxbitor(int);
+void rxbitxor(int);
+void rxuserid(int);
+void rxgetcwd(int);
+void rxchdir(int);
+void rxgetenv(int);
+void rxputenv(int);
+void rxopen(int);
+void rxlinein(int);
+void rxlineout(int);
+void rxcharin(int);
+void rxcharout(int);
+void rxchars(int);
+void rxlines(int);
+void rxchars2(int,int);
+void rxclose(int);
+void rxfileno(int);
+void rxfdopen(int);
+void rxpopen(int);
+void rxpclose(int);
+void rxftell(int);
+void rxstream(int);
+void rxaddress(int);
+void rxcondition(int);
 
-int compar();
-
-void binrel();                  /* The calculator routine which implements binary relations */
+int compar(const void*, const void*);
 
 struct fnlist {
   char *name;
-  void (*fn)();
+  void (*fn)(int);
 };
 
-int rxfn(name, argc)            /* does function if possible; returns 1 if successful */
-/* Returns -1 if the name was recognised as a math    */
-/* function, and 0 if the name was unrecognised.      */
-char *name;                     /* Name of the function to call */
-int argc;                       /* Number of arguments passed to it */
+/* the name and address of every builtin function, in alphabetical order */
 
-{
-  static struct fnlist names[] = {      /* The name and address of ever builtin */
-    { "ABBREV", rxabbrev },     /* function, in alphabetical order      */
-    { "ABS", rxabs },
-    { "ADDRESS", rxaddress },
-    { "ARG", rxarg },
-    { "B2D", b2d },
-    { "B2X", b2x },
-    { "BITAND", rxbitand },
-    { "BITOR", rxbitor },
-    { "BITXOR", rxbitxor },
-    { "C2D", c2d },
-    { "C2X", c2x },
-    { "CENTER", rxcentre },
-    { "CENTRE", rxcentre },
-    { "CHARIN", rxcharin },
-    { "CHAROUT", rxcharout },
-    { "CHARS", rxchars },
-    { "CHDIR", rxchdir },
-    { "CLOSE", rxclose },
-    { "COMPARE", rxcompare },
-    { "CONDITION", rxcondition },
-    { "COPIES", rxcopies },
-    { "D2B", d2b },
-    { "D2C", d2c },
-    { "D2X", d2x },
-    { "DATATYPE", rxdatatype },
-    { "DATE", rxdate },
-    { "DELSTR", rxdelstr },
-    { "DELWORD", rxdelword },
-    { "DIGITS", rxdigits },
-    { "ERRORTEXT", rxerror },
-    { "FDOPEN", rxfdopen },
-    { "FILENO", rxfileno },
-    { "FORM", rxform },
-    { "FORMAT", rxformat },
-    { "FTELL", rxftell },
-    { "FUZZ", rxfuzz },
-    { "GETCWD", rxgetcwd },
-    { "GETENV", rxgetenv },
-    { "INSERT", rxinsert },
-    { "JUSTIFY", rxjustify },
-    { "LASTPOS", rxlastpos },
-    { "LEFT", rxleft },
-    { "LENGTH", rxlength },
-    { "LINEIN", rxlinein },
-    { "LINEOUT", rxlineout },
-    { "LINES", rxlines },
-    { "LINESIZE", rxlinesize },
-    { "MAX", rxmax },
-    { "MIN", rxmin },
-    { "OPEN", rxopen },
-    { "OVERLAY", rxoverlay },
-    { "PCLOSE", rxpclose },
-    { "POPEN", rxpopen },
-    { "POS", rxpos },
-    { "PUTENV", rxputenv },
-    { "RANDOM", rxrandom },
-    { "REVERSE", rxreverse },
-    { "RIGHT", rxright },
-    { "SIGN", rxsign },
-    { "SOURCELINE", rxsource },
-    { "SPACE", rxspace },
-    { "STREAM", rxstream },
-    { "STRIP", rxstrip },
-    { "SUBSTR", rxsubstr },
-    { "SUBWORD", rxsubword },
-    { "SYMBOL", rxsymbol },
-    { "SYSTEM", rxsystem },
-    { "TIME", rxtime },
-    { "TRACE", rxtrace },
-    { "TRANSLATE", rxlate },
-    { "TRUNC", rxtrunc },
-    { "USERID", rxuserid },
-    { "VALUE", rxvalue },
-    { "VERIFY", rxverify },
-    { "WORD", rxword },
-    { "WORDINDEX", rxwordindex },
-    { "WORDLENGTH", rxwordlength },
-    { "WORDPOS", rxwordpos },
-    { "WORDS", rxwords },
-    { "X2B", x2b },
-    { "X2C", x2c },
-    { "X2D", x2d },
-    { "XRANGE", rxrange }
-  };
+static struct fnlist names[] = {
+  { "ABBREV", rxabbrev },
+  { "ABS", rxabs },
+  { "ADDRESS", rxaddress },
+  { "ARG", rxarg },
+  { "B2D", b2d },
+  { "B2X", b2x },
+  { "BITAND", rxbitand },
+  { "BITOR", rxbitor },
+  { "BITXOR", rxbitxor },
+  { "C2D", c2d },
+  { "C2X", c2x },
+  { "CENTER", rxcentre },
+  { "CENTRE", rxcentre },
+  { "CHARIN", rxcharin },
+  { "CHAROUT", rxcharout },
+  { "CHARS", rxchars },
+  { "CHDIR", rxchdir },
+  { "CLOSE", rxclose },
+  { "COMPARE", rxcompare },
+  { "CONDITION", rxcondition },
+  { "COPIES", rxcopies },
+  { "D2B", d2b },
+  { "D2C", d2c },
+  { "D2X", d2x },
+  { "DATATYPE", rxdatatype },
+  { "DATE", rxdate },
+  { "DELSTR", rxdelstr },
+  { "DELWORD", rxdelword },
+  { "DIGITS", rxdigits },
+  { "ERRORTEXT", rxerror },
+  { "FDOPEN", rxfdopen },
+  { "FILENO", rxfileno },
+  { "FORM", rxform },
+  { "FORMAT", rxformat },
+  { "FTELL", rxftell },
+  { "FUZZ", rxfuzz },
+  { "GETCWD", rxgetcwd },
+  { "GETENV", rxgetenv },
+  { "INSERT", rxinsert },
+  { "JUSTIFY", rxjustify },
+  { "LASTPOS", rxlastpos },
+  { "LEFT", rxleft },
+  { "LENGTH", rxlength },
+  { "LINEIN", rxlinein },
+  { "LINEOUT", rxlineout },
+  { "LINES", rxlines },
+  { "LINESIZE", rxlinesize },
+  { "MAX", rxmax },
+  { "MIN", rxmin },
+  { "OPEN", rxopen },
+  { "OVERLAY", rxoverlay },
+  { "PCLOSE", rxpclose },
+  { "POPEN", rxpopen },
+  { "POS", rxpos },
+  { "PUTENV", rxputenv },
+  { "RANDOM", rxrandom },
+  { "REVERSE", rxreverse },
+  { "RIGHT", rxright },
+  { "SIGN", rxsign },
+  { "SOURCELINE", rxsource },
+  { "SPACE", rxspace },
+  { "STREAM", rxstream },
+  { "STRIP", rxstrip },
+  { "SUBSTR", rxsubstr },
+  { "SUBWORD", rxsubword },
+  { "SYMBOL", rxsymbol },
+  { "SYSTEM", rxsystem },
+  { "TIME", rxtime },
+  { "TRACE", rxtrace },
+  { "TRANSLATE", rxlate },
+  { "TRUNC", rxtrunc },
+  { "USERID", rxuserid },
+  { "VALUE", rxvalue },
+  { "VERIFY", rxverify },
+  { "WORD", rxword },
+  { "WORDINDEX", rxwordindex },
+  { "WORDLENGTH", rxwordlength },
+  { "WORDPOS", rxwordpos },
+  { "WORDS", rxwords },
+  { "X2B", x2b },
+  { "X2C", x2c },
+  { "X2D", x2d },
+  { "XRANGE", rxrange }
+};
 
 #define nofun 0                 /* "nofun" means "this function ain't here" */
 #define numfun 87               /* The number of builtin functions */
 
+/*
+ * does function if possible; returns 1 if successful
+ * returns -1 if the name was recognised as a math function,
+ *  and 0 if the name was unrecognised.
+ */
+int rxfn(char *name, int argc) {
   struct fnlist test;
   struct fnlist *ptr;
 
-  test.name = name;             /* Initialise a structure with the candidate name */
-  ptr = (struct fnlist *)       /* Search for a builtin function */
-        bsearch((char *) &test, (char *) names, numfun, sizeof(struct fnlist), compar);
+  test.name = name; // initialise a structure with the candidate name, then search for a builtin function
+  ptr = (struct fnlist *) bsearch((char *) &test, (char *) names, numfun, sizeof(struct fnlist), compar);
   if (!ptr) {
-    return 0;  /* no function recognised */
+    return 0;  // no function recognised
   }
-  (*(ptr->fn)) (argc);          /* Call the builtin function */
-  return 1;                     /* Done. */
+  (*(ptr->fn)) (argc);  // call the builtin function
+  return 1;  // done.
 }
 
-int compar(s1, s2)              /* Compares two items of a function list, */
-char *s1, *s2;                  /* as required by bsearch()               */
-{
+/* compares two items of a function list, as required by bsearch() */
+int compar(const void* s1, const void* s2) {
   return strcmp(((struct fnlist *) s1)->name, ((struct fnlist *) s2)->name);
 }
 
-char *nodelete(l)               /* A utility function like delete(l) except that */
-int *l;                         /* the value isn't deleted from the stack */
-{
+/* a utility function like delete(l) except that the value isn't deleted from the stack */
+char *nodelete(int *l) {
   char *ptr = cstackptr + ecstackptr - four;
 
   (*l) = *(int *) ptr;
   if (*l >= 0) {
     ptr -= align(*l);
   } else {
-    ptr = (char *) -1;  /* I don't think this is ever used */
+    ptr = (char *) -1;  // I don't think this is ever used
   }
   return ptr;
 }
 
-/* The rest of this file contains the builtin functions listed in the
-   dictionary above.  In general, each function ABC() is implemented by
-   the C routine rxabc().  Each routine takes one parameter - namely
-   the number of arguments passed to the builtin function - and gives no
-   return value.  The arguments and result of the builtin function are
-   passed on the calculator stack.  A null argument (as in abc(x,,y))
-   is represented by a stacked value having length -1. */
+/*
+ * The rest of this file contains the builtin functions listed in the dictionary above.
+ * In general, each function ABC() is implemented by the C routine rxabc().
+ * Each routine takes one parameter - namely the number of arguments passed to the builtin function - and gives no return value.
+ * The arguments and result of the builtin function are passed on the calculator stack.
+ * A null argument (as in abc(x,,y)) is represented by a stacked value having length -1.
+ */
 
-void rxsource(argc)             /* souceline() function */
-int argc;
-{
+/* souceline() function */
+void rxsource(int argc) {
   int i;
   char *s;
 
   if (!argc) {
-    stackint(lines);            /* the number of source lines */
+    stackint(lines);  // the number of source lines
     return;
   }
   if (argc != 1) {
@@ -262,12 +267,11 @@ int argc;
     die(Erange);
   }
   s = source[i];
-  stack(s, strlen(s));          /* the ith source line */
+  stack(s, strlen(s));  // the ith source line
 }
 
-void rxerror(argc)              /* errortext() function */
-int argc;
-{
+/* errortext() function */
+void rxerror(int argc) {
   char *msg;
 
   if (argc != 1) {
@@ -277,9 +281,7 @@ int argc;
   stack(msg, strlen(msg));
 }
 
-void rxlength(argc)
-int argc;
-{
+void rxlength(int argc) {
   int l;
 
   if (argc != 1) {
@@ -289,13 +291,8 @@ int argc;
   stackint(l);
 }
 
-/* This is used for TIME() with three parameters to collect an input time
-   and convert it into a tm structure for output.  Return 0 -> successful */
-static int rxgettime(type, time, usec)
-char type;
-struct tm *time;
-long *usec;
-{
+/* this is used for TIME() with three parameters to collect an input time and convert it into a tm structure for output. */
+static int rxgettime(char type, struct tm *time, long *usec) {
   int input = 0;
   char *string = 0;
   char ampm[2];
@@ -312,10 +309,11 @@ long *usec;
     }
   } else {
     string = delete(&len);
-    for (i = 0; i < len; i++)
+    for (i = 0; i < len; i++) {
       if (!string[i]) {
         return -1;
       }
+    }
     string[len] = 0;
   }
   switch (type) {
@@ -340,8 +338,9 @@ long *usec;
             time->tm_hour += 12;
           }
           break;
-        default:
+        default: {
           return -1;
+        }
       }
       break;
     case 'H':
@@ -379,8 +378,9 @@ long *usec;
       time->tm_min = input / 60;
       time->tm_sec = input % 60;
       break;
-    default:
+    default: {
       return -1;
+    }
   }
   if (time->tm_hour < 0 || time->tm_hour > 23 || time->tm_min < 0 || time->tm_min > 59 || time->tm_sec < 0 || time->tm_sec > 59) {
     return -1;
@@ -388,9 +388,7 @@ long *usec;
   return 0;
 }
 
-void rxtime(argc)
-int argc;
-{
+void rxtime(int argc) {
   struct tm t, *t2;
   struct timezone tz;
   char ans[20];
@@ -403,7 +401,7 @@ int argc;
   long usec;
 
   if (!(timeflag & 2)) {
-    gettimeofday(&timestamp, &tz);  /* Make a timestamp if necessary */
+    gettimeofday(&timestamp, &tz);  // make a timestamp if necessary
   }
   timeflag |= 2;
   if (argc > 3) {
@@ -431,7 +429,7 @@ int argc;
       argc--;
     }
   } else {
-    t2 = localtime(&timestamp.tv_sec);  /* t2 now contains all the necessary info */
+    t2 = localtime(&timestamp.tv_sec);  // t2 now contains all the necessary info
     usec = timestamp.tv_usec;
   }
   if (argc == 1) {
@@ -440,10 +438,11 @@ int argc;
       die(Ecall);
     }
     opt = arg[0] & 0xdf;
-    if (type)
+    if (type) {
       if (opt == 'E' || opt == 'R' || opt == 'O') {
         die(Ecall);
       }
+    }
   }
   switch (opt) {
     case 'C':
@@ -476,37 +475,38 @@ int argc;
       if (!(timeflag & 1)) {
         secs = timestamp.tv_sec, microsecs = timestamp.tv_usec;
       }
-      timeflag |= 1, e2 = timestamp.tv_usec - microsecs, e1 = timestamp.tv_sec - secs;
+      timeflag |= 1;
+      e2 = timestamp.tv_usec - microsecs;
+      e1 = timestamp.tv_sec - secs;
       if (e2 < 0) {
         e2 += 1000000, e1--;
       }
       if (opt == 'R') {
-        secs = timestamp.tv_sec, microsecs = timestamp.tv_usec;
+        secs = timestamp.tv_sec;
+        microsecs = timestamp.tv_usec;
       }
       if (e1 || e2) {
         sprintf(ans, "%ld.%06d", e1, e2);
       } else {
-        ans[0] = '0', ans[1] = 0;  /* "0", not "0.000000" */
+        ans[0] = '0';
+        ans[1] = 0;  // "0", not "0.000000"
       }
       break;
-    default:
+    default: {
       die(Ecall);
+    }
   }
   stack(ans, strlen(ans));
 }
 
-char *month[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
-                    "Aug", "Sep", "Oct", "Nov", "Dec"
-                  };
-
 /* month names originally for rxdate() but needed for the Rexx version string*/
 
-/* This is used in DATE() with three parameters to convert an input date
-   into a Unix date */
-static time_t rxgetdate(type, thisyear)
-char type;
-int thisyear;
-{
+char *month[12] = {
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
+/* this is used in DATE() with three parameters to convert an input date into a Unix date */
+static time_t rxgetdate(char type, int thisyear) {
   long t, t2;
   char *date = 0;
   char mth[3];
@@ -524,27 +524,27 @@ int thisyear;
     }
   } else {
     date = delete(&len);
-    for (i = 0; i < len; i++)
+    for (i = 0; i < len; i++) {
       if (!date[i]) {
         return -1;
       }
+    }
     date[len] = 0;
   }
   time.tm_isdst = 0;
-  time.tm_hour = 12;            /* stop DST variations from changing the date */
+  time.tm_hour = 12;  // stop DST variations from changing the date
   time.tm_year = thisyear - 1900;
-
   switch (type) {
     case 'C':
       if (t > 36524) {
         return -1;
       }
-      y = t * 100 / 36524;      /* approximate year represented by input value */
+      y = t * 100 / 36524;  // approximate year represented by input value
       if (y + 2000 - thisyear <= 50) {
         t += 36524;
       }
       t += 693594L;
-    /* fall through */
+    // fall-through
     case 'B':
       t -= 719162L;
       if (t > (long) (maxtime / 86400) || t < -(long) (maxtime / 86400)) {
@@ -562,7 +562,7 @@ int thisyear;
         y += 100;
       }
       time.tm_year = y;
-    /* fall through */
+    // fall-through
     case 'D':
       t2 = mktime(&time);
       if (t2 == -1) {
@@ -586,10 +586,11 @@ int thisyear;
         return -1;
       }
       time.tm_year = y - 1900;
-      for (i = 0; i < 12; i++)
+      for (i = 0; i < 12; i++) {
         if (!memcmp(month[i], mth, 3)) {
           break;
         }
+      }
       if (i == 12) {
         return -1;
       }
@@ -619,8 +620,9 @@ int thisyear;
       }
       time.tm_year = y;
       break;
-    default:
+    default: {
       return -1;
+    }
   }
   time.tm_mon--;
   if (time.tm_mday < 1 || time.tm_mday > 31 || time.tm_mon < 0 || time.tm_mon > 11 || time.tm_year < 0) {
@@ -629,16 +631,15 @@ int thisyear;
   return mktime(&time);
 }
 
-void rxdate(argc)
-int argc;
-{
-  static char *wkday[7] = { "Sunday", "Monday", "Tuesday", "Wednesday",
-                            "Thursday", "Friday", "Saturday"
-                          };
-  static char *fullmonth[12] = { "January", "February", "March", "April", "May",
-                                 "June", "July", "August", "September", "October",
-                                 "November", "December"
-                               };
+static char *wkday[7] = {
+  "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+};
+
+static char *fullmonth[12] = {
+  "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+};
+
+void rxdate(int argc) {
   struct tm *t2;
   struct timezone tz;
   char ans[48];
@@ -650,15 +651,15 @@ int argc;
   time_t time;
 
   if (!(timeflag & 2)) {
-    gettimeofday(&timestamp, &tz);  /* Make a timestamp if necessary */
+    gettimeofday(&timestamp, &tz);  // make a timestamp if necessary
   }
   timeflag |= 2;
   time = timestamp.tv_sec;
-  t2 = localtime(&timestamp.tv_sec);    /* t2 now contains all the necessary info */
+  t2 = localtime(&timestamp.tv_sec);  // t2 now contains all the necessary info
   if (argc > 3) {
     die(Ecall);
   }
-  if (argc > 1) {               /* get a type and an input date of that type */
+  if (argc > 1) {  // get a type and an input date of that type
     if (argc == 3) {
       arg = delete(&l);
       if (!l) {
@@ -692,7 +693,7 @@ int argc;
       if (time >= 0) {
         t = time / 86400;
       } else {
-        t = -((-time - 1) / 86400) - 1;  /* make sure negative numbers round down */
+        t = -((-time - 1) / 86400) - 1;  // make sure negative numbers round down
       }
       sprintf(ans, "%ld", t + 719162L);
       break;
@@ -730,15 +731,14 @@ int argc;
     case 'W':
       strcpy(ans, wkday[t2->tm_wday]);
       break;
-    default:
+    default: {
       die(Ecall);
+    }
   }
   stack(ans, strlen(ans));
 }
 
-void rxstrip(argc)
-int argc;
-{
+void rxstrip(int argc) {
   char *arg;
   int len;
   char strip = ' ';
@@ -759,7 +759,7 @@ int argc;
     arg = delete(&len);
     if (!len) {
       die(Ecall);
-    } else if (len > 0)
+    } else if (len > 0) {
       switch (arg[0] & 0xdf) {
         case 'T':
           flg = 1;
@@ -768,28 +768,34 @@ int argc;
           flg = -1;
         case 'B':
           break;
-        default:
+        default: {
           die(Ecall);
+        }
       }
+    }
   }
   arg = delete(&len);
   if (len < 0) {
     die(Enoarg);
   }
-  if (flg <= 0)
-    for (; arg[0] == strip && len; arg++, len--);       /* strip leading chars */
+  if (flg <= 0) {
+    for (; arg[0] == strip && len; arg++, len--) {
+      // strip leading chars
+    }
+  }
   if (flg >= 0) {
-    while (len-- && arg[len] == strip);
+    while (len-- && arg[len] == strip) {
+      // strip trailing chars
+    }
     len++;
-  }                             /* strip trailing chars */
-  mtest(workptr, worklen, len + 5, len + 5);    /* move to worksp before stacking, */
-  memcpy(workptr, arg, len);    /* as stack() will destroy this copy */
+  }
+  // move to worksp before stacking, as stack() will destroy this copy
+  mtest(workptr, worklen, len + 5, len + 5);
+  memcpy(workptr, arg, len);
   stack(workptr, len);
 }
 
-void rxleft(argc)
-int argc;
-{
+void rxleft(int argc) {
   char *arg;
   int len;
   int len1;
@@ -819,13 +825,13 @@ int argc;
   mtest(workptr, worklen, len1 + 5, len1 + 5);
   len1 = len < num ? len : num;
   memcpy(workptr, arg, len1);
-  for (; len1 < num; workptr[len1++] = pad);
+  for (; len1 < num; workptr[len1++] = pad) {
+    // no-op
+  }
   stack(workptr, num);
 }
 
-void rxright(argc)
-int argc;
-{
+void rxright(int argc) {
   char *arg;
   int len;
   int len1;
@@ -854,18 +860,20 @@ int argc;
   }
   len1 = len > num ? len : num;
   mtest(workptr, worklen, len1 + 5, len1 + 5);
-  for (i = 0; len + i < num; workptr[i++] = pad);
+  for (i = 0; len + i < num; workptr[i++] = pad) {
+    // no-op
+  }
   len1 = len < num ? len : num;
   memcpy(workptr + i, arg + len - len1, len1);
   stack(workptr, num);
 }
 
-char *rxgetname(nl, t)          /* get a symbol (if compound symbol, substitute values
-                                   in tail). Afterwards, t=0 if invalid, otherwise:
-                                   1 normal symbol, 2 constant symbol, 3 number. */
-int *nl, *t;                    /* Return value is the name, nl is the length.  The   */
-{
-  /* result may contain garbage if the symbol was bad.  */
+/*
+ * get a symbol (if compound symbol, substitute values in tail).
+ * afterwards, t=0 if invalid, otherwise: 1 normal symbol, 2 constant symbol, 3 number.
+ * return value is the name, nl is the length; the result may contain garbage if the symbol was bad.
+ */
+char *rxgetname(int *nl, int *t) {
   static char name[maxvarname];
   int len, l, m, e, z;
   char *arg;
@@ -877,8 +885,7 @@ int *nl, *t;                    /* Return value is the name, nl is the length.  
   int constsym;
 
   if (num(&m, &e, &z, &l) >= 0) {
-    /* Symbol is a number - must not contain spaces or a leading sign.
-       Uppercase any 'e' in the exponent. */
+    // symbol is a number - must not contain spaces or a leading sign; uppercase any 'e' in the exponent.
     (*t) = 0;
     arg = delete(&len);
     if (len >= maxvarname - 1) {
@@ -902,36 +909,47 @@ int *nl, *t;                    /* Return value is the name, nl is the length.  
   }
   arg = delete(&len);
   if (len <= 0) {
-    return *t = 0, name;
+    *t = 0;
+    return name;
   }
-  constsym = rexxsymbol(uc(arg[0])) <= 0;       /* is it a constant symbol? */
+  constsym = rexxsymbol(uc(arg[0])) <= 0;  // is it a constant symbol?
   (*t) = 1 + constsym;
   if (len >= maxvarname - 1) {
-    return *t = 0, name;
+    *t = 0;
+    return name;
   }
-  while (len && arg[0] != '.') {        /* Get the stem part */
-    name[i++] = c = uc((arg++)[0]), len--;
+  while (len && arg[0] != '.') {  // get the stem part
+    name[i++] = c = uc((arg++)[0]);
+    len--;
     if (!rexxsymbol(c)) {
-      return *t = 0, name;
+      *t = 0;
+      return name;
     }
   }
   if (len == 1 && arg[0] == '.' && !constsym) {
-    dot = 1, len--;  /* Delete final dot of a stem */
-  }
-  while (len && arg[0] == '.') {        /* Get each element of the tail */
     dot = 1;
-    name[p = i++] = '.', ++p, ++arg, len--;
-    while (len && arg[0] != '.') {      /* copy the element */
-      c = name[i++] = uc((arg++)[0]), len--;
+    len--;  // delete final dot of a stem
+  }
+  while (len && arg[0] == '.') {  // get each element of the tail
+    dot = 1;
+    name[p = i++] = '.';
+    ++p;
+    ++arg;
+    len--;
+    while (len && arg[0] != '.') {  // copy the element
+      c = name[i++] = uc((arg++)[0]);
+      len--;
       if (!rexxsymbol(c)) {
-        return *t = 0, name;
+        *t = 0;
+        return name;
       }
     }
-    if (p != i && !constsym) {  /* substitute it */
+    if (p != i && !constsym) {  // substitute it
       name[i] = 0;
       if ((val = varget(name + p, i - p, &l))) {
         if (len + l >= maxvarname - 1) {
-          return *t = 0, name;
+          *t = 0;
+          return name;
         }
         memcpy(name + p, val, l), i = p + l;
       }
@@ -940,14 +958,12 @@ int *nl, *t;                    /* Return value is the name, nl is the length.  
   (*nl) = i;
   name[i] = 0;
   if (dot && !constsym) {
-    name[0] |= 128;  /* Compound symbols have the MSB set */
+    name[0] |= 128;  // compound symbols have the MSB set
   }
   return name;
 }
 
-void rxvalue(argc)
-int argc;
-{
+void rxvalue(int argc) {
   char *arg;
   char *val;
   char *pool = 0;
@@ -969,7 +985,7 @@ int argc;
     argc--;
     if (newlen < 0) {
       new = 0;
-    } else {                    /* stack will be corrupted, so copy to workspace */
+    } else {  // stack will be corrupted, so copy to workspace
       mtest(workptr, worklen, newlen + 1, newlen + 1 - worklen);
       memcpy(workptr, new, newlen);
       new = workptr;
@@ -978,23 +994,23 @@ int argc;
   if (argc != 1) {
     die(Ecall);
   }
-  if (pool) {                   /* The pool name determines what we do here */
+  if (pool) {  // the pool name determines what we do here
     if (!strcasecmp(pool, "ENVIRONMENT") || !strcmp(pool, "SYSTEM")) {
       arg = delete(&len);
       if (len < 1 || len > varnamelen - 1) {
         die(Ecall);
       }
-      /* A valid environment variable contains REXX symbol characters
-         but no '$' or '.'.  It is not uppercased. */
+      // a valid environment variable contains REXX symbol characters but no '$' or '.'; it is not uppercased.
       if (whattype(arg[0]) == 2) {
         die(Ecall);
       }
-      for (l = 0; l < len; l++)
+      for (l = 0; l < len; l++) {
         if (whattype(arg[l]) < 1 || arg[l] == '.' || arg[l] == '$') {
           die(Ecall);
         } else {
           varnamebuf[l] = arg[l];
         }
+      }
       arg = varnamebuf;
       arg[len] = 0;
       if ((val = getenv(arg))) {
@@ -1012,55 +1028,57 @@ int argc;
       entry = (char **) hashfind(0, arg, &l);
       arg[len] = '=';
       arg[len + 1] = 0;
-      putenv(arg);              /* release the previous copy from the environment */
+      putenv(arg);   // release the previous copy from the environment
       if (!l) {
         *entry = allocm(len + newlen + 2);
-      } else if (strlen(*entry) < len + newlen + 2)
+      } else if (strlen(*entry) < len + newlen + 2) {
         if (!(*entry = realloc(*entry, len + newlen + 2))) {
           die(Emem);
         }
+      }
       memcpy(*entry, arg, ++len);
       memcpy(*entry + len, new, newlen);
       entry[0][len + newlen] = 0;
       putenv(*entry);
       if (!path) {
-        hashclear();  /* clear shell's hash table on change of PATH */
+        hashclear();  // clear shell's hash table on change of PATH
       }
       return;
-    }
-    /* here add more "else if"s */
-    else if (strcasecmp(pool, "REXX")) {
+    } else if (strcasecmp(pool, "REXX")) {
       die(Ecall);
     }
+    // here add more "else if"s
   }
-  arg = rxgetname(&len, &t);    /* Get the symbol name, then try to get its value */
+  arg = rxgetname(&len, &t);  // get the symbol name, then try to get its value
   if (t > 1) {
-    stack(arg, len);  /* for constant symbol stack its name */
-  } else if (t && (val = varget(arg, len, &l))) {
-    stack(val, l);
-  } else if (t < 1) {
-    die(Ecall);  /* die if it was bad */
-  } else {                      /* stack the variable's name */
-    oldlen = len;
-    if ((l = arg[0] & 128) && !memchr(arg, '.', len)) {
-      arg[len++] = '.';
+    stack(arg, len);  // for constant symbol stack its name
+  } else {
+    if (t && (val = varget(arg, len, &l))) {
+      stack(val, l);
+    } else {
+      if (t < 1) {
+        die(Ecall);  // die if it was bad
+      } else {  // stack the variable's name
+        oldlen = len;
+        if ((l = arg[0] & 128) && !memchr(arg, '.', len)) {
+          arg[len++] = '.';
+        }
+        arg[0] &= 127, stack(arg, len);
+        arg[0] |= l;
+        len = oldlen;
+      }
     }
-    arg[0] &= 127, stack(arg, len);
-    arg[0] |= l;
-    len = oldlen;
   }
   if (new) {
     if (t > 1) {
-      die(Ecall);  /* can't set a constant symbol */
+      die(Ecall);  //* can't set a constant symbol
     } else {
       varset(arg, len, new, newlen);
     }
   }
 }
 
-void rxdatatype(argc)
-int argc;
-{
+void rxdatatype(int argc) {
   char *arg;
   int len;
   int i = 0, numb = 1, fst = 1;
@@ -1071,13 +1089,16 @@ int argc;
     die(Ecall);
   }
   if (argc == 2 && isnull()) {
-    delete(&len), argc--;
+    delete(&len);
+    argc--;
   }
   if (argc == 1) {
-    if (num(&m, &e, &z, &l) >= 0) {     /* numeric if true */
-      delete(&l), stack("NUM", 3);
+    if (num(&m, &e, &z, &l) >= 0) {  // numeric if true
+      delete(&l);
+      stack("NUM", 3);
     } else {
-      delete(&l), stack("CHAR", 4);
+      delete(&l);
+      stack("CHAR", 4);
     }
   } else {
     arg = delete(&len);
@@ -1087,7 +1108,7 @@ int argc;
     if (len < 1) {
       die(Ecall);
     }
-    switch (arg[0] & 0xdf) {    /* Depending on type, set i to the answer */
+    switch (arg[0] & 0xdf) {  // depending on type, set i to the answer
       case 'A':
         arg = delete(&len);
         if (!len) {
@@ -1095,10 +1116,11 @@ int argc;
           break;
         }
         i = 1;
-        while (len--)
+        while (len--) {
           if ((m = alphanum((arg++)[0])) < 1 || m == 3) {
             i = 0;
           }
+        }
         break;
       case 'B':
         arg = delete(&len);
@@ -1107,10 +1129,11 @@ int argc;
           break;
         }
         i = 1;
-        while (len--)
+        while (len--) {
           if ((c = (arg++)[0]) != '0' && c != '1') {
             i = 0;
           }
+        }
         break;
       case 'L':
         arg = delete(&len);
@@ -1119,10 +1142,11 @@ int argc;
           break;
         }
         i = 1;
-        while (len--)
+        while (len--) {
           if ((c = (arg++)[0]) < 'a' || c > 'z') {
             i = 0;
           }
+        }
         break;
       case 'M':
         arg = delete(&len);
@@ -1131,13 +1155,15 @@ int argc;
           break;
         }
         i = 1;
-        while (len--)
+        while (len--) {
           if ((c = (arg++)[0] | 0x20) < 'a' || c > 'z') {
             i = 0;
           }
+        }
         break;
       case 'N':
-        i = (num(&m, &e, &z, &l) >= 0), delete(&len);
+        i = (num(&m, &e, &z, &l) >= 0);
+        delete(&len);
         break;
       case 'S':
         arg = rxgetname(&len, &l);
@@ -1150,18 +1176,21 @@ int argc;
           break;
         }
         i = 1;
-        while (len--)
+        while (len--) {
           if ((c = (arg++)[0]) < 'A' || c > 'Z') {
             i = 0;
           }
+        }
         break;
       case 'W':
-        numb = num(&m, &e, &z, &l), i = numb >= 0 && (z || isint(numb, l, e)), delete(&len);
+        numb = num(&m, &e, &z, &l);
+        i = numb >= 0 && (z || isint(numb, l, e));
+        delete(&len);
         break;
       case 'X':
         arg = delete(&len);
-        i = 1, l = 0;
-        /*   while(len&&arg[0]==' ')arg++,len--; */
+        i = 1;
+        l = 0;
         if (len && (arg[0] == ' ' || arg[len - 1] == ' ')) {
           i = 0;
           break;
@@ -1188,10 +1217,11 @@ int argc;
             if ((c -= 7) < 10) {
               i = 0;
             }
-            if (c > 15)
+            if (c > 15) {
               if ((c -= 32) < 10) {
                 i = 0;
               }
+            }
             if (c > 15) {
               i = 0;
             }
@@ -1202,16 +1232,15 @@ int argc;
           i = 0;
         }
         break;
-      default:
+      default: {
         die(Ecall);
+      }
     }
     stack((c = i + '0', &c), 1);
   }
 }
 
-void rxcopies(argc)
-int argc;
-{
+void rxcopies(int argc) {
   int copies;
   char *arg, *p;
   int len;
@@ -1231,14 +1260,16 @@ int argc;
     stack(cnull, 0);
     return;
   }
-  dtest(cstackptr, cstacklen, ecstackptr + len * copies + 16, len * copies + 16, arg); /* Make room for the copies, then stack them directly */
-  for (a = len * (copies - 1), p = arg + len; a--; p++[0] = arg++[0]);
-  ecstackptr += align(len *= copies), *(int *) (cstackptr + ecstackptr) = len, ecstackptr += four;
+  dtest(cstackptr, cstacklen, ecstackptr + len * copies + 16, len * copies + 16, arg);
+  for (a = len * (copies - 1), p = arg + len; a--; p++[0] = arg++[0]) {
+    // make room for the copies, then stack them directly
+  }
+  ecstackptr += align(len *= copies);
+  *(int *) (cstackptr + ecstackptr) = len;
+  ecstackptr += four;
 }
 
-void rxspace(argc)
-int argc;
-{
+void rxspace(int argc) {
   char *arg;
   int len;
   int len1, len2;
@@ -1249,7 +1280,7 @@ int argc;
   if (argc < 1 || argc > 3) {
     die(Ecall);
   }
-  if (argc == 3) {              /* First we find the character to pad with */
+  if (argc == 3) {  // first we find the character to pad with
     argc--;
     arg = delete(&len);
     if (len >= 0) {
@@ -1259,7 +1290,7 @@ int argc;
       pad = arg[0];
     }
   }
-  if (argc == 2) {              /* Then the number of spaces between each word */
+  if (argc == 2) {  // then the number of spaces between each word
     argc--;
     if (isnull()) {
       delete(&len);
@@ -1267,7 +1298,7 @@ int argc;
       die(Ecall);
     }
   }
-  arg = delete(&len);           /* and finally the phrase to operate on */
+  arg = delete(&len);  // and finally the phrase to operate on
   if (len < 0) {
     die(Enoarg);
   }
@@ -1275,11 +1306,15 @@ int argc;
     arg++;
   }
   len++;
-  while (len-- && arg[len] == ' ');
+  while (len-- && arg[len] == ' ') {
+    // no-op
+  }
   len++;
   mtest(workptr, worklen, len * (num + 1), len * (num + 2));
-  for (len1 = len2 = 0; len2 < len;) {  /* Make the result string in the workspace */
-    while ((workptr[len1++] = arg[len2++]) != ' ' && len2 <= len);
+  for (len1 = len2 = 0; len2 < len;) {
+    while ((workptr[len1++] = arg[len2++]) != ' ' && len2 <= len) {
+      // make the result string in the workspace
+    }
     while (len2 < len && arg[len2] == ' ') {
       len2++;
     }
@@ -1288,14 +1323,12 @@ int argc;
     }
   }
   if (len) {
-    len1 -= num;  /* Remove the padding from after the last word */
+    len1 -= num;  // remove the padding from after the last word
   }
   stack(workptr, len1);
 }
 
-void rxrange(argc)
-int argc;
-{
+void rxrange(int argc) {
   unsigned int c2 = 255;
   unsigned int c1 = 0;
   unsigned char *arg;
@@ -1329,13 +1362,14 @@ int argc;
   }
   len = c2 - c1 + 1;
   mtest(cstackptr, cstacklen, ecstackptr + len + 16, len + 16);
-  for (arg = (unsigned char *) (cstackptr + ecstackptr); c1 <= c2; (*(arg++)) = (c1++) & 255);
-  *(int *) (cstackptr + (ecstackptr += align(len))) = len, ecstackptr += four;
+  for (arg = (unsigned char *) (cstackptr + ecstackptr); c1 <= c2; (*(arg++)) = (c1++) & 255) {
+    // no-op
+  }
+  *(int *) (cstackptr + (ecstackptr += align(len))) = len;
+  ecstackptr += four;
 }
 
-void c2x(argc)
-int argc;
-{
+void c2x(int argc) {
   char *arg;
   int len;
   int i;
@@ -1351,10 +1385,8 @@ int argc;
   stack(workptr, len + len);
 }
 
-void xbyte(where, what)         /* Place two hex digits representing "what", "where" */
-char *where;
-unsigned char what;
-{
+/* place two hex digits representing "what", "where" */
+void xbyte(char *where, unsigned char what) {
   unsigned char c1 = what >> 4;
 
   what &= 15;
@@ -1364,12 +1396,11 @@ unsigned char what;
   if (c1 > 9) {
     c1 += 7;
   }
-  where[0] = c1 + '0', where[1] = what + '0';
+  where[0] = c1 + '0';
+  where[1] = what + '0';
 }
 
-void c2d(argc)
-int argc;
-{
+void c2d(int argc) {
   unsigned char *arg;
   int len;
   int n = -1;
@@ -1390,7 +1421,7 @@ int argc;
   if (n < 0) {
     n = len + 1;
   }
-  while (n-- > 0)
+  while (n-- > 0) {
     if (len > 0) {
       num |= (sign = arg[--len]) << s;
       if ((sign && s >= 8 * four) || (int) num < 0) {
@@ -1400,6 +1431,7 @@ int argc;
     } else {
       sign = 0;
     }
+  }
   sign = -(sign > 127);
   while (s < 8 * four) {
     num |= sign << s, s += 8;
@@ -1407,9 +1439,7 @@ int argc;
   stackint((int) num);
 }
 
-void b2x(argc)
-int argc;
-{
+void b2x(int argc) {
   char *arg;
   char *ans;
   int len;
@@ -1422,17 +1452,18 @@ int argc;
     die(Ecall);
   }
   ans = arg = delete(&len);
-  for (n = 0; n < len && arg[n] != ' ' && arg[n] != '\t'; n++);
-  /* count up to first space */
+  for (n = 0; n < len && arg[n] != ' ' && arg[n] != '\t'; n++) {
+    // count up to first space
+  }
   if (len && !n) {
-    die(Ebin);  /* leading spaces not allowed */
+    die(Ebin);  // leading spaces not allowed
   }
   if (!(n %= 4)) {
-    n = 4;  /* how many digits in first nybble */
+    n = 4;  // how many digits in first nybble
   }
-  while (len) {                 /* for each nybble */
+  while (len) {  // for each nybble
     d = 0;
-    while (n--) {               /* for each digit */
+    while (n--) {  // for each digit
       if (!len) {
         die(Ebin);
       }
@@ -1441,29 +1472,27 @@ int argc;
       if (c != '0' && c != '1') {
         die(Ebin);
       }
-      d = (d << 1) + (c == '1');        /* add digit to d */
+      d = (d << 1) + (c == '1');  // add digit to d
     }
-    n = 4;                      /* next nybble has 4 digits */
+    n = 4;  // next nybble has 4 digits
     if ((d += '0') > '9') {
-      d += 'A' - '9' - 1;  /* convert digit to hex */
+      d += 'A' - '9' - 1;  // convert digit to hex
     }
     ans++[0] = d;
     anslen++;
     while (len && (*arg == ' ' || *arg == '\t')) {
-      arg++;                    /* spaces allowed between nybbles */
+      arg++;  // spaces allowed between nybbles
       if (!--len) {
-        die(Ebin);  /* trailing spaces not allowed */
+        die(Ebin);  // trailing spaces not allowed
       }
     }
   }
-  ecstackptr += align(anslen);  /* finish the calculator stack */
+  ecstackptr += align(anslen);  // finish the calculator stack
   *(int *) (cstackptr + ecstackptr) = anslen;
   ecstackptr += four;
 }
 
-void b2d(argc)
-int argc;
-{
+void b2d(int argc) {
   char *arg;
   int len;
 
@@ -1471,16 +1500,14 @@ int argc;
     die(Ecall);
   }
   arg = delete(&len);
-  /* hack: do b2c then c2d */
+  // hack: do b2c then c2d
   mtest(workptr, worklen, len, len - worklen);
   memcpy(workptr, arg, len);
   stackb(workptr, len);
   c2d(1);
 }
 
-void d2c(argc)
-int argc;
-{
+void d2c(int argc) {
   unsigned int num, minus;
   int n = -1;
   int l;
@@ -1502,7 +1529,7 @@ int argc;
   mtest(workptr, worklen, n < four ? four : n, n + 1 + four);
   if (n < 0) {
     if (!num) {
-      stack("", 1);             /* stack d2c(0) - the null char from "" */
+      stack("", 1);   // stack d2c(0) - the null char from ""
       return;
     }
     for (n = 0, ans = workptr + four - 1; num && minus; n++, num >>= 8, minus >>= 8) {
@@ -1517,9 +1544,7 @@ int argc;
   stack(workptr, l);
 }
 
-void d2b(argc)
-int argc;
-{
+void d2b(int argc) {
   int num;
   char c[8 * four];
   int i;
@@ -1533,14 +1558,14 @@ int argc;
   if (!num) {
     stack("00000000", 8);
   } else {
-    for (i = 8 * four; num || (i & 7); c[--i] = (num & 1) + '0', num >>= 1);
+    for (i = 8 * four; num || (i & 7); c[--i] = (num & 1) + '0', num >>= 1) {
+      // no-op
+    }
     stack(c + i, 8 * four - i);
   }
 }
 
-void d2x(argc)
-int argc;
-{
+void d2x(int argc) {
   unsigned int num, minus;
   unsigned char sign;
   int l;
@@ -1584,9 +1609,7 @@ int argc;
   }
 }
 
-void x2c(argc)
-int argc;
-{
+void x2c(int argc) {
   char *arg;
   int len;
 
@@ -1595,12 +1618,11 @@ int argc;
   }
   arg = delete(&len);
   mtest(workptr, worklen, len + 1, len + 1 - worklen);
-  memcpy(workptr, arg, len), stackx(workptr, len);
+  memcpy(workptr, arg, len);
+  stackx(workptr, len);
 }
 
-void x2d(argc)
-int argc;
-{
+void x2d(int argc) {
   char *arg;
   int len;
   int i;
@@ -1647,10 +1669,11 @@ int argc;
       if ((c -= 7) < 0) {
         die(Ehex);
       }
-      if (c > 15)
+      if (c > 15) {
         if ((c -= 32) < 0 || c > 15) {
           die(Ehex);
         }
+      }
     }
     if ((num = num * 16 + c) < 0) {
       die(Erange);
@@ -1659,9 +1682,7 @@ int argc;
   stackint(num | minus);
 }
 
-void x2b(argc)
-int argc;
-{
+void x2b(int argc) {
   char *arg, *ans;
   int len, anslen = 0;
   int n;
@@ -1673,52 +1694,52 @@ int argc;
   }
   arg = delete(&len);
   mtest(workptr, worklen, len, len - worklen);
-  memcpy(workptr, arg, len);    /* copy the shorter string */
+  memcpy(workptr, arg, len);    // copy the shorter string
   arg = workptr;
   mtest(cstackptr, cstacklen, len * 4 + 10, len * 4 + 10 - cstacklen);
-  /* prepare to stack the longer string */
+  // prepare to stack the longer string
   ans = cstackptr + ecstackptr;
-  for (n = 0; n < len && arg[n] != ' ' && arg[n] != '\t'; n++);
-  /* count up to first space */
-  if (len && !n) {
-    die(Ebin);  /* leading spaces not allowed */
+  for (n = 0; n < len && arg[n] != ' ' && arg[n] != '\t'; n++) {
+    // count up to first space
   }
-  n %= 2;                       /* how many digits in first nybble */
-  while (len) {                 /* for each digit */
+  if (len && !n) {
+    die(Ebin);  // leading spaces not allowed
+  }
+  n %= 2;   // how many digits in first nybble
+  while (len) {  // for each digit
     c = arg++[0];
     len--;
     if ((c < '0' || c > '9') && (c < 'A' || c > 'F') && (c < 'a' || c > 'f')) {
       die(Ehex);
     }
     if (c >= 'a') {
-      c -= 'a' - 'A';  /* convert from hex */
+      c -= 'a' - 'A';  // convert from hex
     }
     if ((c -= '0') > 9) {
       c -= 'A' - '9' - 1;
     }
-    for (i = 4; i--; anslen++, c = (c << 1) & 15) {     /* convert to binary */
+    for (i = 4; i--; anslen++, c = (c << 1) & 15) {  // convert to binary
       ans++[0] = (c >= 8) + '0';
     }
-    if (n)                      /* spaces allowed between nybbles */
+    if (n) {  // spaces allowed between nybbles
       while (len && (*arg == ' ' || *arg == '\t')) {
         arg++;
         if (!--len) {
-          die(Ebin);  /* trailing spaces not allowed */
+          die(Ebin);  // trailing spaces not allowed
         }
       }
+    }
     n = !n;
   }
   if (n) {
     die(Ehex);
   }
-  ecstackptr += align(anslen);  /* finish the calculator stack */
+  ecstackptr += align(anslen);  // finish the calculator stack
   *(int *) (cstackptr + ecstackptr) = anslen;
   ecstackptr += four;
 }
 
-void rxsystem(argc)
-int argc;
-{
+void rxsystem(int argc) {
   char *arg;
   int len;
   FILE *p;
@@ -1732,8 +1753,8 @@ int argc;
   arg = delete(&len);
   arg[len] = 0;
   len = 0;
-  if ((p = popen(arg, "r"))) {  /* Open a pipe, read the output, close the pipe */
-    while (1) {
+  if ((p = popen(arg, "r"))) {  // open a pipe, read the output, close the pipe
+    for (;;) {
       c = getc(p);
       if (feof(p) || ferror(p)) {
         break;
@@ -1754,9 +1775,8 @@ int argc;
   rcset(rc, type, arg);
 }
 
-int rxseterr(info)              /* Set info->errnum to indicate the I/O error */
-struct fileinfo *info;          /* which just occurred on info->fp. */
-{
+/* set info->errnum to indicate the I/O error which just occurred on info->fp. */
+int rxseterr(struct fileinfo *info ) {
   info->errnum = Eerrno;
   if (feof(info->fp)) {
     info->errnum = Eerrno + Eeof;
@@ -1767,9 +1787,7 @@ struct fileinfo *info;          /* which just occurred on info->fp. */
   return 0;
 }
 
-void rxpos(argc)
-int argc;
-{
+void rxpos(int argc) {
   char *s1, *s2, *p;
   int l1, l2, start;
 
@@ -1777,7 +1795,8 @@ int argc;
     die(Ecall);
   }
   if (argc == 3 && isnull()) {
-    argc--, delete(&l1);
+    argc--;
+    delete(&l1);
   }
   if (argc == 3) {
     start = getint(1);
@@ -1791,7 +1810,8 @@ int argc;
   if (l1 < 0) {
     die(Enoarg);
   }
-  l1 -= start, s2 = delete(&l2);
+  l1 -= start;
+  s2 = delete(&l2);
   if (l2 < 0) {
     die(Enoarg);
   }
@@ -1800,7 +1820,8 @@ int argc;
     return;
   }
   while (l1 >= l2 && memcmp(p, s2, l2)) {
-    p++, l1--;
+    p++;
+    l1--;
   }
   if (l1 < l2) {
     stack("0", 1);
@@ -1809,9 +1830,7 @@ int argc;
   }
 }
 
-void rxlastpos(argc)
-int argc;
-{
+void rxlastpos(int argc) {
   char *s1, *s2, *p;
   int l1, l2, start;
 
@@ -1819,7 +1838,8 @@ int argc;
     die(Ecall);
   }
   if (argc == 3 && isnull()) {
-    argc--, delete(&l1);
+    argc--;
+    delete(&l1);
   }
   if (argc == 3) {
     start = getint(1);
@@ -1829,7 +1849,8 @@ int argc;
   } else {
     start = 0;
   }
-  s1 = delete(&l1), s2 = delete(&l2);
+  s1 = delete(&l1);
+  s2 = delete(&l2);
   if (l1 < 0 || l2 < 0) {
     die(Enoarg);
   }
@@ -1851,9 +1872,7 @@ int argc;
   }
 }
 
-void rxsubstr(argc)
-int argc;
-{
+void rxsubstr(int argc) {
   char *arg;
   int len;
   int len1, len2;
@@ -1876,40 +1895,44 @@ int argc;
     }
   }
   if (argc > 2 && isnull()) {
-    delete(&len1), argc = 2;
+    delete(&len1);
+    argc = 2;
   }
-  if (argc > 2)
+  if (argc > 2) {
     if ((strlen = getint(1)) < 0) {
       die(Ecall);
     }
+  }
   num = getint(1);
   arg = delete(&len);
   if (len < 0) {
     die(Enoarg);
   }
-  strlen = len1 = strlen < 0 ? len - num + 1 : strlen;  /* fix up the default length */
-  if (strlen <= 0) {            /* e.g. in substr("xyz",73) */
+  // fix up the default length; e.g. in substr("xyz",73)
+  strlen = len1 = strlen < 0 ? len - num + 1 : strlen;
+  if (strlen <= 0) {
     stack("", 0);
     return;
   }
   mtest(workptr, worklen, len1 + 5, len1 + 5);
   for (i = 0; num < 1 && len1; workptr[i++] = pad) {
-    num++, len1--;  /* The initial padding */
+    num++;
+    len1--;  // the initial padding
   }
   len2 = len - num + 1 < len1 ? len - num + 1 : len1;
   if (len2 <= 0) {
     len2 = 0;
   }
-  memcpy(workptr + i, arg + num - 1, len2);     /* The substring */
+  memcpy(workptr + i, arg + num - 1, len2);  // the substring
   i += len2;
   len1 -= len2;
-  for (; len1--; workptr[i++] = pad);   /* The final padding */
+  for (; len1--; workptr[i++] = pad) {
+    // the final padding
+  }
   stack(workptr, strlen);
 }
 
-void rxcentre(argc)
-int argc;
-{
+void rxcentre(int argc) {
   char *arg;
   int len;
   int num;
@@ -1939,20 +1962,22 @@ int argc;
     die(Enoarg);
   }
   mtest(workptr, worklen, num + 5, num + 5);
-  if (len >= num) {
-    memcpy(workptr, arg + (len - num) / 2, num);  /* centre window on text */
-  } else {                      /* centre text in window */
+  if (len >= num) { // centre window on text
+    memcpy(workptr, arg + (len - num) / 2, num);
+  } else {  // centre text in window
     spleft = (num - len) / 2;
-    for (i = 0; i < spleft; workptr[i++] = pad);
+    for (i = 0; i < spleft; workptr[i++] = pad) {
+      // no-op
+    }
     memcpy(workptr + i, arg, len);
-    for (i += len; i < num; workptr[i++] = pad);
+    for (i += len; i < num; workptr[i++] = pad) {
+      // no-op
+    }
   }
   stack(workptr, num);
 }
 
-void rxjustify(argc)
-int argc;
-{
+void rxjustify(int argc) {
   char *arg, *ptr;
   int len;
   int num;
@@ -1982,44 +2007,49 @@ int argc;
   rxspace(1);
   arg = delete(&len);
   if ((sp = num - len) <= 0) {
-    for (len = num, ptr = arg; len--; ptr++)
+    for (len = num, ptr = arg; len--; ptr++) {
       if (ptr[0] == ' ') {
         ptr[0] = pad;
       }
+    }
     stack(arg, num);
     return;
   }
   mtest(workptr, worklen, num + 5, num + 5);
-  for (i = 0; i < len; i++)
+  for (i = 0; i < len; i++) {
     if (arg[i] == ' ') {
       n++;
     }
+  }
   if (!n) {
     memcpy(workptr, arg, len);
-    for (i = len; i < num; workptr[i++] = pad);
+    for (i = len; i < num; workptr[i++] = pad) {
+      // no-op
+    }
   } else {
     a = n / 2;
-    for (i = j = 0; i < len; workptr[j++] = arg[i++])
+    for (i = j = 0; i < len; workptr[j++] = arg[i++]) {
       if (arg[i] == ' ') {
         arg[i] = pad;
         for (a += sp; a >= n; a -= n) {
           workptr[j++] = pad;
         }
       }
+    }
   }
   stack(workptr, num);
 }
 
-void rxarg(argc)
-int argc;
-{
+void rxarg(int argc) {
   int n;
   int i;
   int ex;
   char opt = 'A';
   char *arg;
 
-  for (n = 0; curargs[n]; n++); /* count arguments to current procedure */
+  for (n = 0; curargs[n]; n++) {
+    // count arguments to current procedure
+  }
   if (argc > 2) {
     die(Ecall);
   }
@@ -2059,26 +2089,27 @@ int argc;
       break;
     case 'O':
       ex = !ex;
+      // fall-through
     case 'E':
       stack((opt = '0' + ex, &opt), 1);
   }
 }
 
-void rxabbrev(argc)
-int argc;
-{
+void rxabbrev(int argc) {
   int al = -1;
   char *longs, *shorts;
   int longl, shortl;
   char c;
 
   if (argc == 3 && isnull()) {
-    argc--, delete(&longl);
+    argc--;
+    delete(&longl);
   }
-  if (argc == 3)
+  if (argc == 3) {
     if ((argc--, al = getint(1)) < 0) {
       die(Ecall);
     }
+  }
   if (argc != 2) {
     die(Ecall);
   }
@@ -2090,12 +2121,11 @@ int argc;
   if (al < 0) {
     al = shortl;
   }
-  c = '1' - (al > shortl || shortl > longl || memcmp(longs, shorts, shortl)), stack(&c, 1);
+  c = '1' - (al > shortl || shortl > longl || memcmp(longs, shorts, shortl));
+  stack(&c, 1);
 }
 
-void rxabs(argc)
-int argc;
-{
+void rxabs(int argc) {
   int m, e, z, l, n;
 
   if (argc != 1) {
@@ -2108,9 +2138,7 @@ int argc;
   stacknum(workptr + n, l, e, 0);
 }
 
-void rxcompare(argc)
-int argc;
-{
+void rxcompare(int argc) {
   char pad = ' ';
   char *s1, *s2;
   int l1, l2, l3;
@@ -2134,17 +2162,17 @@ int argc;
   if (l1 < 0 || l2 < 0) {
     die(Enoarg);
   }
-  l3 = ((l1 < l2) ? l2 : l1);   /* the length of the larger string */
-  for (i = 0; i < l3 && (i < l2 ? s2[i] : pad) == (i < l1 ? s1[i] : pad); i++);
+  l3 = ((l1 < l2) ? l2 : l1);   // the length of the larger string
+  for (i = 0; i < l3 && (i < l2 ? s2[i] : pad) == (i < l1 ? s1[i] : pad); i++) {
+    // no-op
+  }
   if (i++ == l3) {
     i = 0;
   }
   stackint(i);
 }
 
-void rxdelstr(argc)
-int argc;
-{
+void rxdelstr(int argc) {
   int n, l, d = -1;
   int osp;
   char *s;
@@ -2171,19 +2199,19 @@ int argc;
   if (n > l || !d) {
     ecstackptr = osp;
     return;
-  }                             /* delete nothing:return the old string */
+  }
+  // delete nothing; return the old string
   mtest(workptr, worklen, l, l);
   n--;
   if (d < 0 || n + d > l) {
     d = l - n;
   }
-  memcpy(workptr, s, n), memcpy(workptr + n, s + n + d, l - n - d);
+  memcpy(workptr, s, n);
+  memcpy(workptr + n, s + n + d, l - n - d);
   stack(workptr, l - d);
 }
 
-void rxdelword(argc)
-int argc;
-{
+void rxdelword(int argc) {
   int n, l, d = -1, n1 = 0, d1 = 0, l1, i;
   int osp;
   char *s;
@@ -2207,7 +2235,9 @@ int argc;
   if (l1 < 0) {
     die(Enoarg);
   }
-  for (i = 0; i < l1 && s[i] == ' '; i++);
+  for (i = 0; i < l1 && s[i] == ' '; i++) {
+    // no-op
+  }
   if (i == l1 || !d) {
     ecstackptr = osp;
     return;
@@ -2235,13 +2265,12 @@ int argc;
   if (d < 0 || n + d > l - 1) {
     d1 = l1 - n1;
   }
-  memcpy(workptr, s, n1), memcpy(workptr + n1, s + n1 + d1, l1 - n1 - d1);
+  memcpy(workptr, s, n1);
+  memcpy(workptr + n1, s + n1 + d1, l1 - n1 - d1);
   stack(workptr, l1 - d1);
 }
 
-void rxinsert(argc)
-int argc;
-{
+void rxinsert(int argc) {
   char *new, *target;
   int nl, tl;
   int n = 0, length = -1;
@@ -2288,11 +2317,17 @@ int argc;
   }
   mtest(workptr, worklen, length + n + tl, length + n + tl);
   memcpy(workptr, target, n < tl ? n : tl);
-  if (n > tl)
-    for (i = tl; i < n; workptr[i++] = pad);
+  if (n > tl) {
+    for (i = tl; i < n; workptr[i++] = pad) {
+      // no-op
+    }
+  }
   memcpy(workptr + n, new, length < nl ? length : nl);
-  if (length > nl)
-    for (i = nl; i < length; workptr[i++ + n] = pad);
+  if (length > nl) {
+    for (i = nl; i < length; workptr[i++ + n] = pad) {
+      // no-op
+    }
+  }
   if (n < tl) {
     memcpy(workptr + n + length, target + n, tl - n);
   } else {
@@ -2301,10 +2336,8 @@ int argc;
   stack(workptr, tl + length);
 }
 
-void rxminmax(argc, op)         /* Calculate the minimum/maximum of a list of numbers */
-int argc;                       /* How many numbers are supplied */
-int op;                         /* What comparison operator to use */
-{
+/* calculate the minimum/maximum of a list of numbers */
+void rxminmax(int argc, int op) {
   int m1, z1, e1, l1, n1, m2, z2, e2, l2, n2, d, owp;
 
   if (!argc) {
@@ -2323,27 +2356,25 @@ int op;                         /* What comparison operator to use */
     stacknum(workptr + n1, l1, e1, m1);
     binrel(op);
     if ((delete(&d))[0] == '1') {
-      n1 = n2, m1 = m2, e1 = e2, l1 = l2, owp = eworkptr;
+      n1 = n2;
+      m1 = m2;
+      e1 = e2;
+      l1 = l2;
+      owp = eworkptr;
     }
   }
   stacknum(workptr + n1, l1, e1, m1);
 }
 
-void rxmax(argc)
-int argc;
-{
+void rxmax(int argc) {
   rxminmax(argc, OPgeq);
 }
 
-void rxmin(argc)
-int argc;
-{
+void rxmin(int argc) {
   rxminmax(argc, OPleq);
 }
 
-void rxoverlay(argc)
-int argc;
-{
+void rxoverlay(int argc) {
   char *new, *target;
   int nl, tl;
   int n = 1, length = -1;
@@ -2391,11 +2422,17 @@ int argc;
   }
   mtest(workptr, worklen, length + n + tl, length + n + tl);
   memcpy(workptr, target, n < tl ? n : tl);
-  if (n > tl)
-    for (i = tl; i < n; workptr[i++] = pad);
+  if (n > tl) {
+    for (i = tl; i < n; workptr[i++] = pad) {
+      // no-op
+    }
+  }
   memcpy(workptr + n, new, length < nl ? length : nl);
-  if (length > nl)
-    for (i = nl; i < length; workptr[i++ + n] = pad);
+  if (length > nl) {
+    for (i = nl; i < length; workptr[i++ + n] = pad) {
+      // no-op
+    }
+  }
   if (n + length < tl) {
     memcpy(workptr + n + length, target + n + length, tl - n - length);
   } else {
@@ -2404,9 +2441,7 @@ int argc;
   stack(workptr, tl);
 }
 
-void rxrandom(argc)
-int argc;
-{
+void rxrandom(int argc) {
   struct timeval t1;
   struct timezone tz;
   int min = 0, max = 999;
@@ -2415,7 +2450,8 @@ int argc;
 
   if (argc == 3) {
     argc--;
-    srandom(getint(1)), timeflag |= 4;
+    srandom(getint(1));
+    timeflag |= 4;
   }
   if (!(timeflag & 4)) {
     timeflag |= 4;
@@ -2426,13 +2462,16 @@ int argc;
     die(Ecall);
   }
   if (argc && isnull()) {
-    argc--, delete(&dummy);
+    argc--;
+    delete(&dummy);
   }
   if (argc && isnull()) {
-    argc--, delete(&dummy);
+    argc--;
+    delete(&dummy);
   }
   if (argc) {
-    argc--, max = getint(1);
+    argc--;
+    max = getint(1);
   }
   if (argc) {
     if (isnull()) {
@@ -2447,14 +2486,13 @@ int argc;
   if (min == max) {
     r = 0;
   } else {
-    max = max - min + 1, r = (unsigned long) random() % max;
+    max = max - min + 1;
+    r = (unsigned long) random() % max;
   }
   stackint((int) r + min);
 }
 
-void rxreverse(argc)
-int argc;
-{
+void rxreverse(int argc) {
   char *s;
   int i, l, l2;
   char c;
@@ -2465,13 +2503,13 @@ int argc;
   s = nodelete(&l);
   l2 = l-- / 2;
   for (i = 0; i < l2; i++) {
-    c = s[i], s[i] = s[l - i], s[l - i] = c;
+    c = s[i];
+    s[i] = s[l - i];
+    s[l - i] = c;
   }
 }
 
-void rxsign(argc)
-int argc;
-{
+void rxsign(int argc) {
   int m, z, e, l;
   char c;
 
@@ -2485,13 +2523,12 @@ int argc;
   if (m) {
     stack("-1", 2);
   } else {
-    c = '1' - z, stack(&c, 1);
+    c = '1' - z;
+    stack(&c, 1);
   }
 }
 
-void rxsubword(argc)
-int argc;
-{
+void rxsubword(int argc) {
   char *s;
   int l, n, k = -1, i, n1 = 0, k1 = 0, l1;
 
@@ -2511,7 +2548,9 @@ int argc;
   if (l1 < 0) {
     die(Enoarg);
   }
-  for (i = 0; i < l1 && s[i] == ' '; i++);
+  for (i = 0; i < l1 && s[i] == ' '; i++) {
+    // no-op
+  }
   n--;
   for (l = 0; i < l1; l++) {
     if (n == l) {
@@ -2540,9 +2579,7 @@ int argc;
   stack(s + n1, k1);
 }
 
-void rxsymbol(argc)
-int argc;
-{
+void rxsymbol(int argc) {
   char *arg;
   int len, good;
   int l;
@@ -2553,16 +2590,16 @@ int argc;
   arg = rxgetname(&len, &good);
   if (good == 1 && varget(arg, len, &l)) {
     stack("VAR", 3);
-  } else if (!good) {
-    stack("BAD", 3);
   } else {
-    stack("LIT", 3);
+    if (!good) {
+      stack("BAD", 3);
+    } else {
+      stack("LIT", 3);
+    }
   }
 }
 
-void rxlate(argc)
-int argc;
-{
+void rxlate(int argc) {
   char *s, *ti = 0, *to = 0;
   int sl, til = -1, tol = -1;
   int j;
@@ -2590,15 +2627,18 @@ int argc;
   if (sl < 0) {
     die(Enoarg);
   }
-  if (tol == -1 && til == -1)
+  if (tol == -1 && til == -1) {
     for (; sl--; s++) {
       s[0] = uc(s[0]);
-    } else
+    }
+  } else {
     for (; sl--; s++) {
       if (til == -1) {
         j = s[0];
       } else {
-        for (j = 0; j < til && s[0] != ti[j]; j++);
+        for (j = 0; j < til && s[0] != ti[j]; j++) {
+          // no-op
+        }
         if (j == til) {
           continue;
         }
@@ -2609,11 +2649,10 @@ int argc;
         s[0] = to[j];
       }
     }
+  }
 }
 
-void rxtrunc(argc)
-int argc;
-{
+void rxtrunc(int argc) {
   int d = 0, n, m, e, z, l, i;
   char *p;
 
@@ -2628,9 +2667,9 @@ int argc;
   if (argc != 1) {
     die(Ecall);
   }
-  eworkptr = 2;                 /* Save room for a carry digits */
-  if ((n = num(&m, &e, &z, &l)) < 0) {
-    die(Enum);  /* Get the number to truncate */
+  eworkptr = 2;  // save room for a carry digits
+  if ((n = num(&m, &e, &z, &l)) < 0) { // get the number to truncate
+    die(Enum);
   }
   delete(&i);
   if (e > 0) {
@@ -2640,7 +2679,7 @@ int argc;
   }
   mtest(workptr, worklen, i, i);
   p = workptr + n;
-  if (l > precision)            /* round it to precision before truncating */
+  if (l > precision) {  // round it to precision before truncating
     if (p[l = precision] >= '5') {
       for (i = l - 1; i >= 0; i--) {
         p[i]++;
@@ -2650,15 +2689,20 @@ int argc;
         p[i] = '0';
       }
       if (i < 0) {
-        (--p)[0] = '1', e++;
+        (--p)[0] = '1';
+        e++;
       }
     }
-  for (i = l; i <= e; p[i++] = '0');    /* Extend the number to the decimal point */
+  }
+  for (i = l; i <= e; p[i++] = '0') {   // extend the number to the decimal point
+    // no-op
+  }
   if (d == 0 && e < 0) {
     p[0] = '0';
     stack(p, 1);
     return;
-  }                             /* 0 for trunc(x) where |x|<1 */
+  }
+  // 0 for trunc(x) where |x|<1
   if (d > 0) {
     if (e < 0) {
       if (e < -d) {
@@ -2667,32 +2711,36 @@ int argc;
       for (i = l; i--;) {
         p[i - e] = p[i];
       }
-      for (i = 0; i < -e; p[i++] = '0');
+      for (i = 0; i < -e; p[i++] = '0') {
+        // no-op
+       }
       l -= e;
       e = 0;
     }
-    if (l > e + 1)
+    if (l > e + 1) {
       for (i = l; i > e; i--) {
         p[i + 1] = p[i];
       }
+    }
     p[e + 1] = '.';
     if (l < e + 2) {
       l = e + 2;
     } else {
       l++;
     }
-    for (i = l; i < e + d + 2; p[i++] = '0');
+    for (i = l; i < e + d + 2; p[i++] = '0') {
+      // no-op
+    }
     d++;
   }
   if (m) {
-    (--p)[0] = '-', d++;
+    (--p)[0] = '-';
+    d++;
   }
   stack(p, d + e + 1);
 }
 
-void rxverify(argc)
-int argc;
-{
+void rxverify(int argc) {
   char *s, *r;
   int sl, rl, st = 1, opt = 0;
   int i, j;
@@ -2725,7 +2773,8 @@ int argc;
   if (argc != 2) {
     die(Ecall);
   }
-  r = delete(&rl), s = delete(&sl);
+  r = delete(&rl);
+  s = delete(&sl);
   if (rl < 0 || sl < 0) {
     die(Enoarg);
   }
@@ -2734,7 +2783,9 @@ int argc;
   } else {
     s += (--st);
     for (i = st; i < sl; i++, s++) {
-      for (j = 0; j < rl && s[0] != r[j]; j++);
+      for (j = 0; j < rl && s[0] != r[j]; j++) {
+        // no-op
+      }
       if ((j == rl) ^ opt) {
         break;
       }
@@ -2748,9 +2799,7 @@ int argc;
   stackint(i);
 }
 
-void rxword(argc)
-int argc;
-{
+void rxword(int argc) {
   if (argc != 2) {
     die(Ecall);
   }
@@ -2758,9 +2807,7 @@ int argc;
   rxsubword(3);
 }
 
-void rxwordindex(argc)
-int argc;
-{
+void rxwordindex(int argc) {
   char *s;
   int sl, n, i, l;
 
@@ -2774,17 +2821,21 @@ int argc;
   if (sl < 0) {
     die(Enoarg);
   }
-  for (i = 0; i < sl && s[0] == ' '; s++, i++);
+  for (i = 0; i < sl && s[0] == ' '; s++, i++) {
+    // no-op
+  }
   n--;
   for (l = 0; i < sl; l++) {
     if (n == l) {
       break;
     }
     while (i < sl && s[0] != ' ') {
-      i++, s++;
+      i++;
+      s++;
     }
     while (i < sl && s[0] == ' ') {
-      i++, s++;
+      i++;
+      s++;
     }
   }
   if (i == sl) {
@@ -2795,16 +2846,12 @@ int argc;
   stackint(i);
 }
 
-void rxwordlength(argc)
-int argc;
-{
+void rxwordlength(int argc) {
   rxword(argc);
   rxlength(1);
 }
 
-void rxwordpos(argc)
-int argc;
-{
+void rxwordpos(int argc) {
   char *p, *s;
   int pl, sl, st = 1;
   int i, l, j, k;
@@ -2822,11 +2869,16 @@ int argc;
   if (sl < 0 || pl < 0) {
     die(Enoarg);
   }
-  for (i = 0; i < sl && s[0] == ' '; s++, i++);
-  while (pl && p[0] == ' ') {
-    p++, pl--;
+  for (i = 0; i < sl && s[0] == ' '; s++, i++) {
+    // no-op
   }
-  while (pl-- && p[pl] == ' ');
+  while (pl && p[0] == ' ') {
+    p++;
+    pl--;
+  }
+  while (pl-- && p[pl] == ' ') {
+    // no-op
+  }
   if (!++pl) {
     stack("0", 1);
     return;
@@ -2841,9 +2893,14 @@ int argc;
         if (s[k] != ' ') {
           continue;
         }
-        while (++k < sl - i && s[k] == ' ');
-        while (++j < pl && p[j] == ' ');
-        j--, k--;
+        while (++k < sl - i && s[k] == ' ') {
+          // no-op
+        }
+        while (++j < pl && p[j] == ' ') {
+          // no-op
+        }
+        j--;
+        k--;
       }
       if (j == pl && (k == sl - i || s[k] == ' ')) {
         break;
@@ -2854,10 +2911,12 @@ int argc;
       }
     }
     while (i < sl && s[0] != ' ') {
-      i++, s++;
+      i++;
+      s++;
     }
     while (i < sl && s[0] == ' ') {
-      i++, s++;
+      i++;
+      s++;
     }
   }
   if (i == sl) {
@@ -2868,9 +2927,7 @@ int argc;
   stackint(l);
 }
 
-void rxwords(argc)
-int argc;
-{
+void rxwords(int argc) {
   char *s;
   int l1, l;
 
@@ -2879,41 +2936,38 @@ int argc;
   }
   s = delete(&l1);
   while (l1 && s[0] == ' ') {
-    s++, l1--;
+    s++;
+    l1--;
   }
   for (l = 0; l1; l++) {
     while (l1 && s[0] != ' ') {
-      s++, l1--;
+      s++;
+      l1--;
     }
     while (l1 && s[0] == ' ') {
-      s++, l1--;
+      s++;
+      l1--;
     }
   }
   stackint(l);
 }
 
-void rxdigits(argc)
-int argc;
-{
+void rxdigits(int argc) {
   if (argc) {
     die(Ecall);
   }
   stackint(precision);
 }
 
-void rxfuzz(argc)
-int argc;
-{
+void rxfuzz(int argc) {
   if (argc) {
     die(Ecall);
   }
   stackint(precision - fuzz);
 }
 
-void rxaddress(argc)
-int argc;
-{
-  extern int address1;          /* from rexx.c */
+void rxaddress(int argc) {
+  extern int address1;  // from rexx.c
   char *address = envtable[address1].name;
 
   if (argc) {
@@ -2922,9 +2976,7 @@ int argc;
   stack(address, strlen(address));
 }
 
-void rxtrace(argc)
-int argc;
-{
+void rxtrace(int argc) {
   char *arg;
   int len;
   char ans[2];
@@ -2937,38 +2989,22 @@ int argc;
     ans[q++] = '?';
   }
   switch (trcflag & ~Tinteract & 0xff) {
-    case Tclauses:
-      ans[q] = 'A';
-      break;
-    case Tcommands | Terrors:
-      ans[q] = 'C';
-      break;
-    case Terrors:
-      ans[q] = 'E';
-      break;
-    case Tfailures:
-      ans[q] = 'F';
-      break;
-    case Tclauses | Tintermed:
-      ans[q] = 'I';
-      break;
-    case Tlabels:
-      ans[q] = 'L';
-      break;
-    case 0:
-      ans[q] = 'O';
-      break;
-    case Tresults | Tclauses:
-      ans[q] = 'R';
+    case Tclauses:             ans[q] = 'A'; break;
+    case Tcommands | Terrors:  ans[q] = 'C'; break;
+    case Terrors:              ans[q] = 'E'; break;
+    case Tfailures:            ans[q] = 'F'; break;
+    case Tclauses | Tintermed: ans[q] = 'I'; break;
+    case Tlabels:              ans[q] = 'L'; break;
+    case 0:                    ans[q] = 'O'; break;
+    case Tresults | Tclauses:  ans[q] = 'R';
   }
   if (argc) {
     arg = delete(&len);
     if ((!(trcflag & Tinteract) && interact < 0) || (interact == interplev - 1 && interact >= 0)) {
-      /* if interactive trace, only interpret
-         trace in the actual command, also use old trace flag
-         as the starting value */
+      // if interactive trace, only interpret trace in the actual command, also use old trace flag as the starting value
       if (interact >= 0) {
-        trclp = 2, trcflag = otrcflag;
+        trclp = 2;
+        trcflag = otrcflag;
       }
       arg[len] = 0;
       settrace(arg);
@@ -2977,9 +3013,7 @@ int argc;
   stack(ans, ++q);
 }
 
-void rxform(argc)
-int argc;
-{
+void rxform(int argc) {
   if (argc) {
     die(Ecall);
   }
@@ -2990,9 +3024,7 @@ int argc;
   }
 }
 
-void rxformat(argc)
-int argc;
-{
+void rxformat(int argc) {
   int n, l, e, m, z;
   int before = 0, after = -1, expp = -1, expt = precision;
   char *ptr1;
@@ -3003,7 +3035,7 @@ int argc;
   char *num1;
   int exp;
 
-  if (argc == 5) {              /* Get the value of expt */
+  if (argc == 5) {  // get the value of expt
     argc--;
     if (!isnull()) {
       if ((expt = getint(1)) < 0) {
@@ -3013,7 +3045,7 @@ int argc;
       delete(&i);
     }
   }
-  if (argc == 4) {              /* Get the value of expp */
+  if (argc == 4) {  // get the value of expp
     argc--;
     if (!isnull()) {
       if ((expp = getint(1)) < 0) {
@@ -3023,7 +3055,7 @@ int argc;
       delete(&i);
     }
   }
-  if (argc == 3) {              /* Get the value of after */
+  if (argc == 3) {  // get the value of after
     argc--;
     if (!isnull()) {
       if ((after = getint(1)) < 0) {
@@ -3033,7 +3065,7 @@ int argc;
       delete(&i);
     }
   }
-  if (argc == 2) {              /* Get the value of before */
+  if (argc == 2) {  // get the value of before
     argc--;
     if (!isnull()) {
       if ((before = getint(1)) <= 0) {
@@ -3044,19 +3076,19 @@ int argc;
     }
   }
   if (argc != 1) {
-    die(Ecall);  /* The number to be formatted must be supplied */
+    die(Ecall);  // the number to be formatted must be supplied
   }
-  eworkptr = 1;                 /* allow for overflow one place to the left */
+  eworkptr = 1;  // allow for overflow one place to the left
   if ((n = num(&m, &e, &z, &l)) < 0) {
     die(Enum);
   }
   delete(&i);
   num1 = n + workptr;
-  if (c == 1) {                 /* A simple format(number) command, in which case */
-    stacknum(num1, l, e, m);    /* format normally */
+  if (c == 1) {  // a simple format(number) command, in which case
+    stacknum(num1, l, e, m);  // format normally
     return;
   }
-  if (l > precision)            /* Before processing, the number is rounded to digits() */
+  if (l > precision) {  // before processing, the number is rounded to digits()
     if (num1[l = precision] >= '5') {
       for (i = l - 1; i >= 0; i--) {
         if (++num1[i] <= '9') {
@@ -3068,37 +3100,41 @@ int argc;
         *--num1 = '1';
       }
     }
+  }
   i = l + before + after + expp + 30;
   mtest(cstackptr, cstacklen, i + ecstackptr, i);
   ptr1 = cstackptr + ecstackptr;
   if (z) {
-    num1[0] = '0', m = e = 0, l = 1;  /* adjust zero to be just "0" */
+    num1[0] = '0';
+    m = e = 0;
+    l = 1;  // adjust zero to be just "0"
   }
-  if ((exp = ((e < expt && !(e < 0 && l - e - 1 > 2 * expt))) || !expp)) {      /* no exponent */
+  if ((exp = ((e < expt && !(e < 0 && l - e - 1 > 2 * expt))) || !expp)) {  // no exponent
     if (e < 0) {
-      n = 1 + m;  /* calculate number of places before . */
+      n = 1 + m;  // calculate number of places before .
     } else {
       n = e + 1 + m;
     }
     p = 1 + e;
   } else {
     if (numform) {
-      n = 1 + m + e % 3;  /* number of places before . in expon. notation */
+      n = 1 + m + e % 3;  // number of places before . in expon. notation
     } else {
       n = 1 + m;
     }
     p = n - m;
   }
   if ((p += after) > precision || after < 0) {
-    p = precision;  /* what precision? */
+    p = precision;  // what precision?
   }
-  if (p < 0 || (p == 0 && num1[0] < '5')) {     /* number is too small so make it "0" */
+  if (p < 0 || (p == 0 && num1[0] < '5')) {  // number is too small so make it "0"
     num1[0] = '0';
     m = e = 0;
     l = 1;
   }
-  if (l > p && p >= 0)          /* if l>p, round the number; if p<0 it needs rounding down */
-    if (num1[l = p] >= '5') {   /* anyway, so we don't need to bother */
+  // if l>p, round the number; if p<0 it needs rounding down anyway, so we don't need to bother
+  if (l > p && p >= 0) {
+    if (num1[l = p] >= '5') {
       for (i = l - 1; i >= 0; i--) {
         if (++num1[i] <= '9') {
           break;
@@ -3108,25 +3144,27 @@ int argc;
       if (i < 0) {
         (--num1)[0] = '1';
         if (!l) {
-          l++;  /* if that's the only '1' in the whole number, */
+          l++;  // if that's the only '1' in the whole number,
         }
-        /* count it. */
+        // count it.
         if (++e == expt && expt && expp) {
-          exp = 0;  /* just nudged into exponential form */
+          exp = 0;  // just nudged into exponential form
         }
         if (exp) {
           if (e > 0) {
             n++;
           }
-        } else if (numform) {
-          n = 1 + m + e % 3;
         } else {
-          n = 1 + m;
+          if (numform) {
+            n = 1 + m + e % 3;
+          } else {
+            n = 1 + m;
+          }
         }
       }
     }
-  /* should now have number rounded to fit into format, and n
-     is the number of characters required for the integer part */
+  }
+  // should now have number rounded to fit into format, and n is the number of characters required for the integer part
   if (before < n && before) {
     die(Eformat);
   }
@@ -3136,18 +3174,22 @@ int argc;
   if (m) {
     ptr1[len1++] = '-';
   }
-  if (exp) {                    /* stack floating point number; no exponent */
+  if (exp) {   // stack floating point number; no exponent
     if (e < 0) {
       ptr1[len1++] = '0';
       if (after) {
         ptr1[len1++] = '.';
         for (i = -1; i > e && after; i--) {
-          ptr1[len1++] = '0', after--;
+          ptr1[len1++] = '0';
+          after--;
         }
       }
     }
     while (l && (e >= 0 || after)) {
-      ptr1[len1++] = num1[0], num1++, l--, e--;
+      ptr1[len1++] = num1[0];
+      num1++;
+      l--;
+      e--;
       if (l && e == -1 && after) {
         ptr1[len1++] = '.';
       }
@@ -3156,7 +3198,8 @@ int argc;
       }
     }
     while (e > -1) {
-      ptr1[len1++] = '0', e--;
+      ptr1[len1++] = '0';
+      e--;
     }
     if (after > 0) {
       if (e == -1) {
@@ -3166,38 +3209,47 @@ int argc;
         ptr1[len1++] = '0';
       }
     }
-  } else {                      /*stack floating point in appropriate form with exponent */
+  } else {   // stack floating point in appropriate form with exponent
     ptr1[len1++] = num1[0];
-    if (numform)
+    if (numform) {
       while (e % 3) {
-        e--, ptr1[len1++] = ((--l) > 0 ? (++num1)[0] : '0');
-      } else {
+        e--;
+        ptr1[len1++] = ((--l) > 0 ? (++num1)[0] : '0');
+      }
+    } else {
       --l;
     }
     if ((l > 0 && after < 0) || after > 0) {
       ptr1[len1++] = '.';
       while (l-- && after) {
-        ptr1[len1++] = (++num1)[0], after--;
+        ptr1[len1++] = (++num1)[0];
+        after--;
       }
       while (after-- > 0) {
         ptr1[len1++] = '0';
       }
     }
     if (!e) {
-      if (expp > 0)
+      if (expp > 0) {
         for (i = expp + 2; i--; ptr1[len1++] = ' ');
+      }
     } else {
       ptr1[len1++] = 'E', ptr1[len1++] = e < 0 ? '-' : '+', e = abs(e);
-      for (p = 0, i = 1; i <= e; i *= 10, p++);
+      for (p = 0, i = 1; i <= e; i *= 10, p++) {
+        // no-op
+      }
       if (expp < 0) {
         expp = p;
       }
       if (expp < p) {
         die(Eformat);
       }
-      for (p = expp - p; p--; ptr1[len1++] = '0');
+      for (p = expp - p; p--; ptr1[len1++] = '0') {
+        // no-op
+      }
       for (i /= 10; i >= 1; i /= 10) {
-        ptr1[len1++] = e / i + '0', e %= i;
+        ptr1[len1++] = e / i + '0';
+        e %= i;
       }
     }
   }
@@ -3205,9 +3257,7 @@ int argc;
   ecstackptr += align(len1) + four;
 }
 
-void rxlinesize(argc)
-int argc;
-{
+void rxlinesize(int argc) {
   int ans;
   struct winsize sz;
 
@@ -3222,9 +3272,7 @@ int argc;
   stackint(ans);
 }
 
-void rxbitand(argc)
-int argc;
-{
+void rxbitand(int argc) {
   char *arg1, *arg2 = 0, *argt;
   int len1, len2, lent;
   unsigned char pad = 255;
@@ -3253,7 +3301,12 @@ int argc;
     die(Ecall);
   }
   if (len1 < len2) {
-    argt = arg1, arg1 = arg2, arg2 = argt, lent = len1, len1 = len2, len2 = lent;
+    argt = arg1;
+    arg1 = arg2;
+    arg2 = argt;
+    lent = len1;
+    len1 = len2;
+    len2 = lent;
   }
   argt = cstackptr + ecstackptr;
   for (lent = 0; lent < len1; lent++) {
@@ -3264,9 +3317,7 @@ int argc;
   ecstackptr += lent + four;
 }
 
-void rxbitor(argc)
-int argc;
-{
+void rxbitor(int argc) {
   char *arg1, *arg2 = 0, *argt;
   int len1, len2, lent;
   char pad = 0;
@@ -3295,7 +3346,12 @@ int argc;
     die(Ecall);
   }
   if (len1 < len2) {
-    argt = arg1, arg1 = arg2, arg2 = argt, lent = len1, len1 = len2, len2 = lent;
+    argt = arg1;
+    arg1 = arg2;
+    arg2 = argt;
+    lent = len1;
+    len1 = len2;
+    len2 = lent;
   }
   argt = cstackptr + ecstackptr;
   for (lent = 0; lent < len1; lent++) {
@@ -3306,9 +3362,7 @@ int argc;
   ecstackptr += lent + four;
 }
 
-void rxbitxor(argc)
-int argc;
-{
+void rxbitxor(int argc) {
   char *arg1, *arg2 = 0, *argt;
   int len1, len2, lent;
   char pad = 0;
@@ -3337,7 +3391,12 @@ int argc;
     die(Ecall);
   }
   if (len1 < len2) {
-    argt = arg1, arg1 = arg2, arg2 = argt, lent = len1, len1 = len2, len2 = lent;
+    argt = arg1;
+    arg1 = arg2;
+    arg2 = argt;
+    lent = len1;
+    len1 = len2;
+    len2 = lent;
   }
   argt = cstackptr + ecstackptr;
   for (lent = 0; lent < len1; lent++) {
@@ -3348,10 +3407,7 @@ int argc;
   ecstackptr += lent + four;
 }
 
-void rxuserid(argc)
-int argc;
-{
-  void endpwent();
+void rxuserid(int argc) {
   static int uid = -1;
   int cuid;
   static struct passwd *pw = 0;
@@ -3360,7 +3416,9 @@ int argc;
     die(Ecall);
   }
   if ((cuid = getuid()) != uid) {
-    uid = cuid, pw = getpwuid(cuid), endpwent();
+    uid = cuid;
+    pw = getpwuid(cuid);
+    endpwent();
   }
   if (!pw) {
     stack(cnull, 0);
@@ -3369,9 +3427,7 @@ int argc;
   }
 }
 
-void rxgetcwd(argc)
-int argc;
-{
+void rxgetcwd(int argc) {
   static char name[MAXPATHLEN];
 
   if (argc) {
@@ -3393,9 +3449,7 @@ int argc;
   stack(name, strlen(name));
 }
 
-void rxchdir(argc)
-int argc;
-{
+void rxchdir(int argc) {
   char *arg;
   int len;
 
@@ -3403,8 +3457,7 @@ int argc;
     die(Ecall);
   }
   arg = delete(&len);
-  arg[len] = 0;                 /* that location must exist since the length used to be
-                                   after the string */
+  arg[len] = 0;  // that location must exist since the length used to be after the string
   if (chdir(arg)) {
     stackint(errno);
   } else {
@@ -3412,9 +3465,7 @@ int argc;
   }
 }
 
-void rxgetenv(argc)
-int argc;
-{
+void rxgetenv(int argc) {
   char *arg;
   int len;
 
@@ -3430,9 +3481,7 @@ int argc;
   }
 }
 
-void rxputenv(argc)
-int argc;
-{
+void rxputenv(int argc) {
   char *arg;
   char *eptr;
   int len;
@@ -3452,7 +3501,7 @@ int argc;
   value = (char **) hashfind(0, arg, &exist);
   path = strcmp(arg, "PATH");
   eptr[0] = '=';
-  putenv(arg);                  /* release the previous copy from the environment */
+  putenv(arg);  // release the previous copy from the environment
   if (!exist) {
     *value = allocm(len);
   } else if (strlen(*value) < len)
@@ -3466,14 +3515,12 @@ int argc;
     stack("0", 1);
   }
   if (!path) {
-    hashclear();  /* clear shell's hash table on change of PATH */
+    hashclear();  // clear shell's hash table on change of PATH
   }
 }
 
-void rxopen2(stream, mode, mlen, path, plen)
-char *stream, *mode, *path;     /* implement open(stream,mode,path) */
-int mlen, plen;
-{
+/* implement open(stream,mode,path) */
+void rxopen2(char *stream, char *mode, int mlen, char *path, int plen) {
   char modeletter[3];
   struct fileinfo *info;
   FILE *fp;
@@ -3501,11 +3548,12 @@ int mlen, plen;
         modeletter[0] = rc ? 'w' : 'r';
         modeletter[1] = '+';
         break;
-      default:
+      default: {
         die(Ecall);
+      }
     }
   if ((info = (struct fileinfo *) hashget(1, stream, &rc))) {
-    fp = info->fp;              /* if "stream" already exists, perform freopen */
+    fp = info->fp;  // if "stream" already exists, perform freopen
     free((char *) info);
     *(struct fileinfo **) hashfind(1, stream, &rc) = 0;
     fp = freopen(path, modeletter, info->fp);
@@ -3516,7 +3564,7 @@ int mlen, plen;
     stackint(errno);
     return;
   }
-  if (modeletter[0] == 'r' && modeletter[1] == '+') {   /* for append, go to eof */
+  if (modeletter[0] == 'r' && modeletter[1] == '+') {   // for append, go to eof
     fseek(fp, 0L, 2);
   }
   info = fileinit(stream, path, fp);
@@ -3524,9 +3572,7 @@ int mlen, plen;
   stack("0", 1);
 }
 
-void rxopen(argc)
-int argc;
-{
+void rxopen(int argc) {
   char *stream = 0, *mode = 0, *path;
   int len = 0, mlen = 0, plen;
 
@@ -3535,10 +3581,12 @@ int argc;
     stream = delete(&len);
     if (len < 0) {
       stream = 0;
-    } else if (memchr(stream, 0, len)) {
-      die(Ecall);
     } else {
-      stream[len] = 0;
+      if (memchr(stream, 0, len)) {
+        die(Ecall);
+      } else {
+        stream[len] = 0;
+      }
     }
     if (!len) {
       die(Ecall);
@@ -3557,18 +3605,14 @@ int argc;
   }
   path[plen] = 0;
   if (len <= 0) {
-    stream = path, len = plen;
+    stream = path;
+    len = plen;
   }
   rxopen2(stream, mode, mlen, path, plen);
 }
 
-void rxfdopen2(stream, mode, modelen, n, nlen)  /* implement fdopen(stream,mode,n) */
-char *stream;
-char *n;
-int nlen;
-char *mode;
-int modelen;
-{
+/* implement fdopen(stream,mode,n) */
+void rxfdopen2(char *stream, char *mode, int modelen, char *n, int nlen) {
   int fd;
   char fmode[3];
   FILE *fp;
@@ -3577,7 +3621,8 @@ int modelen;
   fmode[0] = 'r';
   fmode[1] = fmode[2] = 0;
   if (nlen <= 0) {
-    n = stream, nlen = streamlen;  /* default number is same as name */
+    n = stream;
+    nlen = streamlen;  //* default number is same as name
   }
   mtest(workptr, worklen, nlen + streamlen + 2, nlen + streamlen + 2 - worklen);
   memcpy(workptr, n, nlen);
@@ -3585,8 +3630,8 @@ int modelen;
   memcpy(workptr + nlen + 1, stream, streamlen + 1);
   eworkptr = nlen + streamlen + 2;
   stack(workptr, nlen);
-  fd = getint(1);               /* convert the fd to an integer */
-  if (modelen > 0)
+  fd = getint(1);  // convert the fd to an integer
+  if (modelen > 0) {
     switch (mode[0] & 0xdf) {
       case 'R':
         break;
@@ -3598,9 +3643,11 @@ int modelen;
         fmode[0] = 'r';
         fmode[1] = '+';
         break;
-      default:
+      default: {
         die(Ecall);
+      }
     }
+  }
   if ((fp = fdopen(fd, fmode))) {
     fileinit(workptr + nlen + 1, cnull, fp)->wr = fmode[1] == '+';
     errno = 0;
@@ -3608,9 +3655,7 @@ int modelen;
   stackint(errno);
 }
 
-void rxfdopen(argc)
-int argc;
-{
+void rxfdopen(int argc) {
   char *stream = 0, *n, *mode = 0;
   int len = 0, nlen = 0, modelen = 0;
 
@@ -3645,15 +3690,14 @@ int argc;
     die(Ecall);
   }
   if (len <= 0) {
-    stream = n, len = nlen;
+    stream = n;
+    len = nlen;
   }
   rxfdopen2(stream, mode, modelen, n, nlen);
 }
 
-void rxpopen2(stream, mode, mlen, command, comlen)
-char *stream, *mode, *command;  /* implement popen(stream,mode,command) */
-int mlen, comlen;
-{
+/* implement popen(stream,mode,command) */
+void rxpopen2(char *stream, char* mode, int mlen, char *command, int comlen) {
   char fmode[2];
   int rc;
   FILE *fp;
@@ -3677,7 +3721,8 @@ int mlen, comlen;
   }
   if ((fp = popen(command, fmode))) {
     info = fileinit(stream, cnull, fp);
-    info->wr = -(fmode[0] == 'w'), info->lastwr = -(info->wr);
+    info->wr = -(fmode[0] == 'w');
+    info->lastwr = -(info->wr);
     rc = 0;
   } else {
     rc = errno;
@@ -3685,9 +3730,7 @@ int mlen, comlen;
   stackint(rc);
 }
 
-void rxpopen(argc)
-int argc;
-{
+void rxpopen(int argc) {
   char *stream = 0, *mode = 0, *command;
   int len = 0, mlen = 0, comlen;
 
@@ -3696,10 +3739,12 @@ int argc;
     stream = delete(&len);
     if (len < 0) {
       stream = 0;
-    } else if (memchr(stream, 0, len)) {
-      die(Ecall);
     } else {
-      stream[len] = 0;
+      if (memchr(stream, 0, len)) {
+        die(Ecall);
+      } else {
+        stream[len] = 0;
+      }
     }
     if (!len) {
       die(Ecall);
@@ -3718,14 +3763,13 @@ int argc;
   }
   command[comlen] = 0;
   if (len <= 0) {
-    stream = command, len = comlen;
+    stream = command;
+    len = comlen;
   }
   rxpopen2(stream, mode, mlen, command, comlen);
 }
 
-void rxlinein(argc)
-int argc;
-{
+void rxlinein(int argc) {
   char *name = 0;
   int lines = 1;
   int pos = 0;
@@ -3757,10 +3801,12 @@ int argc;
     name = delete(&len);
     if (len <= 0) {
       name = 0;
-    } else if (memchr(name, 0, len)) {
-      die(Ecall);
     } else {
-      name[len] = 0;
+      if (memchr(name, 0, len)) {
+        die(Ecall);
+      } else {
+        name[len] = 0;
+      }
     }
   }
   if (argc) {
@@ -3769,8 +3815,8 @@ int argc;
   if (!name) {
     name = "stdin";
   }
-  if (!(info = (struct fileinfo *) hashget(1, name, &len))) {   /* If not found, then */
-    fp = fopen(name, "r");      /* open it for reading */
+  if (!(info = (struct fileinfo *) hashget(1, name, &len))) {   // if not found, then ...
+    fp = fopen(name, "r");  // open it for reading
     info = fileinit(name, name, fp);
     if (!fp) {
       info->errnum = errno + Eerrno;
@@ -3794,9 +3840,10 @@ int argc;
     return;
   }
   if (info->persist && info->lastwr == 0 && (filepos = ftell(info->fp)) >= 0 && filepos != info->rdpos) {
-    info->rdpos = filepos, info->rdline = 0;  /* position has been disturbed by external prog */
+    info->rdpos = filepos;
+    info->rdline = 0;  // position has been disturbed by external prog
   }
-  clearerr(fp);                 /* Ignore errors and try from scratch */
+  clearerr(fp);  // ignore errors and try from scratch
   info->errnum = 0;
   if (info->lastwr || pos > 0) {
     len = fseek(fp, info->rdpos, 0);
@@ -3805,18 +3852,22 @@ int argc;
   }
   info->lastwr = 0;
   if (pos > 0 && (len < 0 || !info->persist)) {
-    info->errnum = Eseek;       /* Seek not allowed on transient stream */
+    info->errnum = Eseek;  // seek not allowed on transient stream
     rcset(Eseek - Eerrno, Enotready, name);
     stack(cnull, 0);
     return;
   }
-  if (pos > 0) {                /* Search for given line number (ugh!) */
+  if (pos > 0) {  // search for given line number (ugh!)
     if (info->rdline == 0 || info->rdline + info->rdchars > pos) {
-      fseek(fp, 0L, 0), info->rdline = 1;
+      fseek(fp, 0L, 0);
+      info->rdline = 1;
     }
     info->rdchars = 0;
-    for (; ch != EOF && info->rdline < pos; info->rdline++)
-      while ((ch = getc(fp)) != '\n' && ch != EOF);
+    for (; ch != EOF && info->rdline < pos; info->rdline++) {
+      while ((ch = getc(fp)) != '\n' && ch != EOF) {
+        // no-op
+      }
+    }
     if (ch == EOF) {
       info->rdline--;
       info->errnum = Ebounds;
@@ -3829,16 +3880,18 @@ int argc;
   if (lines) {
     call = (sgstack[interplev].callon & (1 << Ihalt)) | (sgstack[interplev].delay & (1 << Ihalt));
     if (!call) {
-      on_interrupt(2, 1);  /* Allow ^C during read */
+      on_interrupt(SIGINT, 1);  // allow ^C during read
     }
     while ((ch = getc(fp)) != '\n' && ch != EOF) {
       mtest(pull, pulllen, len + 1, 256);
       pull[len++] = ch;
     }
-    on_interrupt(2, 0);
-    if (delayed[Ihalt] && !call)
-      delayed[Ihalt] = 0, fseek(fp, info->rdpos, 0),    /* reset to start of line, if possible */
-                       die(Ehalt);
+    on_interrupt(SIGINT, 0);
+    if (delayed[Ihalt] && !call) {
+      delayed[Ihalt] = 0;
+      fseek(fp, info->rdpos, 0);    // reset to start of line, if possible
+      die(Ehalt);
+    }
     if (info->rdline) {
       info->rdline++;
     }
@@ -3856,9 +3909,7 @@ int argc;
   stack(pull, len);
 }
 
-void rxlineout(argc)
-int argc;
-{
+void rxlineout(int argc) {
   char *name = 0;
   char *file;
   int pos = 0;
@@ -3893,10 +3944,12 @@ int argc;
     name = delete(&len);
     if (len <= 0) {
       name = 0;
-    } else if (memchr(name, 0, len)) {
-      die(Ecall);
     } else {
-      name[len] = 0;
+      if (memchr(name, 0, len)) {
+        die(Ecall);
+      } else {
+        name[len] = 0;
+      }
     }
   }
   if (argc) {
@@ -3906,7 +3959,7 @@ int argc;
     name = "stdout";
   }
   if (!(info = (struct fileinfo *) hashget(1, name, &len))) {
-    acc = access(name, F_OK);   /* If not found in table, then open for append */
+    acc = access(name, F_OK);   // if not found in table, then open for append
     fp = fopen(name, acc ? "w+" : "r+");
     if (fp) {
       fseek(fp, 0L, 2);
@@ -3927,9 +3980,9 @@ int argc;
     stack(chars ? "1" : "0", 1);
     return;
   }
-  if (!info->wr) {              /* If it is open for reading, try to reopen for writing */
+  if (!info->wr) {   // if it is open for reading, try to reopen for writing
     file = (char *) (info + 1);
-    if (!file[0]) {             /* reopen not allowed, since file name not given */
+    if (!file[0]) {  // reopen not allowed, since file name not given
       info->errnum = Eaccess;
       rcset(Eaccess - Eerrno, Enotready, name);
       stack(chars ? "1" : "0", 1);
@@ -3937,14 +3990,14 @@ int argc;
     }
     if (!(fp = freopen(file, "r+", fp))) {
       info->errnum = errno + Eerrno;
-      fp = fopen(file, "r");    /* try to regain read access */
+      fp = fopen(file, "r");   // try to regain read access
       info->fp = fp;
       if (fp) {
         fseek(fp, info->rdpos, 0);
       }
       rcset(info->errnum - Eerrno, Enotready, name);
       stack(chars ? "1" : "0", 1);
-      file[0] = 0;              /* Prevent this whole thing from happening again */
+      file[0] = 0;   // prevent this whole thing from happening again
       return;
     }
     info->wr = 1;
@@ -3956,9 +4009,10 @@ int argc;
     }
   }
   if (info->persist && info->lastwr && (filepos = ftell(fp)) >= 0 && filepos != info->wrpos) {
-    info->wrpos = filepos, info->wrline = 0;  /* position has been disturbed by external prog */
+    info->wrpos = filepos;
+    info->wrline = 0;  // position has been disturbed by external prog
   }
-  clearerr(fp);                 /* Ignore errors and try from scratch */
+  clearerr(fp);  // ignore errors and try from scratch
   info->errnum = 0;
   if (info->lastwr == 0 || pos > 0) {
     len = fseek(fp, info->wrpos, 0);
@@ -3967,19 +4021,23 @@ int argc;
   }
   info->lastwr = 1;
   if (pos > 0 && (len < 0 || !info->persist)) {
-    info->errnum = Eseek;       /* Seek not allowed on transient stream */
+    info->errnum = Eseek;  // seek not allowed on transient stream
     rcset(Eseek - Eerrno, Enotready, name);
     stack(chars ? "1" : "0", 1);
     return;
   }
-  if (pos > 0) {                /* Search for required line number (Ugh!) */
+  if (pos > 0) {  // search for required line number (Ugh!)
     if (info->wrline == 0 || info->wrline + info->wrchars > pos) {
-      fseek(fp, 0L, 0), info->wrline = 1;
+      fseek(fp, 0L, 0);
+      info->wrline = 1;
     }
     info->wrchars = 0;
-    for (; ch != EOF && info->wrline < pos; info->wrline++)
-      while ((ch = getc(fp)) != '\n' && ch != EOF);
-    fseek(fp, 0L, 1);           /* seek between read and write */
+    for (; ch != EOF && info->wrline < pos; info->wrline++) {
+      while ((ch = getc(fp)) != '\n' && ch != EOF) {
+        // no-op
+      }
+    }
+    fseek(fp, 0L, 1);  // seek between read and write
     if (ch == EOF) {
       info->wrline--;
       info->errnum = Ebounds;
@@ -3989,7 +4047,7 @@ int argc;
     }
   }
   if (!chars) {
-    if (!pos) {                 /* No data and no position given so flush and go to EOF */
+    if (!pos) {  // no data and no position given so flush and go to EOF
       if (fflush(fp)) {
         rxseterr(info);
       }
@@ -3997,7 +4055,7 @@ int argc;
       info->wrline = 0;
     }
     if ((info->wrpos = ftell(fp)) < 0) {
-      info->wrpos = 0;  /* just pos given */
+      info->wrpos = 0;  // just pos given
     }
     if (info->errnum || setrcflag) {
       rcset(info->errnum - Eerrno, Enotready, name);
@@ -4026,9 +4084,7 @@ int argc;
   }
 }
 
-void rxcharin(argc)
-int argc;
-{
+void rxcharin(int argc) {
   char *name = 0;
   int chars = 1;
   int pos = 0;
@@ -4060,10 +4116,12 @@ int argc;
     name = delete(&len);
     if (len <= 0) {
       name = 0;
-    } else if (memchr(name, 0, len)) {
-      die(Ecall);
     } else {
-      name[len] = 0;
+      if (memchr(name, 0, len)) {
+        die(Ecall);
+      } else {
+        name[len] = 0;
+      }
     }
   }
   if (argc) {
@@ -4073,7 +4131,7 @@ int argc;
     name = "stdin";
   }
   if (!(info = (struct fileinfo *) hashget(1, name, &len))) {
-    fp = fopen(name, "r");      /* not found in table so try to open */
+    fp = fopen(name, "r");  // not found in table so try to open
     info = fileinit(name, name, fp);
     if (!fp) {
       info->errnum = errno + Eerrno;
@@ -4097,12 +4155,13 @@ int argc;
     return;
   }
   if (info->persist && info->lastwr == 0 && (filepos = ftell(info->fp)) >= 0 && filepos != info->rdpos) {
-    info->rdpos = filepos, info->rdline = 0;  /* position has been disturbed by external prog */
+    info->rdpos = filepos;
+    info->rdline = 0;  // position has been disturbed by external prog
   }
   clearerr(fp);
   info->errnum = 0;
   if (pos > 0 && (!info->persist || fseek(fp, 0L, 2) < 0)) {
-    info->errnum = Eseek;       /* Seek not allowed on transient stream */
+    info->errnum = Eseek;  // seek not allowed on transient stream
     rcset(Eseek - Eerrno, Enotready, name);
     stack(cnull, 0);
     return;
@@ -4113,7 +4172,7 @@ int argc;
       info->rdpos = pos - 1;
     }
     info->rdline = 0;
-    if (filepos < pos) {        /* Seek was out of bounds */
+    if (filepos < pos) {  // seek was out of bounds
       info->errnum = Ebounds;
       rcset(Ebounds - Eerrno, Enotready, name);
       stack(cnull, 0);
@@ -4125,19 +4184,22 @@ int argc;
   info->lastwr = 0;
   call = (sgstack[interplev].callon & (1 << Ihalt)) | (sgstack[interplev].delay & (1 << Ihalt));
   if (!call) {
-    on_interrupt(2, 1);  /* allow ^C to interrupt */
+    on_interrupt(SIGINT, 1);  // allow ^C to interrupt
   }
   mtest(workptr, worklen, chars, chars - worklen);
   len = fread(workptr, 1, chars, fp);
-  on_interrupt(2, 0);
+  on_interrupt(SIGINT, 0);
   if (delayed[Ihalt] && !call) {
-    delayed[Ihalt] = 0, fseek(fp, info->rdpos, 0), die(Ehalt);
+    delayed[Ihalt] = 0;
+    fseek(fp, info->rdpos, 0);
+    die(Ehalt);
   }
-  if (len && info->rdline) {    /* Try to keep the line counter up to date */
-    for (l = 0; l < len;)
+  if (len && info->rdline) {  // try to keep the line counter up to date
+    for (l = 0; l < len;) {
       if (workptr[l++] == '\n') {
         info->rdline++;
       }
+    }
     if (workptr[len - 1] != '\n') {
       info->rdchars = 1;
     }
@@ -4154,9 +4216,7 @@ int argc;
   stack(workptr, len);
 }
 
-void rxcharout(argc)
-int argc;
-{
+void rxcharout(int argc) {
   char *name = 0;
   char *file;
   int pos = 0;
@@ -4191,10 +4251,12 @@ int argc;
     name = delete(&len);
     if (len <= 0) {
       name = 0;
-    } else if (memchr(name, 0, len)) {
-      die(Ecall);
     } else {
-      name[len] = 0;
+      if (memchr(name, 0, len)) {
+        die(Ecall);
+      } else {
+        name[len] = 0;
+      }
     }
   }
   if (argc) {
@@ -4204,7 +4266,7 @@ int argc;
     name = "stdout";
   }
   if (!(info = (struct fileinfo *) hashget(1, name, &len))) {
-    acc = access(name, F_OK);   /* If not found in table, open for append */
+    acc = access(name, F_OK);   // if not found in table, open for append
     fp = fopen(name, acc ? "w+" : "r+");
     if (fp) {
       fseek(fp, 0L, 2);
@@ -4225,7 +4287,7 @@ int argc;
     stackint(charlen);
     return;
   }
-  if (!info->wr) {              /* If not open for write, try to gain write access */
+  if (!info->wr) {  // if not open for write, try to gain write access
     file = (char *) (info + 1);
     if (!file[0]) {
       info->errnum = Eaccess;
@@ -4235,14 +4297,14 @@ int argc;
     }
     if (!(fp = freopen(file, "r+", fp))) {
       info->errnum = errno + Eerrno;
-      fp = fopen(file, "r");    /* try to regain read access */
+      fp = fopen(file, "r");    // try to regain read access
       info->fp = fp;
       if (fp) {
         fseek(fp, info->rdpos, 0);
       }
       rcset(info->errnum - Eerrno, Enotready, name);
       stackint(charlen);
-      file[0] = 0;              /* Prevent this whole thing from happening again */
+      file[0] = 0;  // prevent this whole thing from happening again
       return;
     }
     info->wr = 1;
@@ -4254,12 +4316,13 @@ int argc;
     }
   }
   if (info->persist && info->lastwr && (filepos = ftell(fp)) >= 0 && filepos != info->wrpos) {
-    info->wrpos = filepos, info->wrline = 0;  /* position has been disturbed */
+    info->wrpos = filepos;
+    info->wrline = 0;  // position has been disturbed
   }
   clearerr(fp);
   info->errnum = 0;
   if (pos > 0 && (!info->persist || fseek(fp, 0L, 2) < 0)) {
-    info->errnum = Eseek;       /* Seek not allowed on transient stream */
+    info->errnum = Eseek;   // seek not allowed on transient stream
     rcset(Eseek - Eerrno, Enotready, name);
     stackint(charlen);
     return;
@@ -4270,7 +4333,7 @@ int argc;
       info->wrpos = pos - 1;
     }
     info->wrline = 0;
-    if (filepos + 1 < pos) {    /* Seek was out of bounds */
+    if (filepos + 1 < pos) {  // seek was out of bounds
       info->errnum = Ebounds;
       rcset(Ebounds - Eerrno, Enotready, name);
       stack(cnull, 0);
@@ -4281,7 +4344,7 @@ int argc;
   }
   info->lastwr = 1;
   if (!chars) {
-    if (!pos) {                 /* No data, no pos, so flush and seek to EOF */
+    if (!pos) {  // no data, no pos, so flush and seek to EOF
       if (fflush(fp)) {
         rxseterr(info);
       }
@@ -4289,7 +4352,7 @@ int argc;
       info->wrline = 0;
     }
     if ((info->wrpos = ftell(fp)) < 0) {
-      info->wrpos = 0;  /* no data, so OK */
+      info->wrpos = 0;  // no data, so OK
     }
     if (info->errnum || setrcflag) {
       rcset(info->errnum - Eerrno, Enotready, name);
@@ -4300,10 +4363,11 @@ int argc;
   len = fwrite(chars, 1, charlen, fp);
   info->wrpos += len;
   if (len && info->wrline) {
-    for (l = 0; l < len;)
+    for (l = 0; l < len;) {
       if (chars[l++] == '\n') {
         info->wrline++;
       }
+    }
     if (chars[len - 1] != '\n') {
       info->wrchars = 1;
     }
@@ -4320,21 +4384,16 @@ int argc;
   stackint(charlen - len);
 }
 
-void rxchars(argc)
-int argc;
-{
+void rxchars(int argc) {
   rxchars2(argc, 0);
 }
 
-void rxlines(argc)
-int argc;
-{
+void rxlines(int argc) {
   rxchars2(argc, 1);
 }
 
-void rxchars2(argc, line)       /* = rxchars(argc) if line==0, or rxlines(argc) o/w */
-int argc, line;
-{
+/* = rxchars(argc) if line==0, or rxlines(argc) o/w */
+void rxchars2(int argc, int line) {
   long chars;
   long (filepos);
   int lines;
@@ -4349,10 +4408,12 @@ int argc, line;
     name = delete(&len);
     if (len <= 0) {
       name = 0;
-    } else if (memchr(name, 0, len)) {
-      die(Ecall);
     } else {
-      name[len] = 0;
+      if (memchr(name, 0, len)) {
+        die(Ecall);
+      } else {
+        name[len] = 0;
+      }
     }
   } else if (argc) {
     die(Ecall);
@@ -4373,7 +4434,7 @@ int argc, line;
     return;
   }
   if (info) {
-    /* fstat appears to be quicker (and more correct) than seeking to EOF and back. */
+    // fstat appears to be quicker (and more correct) than seeking to EOF and back.
     if (info->persist && !fstat(fileno(info->fp), &buf) && S_ISREG(buf.st_mode)) {
       if (info->lastwr || (filepos = ftell(info->fp)) < 0) {
         filepos = info->rdpos;
@@ -4393,7 +4454,7 @@ int argc, line;
     if (line && info->persist && (filepos = ftell(info->fp)) >= 0) {
       lines = 0;
       c2 = '\n';
-      while ((ch = getc(info->fp)) != EOF) {    /* count lines */
+      while ((ch = getc(info->fp)) != EOF) {  // count lines
         if (ch == '\n') {
           lines++;
         }
@@ -4406,49 +4467,51 @@ int argc, line;
     } else {
       lines = (chars > 0);
     }
-  } else {                      /* Not open.  Try to open it (to see whether we have access) */
-    /* Funny thing is, we only make a fileinfo structure for it if
-       there is an error (to hold the error number). */
+  } else {  // not open
+    // try to open it (to see whether we have access)
+    // funny thing is, we only make a fileinfo structure for it if there is an error (to hold the error number).
     chars = lines = 0;
     if (!(fp = fopen(name, "r"))) {
       info = fileinit(name, name, fp);
       info->errnum = errno + Eerrno;
       rcset(errno, Enotready, name);
-    } else if (fstat(fileno(fp), &buf)) {
-      info = fileinit(name, name, fp);
-      info->errnum = errno + Eerrno;
-      rcset(errno, Enotready, name);
-      /* file is still open, but that's OK since its info is stored */
-    } else if (!S_ISREG(buf.st_mode)) {
-      /* Not a regular file.  Sometimes we are allowed to fopen a directory,
-         in which case EISDIR should be reported.  Otherwise, since we
-         were allowed to open the file, assume it is a readable file with
-         no characters (e.g. a tty) and do not report an error. */
-      if (S_ISDIR(buf.st_mode)) {
-        fclose(fp);
-        info = fileinit(name, cnull, (FILE *) 0);
-        info->errnum = EISDIR + Eerrno;
-        rcset(EISDIR, Enotready, name);
-      } else {
-        fclose(fp);
-      }
     } else {
-      chars = buf.st_size;
-      if (line) {               /* Count lines */
-        c2 = '\n';
-        while ((ch = getc(fp)) != EOF) {
-          if (ch == '\n') {
-            lines++;
-          }
-          c2 = ch;
-        }
-        if (c2 != '\n') {
-          lines++;
-        }
+      if (fstat(fileno(fp), &buf)) {
+        info = fileinit(name, name, fp);
+        info->errnum = errno + Eerrno;
+        rcset(errno, Enotready, name);
+        // file is still open, but that's OK since its info is stored
       } else {
-        lines = (chars > 0);
+        if (!S_ISREG(buf.st_mode)) {   // not a regular file.
+          // sometimes we are allowed to fopen a directory, in which case EISDIR should be reported.
+          // woherwise, since we were allowed to open the file, assume it is a readable file with no characters (e.g. a tty) and do not report an error. */
+          if (S_ISDIR(buf.st_mode)) {
+            fclose(fp);
+            info = fileinit(name, cnull, (FILE *) 0);
+            info->errnum = EISDIR + Eerrno;
+            rcset(EISDIR, Enotready, name);
+          } else {
+            fclose(fp);
+          }
+        } else {
+          chars = buf.st_size;
+          if (line) {  // count lines
+            c2 = '\n';
+            while ((ch = getc(fp)) != EOF) {
+              if (ch == '\n') {
+                lines++;
+              }
+              c2 = ch;
+            }
+            if (c2 != '\n') {
+              lines++;
+            }
+          } else {
+            lines = (chars > 0);
+          }
+          fclose(fp);
+        }
       }
-      fclose(fp);
     }
   }
   if (line) {
@@ -4458,9 +4521,7 @@ int argc, line;
   }
 }
 
-void rxclose(argc)
-int argc;
-{
+void rxclose(int argc) {
   char *name;
   int len;
 
@@ -4479,9 +4540,7 @@ int argc;
   stackint(fileclose(name));
 }
 
-void rxpclose(argc)
-int argc;
-{
+void rxpclose(int argc) {
   char *name;
   int len;
   int rc;
@@ -4508,7 +4567,7 @@ int argc;
       rc = -1;
     }
     if (info->fp && rc < 0) {
-      fclose(info->fp);  /* if error, close anyway */
+      fclose(info->fp);  // if error, close anyway
     }
     free((char *) info);
     ((hashent *) ptr)->value = 0;
@@ -4522,9 +4581,7 @@ int argc;
   }
 }
 
-void rxfileno(argc)
-int argc;
-{
+void rxfileno(int argc) {
   char *name;
   int len;
   struct fileinfo *info;
@@ -4548,9 +4605,7 @@ int argc;
   }
 }
 
-void rxftell(argc)
-int argc;
-{
+void rxftell(int argc) {
   char *name;
   int len;
   struct fileinfo *info;
@@ -4570,7 +4625,7 @@ int argc;
   if (!(info = (struct fileinfo *) hashget(1, name, &len)) || !(info->fp)) {
     len = -1;
   } else {
-    len = ftell(info->fp);  /* Ahem! */
+    len = ftell(info->fp);  // ahem!
   }
   if (len >= 0) {
     len++;
@@ -4578,12 +4633,8 @@ int argc;
   stackint(len);
 }
 
-void rxquery2(stream, info, param, len) /* used for stream(file,"c","query ...") */
-char *stream;
-struct fileinfo *info;
-char *param;
-int len;
-{
+/* used for stream(file,"c","query ...") */
+void rxquery2(char *stream, struct fileinfo *info, char *param, int len) {
   struct stat st;
   struct tm *tp;
   char *name;
@@ -4594,14 +4645,14 @@ int len;
   int statrc;
   int fd = -1;
 
-  /* if the stream is open, fstat it, otherwise stat the named file */
+  // if the stream is open, fstat it, otherwise stat the named file
   if (info && info->fp) {
     fd = fileno(info->fp);
     statrc = fstat(fd, &st);
   } else {
     statrc = stat(stream, &st);
   }
-  if (statrc) {                 /* answer is "" if the file does not exist */
+  if (statrc) {  // answer is "" if the file does not exist
     stack(cnull, 0);
     return;
   }
@@ -4613,22 +4664,20 @@ int len;
     return;
   }
   if (!strcasecmp(param, "exists")) {
-    if (fd >= 0) {              /* stream is open; fetch the associated file name */
+    if (fd >= 0) {  // stream is open; fetch the associated file name
       name = (char *) (info + 1);
-      if (!name[0]) {           /* no name known so return the stream name */
+      if (!name[0]) {  // no name known so return the stream name
         stack(stream, strlen(stream));
         return;
       }
-      if (stat(name, &st)) {
-        /* name was known but the file does not seem to exist */
+      if (stat(name, &st)) { // name was known but the file does not seem to exist
         stack(stream, strlen(stream));
         return;
       }
     } else {
-      name = stream;  /* use the supplied name */
+      name = stream;  // use the supplied name
     }
-    /* since the stat worked the file exists so qualify and return it */
-    /* (files of form "/foo" don't need qualification) */
+    // since the stat worked the file exists so qualify and return it; (files of form "/foo" don't need qualification)
     if (getcwd(curdir, sizeof curdir) && curdir[0] == '/' && (cp = strrchr(name, '/')) != name) {
       dir = curdir;
       if (cp && cp - name < sizeof tmp) {
@@ -4640,8 +4689,7 @@ int len;
         }
         chdir(curdir);
       }
-      /* the answer is now dir concatenated to name */
-      /* In case dir was not found or name is just '.', remove leading '.' */
+      // the answer is now dir concatenated to name; in case dir was not found or name is just '.', remove leading '.'
       if (name[0] == '.') {
         if (name[1] == '/') {
           name += 2;
@@ -4692,9 +4740,7 @@ int len;
   die(Ecall);
 }
 
-void rxstream(argc)
-int argc;
-{
+void rxstream(int argc) {
   char *stream;
   char option = 'S';
   char *command = 0;
@@ -4747,10 +4793,12 @@ int argc;
       }
       if (!info) {
         answer = "Stream is not open";
-      } else if (!info->errnum) {
-        answer = "Ready";
       } else {
-        answer = message(info->errnum);
+        if (!info->errnum) {
+          answer = "Ready";
+        } else {
+          answer = message(info->errnum);
+        }
       }
       stack(answer, strlen(answer));
       return;
@@ -4760,16 +4808,20 @@ int argc;
       }
       if (!info) {
         stack("UNKNOWN", 7);
-      } else if (!info->errnum) {
-        stack("READY", 5);
-      } else if (info->errnum == Eeof + Eerrno || info->errnum < Eerrno) {
-        stack("NOTREADY", 8);
       } else {
-        stack("ERROR", 5);
+        if (!info->errnum) {
+          stack("READY", 5);
+        } else {
+          if (info->errnum == Eeof + Eerrno || info->errnum < Eerrno) {
+            stack("NOTREADY", 8);
+          } else {
+            stack("ERROR", 5);
+          }
+        }
       }
       return;
     case 'C':
-      break;                    /* out of the switch to do the work */
+      break;  // out of the switch to do the work
     default:
       die(Ecall);
   }
@@ -4777,46 +4829,51 @@ int argc;
     die(Ecall);
   }
   param = command;
-  while (comlen-- && *param++ != ' ');  /* Find the command end */
+  while (comlen-- && *param++ != ' ') {
+    // find the command end
+  }
   if (comlen >= 0) {
-    param[-1] = 0;              /* terminate the command */
-    while (comlen-- && *param++ == ' ');        /* Find the parameter */
+    param[-1] = 0;   // terminate the command
+    while (comlen-- && *param++ == ' ') {
+      // find the parameter
+    }
     comlen++, param--;
   } else {
     param[0] = comlen = 0;
   }
-  /***/ if (!strcasecmp(command, "close")) {
-    /* syntax: "close" */
+  if (!strcasecmp(command, "close")) { // syntax: "close"
     if (comlen) {
       die(Ecall);
     }
     stackint(fileclose(stream));
-  } else if (!strcasecmp(command, "fdopen")) {  /* syntax: "fdopen [mode][,n]" */
+  } else if (!strcasecmp(command, "fdopen")) {  // syntax: "fdopen [mode][,n]"
     char *n;
-
     if (isnull) {
       die(Ecall);
     }
-    for (len = 0; len < comlen && param[len] != ',' && param[len] != ' '; len++);
+    for (len = 0; len < comlen && param[len] != ',' && param[len] != ' '; len++) {
+      // no-op
+    }
     comlen -= len + 1;
-    for (n = param + len + 1; comlen > 0 && n[0] == ' '; n++, comlen--);
+    for (n = param + len + 1; comlen > 0 && n[0] == ' '; n++, comlen--) {
+      // no-op
+    }
     if (comlen < 0) {
       comlen = 0;
     }
     rxfdopen2(stream, param, len, n, comlen);
-  } else if (!strcasecmp(command, "fileno")) {  /* syntax: "fileno" */
+  } else if (!strcasecmp(command, "fileno")) {  // syntax: "fileno"
     if (info && info->fp) {
       stackint(fileno(info->fp));
     } else {
       stack("-1", 2);
     }
-  } else if (!strcasecmp(command, "flush")) {   /* syntax: "flush" */
+  } else if (!strcasecmp(command, "flush")) {  // syntax: "flush"
     if (isnull) {
       die(Ecall);
     }
     if (info && info->fp) {
       int answer = fflush(info->fp);
-
       if (answer < 0) {
         rxseterr(info);
       }
@@ -4827,20 +4884,18 @@ int argc;
     } else {
       stack("-1", 2);
     }
-  } else if (!strcasecmp(command, "ftell")) {   /* syntax: "ftell" */
+  } else if (!strcasecmp(command, "ftell")) {   // syntax: "ftell"
     if (info && info->fp) {
       stackint(ftell(info->fp));
     } else {
       stack("-1", 2);
     }
-  } else if (!strcasecmp(command, "open")) {    /* syntax: "open [mode][,path]" */
+  } else if (!strcasecmp(command, "open")) {    // syntax: "open [mode][,path]"
     char *path = 0;
-
     if (isnull) {
       die(Ecall);
     }
-    /* for compatibility, accept "open both *", "open write append" and */
-    /* "open write replace" before parsing the usual parameters. */
+    // for compatibility, accept "open both *", "open write append" and "open write replace" before parsing the usual parameters.
     if (comlen == 12 && !strncasecmp(param, "write append", comlen)) {
       param = "a";
       len = 1;
@@ -4862,18 +4917,21 @@ int argc;
       len = 1;
       comlen = 0;
     } else {
-      for (len = 0; len < comlen && param[len] != ',' && param[len] != ' '; len++);
+      for (len = 0; len < comlen && param[len] != ',' && param[len] != ' '; len++) {
+        // no-op
+      }
       comlen -= len + 1;
-      for (path = param + len + 1; comlen > 0 && path[0] == ' '; path++, comlen--);
+      for (path = param + len + 1; comlen > 0 && path[0] == ' '; path++, comlen--) {
+        // no-op
+      }
       if (comlen < 0) {
         comlen = 0;
       }
     }
     rxopen2(stream, param, len, path, comlen);
-  } else if (!strcasecmp(command, "pclose")) {  /* syntax: "pclose" */
+  } else if (!strcasecmp(command, "pclose")) {  // syntax: "pclose"
     char *ptr = hashsearch(1, stream, &exist);
     int rc;
-
     if (exist && (info = (struct fileinfo *) (((hashent *) ptr)->value))) {
       if (info->fp) {
         rc = pclose(info->fp);
@@ -4881,7 +4939,7 @@ int argc;
         rc = -1;
       }
       if (info->fp && rc < 0) {
-        fclose(info->fp);  /* if error, close anyway */
+        fclose(info->fp);  // if error, close anyway
       }
       free((char *) info);
       ((hashent *) ptr)->value = 0;
@@ -4893,43 +4951,44 @@ int argc;
     } else {
       stackint((char) (rc / 256));
     }
-  } else if (!strcasecmp(command, "popen")) {   /* syntax: "popen [mode][,command]" */
+  } else if (!strcasecmp(command, "popen")) {   // syntax: "popen [mode][,command]"
     char *cmd;
-
     if (isnull) {
       die(Ecall);
     }
-    for (len = 0; len < comlen && param[len] != ',' && param[len] != ' '; len++);
+    for (len = 0; len < comlen && param[len] != ',' && param[len] != ' '; len++) {
+      // no-op
+    }
     comlen -= len + 1;
-    for (cmd = param + len + 1; comlen > 0 && cmd[0] == ' '; cmd++, comlen--);
+    for (cmd = param + len + 1; comlen > 0 && cmd[0] == ' '; cmd++, comlen--) {
+      // no-op
+    }
     if (comlen < 0) {
       comlen = 0;
     }
     rxpopen2(stream, param, len, cmd, comlen);
-  } else if (!strcasecmp(command, "query")) {   /* syntax: "query <info>" */
+  } else if (!strcasecmp(command, "query")) {   // syntax: "query <info>"
     rxquery2(stream, info, param, comlen);
-  } else if (!strcasecmp(command, "persistent")) {      /* syntax: persistent */
+  } else if (!strcasecmp(command, "persistent")) {   // syntax: persistent
     if (info) {
       info->persist = 1;
       stack("0", 1);
     } else {
       stack("-1", 2);
     }
-  } else if (!strcasecmp(command, "transient")) {       /* syntax: transient */
+  } else if (!strcasecmp(command, "transient")) {  // syntax: transient
     if (info) {
       info->persist = 0;
       stack("0", 1);
     } else {
       stack("-1", 2);
     }
-  } else {
+  } else { // no syntax: catch
     die(Ecall);
   }
 }
 
-void rxcondition(argc)
-int argc;
-{
+void rxcondition(int argc) {
   char option = 'I';
   char *arg;
   int len;
@@ -4953,13 +5012,16 @@ int argc;
       arg = conditions[which];
       break;
     case 'D':
-      for (len = interplev; len >= 0 && !(arg = sgstack[len].data); len--);
+      for (len = interplev; len >= 0 && !(arg = sgstack[len].data); len--) {
+        // no-op
+      }
       break;
     case 'S':
       arg = sgstack[interplev].delay & (1 << which) ? "DELAY" : sgstack[interplev].callon & (1 << which) ? "ON" : sgstack[interplev].bits & (1 << which) ? "ON" : "OFF";
       break;
-    default:
+    default: {
       die(Ecall);
+    }
   }
   if (!sgstack[interplev].type) {
     arg = 0;

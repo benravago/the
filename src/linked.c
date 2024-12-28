@@ -769,11 +769,10 @@ PARSER_DETAILS *parserll_free(PARSER_DETAILS *first) {
 
 PARSER_DETAILS *parserll_find(PARSER_DETAILS *first, uchar *name) {
   PARSER_DETAILS *curr = NULL;
-  short i = 0;
 
   curr = first;
   if (curr != NULL) {
-    for (i = 0; curr != NULL; i++, curr = curr->next) {
+    for (; curr != NULL; curr = curr->next) {
       if (strcasecmp((char *) name, (char *) curr->parser_name) == 0) {
         return curr;
       }
@@ -1102,11 +1101,10 @@ PARSER_MAPPING *mappingll_free(PARSER_MAPPING *first) {
 
 PARSER_MAPPING *mappingll_find(PARSER_MAPPING *first, uchar *filemask, uchar *magic_number) {
   PARSER_MAPPING *curr = NULL;
-  short i = 0;
 
   curr = first;
   if (curr != NULL) {
-    for (i = 0; curr != NULL; i++, curr = curr->next) {
+    for (; curr != NULL; curr = curr->next) {
       if (filemask != NULL) {
         if (curr->filemask && strcmp((char *) filemask, (char *) curr->filemask) == 0) {
           return curr;

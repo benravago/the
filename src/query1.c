@@ -1540,7 +1540,6 @@ short extract_lastop(short number_variables, short itemno, uchar *itemargs, ucha
     }
     for (i = 0; i < LASTOP_MAX; i++) {
       sprintf((char *) query_rsrvd, "%s%s %s", (query_type == QUERY_QUERY) ? (char *) "lastop " : "", lastop[i].command, (lastop[i].value) ? lastop[i].value : (uchar *) "");
-
       if (query_type == QUERY_QUERY) {
         display_error(0, query_rsrvd, TRUE);
       } else {
