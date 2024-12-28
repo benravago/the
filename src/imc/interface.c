@@ -1036,7 +1036,7 @@ unsigned long RexxVariablePool(SHVBLOCK *request) {
 int unixcall(char *name, char *callname, int argc) {
   int i;
   int l;
-  int pid;
+  pid_t pid;
   int fd[2];
   char *ptr;
 
@@ -1055,10 +1055,11 @@ int unixcall(char *name, char *callname, int argc) {
   if (pipe(fd)) {
     perror("REXX: couldn't make a pipe"), die(Esys);
   }
-  if ((pid = vfork()) < 0) {
-    perror("REXX: couldn't vfork"), die(Esys);
-  }
-  if (!pid) {
+  pid = fork();
+  if (pid == -1) {
+    perror("REXX: couldn't fork");
+    die(Esys);
+  } else if (pid == 0) { 
     // child: attach pipe to stdout and exec the function
     close(fd[0]);
     if (dup2(fd[1], 1) < 0) {
@@ -1067,7 +1068,7 @@ int unixcall(char *name, char *callname, int argc) {
     close(fd[1]);
     execv(name, argv);
     perror(name);
-    _exit(-1);
+    exit(-1);
   }
   // parent: read the result and stack it
   close(fd[1]);

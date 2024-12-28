@@ -40,7 +40,7 @@ int shell(char *command) {
   char quote = 0;
   char c;
   int i, j;
-  int pid;
+  pid_t pid;
   char *exec;
 
   if (!arguments) { // allocate some initial memory
@@ -91,19 +91,20 @@ int shell(char *command) {
     return hashcmd(arguments), 0;
   }
   exec = locate(arguments[0]);  // locate the command
-  if (!(pid = vfork())) {
+  pid = fork();
+  if (pid == -1) { // error
+    perror("fork");
+    return -3;
+  } else if (pid == 0) { // child process
     execv(exec, arguments);  // execute command
     if (errno == ENOENT) {  // if did not exist...
       fprintf(stderr, "%s: Command not found.\n", arguments[0]);
     } else {
       perror(exec);  // some other error
     }
-    _exit(-3);
+    exit(-3);
   }
-  if (pid == -1) {
-    perror("vfork");
-    return -3;
-  }
+  // parent process
   i = 0;
   waitpid(pid, &i, 0);  // wait for command
   return (int) (char) (i / 256);
