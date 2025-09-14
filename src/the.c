@@ -107,7 +107,7 @@ uchar *stdinprofile = (uchar *) NULL;
 
 uchar user_home_dir[MAX_FILE_NAME + 1];
 
-#define THE_PROFILE_FILE ".therc"
+#define THE_PROFILE_FILE ".the/THE.rc"
 
 #define THE_FIFO_FILE ".thefifo"
 #define THE_PID_FILE ".thepid"

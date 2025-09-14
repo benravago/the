@@ -167,7 +167,7 @@ PARSER_MAPPING default_parser_mapping[] = {
   { NULL, NULL, (uchar *) "REXX", (uchar *) "*.rex", NULL, 0, NULL },
   { NULL, NULL, (uchar *) "REXX", (uchar *) "*.rexx", NULL, 0, NULL },
   { NULL, NULL, (uchar *) "REXX", (uchar *) "*.the", NULL, 0, NULL },
-  { NULL, NULL, (uchar *) "REXX", (uchar *) ".therc", NULL, 0, NULL },
+  { NULL, NULL, (uchar *) "REXX", (uchar *) "THE.rc", NULL, 0, NULL },
   { NULL, NULL, (uchar *) "TLD", (uchar *) "*.tld", NULL, 0, NULL },
   { NULL, NULL, (uchar *) "HTML", (uchar *) "*.htm", NULL, 0, NULL },
   { NULL, NULL, (uchar *) "HTML", (uchar *) "*.html", NULL, 0, NULL },

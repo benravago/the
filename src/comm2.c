@@ -902,7 +902,7 @@ short Help(uchar *params) {
       strcpy((char *) the_help_file, envptr);
     } else {
       strcpy((char *) the_help_file, (char *) the_home_dir);
-      strcat((char *) the_help_file, "THE_Help.txt");
+      strcat((char *) the_help_file, "Help.txt");
     }
     strrmdup(strtrans(the_help_file, OSLASH, ISLASH), ISLASH, TRUE);
     first = FALSE;
